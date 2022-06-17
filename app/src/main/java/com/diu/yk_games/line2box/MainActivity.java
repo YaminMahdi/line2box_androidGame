@@ -54,34 +54,41 @@ public class MainActivity extends AppCompatActivity
             {
 
                 bg.setColor(ContextCompat.getColor(getApplicationContext(),R.color.redX));
-                if((Character.getNumericValue(idNm.charAt(1))>1&&idNm.charAt(4)=='T')||(Character.getNumericValue(idNm.charAt(3))>1&&idNm.charAt(4)=='L'))
+            }
+            else
+            {
+                bg.setColor(ContextCompat.getColor(getApplicationContext(),R.color.blueX));
+            }
+            if((Character.getNumericValue(idNm.charAt(1))>1&&idNm.charAt(4)=='T')||(Character.getNumericValue(idNm.charAt(3))>1&&idNm.charAt(4)=='L'))
+            {
+                int idTopU = this.getResources().getIdentifier(getIdNm(idNm)[0], "id", this.getPackageName());
+                int idTopL = this.getResources().getIdentifier(getIdNm(idNm)[1], "id", this.getPackageName());
+                int idTopR = this.getResources().getIdentifier(getIdNm(idNm)[2], "id", this.getPackageName());
+                View lineU= findViewById(idTopU);
+                View lineL= findViewById(idTopL);
+                View lineR= findViewById(idTopR);
+                GradientDrawable bgTopU = (GradientDrawable) lineU.getBackground();
+                GradientDrawable bgTopL = (GradientDrawable) lineL.getBackground();
+                GradientDrawable bgTopR = (GradientDrawable) lineR.getBackground();
+                if((getColorGrad(bgTopU)==red||getColorGrad(bgTopU)==blue)&&(getColorGrad(bgTopL)==red||getColorGrad(bgTopL)==blue)&&(getColorGrad(bgTopR)==red||getColorGrad(bgTopR)==blue))
                 {
-                    int idTopU = this.getResources().getIdentifier(getIdNm(idNm)[0], "id", this.getPackageName());
-                    int idTopL = this.getResources().getIdentifier(getIdNm(idNm)[1], "id", this.getPackageName());
-                    int idTopR = this.getResources().getIdentifier(getIdNm(idNm)[2], "id", this.getPackageName());
-                    View lineU= findViewById(idTopU);
-                    View lineL= findViewById(idTopL);
-                    View lineR= findViewById(idTopR);
-                    GradientDrawable bgTopU = (GradientDrawable) lineU.getBackground();
-                    GradientDrawable bgTopL = (GradientDrawable) lineL.getBackground();
-                    GradientDrawable bgTopR = (GradientDrawable) lineR.getBackground();
-                    if((getColorGrad(bgTopU)==red||getColorGrad(bgTopU)==blue)&&(getColorGrad(bgTopL)==red||getColorGrad(bgTopL)==blue)&&(getColorGrad(bgTopR)==red||getColorGrad(bgTopR)==blue))
+                    Log.d("midL", "lineClick: "+getIdNm(idNm)[8]);
+                    int txtId = this.getResources().getIdentifier(getIdNm(idNm)[6], "id", this.getPackageName());
+                    int idMidC1 = this.getResources().getIdentifier(getIdNm(idNm)[8], "id", this.getPackageName());
+                    int idMidC2 = this.getResources().getIdentifier(getIdNm(idNm)[9], "id", this.getPackageName());
+                    int idUpC1 = this.getResources().getIdentifier(getIdNm(idNm)[10], "id", this.getPackageName());
+                    int idUpC2 = this.getResources().getIdentifier(getIdNm(idNm)[11], "id", this.getPackageName());
+                    View crMid1= findViewById(idMidC1);
+                    View crMid2= findViewById(idMidC2);
+                    View crUp1= findViewById(idUpC1);
+                    View crUp2= findViewById(idUpC2);
+                    GradientDrawable bgMidC1 = (GradientDrawable) crMid1.getBackground();
+                    GradientDrawable bgMidC2 = (GradientDrawable) crMid2.getBackground();
+                    GradientDrawable bgUpC1 = (GradientDrawable) crUp1.getBackground();
+                    GradientDrawable bgUpC2 = (GradientDrawable) crUp2.getBackground();
+                    TextView txt= findViewById(txtId);
+                    if(clickCount%2==1)
                     {
-                        Log.d("midL", "lineClick: "+getIdNm(idNm)[8]);
-                        int txtId = this.getResources().getIdentifier(getIdNm(idNm)[6], "id", this.getPackageName());
-                        int idMidC1 = this.getResources().getIdentifier(getIdNm(idNm)[8], "id", this.getPackageName());
-                        int idMidC2 = this.getResources().getIdentifier(getIdNm(idNm)[9], "id", this.getPackageName());
-                        int idUpC1 = this.getResources().getIdentifier(getIdNm(idNm)[10], "id", this.getPackageName());
-                        int idUpC2 = this.getResources().getIdentifier(getIdNm(idNm)[11], "id", this.getPackageName());
-                        View crMid1= findViewById(idMidC1);
-                        View crMid2= findViewById(idMidC2);
-                        View crUp1= findViewById(idUpC1);
-                        View crUp2= findViewById(idUpC2);
-                        GradientDrawable bgMidC1 = (GradientDrawable) crMid1.getBackground();
-                        GradientDrawable bgMidC2 = (GradientDrawable) crMid2.getBackground();
-                        GradientDrawable bgUpC1 = (GradientDrawable) crUp1.getBackground();
-                        GradientDrawable bgUpC2 = (GradientDrawable) crUp2.getBackground();
-                        TextView txt= findViewById(txtId);
                         txt.setText("R");
                         txt.setTypeface(ResourcesCompat.getFont(getApplicationContext(), R.font.bertram));
                         //txt.setTextSize(5,5);
@@ -98,39 +105,62 @@ public class MainActivity extends AppCompatActivity
                         bgUpC1.setStroke(14,ContextCompat.getColor(getApplicationContext(),R.color.redY));
                         bgUpC2.setColor(ContextCompat.getColor(getApplicationContext(),R.color.redX));
                         bgUpC2.setStroke(14,ContextCompat.getColor(getApplicationContext(),R.color.redY));
-
                     }
-                }
-
-                if((Character.getNumericValue(idNm.charAt(1))<7&&idNm.charAt(4)=='T')||(Character.getNumericValue(idNm.charAt(3))<7&&idNm.charAt(4)=='L'))
-                {
-                    int idDownU = this.getResources().getIdentifier(getIdNm(idNm)[3], "id", this.getPackageName());
-                    int idDownL = this.getResources().getIdentifier(getIdNm(idNm)[4], "id", this.getPackageName());
-                    int idDownR = this.getResources().getIdentifier(getIdNm(idNm)[5], "id", this.getPackageName());
-                    View lineDownU= findViewById(idDownU);
-                    View lineDownL= findViewById(idDownL);
-                    View lineDownR= findViewById(idDownR);
-                    GradientDrawable bgDownU = (GradientDrawable) lineDownU.getBackground();
-                    GradientDrawable bgDownL = (GradientDrawable) lineDownL.getBackground();
-                    GradientDrawable bgDownR = (GradientDrawable) lineDownR.getBackground();
-                    if((getColorGrad(bgDownU)==red||getColorGrad(bgDownU)==blue)&&(getColorGrad(bgDownL)==red||getColorGrad(bgDownL)==blue)&&(getColorGrad(bgDownR)==red||getColorGrad(bgDownR)==blue))
+                    else
                     {
-                        int txtId = this.getResources().getIdentifier(getIdNm(idNm)[7], "id", this.getPackageName());
-                        int idMidC1 = this.getResources().getIdentifier(getIdNm(idNm)[8], "id", this.getPackageName());
-                        int idMidC2 = this.getResources().getIdentifier(getIdNm(idNm)[9], "id", this.getPackageName());
-                        int idDownC1 = this.getResources().getIdentifier(getIdNm(idNm)[12], "id", this.getPackageName());
-                        int idDownC2 = this.getResources().getIdentifier(getIdNm(idNm)[13], "id", this.getPackageName());
-                        View crMid1= findViewById(idMidC1);
-                        View crMid2= findViewById(idMidC2);
-                        View crDown1= findViewById(idDownC1);
-                        View crDown2= findViewById(idDownC2);
-                        //Toast.makeText(this, "clicked "+idC2 +" "+getIdNm(idNm)[1], Toast.LENGTH_SHORT).show();
-                        GradientDrawable bgMidC1 = (GradientDrawable) crMid1.getBackground();
-                        GradientDrawable bgMidC2 = (GradientDrawable) crMid2.getBackground();
-                        GradientDrawable bgDownC1 = (GradientDrawable) crDown1.getBackground();
-                        GradientDrawable bgDownC2 = (GradientDrawable) crDown2.getBackground();
-                        //Toast.makeText(this, ""+txtId, Toast.LENGTH_SHORT).show();
-                        TextView txt= findViewById(txtId);
+                        txt.setText("B");
+                        txt.setTypeface(ResourcesCompat.getFont(getApplicationContext(), R.font.bertram));
+                        //txt.setTextSize(5,5);
+                        bgTopU.setColor(ContextCompat.getColor(getApplicationContext(),R.color.blueX));
+                        bgTopL.setColor(ContextCompat.getColor(getApplicationContext(),R.color.blueX));
+                        bgTopR.setColor(ContextCompat.getColor(getApplicationContext(),R.color.blueX));
+
+                        bgMidC1.setColor(ContextCompat.getColor(getApplicationContext(),R.color.blueX));
+                        bgMidC1.setStroke(14,ContextCompat.getColor(getApplicationContext(),R.color.blueY));
+                        bgMidC2.setColor(ContextCompat.getColor(getApplicationContext(),R.color.blueX));
+                        bgMidC2.setStroke(14,ContextCompat.getColor(getApplicationContext(),R.color.blueY));
+
+                        bgUpC1.setColor(ContextCompat.getColor(getApplicationContext(),R.color.blueX));
+                        bgUpC1.setStroke(14,ContextCompat.getColor(getApplicationContext(),R.color.blueY));
+                        bgUpC2.setColor(ContextCompat.getColor(getApplicationContext(),R.color.blueX));
+                        bgUpC2.setStroke(14,ContextCompat.getColor(getApplicationContext(),R.color.blueY));
+                    }
+                    clickCount--;
+
+                }
+            }
+
+            if((Character.getNumericValue(idNm.charAt(1))<7&&idNm.charAt(4)=='T')||(Character.getNumericValue(idNm.charAt(3))<7&&idNm.charAt(4)=='L'))
+            {
+                int idDownU = this.getResources().getIdentifier(getIdNm(idNm)[3], "id", this.getPackageName());
+                int idDownL = this.getResources().getIdentifier(getIdNm(idNm)[4], "id", this.getPackageName());
+                int idDownR = this.getResources().getIdentifier(getIdNm(idNm)[5], "id", this.getPackageName());
+                View lineDownU= findViewById(idDownU);
+                View lineDownL= findViewById(idDownL);
+                View lineDownR= findViewById(idDownR);
+                GradientDrawable bgDownU = (GradientDrawable) lineDownU.getBackground();
+                GradientDrawable bgDownL = (GradientDrawable) lineDownL.getBackground();
+                GradientDrawable bgDownR = (GradientDrawable) lineDownR.getBackground();
+                if((getColorGrad(bgDownU)==red||getColorGrad(bgDownU)==blue)&&(getColorGrad(bgDownL)==red||getColorGrad(bgDownL)==blue)&&(getColorGrad(bgDownR)==red||getColorGrad(bgDownR)==blue))
+                {
+                    int txtId = this.getResources().getIdentifier(getIdNm(idNm)[7], "id", this.getPackageName());
+                    int idMidC1 = this.getResources().getIdentifier(getIdNm(idNm)[8], "id", this.getPackageName());
+                    int idMidC2 = this.getResources().getIdentifier(getIdNm(idNm)[9], "id", this.getPackageName());
+                    int idDownC1 = this.getResources().getIdentifier(getIdNm(idNm)[12], "id", this.getPackageName());
+                    int idDownC2 = this.getResources().getIdentifier(getIdNm(idNm)[13], "id", this.getPackageName());
+                    View crMid1= findViewById(idMidC1);
+                    View crMid2= findViewById(idMidC2);
+                    View crDown1= findViewById(idDownC1);
+                    View crDown2= findViewById(idDownC2);
+                    //Toast.makeText(this, "clicked "+idC2 +" "+getIdNm(idNm)[1], Toast.LENGTH_SHORT).show();
+                    GradientDrawable bgMidC1 = (GradientDrawable) crMid1.getBackground();
+                    GradientDrawable bgMidC2 = (GradientDrawable) crMid2.getBackground();
+                    GradientDrawable bgDownC1 = (GradientDrawable) crDown1.getBackground();
+                    GradientDrawable bgDownC2 = (GradientDrawable) crDown2.getBackground();
+                    //Toast.makeText(this, ""+txtId, Toast.LENGTH_SHORT).show();
+                    TextView txt= findViewById(txtId);
+                    if(clickCount%2==1)
+                    {
                         txt.setText("R");
                         txt.setTypeface(ResourcesCompat.getFont(getApplicationContext(), R.font.bertram));
                         bgDownU.setColor(ContextCompat.getColor(getApplicationContext(),R.color.redX));
@@ -146,13 +176,28 @@ public class MainActivity extends AppCompatActivity
                         bgDownC1.setStroke(14,ContextCompat.getColor(getApplicationContext(),R.color.redY));
                         bgDownC2.setColor(ContextCompat.getColor(getApplicationContext(),R.color.redX));
                         bgDownC2.setStroke(14,ContextCompat.getColor(getApplicationContext(),R.color.redY));
+                        clickCount--;
+                    }
+                    else
+                    {
+                        txt.setText("B");
+                        txt.setTypeface(ResourcesCompat.getFont(getApplicationContext(), R.font.bertram));
+                        bgDownU.setColor(ContextCompat.getColor(getApplicationContext(),R.color.blueX));
+                        bgDownL.setColor(ContextCompat.getColor(getApplicationContext(),R.color.blueX));
+                        bgDownR.setColor(ContextCompat.getColor(getApplicationContext(),R.color.blueX));
+
+                        bgMidC1.setColor(ContextCompat.getColor(getApplicationContext(),R.color.blueX));
+                        bgMidC1.setStroke(14,ContextCompat.getColor(getApplicationContext(),R.color.blueY));
+                        bgMidC2.setColor(ContextCompat.getColor(getApplicationContext(),R.color.blueX));
+                        bgMidC2.setStroke(14,ContextCompat.getColor(getApplicationContext(),R.color.blueY));
+
+                        bgDownC1.setColor(ContextCompat.getColor(getApplicationContext(),R.color.blueX));
+                        bgDownC1.setStroke(14,ContextCompat.getColor(getApplicationContext(),R.color.blueY));
+                        bgDownC2.setColor(ContextCompat.getColor(getApplicationContext(),R.color.blueX));
+                        bgDownC2.setStroke(14,ContextCompat.getColor(getApplicationContext(),R.color.blueY));
+                        clickCount--;
                     }
                 }
-
-            }
-            else
-            {
-                bg.setColor(ContextCompat.getColor(getApplicationContext(),R.color.blueX));
             }
         }
 
