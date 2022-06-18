@@ -10,10 +10,10 @@ android {
         minSdk 27
         targetSdk 32
         versionCode 1
-        versionName '0.1'
+        versionName '0.1.1'
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        versionNameSuffix '_alpha'
+        versionNameSuffix '-alpha'
     }
 
     buildTypes {

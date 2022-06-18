@@ -8,7 +8,6 @@ import android.annotation.SuppressLint;
 import android.graphics.Paint;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.TextView;
@@ -19,32 +18,39 @@ import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity
 {
-    int clickCount=0;
+    int clickCount=0, scoreRed=0, scoreBlue=0;
     String idNm;
+    TextView scoreRedView, scoreBlueView, redTxt, blueTxt;
+
+    public MainActivity() {
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-// Hide the status bar.
-        //WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
-        //getWindow().getDecorView().setSystemUiVisibility(getWindow().getDecorView().SYSTEM_UI_FLAG_FULLSCREEN);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        //getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
-
-        //getActionBar().hide();
-
         setContentView(R.layout.activity_main);
+        scoreRedView= findViewById(R.id.scoreRed);
+        scoreBlueView= findViewById(R.id.scoreBlue);
+        redTxt= findViewById(R.id.red);
+        blueTxt= findViewById(R.id.blue);
+
 
     }
+    // Hide the status bar.
+    //WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+    //getWindow().getDecorView().setSystemUiVisibility(getWindow().getDecorView().SYSTEM_UI_FLAG_FULLSCREEN);
+    //getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+    //getActionBar().hide();
 
-    //@SuppressLint("ResourceAsColor")
+    @SuppressLint("SetTextI18n")
     public void lineClick(View view)
     {
         idNm = getResources().getResourceEntryName(view.getId());
         GradientDrawable bg = (GradientDrawable) view.getBackground();
         int color = getColorGrad(bg);
-
-        Toast.makeText(this, "clicked "+getResources().getResourceEntryName(view.getId()), Toast.LENGTH_SHORT).show();
+        boolean change = false;
         int red= getResources().getColor(R.color.redX, getTheme());
         int blue= getResources().getColor(R.color.blueX, getTheme());
         if(color==getResources().getColor(R.color.whiteX, getTheme()))
@@ -72,7 +78,6 @@ public class MainActivity extends AppCompatActivity
                 GradientDrawable bgTopR = (GradientDrawable) lineR.getBackground();
                 if((getColorGrad(bgTopU)==red||getColorGrad(bgTopU)==blue)&&(getColorGrad(bgTopL)==red||getColorGrad(bgTopL)==blue)&&(getColorGrad(bgTopR)==red||getColorGrad(bgTopR)==blue))
                 {
-                    Log.d("midL", "lineClick: "+getIdNm(idNm)[8]);
                     int txtId = this.getResources().getIdentifier(getIdNm(idNm)[6], "id", this.getPackageName());
                     int idMidC1 = this.getResources().getIdentifier(getIdNm(idNm)[8], "id", this.getPackageName());
                     int idMidC2 = this.getResources().getIdentifier(getIdNm(idNm)[9], "id", this.getPackageName());
@@ -89,9 +94,11 @@ public class MainActivity extends AppCompatActivity
                     TextView txt= findViewById(txtId);
                     if(clickCount%2==1)
                     {
+                        scoreRed++;
+                        scoreRedView.setText(""+scoreRed);
                         txt.setText("R");
                         txt.setTypeface(ResourcesCompat.getFont(getApplicationContext(), R.font.bertram));
-                        //txt.setTextSize(5,5);
+
                         bgTopU.setColor(ContextCompat.getColor(getApplicationContext(),R.color.redX));
                         bgTopL.setColor(ContextCompat.getColor(getApplicationContext(),R.color.redX));
                         bgTopR.setColor(ContextCompat.getColor(getApplicationContext(),R.color.redX));
@@ -105,12 +112,14 @@ public class MainActivity extends AppCompatActivity
                         bgUpC1.setStroke(14,ContextCompat.getColor(getApplicationContext(),R.color.redY));
                         bgUpC2.setColor(ContextCompat.getColor(getApplicationContext(),R.color.redX));
                         bgUpC2.setStroke(14,ContextCompat.getColor(getApplicationContext(),R.color.redY));
+                        Toast.makeText(this, "Bonus round for "+redTxt.getText(), Toast.LENGTH_SHORT).show();
                     }
                     else
                     {
+                        scoreBlue++;
+                        scoreBlueView.setText(""+scoreBlue);
                         txt.setText("B");
                         txt.setTypeface(ResourcesCompat.getFont(getApplicationContext(), R.font.bertram));
-                        //txt.setTextSize(5,5);
                         bgTopU.setColor(ContextCompat.getColor(getApplicationContext(),R.color.blueX));
                         bgTopL.setColor(ContextCompat.getColor(getApplicationContext(),R.color.blueX));
                         bgTopR.setColor(ContextCompat.getColor(getApplicationContext(),R.color.blueX));
@@ -124,12 +133,12 @@ public class MainActivity extends AppCompatActivity
                         bgUpC1.setStroke(14,ContextCompat.getColor(getApplicationContext(),R.color.blueY));
                         bgUpC2.setColor(ContextCompat.getColor(getApplicationContext(),R.color.blueX));
                         bgUpC2.setStroke(14,ContextCompat.getColor(getApplicationContext(),R.color.blueY));
+                        Toast.makeText(this, "Bonus round for "+blueTxt.getText(), Toast.LENGTH_SHORT).show();
                     }
-                    clickCount--;
+                    change=true;
 
                 }
             }
-
             if((Character.getNumericValue(idNm.charAt(1))<7&&idNm.charAt(4)=='T')||(Character.getNumericValue(idNm.charAt(3))<7&&idNm.charAt(4)=='L'))
             {
                 int idDownU = this.getResources().getIdentifier(getIdNm(idNm)[3], "id", this.getPackageName());
@@ -152,15 +161,16 @@ public class MainActivity extends AppCompatActivity
                     View crMid2= findViewById(idMidC2);
                     View crDown1= findViewById(idDownC1);
                     View crDown2= findViewById(idDownC2);
-                    //Toast.makeText(this, "clicked "+idC2 +" "+getIdNm(idNm)[1], Toast.LENGTH_SHORT).show();
+
                     GradientDrawable bgMidC1 = (GradientDrawable) crMid1.getBackground();
                     GradientDrawable bgMidC2 = (GradientDrawable) crMid2.getBackground();
                     GradientDrawable bgDownC1 = (GradientDrawable) crDown1.getBackground();
                     GradientDrawable bgDownC2 = (GradientDrawable) crDown2.getBackground();
-                    //Toast.makeText(this, ""+txtId, Toast.LENGTH_SHORT).show();
                     TextView txt= findViewById(txtId);
                     if(clickCount%2==1)
                     {
+                        scoreRed++;
+                        scoreRedView.setText(""+scoreRed);
                         txt.setText("R");
                         txt.setTypeface(ResourcesCompat.getFont(getApplicationContext(), R.font.bertram));
                         bgDownU.setColor(ContextCompat.getColor(getApplicationContext(),R.color.redX));
@@ -176,10 +186,12 @@ public class MainActivity extends AppCompatActivity
                         bgDownC1.setStroke(14,ContextCompat.getColor(getApplicationContext(),R.color.redY));
                         bgDownC2.setColor(ContextCompat.getColor(getApplicationContext(),R.color.redX));
                         bgDownC2.setStroke(14,ContextCompat.getColor(getApplicationContext(),R.color.redY));
-                        clickCount--;
+                        Toast.makeText(this, "Bonus round for "+redTxt.getText(), Toast.LENGTH_SHORT).show();
                     }
                     else
                     {
+                        scoreBlue++;
+                        scoreBlueView.setText(""+scoreBlue);
                         txt.setText("B");
                         txt.setTypeface(ResourcesCompat.getFont(getApplicationContext(), R.font.bertram));
                         bgDownU.setColor(ContextCompat.getColor(getApplicationContext(),R.color.blueX));
@@ -195,13 +207,33 @@ public class MainActivity extends AppCompatActivity
                         bgDownC1.setStroke(14,ContextCompat.getColor(getApplicationContext(),R.color.blueY));
                         bgDownC2.setColor(ContextCompat.getColor(getApplicationContext(),R.color.blueX));
                         bgDownC2.setStroke(14,ContextCompat.getColor(getApplicationContext(),R.color.blueY));
-                        clickCount--;
+                        Toast.makeText(this, "Bonus round for "+blueTxt.getText(), Toast.LENGTH_SHORT).show();
                     }
+                    change=true;
+
+                }
+            }
+            if(change)
+                clickCount--;
+            else
+            {
+                if(clickCount%2==1)
+                {
+                    redTxt.setTextSize(30);
+                    redTxt.setTextColor(getResources().getColor(R.color.whiteT, getTheme()));
+                    blueTxt.setTextSize(35);
+                    blueTxt.setTextColor(getResources().getColor(R.color.white, getTheme()));
+                }
+                else
+                {
+                    blueTxt.setTextSize(30);
+                    blueTxt.setTextColor(getResources().getColor(R.color.whiteT, getTheme()));
+                    redTxt.setTextSize(35);
+                    redTxt.setTextColor(getResources().getColor(R.color.white, getTheme()));
+
                 }
             }
         }
-
-
     }
     public static String[] getIdNm(String idNm)
     {
@@ -366,17 +398,16 @@ public class MainActivity extends AppCompatActivity
             id.insert(1,Character.getNumericValue(idNm.charAt(1))+1);
             idS[8]=id.toString();
 
-
     }
         return idS;
     }
-    
 
     public static int getColorGrad(GradientDrawable bg)
     {
         int color=0;
         Class<? extends GradientDrawable> aClass = bg.getClass();
-        try {
+        try
+        {
             @SuppressLint("DiscouragedPrivateApi") Field mFillPaint = aClass.getDeclaredField("mFillPaint");
             mFillPaint.setAccessible(true);
             Paint strokePaint= (Paint) mFillPaint.get(bg);
@@ -386,7 +417,27 @@ public class MainActivity extends AppCompatActivity
         }
         return color;
     }
-
-
-
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

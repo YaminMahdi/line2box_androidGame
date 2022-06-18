@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">Line2Box</string>
+    <string name="background">Background</string>
+    <string name="red">RED</string>
+    <string name="vs">vs</string>
+    <string name="blue">BLUE</string>
+    <string name="separateCol">:</string>
+    <string name="scoreRed">0</string>
+    <string name="scoreBlue">0</string>
 </resources>

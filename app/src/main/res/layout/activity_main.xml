@@ -12,6 +12,7 @@
         android:id="@+id/background_image_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:contentDescription="@string/background"
         android:scaleType="centerCrop"
         android:src="@drawable/bg1" />
 
@@ -36,6 +37,7 @@
             >
 
             <TextView
+                android:id="@+id/red"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1.2"
@@ -46,19 +48,21 @@
                 android:shadowDx="0.0"
                 android:shadowDy="0.0"
                 android:shadowRadius="20"
-                android:text="Red"
+                android:text="@string/red"
                 android:textColor="@color/white"
-                android:textSize="30sp" />
+                android:textSize="35sp" />
 
             <ImageView
                 android:layout_width="0dp"
                 android:layout_height="100dp"
                 android:layout_weight=".6"
+                android:contentDescription="@string/vs"
                 android:src="@drawable/vs"
                 android:tintMode="multiply"
                 app:tint="#C7DEFC" />
 
             <TextView
+                android:id="@+id/blue"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1.2"
@@ -69,14 +73,15 @@
                 android:shadowDx="0.0"
                 android:shadowDy="0.0"
                 android:shadowRadius="20"
-                android:text="Blue"
-                android:textColor="@color/white"
+                android:text="@string/blue"
+                android:textColor="@color/whiteT"
                 android:textSize="30sp" />
 
 
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/txtLayout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
@@ -87,49 +92,51 @@
             android:weightSum="3">
 
             <TextView
-                android:layout_width="wrap_content"
+                android:id="@+id/scoreRed"
+                android:layout_width="57dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1.2"
                 android:fontFamily="@font/retro"
-                android:gravity="right"
-                android:text="00"
+                android:gravity="center"
+                android:text="@string/scoreRed"
                 android:textColor="@color/white"
-                android:textSize="20dp" />
+                android:textSize="20sp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight=".8"
-                android:fontFamily="@font/homeds"
+                android:fontFamily="@font/home"
                 android:gravity="center"
                 android:text=" : "
                 android:textColor="@color/white"
-                android:textSize="30dp" />
+                android:textSize="30sp"
+                tools:ignore="HardcodedText" />
 
             <TextView
-                android:layout_width="wrap_content"
+                android:id="@+id/scoreBlue"
+                android:layout_width="57dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1.2"
                 android:fontFamily="@font/retro"
-                android:gravity="left"
-                android:text="00"
+                android:gravity="center"
+                android:text="@string/scoreBlue"
                 android:textColor="@color/white"
-                android:textSize="20dp" />
+                android:textSize="20sp" />
         </LinearLayout>
 
         <RelativeLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_gravity="center"
             android:background="@drawable/box"
             android:clipChildren="false"
             android:orientation="vertical"
-            android:layout_gravity="center"
             android:paddingLeft="22dp"
-            android:paddingRight="22dp"
             android:paddingTop="30dp"
-            android:paddingBottom="30dp"
-            >
-            <!--            text-->
+            android:paddingRight="22dp"
+            android:paddingBottom="30dp">
+
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -749,7 +756,8 @@
                     android:layout_width="50dp"
                     android:layout_height="20dp"
                     android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
+                    android:onClick="lineClick"
+                    tools:ignore="TooManyViews" />
 
                 <View
                     android:id="@+id/r2c3T"

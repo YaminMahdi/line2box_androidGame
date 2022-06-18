@@ -94,7 +94,6 @@
             <corners android:radius="15dp" />
         </shape>
     </item>
-    //////   10 more items
     <item>
 
         <shape>
@@ -166,15 +165,14 @@
     <item>
         <shape>
 
-            <corners android:radius="15dp"/>
-<!--            <gradient android:startColor="#806D1C1C"-->
-<!--                android:centerColor="#69B7AFAF"-->
-<!--                android:endColor="#804B6CD6"-->
-<!--                android:angle="0"/>-->
-            <solid android:color="#269C27B0"/>
+            <corners android:radius="15dp" />
+            <!--            <gradient android:startColor="#806D1C1C"-->
+            <!--                android:centerColor="#69B7AFAF"-->
+            <!--                android:endColor="#804B6CD6"-->
+            <!--                android:angle="0"/>-->
+            <solid android:color="#269C27B0" />
         </shape>
     </item>
-
 
 
 </layer-list>
