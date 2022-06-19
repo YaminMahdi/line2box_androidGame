@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/layoutDialog"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginLeft="20dp"
+    android:layout_marginTop="150dp"
+    android:layout_marginRight="20dp"
+    android:background="@drawable/box"
+    android:orientation="vertical"
+
+    >
+
+    <TextView
+        android:id="@+id/textMessage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="20sp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="40dp"
+        android:fontFamily="@font/sortie"
+        android:gravity="center"
+        android:textColor="@color/white"
+        android:textSize="30sp" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="30dp"
+        android:layout_marginBottom="20dp"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/buttonYes"
+            android:layout_width="100dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="40dp"
+            android:layout_marginEnd="15dp"
+            android:background="@drawable/alert_dialog_btn1_bg"
+            android:fontFamily="@font/sortie"
+            android:textColor="@color/white"
+            android:textSize="18sp"
+            tools:ignore="ButtonStyle" />
+        <Button
+            android:id="@+id/buttonNo"
+            android:layout_width="100dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="15dp"
+            android:layout_marginEnd="40dp"
+            android:background="@drawable/alert_dialog_btn2_bg"
+            android:fontFamily="@font/sortie"
+            android:textColor="@color/white"
+            android:textSize="18sp"
+            tools:ignore="ButtonStyle" />
+
+    </LinearLayout>
+</LinearLayout>

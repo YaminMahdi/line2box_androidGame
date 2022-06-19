@@ -14,12 +14,12 @@
         android:screenOrientation="sensorPortrait"
         android:supportsRtl="true"
         android:theme="@style/Theme.Line2Box"
-        android:usesCleartextTraffic="true"
         tools:targetApi="31">
-
+<!--        android:usesCleartextTraffic="true"-->
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:noHistory="true"
             android:screenOrientation="sensorPortrait"
             tools:ignore="LockedOrientationActivity">
             <intent-filter>
