@@ -14,20 +14,15 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.webkit.CookieManager;
-import android.webkit.CookieSyncManager;
-import android.webkit.WebStorage;
 import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import java.lang.reflect.Field;
 import java.util.Objects;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity
+{
     int clickCount = 0, scoreRed = 0, scoreBlue = 0;
     String idNm, fst = "r1c1", top, left, circle;
     public static String PACKAGE_NAME;
@@ -35,8 +30,9 @@ public class MainActivity extends AppCompatActivity {
     boolean one = true;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(null);
+    protected void onCreate(Bundle savedInstanceState)
+    {
+        super.onCreate(savedInstanceState);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_main);
         PACKAGE_NAME = getApplicationContext().getPackageName();
@@ -65,9 +61,9 @@ public class MainActivity extends AppCompatActivity {
                 int idTop = this.getResources().getIdentifier(top, "id", this.getPackageName());
                 int idLeft = this.getResources().getIdentifier(left, "id", this.getPackageName());
                 int idCircle = this.getResources().getIdentifier(circle, "id", this.getPackageName());
-                View lineTop = (View) findViewById(idTop);
-                View lineLeft = (View) findViewById(idLeft);
-                View lineCircle = (View) findViewById(idCircle);
+                View lineTop = findViewById(idTop);
+                View lineLeft =  findViewById(idLeft);
+                View lineCircle =  findViewById(idCircle);
 
                 GradientDrawable bgTop = (GradientDrawable) lineTop.getBackground();
                 GradientDrawable bgLeft = (GradientDrawable) lineLeft.getBackground();
@@ -88,8 +84,8 @@ public class MainActivity extends AppCompatActivity {
                     index.deleteCharAt(1);
                     index.insert(1, i + 1);
                     idCircle = this.getResources().getIdentifier(index.toString(), "id", this.getPackageName());
-                    lineTop = (View) findViewById(idTop);
-                    lineCircle = (View) findViewById(idCircle);
+                    lineTop =  findViewById(idTop);
+                    lineCircle =  findViewById(idCircle);
                     bgTop = (GradientDrawable) lineTop.getBackground();
                     bgCircle = (GradientDrawable) lineCircle.getBackground();
                     bgTop.setColor(ContextCompat.getColor(getApplicationContext(), R.color.whiteX));
@@ -126,8 +122,8 @@ public class MainActivity extends AppCompatActivity {
                     index.insert(4, j + 1);
                     circle=index.toString();
                     idCircle = this.getResources().getIdentifier(circle, "id", this.getPackageName());
-                    lineLeft = (View) findViewById(idLeft);
-                    lineCircle = (View) findViewById(idCircle);
+                    lineLeft =  findViewById(idLeft);
+                    lineCircle =  findViewById(idCircle);
                     bgLeft = (GradientDrawable) lineLeft.getBackground();
                     bgCircle = (GradientDrawable) lineCircle.getBackground();
                     bgLeft.setColor(ContextCompat.getColor(getApplicationContext(), R.color.whiteX));
@@ -141,7 +137,7 @@ public class MainActivity extends AppCompatActivity {
                         index.insert(1, i + 1);
                         circle=index.toString();
                         idCircle = this.getResources().getIdentifier(circle, "id", this.getPackageName());
-                        lineCircle = (View) findViewById(idCircle);
+                        lineCircle =  findViewById(idCircle);
                         bgCircle = (GradientDrawable) lineCircle.getBackground();
                         bgCircle.setColor(ContextCompat.getColor(getApplicationContext(), R.color.white));
                         bgCircle.setStroke(14, ContextCompat.getColor(getApplicationContext(), R.color.whiteY));
@@ -160,7 +156,8 @@ public class MainActivity extends AppCompatActivity {
     //getActionBar().hide();
 
     @SuppressLint("SetTextI18n")
-    public void lineClick(View view) {
+    public void lineClick(View view)
+    {
         //Toast.makeText(this, "clicked", Toast.LENGTH_SHORT).show();
         idNm = getResources().getResourceEntryName(view.getId());
         GradientDrawable bg = (GradientDrawable) view.getBackground();
@@ -168,15 +165,18 @@ public class MainActivity extends AppCompatActivity {
         boolean change = false;
         int red = getResources().getColor(R.color.redX, getTheme());
         int blue = getResources().getColor(R.color.blueX, getTheme());
-        if (color == getResources().getColor(R.color.whiteX, getTheme())) {
+        if (color == getResources().getColor(R.color.whiteX, getTheme()))
+        {
             clickCount++;
-            if (clickCount % 2 == 1) {
-
+            if (clickCount % 2 == 1)
+            {
                 bg.setColor(ContextCompat.getColor(getApplicationContext(), R.color.redX));
-            } else {
+            } else
+            {
                 bg.setColor(ContextCompat.getColor(getApplicationContext(), R.color.blueX));
             }
-            if ((Character.getNumericValue(idNm.charAt(1)) > 1 && idNm.charAt(4) == 'T') || (Character.getNumericValue(idNm.charAt(3)) > 1 && idNm.charAt(4) == 'L')) {
+            if ((Character.getNumericValue(idNm.charAt(1)) > 1 && idNm.charAt(4) == 'T') || (Character.getNumericValue(idNm.charAt(3)) > 1 && idNm.charAt(4) == 'L'))
+            {
                 int idTopU = this.getResources().getIdentifier(getIdNm(idNm)[0], "id", this.getPackageName());
                 int idTopL = this.getResources().getIdentifier(getIdNm(idNm)[1], "id", this.getPackageName());
                 int idTopR = this.getResources().getIdentifier(getIdNm(idNm)[2], "id", this.getPackageName());
@@ -186,7 +186,8 @@ public class MainActivity extends AppCompatActivity {
                 GradientDrawable bgTopU = (GradientDrawable) lineU.getBackground();
                 GradientDrawable bgTopL = (GradientDrawable) lineL.getBackground();
                 GradientDrawable bgTopR = (GradientDrawable) lineR.getBackground();
-                if ((getColorGrad(bgTopU) == red || getColorGrad(bgTopU) == blue) && (getColorGrad(bgTopL) == red || getColorGrad(bgTopL) == blue) && (getColorGrad(bgTopR) == red || getColorGrad(bgTopR) == blue)) {
+                if ((getColorGrad(bgTopU) == red || getColorGrad(bgTopU) == blue) && (getColorGrad(bgTopL) == red || getColorGrad(bgTopL) == blue) && (getColorGrad(bgTopR) == red || getColorGrad(bgTopR) == blue))
+                {
                     int txtId = this.getResources().getIdentifier(getIdNm(idNm)[6], "id", this.getPackageName());
                     int idMidC1 = this.getResources().getIdentifier(getIdNm(idNm)[8], "id", this.getPackageName());
                     int idMidC2 = this.getResources().getIdentifier(getIdNm(idNm)[9], "id", this.getPackageName());
@@ -201,7 +202,8 @@ public class MainActivity extends AppCompatActivity {
                     GradientDrawable bgUpC1 = (GradientDrawable) crUp1.getBackground();
                     GradientDrawable bgUpC2 = (GradientDrawable) crUp2.getBackground();
                     TextView txt = findViewById(txtId);
-                    if (clickCount % 2 == 1) {
+                    if (clickCount % 2 == 1)
+                    {
                         scoreRed++;
                         scoreRedView.setText("" + scoreRed);
                         txt.setText("R");
@@ -220,11 +222,13 @@ public class MainActivity extends AppCompatActivity {
                         bgUpC1.setStroke(14, ContextCompat.getColor(getApplicationContext(), R.color.redY));
                         bgUpC2.setColor(ContextCompat.getColor(getApplicationContext(), R.color.redX));
                         bgUpC2.setStroke(14, ContextCompat.getColor(getApplicationContext(), R.color.redY));
-                        if (one) {
+                        if (one)
+                        {
                             one = false;
                             Toast.makeText(this, "Bonus TURN for " + redTxt.getText(), Toast.LENGTH_SHORT).show();
                         }
-                    } else {
+                    } else
+                    {
                         scoreBlue++;
                         scoreBlueView.setText("" + scoreBlue);
                         txt.setText("B");
@@ -242,7 +246,8 @@ public class MainActivity extends AppCompatActivity {
                         bgUpC1.setStroke(14, ContextCompat.getColor(getApplicationContext(), R.color.blueY));
                         bgUpC2.setColor(ContextCompat.getColor(getApplicationContext(), R.color.blueX));
                         bgUpC2.setStroke(14, ContextCompat.getColor(getApplicationContext(), R.color.blueY));
-                        if (one) {
+                        if (one)
+                        {
                             one = false;
                             Toast.makeText(this, "Bonus TURN for " + blueTxt.getText(), Toast.LENGTH_SHORT).show();
                         }
@@ -251,7 +256,8 @@ public class MainActivity extends AppCompatActivity {
 
                 }
             }
-            if ((Character.getNumericValue(idNm.charAt(1)) < 7 && idNm.charAt(4) == 'T') || (Character.getNumericValue(idNm.charAt(3)) < 7 && idNm.charAt(4) == 'L')) {
+            if ((Character.getNumericValue(idNm.charAt(1)) < 7 && idNm.charAt(4) == 'T') || (Character.getNumericValue(idNm.charAt(3)) < 7 && idNm.charAt(4) == 'L'))
+            {
                 int idDownU = this.getResources().getIdentifier(getIdNm(idNm)[3], "id", this.getPackageName());
                 int idDownL = this.getResources().getIdentifier(getIdNm(idNm)[4], "id", this.getPackageName());
                 int idDownR = this.getResources().getIdentifier(getIdNm(idNm)[5], "id", this.getPackageName());
@@ -261,7 +267,8 @@ public class MainActivity extends AppCompatActivity {
                 GradientDrawable bgDownU = (GradientDrawable) lineDownU.getBackground();
                 GradientDrawable bgDownL = (GradientDrawable) lineDownL.getBackground();
                 GradientDrawable bgDownR = (GradientDrawable) lineDownR.getBackground();
-                if ((getColorGrad(bgDownU) == red || getColorGrad(bgDownU) == blue) && (getColorGrad(bgDownL) == red || getColorGrad(bgDownL) == blue) && (getColorGrad(bgDownR) == red || getColorGrad(bgDownR) == blue)) {
+                if ((getColorGrad(bgDownU) == red || getColorGrad(bgDownU) == blue) && (getColorGrad(bgDownL) == red || getColorGrad(bgDownL) == blue) && (getColorGrad(bgDownR) == red || getColorGrad(bgDownR) == blue))
+                {
                     int txtId = this.getResources().getIdentifier(getIdNm(idNm)[7], "id", this.getPackageName());
                     int idMidC1 = this.getResources().getIdentifier(getIdNm(idNm)[8], "id", this.getPackageName());
                     int idMidC2 = this.getResources().getIdentifier(getIdNm(idNm)[9], "id", this.getPackageName());
@@ -277,7 +284,8 @@ public class MainActivity extends AppCompatActivity {
                     GradientDrawable bgDownC1 = (GradientDrawable) crDown1.getBackground();
                     GradientDrawable bgDownC2 = (GradientDrawable) crDown2.getBackground();
                     TextView txt = findViewById(txtId);
-                    if (clickCount % 2 == 1) {
+                    if (clickCount % 2 == 1)
+                    {
                         scoreRed++;
                         scoreRedView.setText("" + scoreRed);
                         txt.setText("R");
@@ -299,7 +307,8 @@ public class MainActivity extends AppCompatActivity {
                             one = false;
                             Toast.makeText(this, "Bonus TURN for " + redTxt.getText(), Toast.LENGTH_SHORT).show();
                         }
-                    } else {
+                    } else
+                    {
                         scoreBlue++;
                         scoreBlueView.setText("" + scoreBlue);
                         txt.setText("B");
@@ -327,13 +336,15 @@ public class MainActivity extends AppCompatActivity {
             }
             if (change)
                 clickCount--;
-            else {
+            else
+            {
                 if (clickCount % 2 == 1) {
                     redTxt.setTextSize(30);
                     redTxt.setTextColor(getResources().getColor(R.color.whiteT, getTheme()));
                     blueTxt.setTextSize(35);
                     blueTxt.setTextColor(getResources().getColor(R.color.white, getTheme()));
-                } else {
+                } else
+                {
                     blueTxt.setTextSize(30);
                     blueTxt.setTextColor(getResources().getColor(R.color.whiteT, getTheme()));
                     redTxt.setTextSize(35);
@@ -341,7 +352,8 @@ public class MainActivity extends AppCompatActivity {
 
                 }
             }
-            if (scoreRed + scoreBlue == 36) {
+            if (scoreRed + scoreBlue == 36)
+            {
                 redTxt.setTextSize(30);
                 redTxt.setTextColor(getResources().getColor(R.color.white, getTheme()));
                 blueTxt.setTextSize(30);
@@ -358,11 +370,14 @@ public class MainActivity extends AppCompatActivity {
         overridePendingTransition(0, 0);
     }
 
-    public static String[] getIdNm(String idNm) {
+    public static String[] getIdNm(String idNm)
+    {
         String[] idS = new String[14];
         StringBuilder id = new StringBuilder();
-        if (idNm.charAt(4) == 'T') {
-            if (Character.getNumericValue(idNm.charAt(1)) > 1) {
+        if (idNm.charAt(4) == 'T')
+        {
+            if (Character.getNumericValue(idNm.charAt(1)) > 1)
+            {
                 //top up//
                 id.append(idNm);
                 id.deleteCharAt(1);
@@ -390,7 +405,8 @@ public class MainActivity extends AppCompatActivity {
                 idS[10] = id.toString();
 
             }
-            if (Character.getNumericValue(idNm.charAt(1)) < 7) {
+            if (Character.getNumericValue(idNm.charAt(1)) < 7)
+            {
                 //down down//
                 id.setLength(0);
                 id.append(idNm);
@@ -437,8 +453,11 @@ public class MainActivity extends AppCompatActivity {
             id.append(Character.getNumericValue(idNm.charAt(3)) + 1);
             idS[9] = id.toString();
 
-        } else if (idNm.charAt(4) == 'L') {
-            if (Character.getNumericValue(idNm.charAt(3)) > 1) {
+        }
+        else if (idNm.charAt(4) == 'L')
+        {
+            if (Character.getNumericValue(idNm.charAt(3)) > 1)
+            {
                 //top up//
                 id.append(idNm);
                 id.deleteCharAt(3);
@@ -466,7 +485,8 @@ public class MainActivity extends AppCompatActivity {
                 idS[11] = id.toString();
 
             }
-            if (Character.getNumericValue(idNm.charAt(3)) < 7) {
+            if (Character.getNumericValue(idNm.charAt(3)) < 7)
+            {
                 //down down//
                 id.setLength(0);
                 id.append(idNm);
@@ -517,7 +537,8 @@ public class MainActivity extends AppCompatActivity {
         return idS;
     }
 
-    public static int getColorGrad(GradientDrawable bg) {
+    public static int getColorGrad(GradientDrawable bg)
+    {
         int color = 0;
         Class<? extends GradientDrawable> aClass = bg.getClass();
         try {
@@ -533,10 +554,11 @@ public class MainActivity extends AppCompatActivity {
 
     @SuppressLint("SetTextI18n")
     @Override
-    public void onBackPressed() {
+    public void onBackPressed()
+    {
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-        View view = LayoutInflater.from(MainActivity.this).inflate(R.layout.alert_dialog_layout,
-                (LinearLayout) findViewById(R.id.layoutDialog)
+        View view = LayoutInflater.from(MainActivity.this).inflate(
+                R.layout.alert_dialog_layout, findViewById(R.id.layoutDialog)
         );
         builder.setView(view);
 
@@ -558,11 +580,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @SuppressLint("SetTextI18n")
-    public void onGameOver(String winMsg) {
+    public void onGameOver(String winMsg)
+    {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-        View view = LayoutInflater.from(MainActivity.this).inflate(R.layout.alert_dialog_layout,
-                (LinearLayout) findViewById(R.id.layoutDialog)
+        View view = LayoutInflater.from(MainActivity.this).inflate(
+                R.layout.alert_dialog_layout, findViewById(R.id.layoutDialog)
         );
         builder.setView(view);
         builder.setCancelable(false);
@@ -575,7 +598,7 @@ public class MainActivity extends AppCompatActivity {
             alertDialog.dismiss();
             overridePendingTransition(0, 0);
             finish();
-            startActivity(new Intent(MainActivity.this, MainActivity.class).setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY));
+            startActivity(new Intent(MainActivity.this, MainActivity.class));
 
             //recreate();
 
