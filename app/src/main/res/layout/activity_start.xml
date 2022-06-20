@@ -22,12 +22,19 @@
         android:layout_gravity="center"
         android:orientation="vertical">
 
+        <ImageView
+            android:layout_width="300dp"
+            android:layout_height="300dp"
+            android:layout_gravity="center"
+            android:contentDescription="@string/background"
+            android:src="@drawable/logol2b" />
+
         <Button
             android:id="@+id/startBtnId"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_marginTop="400dp"
+            android:layout_marginTop="200dp"
             android:background="@drawable/alert_dialog_btn2_bg"
             android:fontFamily="@font/sortie"
             android:onClick="startBtn"
