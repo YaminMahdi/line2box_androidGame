@@ -7,4 +7,5 @@
     <string name="separateCol">:</string>
     <string name="scoreRed">0</string>
     <string name="scoreBlue">0</string>
+    <string name="start">Start</string>
 </resources>

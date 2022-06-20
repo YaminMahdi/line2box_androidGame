@@ -3,7 +3,6 @@ package com.diu.yk_games.line2box;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
-
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Intent;
@@ -21,7 +20,7 @@ import android.widget.Toast;
 import java.lang.reflect.Field;
 import java.util.Objects;
 
-public class MainActivity extends AppCompatActivity
+public class GameActivity1 extends AppCompatActivity
 {
     int clickCount = 0, scoreRed = 0, scoreBlue = 0;
     String idNm, fst = "r1c1", top, left, circle;
@@ -34,7 +33,7 @@ public class MainActivity extends AppCompatActivity
     {
         super.onCreate(savedInstanceState);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_game1);
         PACKAGE_NAME = getApplicationContext().getPackageName();
         scoreRedView = findViewById(R.id.scoreRed);
         scoreBlueView = findViewById(R.id.scoreBlue);
@@ -171,9 +170,29 @@ public class MainActivity extends AppCompatActivity
             if (clickCount % 2 == 1)
             {
                 bg.setColor(ContextCompat.getColor(getApplicationContext(), R.color.redX));
+//                int idMidC1 = this.getResources().getIdentifier(getIdNm(idNm)[8], "id", this.getPackageName());
+//                int idMidC2 = this.getResources().getIdentifier(getIdNm(idNm)[9], "id", this.getPackageName());
+//                View crMid1 = findViewById(idMidC1);
+//                View crMid2 = findViewById(idMidC2);
+//                GradientDrawable bgMidC1 = (GradientDrawable) crMid1.getBackground();
+//                GradientDrawable bgMidC2 = (GradientDrawable) crMid2.getBackground();
+//                bgMidC1.setColor(ContextCompat.getColor(getApplicationContext(), R.color.redX));
+//                bgMidC1.setStroke(14, ContextCompat.getColor(getApplicationContext(), R.color.redY));
+//                bgMidC2.setColor(ContextCompat.getColor(getApplicationContext(), R.color.redX));
+//                bgMidC2.setStroke(14, ContextCompat.getColor(getApplicationContext(), R.color.redY));
             } else
             {
                 bg.setColor(ContextCompat.getColor(getApplicationContext(), R.color.blueX));
+//                int idMidC1 = this.getResources().getIdentifier(getIdNm(idNm)[8], "id", this.getPackageName());
+//                int idMidC2 = this.getResources().getIdentifier(getIdNm(idNm)[9], "id", this.getPackageName());
+//                View crMid1 = findViewById(idMidC1);
+//                View crMid2 = findViewById(idMidC2);
+//                GradientDrawable bgMidC1 = (GradientDrawable) crMid1.getBackground();
+//                GradientDrawable bgMidC2 = (GradientDrawable) crMid2.getBackground();
+//                bgMidC1.setColor(ContextCompat.getColor(getApplicationContext(), R.color.blueX));
+//                bgMidC1.setStroke(14, ContextCompat.getColor(getApplicationContext(), R.color.blueY));
+//                bgMidC2.setColor(ContextCompat.getColor(getApplicationContext(), R.color.blueX));
+//                bgMidC2.setStroke(14, ContextCompat.getColor(getApplicationContext(), R.color.blueY));
             }
             if ((Character.getNumericValue(idNm.charAt(1)) > 1 && idNm.charAt(4) == 'T') || (Character.getNumericValue(idNm.charAt(3)) > 1 && idNm.charAt(4) == 'L'))
             {
@@ -556,8 +575,8 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onBackPressed()
     {
-        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-        View view = LayoutInflater.from(MainActivity.this).inflate(
+        AlertDialog.Builder builder = new AlertDialog.Builder(GameActivity1.this);
+        View view = LayoutInflater.from(GameActivity1.this).inflate(
                 R.layout.alert_dialog_layout, findViewById(R.id.layoutDialog)
         );
         builder.setView(view);
@@ -583,8 +602,8 @@ public class MainActivity extends AppCompatActivity
     public void onGameOver(String winMsg)
     {
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-        View view = LayoutInflater.from(MainActivity.this).inflate(
+        AlertDialog.Builder builder = new AlertDialog.Builder(GameActivity1.this);
+        View view = LayoutInflater.from(GameActivity1.this).inflate(
                 R.layout.alert_dialog_layout, findViewById(R.id.layoutDialog)
         );
         builder.setView(view);
@@ -598,7 +617,7 @@ public class MainActivity extends AppCompatActivity
             alertDialog.dismiss();
             overridePendingTransition(0, 0);
             finish();
-            startActivity(new Intent(MainActivity.this, MainActivity.class));
+            startActivity(new Intent(GameActivity1.this, GameActivity1.class));
 
             //recreate();
 

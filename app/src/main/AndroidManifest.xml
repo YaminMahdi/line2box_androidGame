@@ -4,6 +4,7 @@
     package="com.diu.yk_games.line2box">
 
     <uses-feature android:name="android.hardware.screen.portrait" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -15,15 +16,25 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Line2Box"
         tools:targetApi="31">
-<!--        android:usesCleartextTraffic="true"-->
         <activity
-            android:name=".MainActivity"
+            android:name=".StartActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <!-- android:usesCleartextTraffic="true" -->
+        <activity
+            android:name=".GameActivity1"
             android:exported="true"
             android:noHistory="false"
             android:screenOrientation="sensorPortrait"
             tools:ignore="LockedOrientationActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
