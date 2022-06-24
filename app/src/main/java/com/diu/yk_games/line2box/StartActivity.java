@@ -10,21 +10,30 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class StartActivity extends AppCompatActivity
 {
+    RadioGroup vsRadioGrp;
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start);
+        vsRadioGrp=findViewById(R.id.vsRadioGrp);
+
 
     }
 
     public void startBtn(View view)
     {
-        startActivity(new Intent(this,GameActivity1.class));
+        if(vsRadioGrp.getCheckedRadioButtonId()==R.id.radioBtnHuman)
+            startActivity(new Intent(this,GameActivity1.class));
+        else
+            Toast.makeText(this, "AI Coming soon ;)", Toast.LENGTH_SHORT).show();
     }
 
     @SuppressLint("SetTextI18n")

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+
+    >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="5dp"
+        android:layout_marginTop="15dp"
+        android:layout_marginEnd="5dp"
+        android:background="@drawable/alert_dialog_btn1_bg"
+        android:orientation="vertical"
+        android:paddingHorizontal="15dp"
+        android:paddingBottom="15dp"
+
+        >
+
+        <TextView
+            android:id="@+id/timeId"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:fontFamily="@font/sortie"
+            android:padding="10dp"
+            android:text="Play Time"
+            android:textColor="@color/white"
+            android:textSize="12sp" />
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="horizontal"
+            android:paddingHorizontal="10dp">
+
+            <TextView
+                android:id="@+id/redShow"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="@font/sortie"
+                android:text="Red"
+                android:textColor="@color/white"
+                android:textSize="26sp" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight=".3"
+                android:fontFamily="@font/brad"
+                android:text="vs"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="20sp"
+
+                />
+            <TextView
+                android:id="@+id/blueShow"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="@font/sortie"
+                android:text="Blue"
+                android:gravity="right"
+                android:textColor="@color/white"
+                android:textSize="26sp"
+
+                />
+        </LinearLayout>
+    </LinearLayout>
+
+</LinearLayout>

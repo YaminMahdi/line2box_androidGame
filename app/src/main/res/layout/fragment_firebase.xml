@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/box"
+    android:layout_margin="30dp"
+    android:orientation="vertical"
+    tools:context=".FirebaseFragment">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_margin="20dp"
+        >
+
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Enter Player 1 Name"
+            android:id="@+id/palyerRed"
+            android:textColorHint="#C9FFFFFF"
+            android:textColor="@color/white"
+            android:autofillHints="Red"
+            android:fontFamily="@font/sortie"
+            android:inputType="text"
+            />
+
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Enter player 2 Name"
+            android:id="@+id/palyerBlue"
+            android:textColorHint="#C9FFFFFF"
+            android:textColor="@color/white"
+            android:layout_marginTop="10dp"
+            android:autofillHints="Blue"
+            android:fontFamily="@font/sortie"
+            android:inputType="text"
+            />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Rate The Game: "
+            android:layout_marginTop="20dp"
+            android:textColor="#C6FFFFFF"
+            android:fontFamily="@font/sortie"
+            android:layout_marginStart="4dp"
+            />
+        <Spinner
+            android:id="@+id/starSpinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="10dp"
+            android:spinnerMode="dropdown"
+            android:popupBackground="@drawable/box"
+            android:background="@drawable/box"
+
+            />
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:layout_marginStart="40dp"
+            android:layout_marginEnd="40dp"
+            android:layout_marginBottom="10dp"
+            android:text="save score"
+            android:textColor="@color/white"
+            android:fontFamily="@font/sortie"
+            android:textSize="30dp"
+            android:background="@drawable/radio_btn_selector"
+            android:id="@+id/saveToFirebase"
+
+            />
+    </LinearLayout>
+
+</FrameLayout>

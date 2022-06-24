@@ -3,6 +3,9 @@ package com.diu.yk_games.line2box;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Intent;
@@ -15,6 +18,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import java.lang.reflect.Field;
@@ -22,11 +26,11 @@ import java.util.Objects;
 
 public class GameActivity1 extends AppCompatActivity
 {
-    int clickCount = 0, scoreRed = 0, scoreBlue = 0;
+    public static int clickCount = 0, scoreRed = 0, scoreBlue = 0;
     String idNm, fst = "r1c1", top, left, circle;
     public static String PACKAGE_NAME;
     TextView scoreRedView, scoreBlueView, redTxt, blueTxt;
-    boolean one = true;
+    boolean one = true, flag = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -90,7 +94,7 @@ public class GameActivity1 extends AppCompatActivity
                     bgTop.setColor(ContextCompat.getColor(getApplicationContext(), R.color.whiteX));
                     bgCircle.setColor(ContextCompat.getColor(getApplicationContext(), R.color.white));
                     bgCircle.setStroke(14, ContextCompat.getColor(getApplicationContext(), R.color.whiteY));
-                    Log.d("TAG", "onDestroy: " + top + " " + circle);
+                    //Log.d("TAG", "onDestroy: " + top + " " + circle);
                 }
                 index.setLength(0);
                 index.append(top);
@@ -581,7 +585,7 @@ public class GameActivity1 extends AppCompatActivity
         );
         builder.setView(view);
 
-        ((TextView) view.findViewById(R.id.textMessage)).setText("Do you really want to exit?");
+        ((TextView) view.findViewById(R.id.textMessage)).setText("Do you really want to go back to home?");
         ((Button) view.findViewById(R.id.buttonYes)).setText("YES");
         ((Button) view.findViewById(R.id.buttonNo)).setText("NO");
         final AlertDialog alertDialog = builder.create();
@@ -589,7 +593,7 @@ public class GameActivity1 extends AppCompatActivity
         {
             alertDialog.dismiss();
             super.onBackPressed();
-            android.os.Process.killProcess(android.os.Process.myPid());
+            //android.os.Process.killProcess(android.os.Process.myPid());
         });
         view.findViewById(R.id.buttonNo).setOnClickListener(view2 -> alertDialog.dismiss());
         if (alertDialog.getWindow() != null) {
@@ -607,7 +611,7 @@ public class GameActivity1 extends AppCompatActivity
                 R.layout.alert_dialog_layout, findViewById(R.id.layoutDialog)
         );
         builder.setView(view);
-        builder.setCancelable(false);
+        //builder.setCancelable(false);
         ((TextView) view.findViewById(R.id.textMessage)).setText("" + winMsg);
         ((Button) view.findViewById(R.id.buttonNo)).setText("Exit");
         ((Button) view.findViewById(R.id.buttonYes)).setText("Retry!");
@@ -633,6 +637,66 @@ public class GameActivity1 extends AppCompatActivity
         }
         alertDialog.show();
     }
+
+    public void startFragment(View view)
+    {
+        FragmentManager fm=getSupportFragmentManager();
+        FragmentTransaction ft=fm.beginTransaction();
+
+        if(view.getId()==R.id.btnSave)
+        {
+            ft.replace(R.id.firebaseFragment,new FirebaseFragment());
+            if (flag)
+            {
+                ft.commit();
+                findViewById(R.id.relativeLayout).setVisibility(View.GONE);
+                findViewById(R.id.btnShow).setVisibility(View.GONE);
+                ((Button) findViewById(R.id.btnSave)).setText("Back To Game");
+                ((Button) findViewById(R.id.btnSave)).setCompoundDrawablesWithIntrinsicBounds(R.drawable.back_icon, 0, 0, 0);
+                flag=false;
+            }
+            else
+            {
+                ft.replace(R.id.firebaseFragment,new BlankFragment());
+                ft.commit();
+                findViewById(R.id.relativeLayout).setVisibility(View.VISIBLE);
+                findViewById(R.id.btnShow).setVisibility(View.VISIBLE);
+                ((Button) findViewById(R.id.btnSave)).setText("Save Score");
+                ((Button) findViewById(R.id.btnSave)).setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
+                flag=true;
+
+            }
+        }
+        else if (view.getId()==R.id.btnShow)
+        {
+            ft.replace(R.id.firebaseFragment,new DisplayFragment());
+            if (flag)
+            {
+                ft.commit();
+                findViewById(R.id.relativeLayout).setVisibility(View.GONE);
+                findViewById(R.id.btnShow).setVisibility(View.GONE);
+                ((Button) findViewById(R.id.btnSave)).setText("Back To Game");
+                ((Button) findViewById(R.id.btnSave)).setCompoundDrawablesWithIntrinsicBounds(R.drawable.back_icon, 0, 0, 0);
+                flag=false;
+            }
+            else
+            {
+                ft.replace(R.id.firebaseFragment,new BlankFragment());
+                ft.commit();
+                findViewById(R.id.relativeLayout).setVisibility(View.VISIBLE);
+                findViewById(R.id.btnShow).setVisibility(View.VISIBLE);
+                ((Button) findViewById(R.id.btnSave)).setText("Save Score");
+                ((Button) findViewById(R.id.btnSave)).setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
+                flag=true;
+
+            }
+        }
+        else
+        {
+            ft.replace(R.id.firebaseFragment,new BlankFragment());
+        }
+    }
+
 }
 
 

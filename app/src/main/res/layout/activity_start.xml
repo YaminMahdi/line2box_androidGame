@@ -3,7 +3,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_gravity="center_horizontal"
     android:orientation="vertical"
     tools:context=".StartActivity">
 
@@ -27,14 +26,64 @@
             android:layout_height="300dp"
             android:layout_gravity="center"
             android:contentDescription="@string/background"
-            android:src="@drawable/logol2b" />
+            android:src="@drawable/logo" />
+
+        <RadioGroup
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="50dp"
+            android:orientation="horizontal"
+            android:weightSum="2"
+            android:id="@+id/vsRadioGrp"
+
+
+            >
+
+            <RadioButton
+                android:id="@+id/radioBtnHuman"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="40dp"
+                android:layout_marginBottom="20dp"
+                android:layout_weight="1"
+                android:background="@drawable/radio_btn_selector"
+                android:button="@null"
+                android:checked="true"
+                android:drawableStart="@drawable/human_logo"
+                android:drawableEnd="@drawable/human_logo"
+                android:gravity="center"
+                android:padding="20dp"
+                android:text="vs"
+                android:fontFamily="@font/sortie"
+                android:textSize="20dp"
+                android:textColor="@color/white" />
+
+            <RadioButton
+                android:id="@+id/radioBtnAi"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="40dp"
+                android:layout_weight="1"
+                android:background="@drawable/radio_btn_selector"
+                android:button="@null"
+                android:drawableStart="@drawable/human_logo"
+                android:drawableEnd="@drawable/ai_logo"
+                android:gravity="center"
+                android:padding="20dp"
+                android:fontFamily="@font/sortie"
+                android:textSize="20sp"
+                android:text="vs"
+                android:textColor="@color/white" />
+
+
+        </RadioGroup>
 
         <Button
             android:id="@+id/startBtnId"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_marginTop="200dp"
+            android:layout_marginTop="20dp"
             android:background="@drawable/alert_dialog_btn2_bg"
             android:fontFamily="@font/sortie"
             android:onClick="startBtn"

@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "351530286669",
+    "firebase_url": "https://line2box-default-rtdb.firebaseio.com",
+    "project_id": "line2box",
+    "storage_bucket": "line2box.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:351530286669:android:a700619cf2442f12d2e604",
+        "android_client_info": {
+          "package_name": "com.diu.yk_games.line2box"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "351530286669-1d57184u3fvkl8vaim4gdh1n4g970ps7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBr_tXEA3by1QmimDncUSay9NdrUG8uXDw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "351530286669-1d57184u3fvkl8vaim4gdh1n4g970ps7.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

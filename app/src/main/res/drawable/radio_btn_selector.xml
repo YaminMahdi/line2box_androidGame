@@ -1,0 +1,32 @@
+<selector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:enterFadeDuration="@android:integer/config_shortAnimTime"
+    android:exitFadeDuration="@android:integer/config_shortAnimTime">
+    <item android:state_enabled="false">
+        <shape>
+            <solid android:color="#44070F" />
+            <stroke android:width="5dp" android:color="@color/redY" />
+            <corners android:radius="5dp" />
+        </shape>
+    </item>
+    <item android:state_checked="true">
+        <shape>
+            <solid android:color="@color/redY" />
+            <stroke android:width="5dp" android:color="@color/redY" />
+            <corners android:radius="5dp" />
+        </shape>
+    </item>
+    <item android:state_pressed="true">
+        <shape>
+            <solid android:color="#9F1D2E" />
+            <stroke android:width="5dp" android:color="@color/redY" />
+            <corners android:radius="5dp" />
+        </shape>
+    </item>
+    <item>
+        <shape>
+            <solid android:color="#44070F" />
+            <stroke android:width="5dp" android:color="@color/redY" />
+            <corners android:radius="5dp" />
+        </shape>
+    </item>
+</selector>
