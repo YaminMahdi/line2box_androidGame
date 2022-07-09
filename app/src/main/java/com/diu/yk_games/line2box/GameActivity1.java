@@ -1,8 +1,10 @@
 package com.diu.yk_games.line2box;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
+import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
@@ -17,20 +19,49 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.RelativeLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
 import java.lang.reflect.Field;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
 public class GameActivity1 extends AppCompatActivity
 {
-    public static int clickCount = 0, scoreRed = 0, scoreBlue = 0;
-    String idNm, fst = "r1c1", top, left, circle;
+    public static int clickCount = 0, scoreRed = 35, scoreBlue = 0, bestScore=9999;
+    public static String idNm, fst = "r1c1", top, left, circle, nm1, nm2;
+
+
     public static String PACKAGE_NAME;
-    TextView scoreRedView, scoreBlueView, redTxt, blueTxt;
-    boolean one = true, flag = true;
+    TextView scoreRedView, scoreBlueView, redTxt, blueTxt, nm1Txt, nm2Txt;
+    public static boolean one = true, flag = true;
+
+    static Spinner starSpinner;
+    static ArrayAdapter<CharSequence> arrAdapter;
+
+    public void onStopFragment()
+    {
+        findViewById(R.id.relativeLayout).setVisibility(View.VISIBLE);
+        findViewById(R.id.txtLayout).setVisibility(View.VISIBLE);
+        findViewById(R.id.nmLayout).setVisibility(View.VISIBLE);
+        nm1Txt.setText("("+nm1+")");
+        nm2Txt.setText("("+nm2+")");
+        if(nm1=="Red")
+            nm1Txt.setVisibility(View.GONE);
+        if(nm2=="Blue")
+            nm2Txt.setVisibility(View.GONE);
+
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -43,6 +74,26 @@ public class GameActivity1 extends AppCompatActivity
         scoreBlueView = findViewById(R.id.scoreBlue);
         redTxt = findViewById(R.id.red);
         blueTxt = findViewById(R.id.blue);
+        nm1Txt= findViewById(R.id.nm1Id);
+        nm2Txt= findViewById(R.id.nm2Id);
+        Log.i("TAG", "onCreate: "+flag);
+        if(flag)
+        {
+            FragmentManager fm=getSupportFragmentManager();
+            FragmentTransaction ft=fm.beginTransaction();
+            ft.replace(R.id.nmFragment,new NameInfoFragment());
+            ft.commit();
+            findViewById(R.id.relativeLayout).setVisibility(View.INVISIBLE);
+            findViewById(R.id.txtLayout).setVisibility(View.INVISIBLE);
+            findViewById(R.id.nmLayout).setVisibility(View.INVISIBLE);
+            flag=false;
+        }
+        else
+            onStopFragment();
+
+//        nm1=NameInfoFragment.nm1;
+//        nm2=NameInfoFragment.nm2;
+
 
         StringBuilder index = new StringBuilder();
         for (int i = 1; i <= 6; i++)
@@ -174,29 +225,9 @@ public class GameActivity1 extends AppCompatActivity
             if (clickCount % 2 == 1)
             {
                 bg.setColor(ContextCompat.getColor(getApplicationContext(), R.color.redX));
-//                int idMidC1 = this.getResources().getIdentifier(getIdNm(idNm)[8], "id", this.getPackageName());
-//                int idMidC2 = this.getResources().getIdentifier(getIdNm(idNm)[9], "id", this.getPackageName());
-//                View crMid1 = findViewById(idMidC1);
-//                View crMid2 = findViewById(idMidC2);
-//                GradientDrawable bgMidC1 = (GradientDrawable) crMid1.getBackground();
-//                GradientDrawable bgMidC2 = (GradientDrawable) crMid2.getBackground();
-//                bgMidC1.setColor(ContextCompat.getColor(getApplicationContext(), R.color.redX));
-//                bgMidC1.setStroke(14, ContextCompat.getColor(getApplicationContext(), R.color.redY));
-//                bgMidC2.setColor(ContextCompat.getColor(getApplicationContext(), R.color.redX));
-//                bgMidC2.setStroke(14, ContextCompat.getColor(getApplicationContext(), R.color.redY));
             } else
             {
                 bg.setColor(ContextCompat.getColor(getApplicationContext(), R.color.blueX));
-//                int idMidC1 = this.getResources().getIdentifier(getIdNm(idNm)[8], "id", this.getPackageName());
-//                int idMidC2 = this.getResources().getIdentifier(getIdNm(idNm)[9], "id", this.getPackageName());
-//                View crMid1 = findViewById(idMidC1);
-//                View crMid2 = findViewById(idMidC2);
-//                GradientDrawable bgMidC1 = (GradientDrawable) crMid1.getBackground();
-//                GradientDrawable bgMidC2 = (GradientDrawable) crMid2.getBackground();
-//                bgMidC1.setColor(ContextCompat.getColor(getApplicationContext(), R.color.blueX));
-//                bgMidC1.setStroke(14, ContextCompat.getColor(getApplicationContext(), R.color.blueY));
-//                bgMidC2.setColor(ContextCompat.getColor(getApplicationContext(), R.color.blueX));
-//                bgMidC2.setStroke(14, ContextCompat.getColor(getApplicationContext(), R.color.blueY));
             }
             if ((Character.getNumericValue(idNm.charAt(1)) > 1 && idNm.charAt(4) == 'T') || (Character.getNumericValue(idNm.charAt(3)) > 1 && idNm.charAt(4) == 'L'))
             {
@@ -229,7 +260,7 @@ public class GameActivity1 extends AppCompatActivity
                     {
                         scoreRed++;
                         scoreRedView.setText("" + scoreRed);
-                        txt.setText("R");
+                        txt.setText(""+nm1.charAt(0));
                         txt.setTypeface(ResourcesCompat.getFont(getApplicationContext(), R.font.bertram));
 
                         bgTopU.setColor(ContextCompat.getColor(getApplicationContext(), R.color.redX));
@@ -254,7 +285,7 @@ public class GameActivity1 extends AppCompatActivity
                     {
                         scoreBlue++;
                         scoreBlueView.setText("" + scoreBlue);
-                        txt.setText("B");
+                        txt.setText(""+nm2.charAt(0));
                         txt.setTypeface(ResourcesCompat.getFont(getApplicationContext(), R.font.bertram));
                         bgTopU.setColor(ContextCompat.getColor(getApplicationContext(), R.color.blueX));
                         bgTopL.setColor(ContextCompat.getColor(getApplicationContext(), R.color.blueX));
@@ -311,7 +342,7 @@ public class GameActivity1 extends AppCompatActivity
                     {
                         scoreRed++;
                         scoreRedView.setText("" + scoreRed);
-                        txt.setText("R");
+                        txt.setText(""+nm1.charAt(0));
                         txt.setTypeface(ResourcesCompat.getFont(getApplicationContext(), R.font.bertram));
                         bgDownU.setColor(ContextCompat.getColor(getApplicationContext(), R.color.redX));
                         bgDownL.setColor(ContextCompat.getColor(getApplicationContext(), R.color.redX));
@@ -334,7 +365,7 @@ public class GameActivity1 extends AppCompatActivity
                     {
                         scoreBlue++;
                         scoreBlueView.setText("" + scoreBlue);
-                        txt.setText("B");
+                        txt.setText(""+nm2.charAt(0));
                         txt.setTypeface(ResourcesCompat.getFont(getApplicationContext(), R.font.bertram));
                         bgDownU.setColor(ContextCompat.getColor(getApplicationContext(), R.color.blueX));
                         bgDownL.setColor(ContextCompat.getColor(getApplicationContext(), R.color.blueX));
@@ -585,13 +616,18 @@ public class GameActivity1 extends AppCompatActivity
         );
         builder.setView(view);
 
-        ((TextView) view.findViewById(R.id.textMessage)).setText("Do you really want to go back to home?");
+        ((TextView) view.findViewById(R.id.textMessage)).setText("Do you really want to go back?");
         ((Button) view.findViewById(R.id.buttonYes)).setText("YES");
         ((Button) view.findViewById(R.id.buttonNo)).setText("NO");
+        view.findViewById(R.id.starSpinner).setVisibility(View.GONE);
+        view.findViewById(R.id.starTxt).setVisibility(View.GONE);
         final AlertDialog alertDialog = builder.create();
         view.findViewById(R.id.buttonYes).setOnClickListener(view1 ->
         {
             alertDialog.dismiss();
+            scoreRed=0;
+            scoreBlue=0;
+            flag=true;
             super.onBackPressed();
             //android.os.Process.killProcess(android.os.Process.myPid());
         });
@@ -605,23 +641,32 @@ public class GameActivity1 extends AppCompatActivity
     @SuppressLint("SetTextI18n")
     public void onGameOver(String winMsg)
     {
-
         AlertDialog.Builder builder = new AlertDialog.Builder(GameActivity1.this);
         View view = LayoutInflater.from(GameActivity1.this).inflate(
                 R.layout.alert_dialog_layout, findViewById(R.id.layoutDialog)
         );
         builder.setView(view);
-        //builder.setCancelable(false);
+        builder.setCancelable(false);
+
+        starSpinner=view.findViewById(R.id.starSpinner);
+        arrAdapter= ArrayAdapter.createFromResource(view.getContext(),R.array.star, R.layout.spinner_list);
+        arrAdapter.setDropDownViewResource(R.layout.spinner_list);
+        starSpinner.setAdapter(arrAdapter);
+
         ((TextView) view.findViewById(R.id.textMessage)).setText("" + winMsg);
         ((Button) view.findViewById(R.id.buttonNo)).setText("Exit");
         ((Button) view.findViewById(R.id.buttonYes)).setText("Retry!");
+
         final AlertDialog alertDialog = builder.create();
         view.findViewById(R.id.buttonYes).setOnClickListener(view1 ->
         {
             alertDialog.dismiss();
-            overridePendingTransition(0, 0);
             finish();
             startActivity(new Intent(GameActivity1.this, GameActivity1.class));
+            saveToFirebase();
+            scoreRed=0;
+            scoreBlue=0;
+            Toast.makeText(this, "Score Saved to Online Score Board", Toast.LENGTH_SHORT).show();
 
             //recreate();
 
@@ -630,7 +675,9 @@ public class GameActivity1 extends AppCompatActivity
         {
             alertDialog.dismiss();
             finish();
-            android.os.Process.killProcess(android.os.Process.myPid());
+            saveToFirebase();
+            Toast.makeText(this, "Score Saved to Online Score Board", Toast.LENGTH_SHORT).show();
+            //android.os.Process.killProcess(android.os.Process.myPid());
         });
         if (alertDialog.getWindow() != null) {
             alertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(0));
@@ -638,64 +685,61 @@ public class GameActivity1 extends AppCompatActivity
         alertDialog.show();
     }
 
-    public void startFragment(View view)
+    public static void saveToFirebase()
     {
-        FragmentManager fm=getSupportFragmentManager();
-        FragmentTransaction ft=fm.beginTransaction();
+        String redData, blueData, starData, timeData;
 
-        if(view.getId()==R.id.btnSave)
-        {
-            ft.replace(R.id.firebaseFragment,new FirebaseFragment());
-            if (flag)
-            {
-                ft.commit();
-                findViewById(R.id.relativeLayout).setVisibility(View.GONE);
-                findViewById(R.id.btnShow).setVisibility(View.GONE);
-                ((Button) findViewById(R.id.btnSave)).setText("Back To Game");
-                ((Button) findViewById(R.id.btnSave)).setCompoundDrawablesWithIntrinsicBounds(R.drawable.back_icon, 0, 0, 0);
-                flag=false;
-            }
-            else
-            {
-                ft.replace(R.id.firebaseFragment,new BlankFragment());
-                ft.commit();
-                findViewById(R.id.relativeLayout).setVisibility(View.VISIBLE);
-                findViewById(R.id.btnShow).setVisibility(View.VISIBLE);
-                ((Button) findViewById(R.id.btnSave)).setText("Save Score");
-                ((Button) findViewById(R.id.btnSave)).setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
-                flag=true;
 
-            }
-        }
-        else if (view.getId()==R.id.btnShow)
-        {
-            ft.replace(R.id.firebaseFragment,new DisplayFragment());
-            if (flag)
-            {
-                ft.commit();
-                findViewById(R.id.relativeLayout).setVisibility(View.GONE);
-                findViewById(R.id.btnShow).setVisibility(View.GONE);
-                ((Button) findViewById(R.id.btnSave)).setText("Back To Game");
-                ((Button) findViewById(R.id.btnSave)).setCompoundDrawablesWithIntrinsicBounds(R.drawable.back_icon, 0, 0, 0);
-                flag=false;
-            }
-            else
-            {
-                ft.replace(R.id.firebaseFragment,new BlankFragment());
-                ft.commit();
-                findViewById(R.id.relativeLayout).setVisibility(View.VISIBLE);
-                findViewById(R.id.btnShow).setVisibility(View.VISIBLE);
-                ((Button) findViewById(R.id.btnSave)).setText("Save Score");
-                ((Button) findViewById(R.id.btnSave)).setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
-                flag=true;
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("d MMMM, h:m a");
+        LocalDateTime now = LocalDateTime.now();
+        timeData = dtf.format(now);
 
-            }
-        }
+        int x= starSpinner.getSelectedItemPosition();
+        if(!arrAdapter.getItem(x).toString().equals("--(Give Star)--"))
+            starData = arrAdapter.getItem(x).toString();
         else
+            starData = "★";
+
+        redData= nm1+": "+scoreRed;
+        blueData= nm2+": "+scoreBlue;
+
+        DataStore ds = new DataStore(timeData,redData,blueData,starData);
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference myRef = database.getReference("ScoreBoard");
+        //single
+        myRef.child("Last Best Player").addValueEventListener(new ValueEventListener() {
+            @SuppressLint("SetTextI18n")
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot)
+            {
+                String bestScoreData = dataSnapshot.getValue(String.class);
+                assert bestScoreData != null;
+                String[] arrOfStr =bestScoreData.split(" ");
+                bestScore= Integer.parseInt(arrOfStr[arrOfStr.length-1]);
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.w("saveToFirebase", "Failed to read value.", error.toException());
+            }
+        });
+        int max=Math.max(scoreRed, scoreBlue);
+        if(max>bestScore)
         {
-            ft.replace(R.id.firebaseFragment,new BlankFragment());
+            if(max== scoreRed)
+                myRef.child("Last Best Player").setValue(redData);
+            else
+                myRef.child("Last Best Player").setValue(blueData);
         }
+
+
+        //multiple
+        myRef=myRef.child("allScore");
+        String key = myRef.push().getKey();
+        myRef.child(key).setValue(ds);
+
+
     }
+
 
 }
 

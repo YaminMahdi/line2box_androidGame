@@ -21,6 +21,12 @@
         android:layout_gravity="center"
         android:orientation="vertical">
 
+        <fragment
+            android:id="@+id/disFragment"
+            android:name="com.diu.yk_games.line2box.BlankFragment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
         <ImageView
             android:layout_width="300dp"
             android:layout_height="300dp"

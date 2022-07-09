@@ -40,7 +40,7 @@
             <TextView
                 android:id="@+id/redShow"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="26sp"
                 android:layout_weight="1"
                 android:fontFamily="@font/sortie"
                 android:text="Red"
@@ -61,7 +61,7 @@
             <TextView
                 android:id="@+id/blueShow"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="26sp"
                 android:layout_weight="1"
                 android:fontFamily="@font/sortie"
                 android:text="Blue"

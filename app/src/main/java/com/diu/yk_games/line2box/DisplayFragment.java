@@ -6,10 +6,6 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
-import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -31,7 +27,7 @@ public class DisplayFragment extends Fragment
 {
 
 
-    private final String TAG="frag";
+    private final String TAG="Disfrag";
     ArrayList<DataStore> dsList;
     String bestScore="\n\n\nNetwork Error";
 
@@ -69,7 +65,7 @@ public class DisplayFragment extends Fragment
             {
                 DataStore ds = dataSnapshot.getValue(DataStore.class);
                 assert ds != null;
-                ds.timeData = dataSnapshot.getKey();
+                //ds.timeData = dataSnapshot.getKey();
                 dsList.add(ds);
                 //Log.i(TAG,"key data = " + ds.timeData);
 
@@ -106,15 +102,18 @@ public class DisplayFragment extends Fragment
         View v=inflater.inflate(R.layout.fragment_display, container, false);
         TextView lbs= v.findViewById(R.id.lastBestScore);
 
-        Handler handler = new Handler();
-        handler.postDelayed(() ->
+//        Handler handler = new Handler();
+//        handler.postDelayed(() ->
+
+        while (dsList.isEmpty())
         {
             lbs.setText("Last Best Score is from:     "+bestScore);
             //Log.d(TAG, "Last Value is: " + bestScore);
             MyListAdapter adapter=new MyListAdapter(getActivity(),dsList);  //
             ListView list = v.findViewById(R.id.showNotesList);
             list.setAdapter(adapter);
-        }, 1420);
+        }
+        //, 1420);
 
         return v;
     }

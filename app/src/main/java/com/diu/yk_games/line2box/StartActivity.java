@@ -49,6 +49,8 @@ public class StartActivity extends AppCompatActivity
         ((TextView) view.findViewById(R.id.textMessage)).setText("Do you really want to exit?");
         ((Button) view.findViewById(R.id.buttonYes)).setText("YES");
         ((Button) view.findViewById(R.id.buttonNo)).setText("NO");
+        view.findViewById(R.id.starSpinner).setVisibility(View.GONE);
+        view.findViewById(R.id.starTxt).setVisibility(View.GONE);
         final AlertDialog alertDialog = builder.create();
         view.findViewById(R.id.buttonYes).setOnClickListener(view1 ->
         {

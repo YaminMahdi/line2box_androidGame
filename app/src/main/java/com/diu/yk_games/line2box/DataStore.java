@@ -10,8 +10,9 @@ public class DataStore
     public String starData="★";
 
     public DataStore(){}
-    public DataStore(String redData, String blueData, String starData)
-    {
+
+    public DataStore(String timeData, String redData, String blueData, String starData) {
+        this.timeData = timeData;
         this.redData = redData;
         this.blueData = blueData;
         this.starData = starData;

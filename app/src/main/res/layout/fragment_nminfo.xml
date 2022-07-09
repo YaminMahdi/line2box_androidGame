@@ -6,7 +6,7 @@
     android:background="@drawable/box"
     android:layout_margin="30dp"
     android:orientation="vertical"
-    tools:context=".FirebaseFragment">
+    tools:context=".NameInfoFragment">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -15,51 +15,58 @@
         android:layout_margin="20dp"
         >
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="Change Name (Optional)"
+            android:fontFamily="@font/sortie"
+            android:textColor="@color/white"
+            android:textSize="20sp"
+            android:layout_marginBottom="10dp"
+            />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1st Player Name: "
+            android:layout_marginTop="10dp"
+            android:textColor="@color/white"
+            android:fontFamily="@font/sortie"
+            android:layout_marginStart="4dp"
+            />
         <EditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Enter Player 1 Name"
+            android:hint="RED"
             android:id="@+id/palyerRed"
-            android:textColorHint="#C9FFFFFF"
+            android:textColorHint="#CCE8E8E8"
             android:textColor="@color/white"
             android:autofillHints="Red"
             android:fontFamily="@font/sortie"
             android:inputType="text"
             />
-
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="2nd Player Name: "
+            android:layout_marginTop="10dp"
+            android:textColor="@color/white"
+            android:fontFamily="@font/sortie"
+            android:layout_marginStart="4dp"
+            />
         <EditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Enter player 2 Name"
+            android:hint="BLUE"
             android:id="@+id/palyerBlue"
-            android:textColorHint="#C9FFFFFF"
+            android:textColorHint="#CCE8E8E8"
             android:textColor="@color/white"
-            android:layout_marginTop="10dp"
             android:autofillHints="Blue"
             android:fontFamily="@font/sortie"
             android:inputType="text"
             />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Rate The Game: "
-            android:layout_marginTop="20dp"
-            android:textColor="#C6FFFFFF"
-            android:fontFamily="@font/sortie"
-            android:layout_marginStart="4dp"
-            />
-        <Spinner
-            android:id="@+id/starSpinner"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
-            android:layout_marginEnd="10dp"
-            android:spinnerMode="dropdown"
-            android:popupBackground="@drawable/box"
-            android:background="@drawable/box"
 
-            />
 
         <Button
             android:layout_width="match_parent"
@@ -68,12 +75,12 @@
             android:layout_marginStart="40dp"
             android:layout_marginEnd="40dp"
             android:layout_marginBottom="10dp"
-            android:text="save score"
+            android:text="Play"
             android:textColor="@color/white"
             android:fontFamily="@font/sortie"
             android:textSize="30dp"
             android:background="@drawable/radio_btn_selector"
-            android:id="@+id/saveToFirebase"
+            android:id="@+id/playBtn"
 
             />
     </LinearLayout>
