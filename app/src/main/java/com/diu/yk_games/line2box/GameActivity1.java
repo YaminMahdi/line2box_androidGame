@@ -36,9 +36,8 @@ import java.util.Objects;
 
 public class GameActivity1 extends AppCompatActivity
 {
-    public static int clickCount = 0, scoreRed = 35, scoreBlue = 0, bestScore=9999;
+    public static int clickCount = 0, scoreRed = 0, scoreBlue = 0, bestScore=9999;
     public static String idNm, fst = "r1c1", top, left, circle, nm1, nm2;
-
 
     public static String PACKAGE_NAME;
     TextView scoreRedView, scoreBlueView, redTxt, blueTxt, nm1Txt, nm2Txt;
