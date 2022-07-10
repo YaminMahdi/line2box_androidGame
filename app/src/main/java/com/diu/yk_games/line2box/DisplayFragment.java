@@ -6,6 +6,8 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+
+import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,6 +23,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 
 public class DisplayFragment extends Fragment
@@ -102,18 +105,16 @@ public class DisplayFragment extends Fragment
         View v=inflater.inflate(R.layout.fragment_display, container, false);
         TextView lbs= v.findViewById(R.id.lastBestScore);
 
-//        Handler handler = new Handler();
-//        handler.postDelayed(() ->
-
-        while (dsList.isEmpty())
+        Handler handler = new Handler();
+        handler.postDelayed(() ->
         {
             lbs.setText("Last Best Score is from:     "+bestScore);
+            Collections.reverse(dsList);
             //Log.d(TAG, "Last Value is: " + bestScore);
             MyListAdapter adapter=new MyListAdapter(getActivity(),dsList);  //
             ListView list = v.findViewById(R.id.showNotesList);
             list.setAdapter(adapter);
-        }
-        //, 1420);
+        }, 1420);
 
         return v;
     }

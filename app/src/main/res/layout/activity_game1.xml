@@ -66,7 +66,7 @@
                     android:textColor="@color/white"
                     android:textSize="18sp"
 
-                    />
+                    tools:ignore="HardcodedText" />
 
             </LinearLayout>
 
@@ -112,7 +112,7 @@
                     android:textColor="@color/white"
                     android:textSize="18sp"
 
-                    />
+                    tools:ignore="HardcodedText" />
 
             </LinearLayout>
 
@@ -165,7 +165,7 @@
                 android:textSize="20sp" />
         </LinearLayout>
 
-        <fragment
+        <androidx.fragment.app.FragmentContainerView
             android:id="@+id/nmFragment"
             android:name="com.diu.yk_games.line2box.BlankFragment"
             android:layout_width="match_parent"
@@ -764,7 +764,8 @@
                     android:layout_width="20dp"
                     android:layout_height="20dp"
                     android:layout_marginStart="30dp"
-                    android:background="@drawable/circle" />
+                    android:background="@drawable/circle"
+                    tools:ignore="TooManyViews" />
 
                 <View
                     android:id="@+id/r1cr6"
@@ -1857,33 +1858,7 @@
             </LinearLayout>
         </RelativeLayout>
 
-        <!--        <LinearLayout-->
-        <!--            android:id="@+id/linearLayoutBtn"-->
-        <!--            android:layout_width="match_parent"-->
-        <!--            android:layout_height="wrap_content"-->
-        <!--            android:layout_marginStart="40dp"-->
-        <!--            android:layout_marginTop="60dp"-->
-        <!--            android:layout_marginEnd="40dp">-->
 
-
-        <!--            <Button-->
-        <!--                android:id="@+id/btnSave"-->
-        <!--                android:layout_width="0dp"-->
-        <!--                android:layout_height="wrap_content"-->
-        <!--                android:layout_marginStart="40dp"-->
-        <!--                android:layout_weight="1"-->
-        <!--                android:background="@drawable/alert_dialog_btn1_bg"-->
-        <!--                android:fontFamily="@font/sortie"-->
-        <!--                android:onClick="startFragment"-->
-        <!--                android:padding="20dp"-->
-        <!--                android:text="save Score"-->
-        <!--                android:textColor="@color/white"-->
-        <!--                android:textSize="19sp" -->
-        <!--                android:drawableLeft="@drawable/back_icon"-->
-        <!--                />-->
-
-
-        <!--        </LinearLayout>-->
     </LinearLayout>
 </FrameLayout>
 

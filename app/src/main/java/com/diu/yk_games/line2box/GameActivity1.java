@@ -4,10 +4,8 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
-import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
-
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Intent;
@@ -46,9 +44,11 @@ public class GameActivity1 extends AppCompatActivity
     TextView scoreRedView, scoreBlueView, redTxt, blueTxt, nm1Txt, nm2Txt;
     public static boolean one = true, flag = true;
 
+    @SuppressLint("StaticFieldLeak")
     static Spinner starSpinner;
     static ArrayAdapter<CharSequence> arrAdapter;
 
+    @SuppressLint("SetTextI18n")
     public void onStopFragment()
     {
         findViewById(R.id.relativeLayout).setVisibility(View.VISIBLE);
@@ -56,9 +56,9 @@ public class GameActivity1 extends AppCompatActivity
         findViewById(R.id.nmLayout).setVisibility(View.VISIBLE);
         nm1Txt.setText("("+nm1+")");
         nm2Txt.setText("("+nm2+")");
-        if(nm1=="Red")
+        if(Objects.equals(nm1, "Red"))
             nm1Txt.setVisibility(View.GONE);
-        if(nm2=="Blue")
+        if(Objects.equals(nm2, "Blue"))
             nm2Txt.setVisibility(View.GONE);
 
     }
@@ -735,6 +735,7 @@ public class GameActivity1 extends AppCompatActivity
         //multiple
         myRef=myRef.child("allScore");
         String key = myRef.push().getKey();
+        assert key != null;
         myRef.child(key).setValue(ds);
 
 

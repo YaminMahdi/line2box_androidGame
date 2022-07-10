@@ -22,15 +22,16 @@
         <entry key="app/src/main/res/drawable/ic_launcher_background.xml" value="0.176" />
         <entry key="app/src/main/res/drawable/ic_launcher_foreground.xml" value="0.264" />
         <entry key="app/src/main/res/drawable/logo.xml" value="0.176" />
+        <entry key="app/src/main/res/drawable/public_icon.xml" value="0.212" />
         <entry key="app/src/main/res/drawable/radio_btn_selector.xml" value="0.2075" />
         <entry key="app/src/main/res/drawable/spinner_list.xml" value="0.2245" />
         <entry key="app/src/main/res/layout/activity_game1.xml" value="0.264" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.34318901795142553" />
-        <entry key="app/src/main/res/layout/activity_start.xml" value="0.176" />
+        <entry key="app/src/main/res/layout/activity_start.xml" value="0.264" />
         <entry key="app/src/main/res/layout/alert_dialog_layout.xml" value="0.4" />
-        <entry key="app/src/main/res/layout/custom_list_view.xml" value="0.4" />
+        <entry key="app/src/main/res/layout/custom_list_view.xml" value="0.37183544303797467" />
         <entry key="app/src/main/res/layout/fragment_blank.xml" value="0.2013681060282172" />
-        <entry key="app/src/main/res/layout/fragment_display.xml" value="0.264" />
+        <entry key="app/src/main/res/layout/fragment_display.xml" value="0.2" />
         <entry key="app/src/main/res/layout/fragment_display_item_list.xml" value="0.2" />
         <entry key="app/src/main/res/layout/fragment_firebase.xml" value="0.264" />
         <entry key="app/src/main/res/layout/fragment_item.xml" value="0.13894826849080805" />
