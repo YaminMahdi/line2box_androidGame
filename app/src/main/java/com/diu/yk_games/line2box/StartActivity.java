@@ -8,6 +8,7 @@ import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.graphics.drawable.ColorDrawable;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.LayoutInflater;
@@ -32,11 +33,11 @@ public class StartActivity extends AppCompatActivity
         findViewById(R.id.scrBrdNm).setVisibility(View.GONE);
         vsRadioGrp=findViewById(R.id.vsRadioGrp);
 
-
     }
 
     public void startBtn(View view)
     {
+        MediaPlayer.create(this, R.raw.btn_click_ef).start();
         if(vsRadioGrp.getCheckedRadioButtonId()==R.id.radioBtnHuman)
             startActivity(new Intent(this,GameActivity1.class));
         else
@@ -67,11 +68,16 @@ public class StartActivity extends AppCompatActivity
             final AlertDialog alertDialog = builder.create();
             view.findViewById(R.id.buttonYes).setOnClickListener(view1 ->
             {
+                MediaPlayer.create(this, R.raw.btn_click_ef).start();
                 alertDialog.dismiss();
                 super.onBackPressed();
                 android.os.Process.killProcess(android.os.Process.myPid());
             });
-            view.findViewById(R.id.buttonNo).setOnClickListener(view2 -> alertDialog.dismiss());
+            view.findViewById(R.id.buttonNo).setOnClickListener(view2 ->
+            {
+                MediaPlayer.create(this, R.raw.btn_click_ef).start();
+                alertDialog.dismiss();
+            });
             if (alertDialog.getWindow() != null) {
                 alertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(0));
             }
@@ -81,6 +87,7 @@ public class StartActivity extends AppCompatActivity
 
     public void scoreBoard(View view)
     {
+        MediaPlayer.create(this, R.raw.btn_click_ef).start();
         scrBrdVisible =true;
         FragmentManager fm=getSupportFragmentManager();
         FragmentTransaction ft=fm.beginTransaction();
@@ -96,6 +103,7 @@ public class StartActivity extends AppCompatActivity
 
     public void goBack(View view)
     {
+        MediaPlayer.create(this, R.raw.btn_click_ef).start();
         onGoBack();
     }
 

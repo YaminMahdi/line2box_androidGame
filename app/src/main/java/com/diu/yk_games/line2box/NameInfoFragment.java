@@ -1,5 +1,6 @@
 package com.diu.yk_games.line2box;
 
+import android.media.MediaPlayer;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
@@ -24,7 +25,6 @@ public class NameInfoFragment extends Fragment
     EditText nm1EditText, nm2EditText ;
     public String nm1="Red", nm2="Blue";
 
-
     @Override
     public void onDetach()
     {
@@ -47,6 +47,7 @@ public class NameInfoFragment extends Fragment
         Button btn = view.findViewById(R.id.playBtn);
         btn.setOnClickListener(arg0 ->
         {
+            MediaPlayer.create(getContext(), R.raw.btn_click_ef).start();
             if(!nm1EditText.getText().toString().equals(""))
             {
                 nm1=nm1EditText.getText().toString();

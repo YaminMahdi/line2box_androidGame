@@ -12,7 +12,9 @@ import android.content.Intent;
 import android.graphics.Paint;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.GradientDrawable;
+import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -42,6 +44,7 @@ public class GameActivity1 extends AppCompatActivity
     public static String PACKAGE_NAME;
     TextView scoreRedView, scoreBlueView, redTxt, blueTxt, nm1Txt, nm2Txt;
     public static boolean one = true, flag = true;
+    //MediaPlayer lineClick, boxPlus, winSoundEf, btnClick;
 
     @SuppressLint("StaticFieldLeak")
     static Spinner starSpinner;
@@ -75,6 +78,10 @@ public class GameActivity1 extends AppCompatActivity
         blueTxt = findViewById(R.id.blue);
         nm1Txt= findViewById(R.id.nm1Id);
         nm2Txt= findViewById(R.id.nm2Id);
+//        lineClick = MediaPlayer.create(this, R.raw.line_click_ef);
+//        boxPlus = MediaPlayer.create(this,R.raw.box_ef);
+//        winSoundEf = MediaPlayer.create(this,R.raw.win_ef);
+//        btnClick = MediaPlayer.create(this, R.raw.btn_click_ef);
         Log.i("TAG", "onCreate: "+flag);
         if(flag)
         {
@@ -211,6 +218,7 @@ public class GameActivity1 extends AppCompatActivity
     @SuppressLint("SetTextI18n")
     public void lineClick(View view)
     {
+        MediaPlayer.create(this, R.raw.line_click_ef).start();
         //Toast.makeText(this, "clicked", Toast.LENGTH_SHORT).show();
         idNm = getResources().getResourceEntryName(view.getId());
         GradientDrawable bg = (GradientDrawable) view.getBackground();
@@ -257,6 +265,7 @@ public class GameActivity1 extends AppCompatActivity
                     TextView txt = findViewById(txtId);
                     if (clickCount % 2 == 1)
                     {
+                        MediaPlayer.create(this, R.raw.box_ef).start();
                         scoreRed++;
                         scoreRedView.setText("" + scoreRed);
                         txt.setText(""+nm1.charAt(0));
@@ -282,6 +291,7 @@ public class GameActivity1 extends AppCompatActivity
                         }
                     } else
                     {
+                        MediaPlayer.create(this, R.raw.box_ef).start();
                         scoreBlue++;
                         scoreBlueView.setText("" + scoreBlue);
                         txt.setText(""+nm2.charAt(0));
@@ -339,6 +349,7 @@ public class GameActivity1 extends AppCompatActivity
                     TextView txt = findViewById(txtId);
                     if (clickCount % 2 == 1)
                     {
+                        MediaPlayer.create(this, R.raw.box_ef).start();
                         scoreRed++;
                         scoreRedView.setText("" + scoreRed);
                         txt.setText(""+nm1.charAt(0));
@@ -362,6 +373,7 @@ public class GameActivity1 extends AppCompatActivity
                         }
                     } else
                     {
+                        MediaPlayer.create(this, R.raw.box_ef).start();
                         scoreBlue++;
                         scoreBlueView.setText("" + scoreBlue);
                         txt.setText(""+nm2.charAt(0));
@@ -407,16 +419,22 @@ public class GameActivity1 extends AppCompatActivity
             }
             if (scoreRed + scoreBlue == 36)
             {
-                redTxt.setTextSize(30);
-                redTxt.setTextColor(getResources().getColor(R.color.white, getTheme()));
-                blueTxt.setTextSize(30);
-                blueTxt.setTextColor(getResources().getColor(R.color.white, getTheme()));
-                if (scoreRed > scoreBlue)
-                    onGameOver("Player RED won the match.");
-                else if (scoreRed < scoreBlue)
-                    onGameOver("Player BLUE won the match.");
-                else
-                    onGameOver("Match Draw.");
+                Handler handler = new Handler();
+                handler.postDelayed(() ->
+                {
+                    MediaPlayer.create(this, R.raw.win_ef).start();
+                    redTxt.setTextSize(30);
+                    redTxt.setTextColor(getResources().getColor(R.color.white, getTheme()));
+                    blueTxt.setTextSize(30);
+                    blueTxt.setTextColor(getResources().getColor(R.color.white, getTheme()));
+                    if (scoreRed > scoreBlue)
+                        onGameOver("Player RED won the match.");
+                    else if (scoreRed < scoreBlue)
+                        onGameOver("Player BLUE won the match.");
+                    else
+                        onGameOver("Match Draw.");
+                }, 800);
+
             }
 
         }
@@ -623,6 +641,7 @@ public class GameActivity1 extends AppCompatActivity
         final AlertDialog alertDialog = builder.create();
         view.findViewById(R.id.buttonYes).setOnClickListener(view1 ->
         {
+            MediaPlayer.create(this, R.raw.btn_click_ef).start();
             alertDialog.dismiss();
             scoreRed=0;
             scoreBlue=0;
@@ -631,7 +650,11 @@ public class GameActivity1 extends AppCompatActivity
             super.onBackPressed();
             //android.os.Process.killProcess(android.os.Process.myPid());
         });
-        view.findViewById(R.id.buttonNo).setOnClickListener(view2 -> alertDialog.dismiss());
+        view.findViewById(R.id.buttonNo).setOnClickListener(view2 ->
+        {
+            MediaPlayer.create(this, R.raw.btn_click_ef).start();
+            alertDialog.dismiss();
+        });
         if (alertDialog.getWindow() != null) {
             alertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(0));
         }
@@ -660,6 +683,7 @@ public class GameActivity1 extends AppCompatActivity
         final AlertDialog alertDialog = builder.create();
         view.findViewById(R.id.buttonYes).setOnClickListener(view1 ->
         {
+            MediaPlayer.create(this, R.raw.btn_click_ef).start();
             alertDialog.dismiss();
             finish();
             startActivity(new Intent(GameActivity1.this, GameActivity1.class));
@@ -674,6 +698,7 @@ public class GameActivity1 extends AppCompatActivity
         });
         view.findViewById(R.id.buttonNo).setOnClickListener(view2 ->
         {
+            MediaPlayer.create(this, R.raw.btn_click_ef).start();
             alertDialog.dismiss();
             finish();
             saveToFirebase();
