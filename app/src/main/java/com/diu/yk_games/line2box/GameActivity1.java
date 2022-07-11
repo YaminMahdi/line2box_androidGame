@@ -626,6 +626,7 @@ public class GameActivity1 extends AppCompatActivity
             alertDialog.dismiss();
             scoreRed=0;
             scoreBlue=0;
+            clickCount = 0;
             flag=true;
             super.onBackPressed();
             //android.os.Process.killProcess(android.os.Process.myPid());
@@ -665,6 +666,7 @@ public class GameActivity1 extends AppCompatActivity
             saveToFirebase();
             scoreRed=0;
             scoreBlue=0;
+            clickCount=0;
             Toast.makeText(this, "Score Saved to Online Score Board", Toast.LENGTH_SHORT).show();
 
             //recreate();
@@ -675,6 +677,10 @@ public class GameActivity1 extends AppCompatActivity
             alertDialog.dismiss();
             finish();
             saveToFirebase();
+            scoreRed=0;
+            scoreBlue=0;
+            clickCount = 0;
+            flag=true;
             Toast.makeText(this, "Score Saved to Online Score Board", Toast.LENGTH_SHORT).show();
             //android.os.Process.killProcess(android.os.Process.myPid());
         });
