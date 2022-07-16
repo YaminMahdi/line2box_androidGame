@@ -1,20 +1,22 @@
 package com.diu.yk_games.line2box;
-
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
-
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.drawable.ColorDrawable;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -22,7 +24,10 @@ import android.widget.Toast;
 public class StartActivity extends AppCompatActivity
 {
     RadioGroup vsRadioGrp;
-    boolean scrBrdVisible =false;
+    public static boolean scrBrdVisible =false, isFirstRun=true;
+    public static SharedPreferences sharedPref;
+    public static SharedPreferences.Editor editor;
+
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
@@ -32,12 +37,52 @@ public class StartActivity extends AppCompatActivity
         findViewById(R.id.btnBack).setVisibility(View.GONE);
         findViewById(R.id.scrBrdNm).setVisibility(View.GONE);
         vsRadioGrp=findViewById(R.id.vsRadioGrp);
+        isFirstRun= isFirstRun("line2Box",this);
+        sharedPref = this.getPreferences(Context.MODE_PRIVATE);
+        editor = sharedPref.edit();
+        if(isFirstRun)
+        {
+            editor.putBoolean("muted", false).apply();
+        }
+        ifMuted();
 
+
+    }
+    public boolean isMuted()
+    {
+        return sharedPref.getBoolean("muted", false);
+    }
+    public void ifMuted()
+    {
+        if(isMuted())
+        {
+            findViewById(R.id.volBtn).setBackgroundResource(R.drawable.btn_gry_bg);
+            ((ImageButton)findViewById(R.id.volBtn)).setImageResource(R.drawable.icon_vol_mute);
+        }
+        else
+        {
+            findViewById(R.id.volBtn).setBackgroundResource(R.drawable.btn_ylw_bg);
+            ((ImageButton)findViewById(R.id.volBtn)).setImageResource(R.drawable.icon_vol_unmute);
+        }
+
+    }
+    public static boolean isFirstRun(String forWhat, Context context)
+    {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences.Editor preferencesEditor = preferences.edit();
+        if (preferences.getBoolean(forWhat, true))
+        {
+            preferencesEditor.putBoolean(forWhat, false).apply();
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public void startBtn(View view)
     {
-        MediaPlayer.create(this, R.raw.btn_click_ef).start();
+        if(!isMuted())
+            MediaPlayer.create(this, R.raw.btn_click_ef).start();
         if(vsRadioGrp.getCheckedRadioButtonId()==R.id.radioBtnHuman)
             startActivity(new Intent(this,GameActivity1.class));
         else
@@ -68,14 +113,16 @@ public class StartActivity extends AppCompatActivity
             final AlertDialog alertDialog = builder.create();
             view.findViewById(R.id.buttonYes).setOnClickListener(view1 ->
             {
-                MediaPlayer.create(this, R.raw.btn_click_ef).start();
+                if(!isMuted())
+                    MediaPlayer.create(this, R.raw.btn_click_ef).start();
                 alertDialog.dismiss();
                 super.onBackPressed();
-                android.os.Process.killProcess(android.os.Process.myPid());
+                //android.os.Process.killProcess(android.os.Process.myPid());
             });
             view.findViewById(R.id.buttonNo).setOnClickListener(view2 ->
             {
-                MediaPlayer.create(this, R.raw.btn_click_ef).start();
+                if(!isMuted())
+                    MediaPlayer.create(this, R.raw.btn_click_ef).start();
                 alertDialog.dismiss();
             });
             if (alertDialog.getWindow() != null) {
@@ -87,7 +134,8 @@ public class StartActivity extends AppCompatActivity
 
     public void scoreBoard(View view)
     {
-        MediaPlayer.create(this, R.raw.btn_click_ef).start();
+        if(!isMuted())
+            MediaPlayer.create(this, R.raw.btn_click_ef).start();
         scrBrdVisible =true;
         FragmentManager fm=getSupportFragmentManager();
         FragmentTransaction ft=fm.beginTransaction();
@@ -103,7 +151,8 @@ public class StartActivity extends AppCompatActivity
 
     public void goBack(View view)
     {
-        MediaPlayer.create(this, R.raw.btn_click_ef).start();
+        if(!isMuted())
+            MediaPlayer.create(this, R.raw.btn_click_ef).start();
         onGoBack();
     }
 
@@ -117,5 +166,29 @@ public class StartActivity extends AppCompatActivity
         findViewById(R.id.linearLayoutStart).setVisibility(View.VISIBLE);
         findViewById(R.id.btnBack).setVisibility(View.GONE);
         findViewById(R.id.scrBrdNm).setVisibility(View.GONE);
+    }
+
+    public void volButton(View view)
+    {
+        if(!isMuted())
+        {
+            findViewById(R.id.volBtn).setBackgroundResource(R.drawable.btn_gry_bg);
+            ((ImageButton)findViewById(R.id.volBtn)).setImageResource(R.drawable.icon_vol_mute);
+            editor.putBoolean("muted", true).apply();
+        }
+        else
+        {
+            MediaPlayer.create(this, R.raw.btn_click_ef).start();
+            findViewById(R.id.volBtn).setBackgroundResource(R.drawable.btn_ylw_bg);
+            ((ImageButton)findViewById(R.id.volBtn)).setImageResource(R.drawable.icon_vol_unmute);
+            editor.putBoolean("muted", false).apply();
+        }
+    }
+
+    public void ideaBtn(View view)
+    {
+        if(!isMuted())
+            MediaPlayer.create(this, R.raw.btn_click_ef).start();
+
     }
 }

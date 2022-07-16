@@ -22,7 +22,7 @@
         android:layout_marginTop="50dp"
         android:fontFamily="@font/sortie"
         android:gravity="center"
-        android:text="Online Score Board"
+        android:text="Global Score Board"
         android:textColor="@color/white"
         android:textSize="40sp"
         tools:ignore="HardcodedText" />
@@ -51,8 +51,8 @@
             android:layout_height="wrap_content"
             android:layout_gravity="end"
             android:layout_marginStart="40dp"
-            android:background="@drawable/alert_dialog_btn1_bg"
-            android:drawableStart="@drawable/back_icon"
+            android:background="@drawable/btn_grn_bg"
+            android:drawableStart="@drawable/icon_back"
             android:fontFamily="@font/sortie"
             android:onClick="goBack"
             android:padding="20dp"
@@ -68,23 +68,75 @@
         android:id="@+id/linearLayoutStart"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
+        android:layout_marginTop="40dp"
         android:orientation="vertical">
 
-        <Button
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:layout_gravity="start"
-            android:layout_marginStart="20dp"
-            android:background="@drawable/alert_dialog_btn2_bg"
-            android:drawableTop="@drawable/globe_icon"
-            android:fontFamily="@font/sortie"
-            android:onClick="scoreBoard"
-            android:paddingVertical="10dp"
-            android:text=" score "
-            android:textColor="@color/white"
-            android:textSize="9sp"
-            tools:ignore="HardcodedText,SmallSp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="20dp"
+            android:baselineAligned="false">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="horizontal"
+
+                >
+
+                <ImageButton
+                    android:layout_width="45dp"
+                    android:layout_height="45dp"
+                    android:layout_gravity="end"
+                    android:background="@drawable/btn_grn_bg"
+                    android:fontFamily="@font/sortie"
+                    android:onClick="scoreBoard"
+                    android:paddingVertical="10dp"
+                    android:src="@drawable/icon_globe"
+                    android:textColor="@color/white"
+                    android:textSize="9sp"
+                    tools:ignore="HardcodedText,SmallSp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+
+                >
+
+                <ImageButton
+                    android:id="@+id/volBtn"
+                    android:layout_width="45dp"
+                    android:layout_height="45dp"
+                    android:layout_gravity="end"
+                    android:layout_marginEnd="10dp"
+                    android:background="@drawable/btn_ylw_bg"
+                    android:fontFamily="@font/sortie"
+                    android:onClick="volButton"
+                    android:paddingVertical="10dp"
+                    android:src="@drawable/icon_vol_unmute"
+                    android:textColor="@color/white"
+                    android:textSize="9sp"
+                    tools:ignore="HardcodedText,SmallSp" />
+
+                <ImageButton
+                    android:layout_width="45dp"
+                    android:layout_height="45dp"
+                    android:layout_gravity="end"
+                    android:background="@drawable/btn_gry_bg"
+                    android:fontFamily="@font/sortie"
+                    android:onClick="ideaBtn"
+                    android:paddingVertical="10dp"
+                    android:src="@drawable/icon_i"
+                    android:textColor="@color/white"
+                    android:textSize="9sp"
+                    tools:ignore="HardcodedText,SmallSp" />
+            </LinearLayout>
+
+        </LinearLayout>
 
 
         <ImageView
@@ -99,7 +151,7 @@
             android:id="@+id/vsRadioGrp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="50dp"
+            android:layout_marginTop="90dp"
             android:orientation="horizontal"
             android:weightSum="2"
 
@@ -116,8 +168,8 @@
                 android:background="@drawable/radio_btn_selector"
                 android:button="@null"
                 android:checked="true"
-                android:drawableStart="@drawable/human_logo"
-                android:drawableEnd="@drawable/human_logo"
+                android:drawableStart="@drawable/icon_human"
+                android:drawableEnd="@drawable/icon_human"
                 android:fontFamily="@font/sortie"
                 android:gravity="center"
                 android:padding="20dp"
@@ -134,8 +186,8 @@
                 android:layout_weight="1"
                 android:background="@drawable/radio_btn_selector"
                 android:button="@null"
-                android:drawableStart="@drawable/human_logo"
-                android:drawableEnd="@drawable/ai_logo"
+                android:drawableStart="@drawable/icon_human"
+                android:drawableEnd="@drawable/icon_ai"
                 android:fontFamily="@font/sortie"
                 android:gravity="center"
                 android:padding="20dp"
@@ -154,7 +206,7 @@
             android:layout_gravity="center"
             android:layout_marginTop="20dp"
             android:layout_marginBottom="100dp"
-            android:background="@drawable/alert_dialog_btn2_bg"
+            android:background="@drawable/btn_red_bg"
             android:fontFamily="@font/sortie"
             android:onClick="startBtn"
             android:paddingLeft="50dp"

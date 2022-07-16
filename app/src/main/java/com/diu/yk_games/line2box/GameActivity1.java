@@ -8,19 +8,23 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Paint;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.GradientDrawable;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -45,6 +49,10 @@ public class GameActivity1 extends AppCompatActivity
     TextView scoreRedView, scoreBlueView, redTxt, blueTxt, nm1Txt, nm2Txt;
     public static boolean one = true, flag = true;
     //MediaPlayer lineClick, boxPlus, winSoundEf, btnClick;
+    public static SharedPreferences sharedPref;
+    public static SharedPreferences.Editor editor;
+    public boolean isFirstRun=true;
+
 
     @SuppressLint("StaticFieldLeak")
     static Spinner starSpinner;
@@ -65,6 +73,37 @@ public class GameActivity1 extends AppCompatActivity
 
     }
 
+    public static boolean isMuted()
+    {
+        return sharedPref.getBoolean("muted", false);
+    }
+    public void ifMuted()
+    {
+        if(isMuted())
+        {
+            findViewById(R.id.volBtn).setBackgroundResource(R.drawable.btn_gry_bg);
+            ((ImageButton)findViewById(R.id.volBtn)).setImageResource(R.drawable.icon_vol_mute);
+        }
+        else
+        {
+            findViewById(R.id.volBtn).setBackgroundResource(R.drawable.btn_ylw_bg);
+            ((ImageButton)findViewById(R.id.volBtn)).setImageResource(R.drawable.icon_vol_unmute);
+        }
+
+    }
+    public static boolean isFirstRun(String forWhat, Context context)
+    {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences.Editor preferencesEditor = preferences.edit();
+        if (preferences.getBoolean(forWhat, true))
+        {
+            preferencesEditor.putBoolean(forWhat, false).apply();
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
@@ -82,7 +121,14 @@ public class GameActivity1 extends AppCompatActivity
 //        boxPlus = MediaPlayer.create(this,R.raw.box_ef);
 //        winSoundEf = MediaPlayer.create(this,R.raw.win_ef);
 //        btnClick = MediaPlayer.create(this, R.raw.btn_click_ef);
-        Log.i("TAG", "onCreate: "+flag);
+        isFirstRun= isFirstRun("line2Box",this);
+        sharedPref = this.getPreferences(Context.MODE_PRIVATE);
+        editor = sharedPref.edit();
+        if(isFirstRun)
+        {
+            editor.putBoolean("muted", false).apply();
+        }
+        ifMuted();
         if(flag)
         {
             FragmentManager fm=getSupportFragmentManager();
@@ -218,7 +264,6 @@ public class GameActivity1 extends AppCompatActivity
     @SuppressLint("SetTextI18n")
     public void lineClick(View view)
     {
-        MediaPlayer.create(this, R.raw.line_click_ef).start();
         //Toast.makeText(this, "clicked", Toast.LENGTH_SHORT).show();
         idNm = getResources().getResourceEntryName(view.getId());
         GradientDrawable bg = (GradientDrawable) view.getBackground();
@@ -228,6 +273,8 @@ public class GameActivity1 extends AppCompatActivity
         int blue = getResources().getColor(R.color.blueX, getTheme());
         if (color == getResources().getColor(R.color.whiteX, getTheme()))
         {
+            if(!isMuted())
+                MediaPlayer.create(this, R.raw.line_click_ef).start();
             clickCount++;
             if (clickCount % 2 == 1)
             {
@@ -265,7 +312,8 @@ public class GameActivity1 extends AppCompatActivity
                     TextView txt = findViewById(txtId);
                     if (clickCount % 2 == 1)
                     {
-                        MediaPlayer.create(this, R.raw.box_ef).start();
+                        if(!isMuted())
+                            MediaPlayer.create(this, R.raw.box_ef).start();
                         scoreRed++;
                         scoreRedView.setText("" + scoreRed);
                         txt.setText(""+nm1.charAt(0));
@@ -291,7 +339,8 @@ public class GameActivity1 extends AppCompatActivity
                         }
                     } else
                     {
-                        MediaPlayer.create(this, R.raw.box_ef).start();
+                        if(!isMuted())
+                            MediaPlayer.create(this, R.raw.box_ef).start();
                         scoreBlue++;
                         scoreBlueView.setText("" + scoreBlue);
                         txt.setText(""+nm2.charAt(0));
@@ -349,7 +398,8 @@ public class GameActivity1 extends AppCompatActivity
                     TextView txt = findViewById(txtId);
                     if (clickCount % 2 == 1)
                     {
-                        MediaPlayer.create(this, R.raw.box_ef).start();
+                        if(!isMuted())
+                            MediaPlayer.create(this, R.raw.box_ef).start();
                         scoreRed++;
                         scoreRedView.setText("" + scoreRed);
                         txt.setText(""+nm1.charAt(0));
@@ -373,7 +423,8 @@ public class GameActivity1 extends AppCompatActivity
                         }
                     } else
                     {
-                        MediaPlayer.create(this, R.raw.box_ef).start();
+                        if(!isMuted())
+                            MediaPlayer.create(this, R.raw.box_ef).start();
                         scoreBlue++;
                         scoreBlueView.setText("" + scoreBlue);
                         txt.setText(""+nm2.charAt(0));
@@ -422,7 +473,8 @@ public class GameActivity1 extends AppCompatActivity
                 Handler handler = new Handler();
                 handler.postDelayed(() ->
                 {
-                    MediaPlayer.create(this, R.raw.win_ef).start();
+                    if(!isMuted())
+                        MediaPlayer.create(this, R.raw.win_ef).start();
                     redTxt.setTextSize(30);
                     redTxt.setTextColor(getResources().getColor(R.color.white, getTheme()));
                     blueTxt.setTextSize(30);
@@ -641,7 +693,8 @@ public class GameActivity1 extends AppCompatActivity
         final AlertDialog alertDialog = builder.create();
         view.findViewById(R.id.buttonYes).setOnClickListener(view1 ->
         {
-            MediaPlayer.create(this, R.raw.btn_click_ef).start();
+            if(!isMuted())
+                MediaPlayer.create(this, R.raw.btn_click_ef).start();
             alertDialog.dismiss();
             scoreRed=0;
             scoreBlue=0;
@@ -652,7 +705,8 @@ public class GameActivity1 extends AppCompatActivity
         });
         view.findViewById(R.id.buttonNo).setOnClickListener(view2 ->
         {
-            MediaPlayer.create(this, R.raw.btn_click_ef).start();
+            if(!isMuted())
+                MediaPlayer.create(this, R.raw.btn_click_ef).start();
             alertDialog.dismiss();
         });
         if (alertDialog.getWindow() != null) {
@@ -683,7 +737,8 @@ public class GameActivity1 extends AppCompatActivity
         final AlertDialog alertDialog = builder.create();
         view.findViewById(R.id.buttonYes).setOnClickListener(view1 ->
         {
-            MediaPlayer.create(this, R.raw.btn_click_ef).start();
+            if(!isMuted())
+                MediaPlayer.create(this, R.raw.btn_click_ef).start();
             alertDialog.dismiss();
             finish();
             startActivity(new Intent(GameActivity1.this, GameActivity1.class));
@@ -698,7 +753,8 @@ public class GameActivity1 extends AppCompatActivity
         });
         view.findViewById(R.id.buttonNo).setOnClickListener(view2 ->
         {
-            MediaPlayer.create(this, R.raw.btn_click_ef).start();
+            if(!isMuted())
+                MediaPlayer.create(this, R.raw.btn_click_ef).start();
             alertDialog.dismiss();
             finish();
             saveToFirebase();
@@ -772,6 +828,28 @@ public class GameActivity1 extends AppCompatActivity
     }
 
 
+    public void volButton(View view)
+    {
+        if(!isMuted())
+        {
+            findViewById(R.id.volBtn).setBackgroundResource(R.drawable.btn_gry_bg);
+            ((ImageButton)findViewById(R.id.volBtn)).setImageResource(R.drawable.icon_vol_mute);
+            editor.putBoolean("muted", true).apply();
+        }
+        else
+        {
+            MediaPlayer.create(this, R.raw.btn_click_ef).start();
+            findViewById(R.id.volBtn).setBackgroundResource(R.drawable.btn_ylw_bg);
+            ((ImageButton)findViewById(R.id.volBtn)).setImageResource(R.drawable.icon_vol_unmute);
+            editor.putBoolean("muted", false).apply();
+        }
+    }
+
+    public void ideaBtn(View view)
+    {
+        if(!isMuted())
+            MediaPlayer.create(this, R.raw.btn_click_ef).start();
+    }
 }
 
 

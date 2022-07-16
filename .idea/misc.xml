@@ -13,21 +13,30 @@
         <entry key="app/src/main/res/drawable/alert_dialog_btn_bg.xml" value="0.1635" />
         <entry key="app/src/main/res/drawable/back_icon.xml" value="0.2245" />
         <entry key="app/src/main/res/drawable/box.xml" value="0.176" />
+        <entry key="app/src/main/res/drawable/btn_grn_bg.xml" value="0.2045" />
+        <entry key="app/src/main/res/drawable/btn_gry_bg.xml" value="0.2045" />
+        <entry key="app/src/main/res/drawable/btn_red_bg.xml" value="0.2045" />
+        <entry key="app/src/main/res/drawable/btn_ylw_bg.xml" value="0.2045" />
         <entry key="app/src/main/res/drawable/circle.xml" value="0.152" />
         <entry key="app/src/main/res/drawable/custom_line.xml" value="0.2" />
         <entry key="app/src/main/res/drawable/customborder.xml" value="0.1675" />
         <entry key="app/src/main/res/drawable/dialog_background.xml" value="0.1535" />
         <entry key="app/src/main/res/drawable/dialog_layout.xml" value="0.1635" />
+        <entry key="app/src/main/res/drawable/globe_icon.xml" value="0.2045" />
         <entry key="app/src/main/res/drawable/human_logo.xml" value="0.2075" />
         <entry key="app/src/main/res/drawable/ic_launcher_background.xml" value="0.176" />
         <entry key="app/src/main/res/drawable/ic_launcher_foreground.xml" value="0.264" />
+        <entry key="app/src/main/res/drawable/icon_i.xml" value="0.2045" />
         <entry key="app/src/main/res/drawable/logo.xml" value="0.176" />
         <entry key="app/src/main/res/drawable/public_icon.xml" value="0.212" />
         <entry key="app/src/main/res/drawable/radio_btn_selector.xml" value="0.2075" />
+        <entry key="app/src/main/res/drawable/setting_icon.xml" value="0.2045" />
+        <entry key="app/src/main/res/drawable/setting_logo.xml" value="0.212" />
         <entry key="app/src/main/res/drawable/spinner_list.xml" value="0.2245" />
+        <entry key="app/src/main/res/drawable/vol_mute_icon.xml" value="0.2045" />
         <entry key="app/src/main/res/layout/activity_game1.xml" value="0.264" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.34318901795142553" />
-        <entry key="app/src/main/res/layout/activity_start.xml" value="0.264" />
+        <entry key="app/src/main/res/layout/activity_start.xml" value="0.27337488869100623" />
         <entry key="app/src/main/res/layout/alert_dialog_layout.xml" value="0.4" />
         <entry key="app/src/main/res/layout/custom_list_view.xml" value="0.37183544303797467" />
         <entry key="app/src/main/res/layout/fragment_blank.xml" value="0.2013681060282172" />

@@ -10,9 +10,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Toast;
-
-import java.util.Objects;
 
 
 /**
@@ -47,7 +44,8 @@ public class NameInfoFragment extends Fragment
         Button btn = view.findViewById(R.id.playBtn);
         btn.setOnClickListener(arg0 ->
         {
-            MediaPlayer.create(getContext(), R.raw.btn_click_ef).start();
+            if(!GameActivity1.isMuted())
+                MediaPlayer.create(getContext(), R.raw.btn_click_ef).start();
             if(!nm1EditText.getText().toString().equals(""))
             {
                 nm1=nm1EditText.getText().toString();

@@ -17,4 +17,9 @@
     <color name="darkX">#3A3737</color>
     <color name="greenX">#9923AA14</color>
     <color name="greenY">#249817</color>
+    <color name="yellowX">#99DBEE18</color>
+    <color name="yellowY">#CDDC39</color>
+    <color name="grayX">#99585858</color>
+    <color name="grayY">#7A7A7A</color>
+
 </resources>
