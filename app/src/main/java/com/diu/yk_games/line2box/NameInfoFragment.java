@@ -1,5 +1,7 @@
 package com.diu.yk_games.line2box;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 
@@ -10,7 +12,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-
 
 /**
  * A simple {@link Fragment} subclass.
@@ -44,7 +45,8 @@ public class NameInfoFragment extends Fragment
         Button btn = view.findViewById(R.id.playBtn);
         btn.setOnClickListener(arg0 ->
         {
-            if(!GameActivity1.isMuted())
+            SharedPreferences sharedPref = requireActivity().getPreferences(Context.MODE_PRIVATE);
+            if(sharedPref.getBoolean("muted", false))
                 MediaPlayer.create(getContext(), R.raw.btn_click_ef).start();
             if(!nm1EditText.getText().toString().equals(""))
             {

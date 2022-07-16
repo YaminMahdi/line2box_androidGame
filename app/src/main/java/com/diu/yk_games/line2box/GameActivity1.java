@@ -17,7 +17,6 @@ import android.graphics.drawable.GradientDrawable;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
-import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -49,9 +48,8 @@ public class GameActivity1 extends AppCompatActivity
     TextView scoreRedView, scoreBlueView, redTxt, blueTxt, nm1Txt, nm2Txt;
     public static boolean one = true, flag = true;
     //MediaPlayer lineClick, boxPlus, winSoundEf, btnClick;
-    public static SharedPreferences sharedPref;
-    public static SharedPreferences.Editor editor;
-    public boolean isFirstRun=true;
+    public SharedPreferences sharedPref;
+    public SharedPreferences.Editor editor;
 
 
     @SuppressLint("StaticFieldLeak")
@@ -73,7 +71,7 @@ public class GameActivity1 extends AppCompatActivity
 
     }
 
-    public static boolean isMuted()
+    public boolean isMuted()
     {
         return sharedPref.getBoolean("muted", false);
     }
@@ -90,18 +88,6 @@ public class GameActivity1 extends AppCompatActivity
             ((ImageButton)findViewById(R.id.volBtn)).setImageResource(R.drawable.icon_vol_unmute);
         }
 
-    }
-    public static boolean isFirstRun(String forWhat, Context context)
-    {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-        SharedPreferences.Editor preferencesEditor = preferences.edit();
-        if (preferences.getBoolean(forWhat, true))
-        {
-            preferencesEditor.putBoolean(forWhat, false).apply();
-            return true;
-        } else {
-            return false;
-        }
     }
 
     @Override
@@ -121,13 +107,9 @@ public class GameActivity1 extends AppCompatActivity
 //        boxPlus = MediaPlayer.create(this,R.raw.box_ef);
 //        winSoundEf = MediaPlayer.create(this,R.raw.win_ef);
 //        btnClick = MediaPlayer.create(this, R.raw.btn_click_ef);
-        isFirstRun= isFirstRun("line2Box",this);
-        sharedPref = this.getPreferences(Context.MODE_PRIVATE);
+
+        sharedPref = StartActivity.sharedPref;
         editor = sharedPref.edit();
-        if(isFirstRun)
-        {
-            editor.putBoolean("muted", false).apply();
-        }
         ifMuted();
         if(flag)
         {

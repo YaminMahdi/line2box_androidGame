@@ -24,9 +24,9 @@ import android.widget.Toast;
 public class StartActivity extends AppCompatActivity
 {
     RadioGroup vsRadioGrp;
-    public static boolean scrBrdVisible =false, isFirstRun=true;
+    public boolean scrBrdVisible =false, isFirstRun=true;
     public static SharedPreferences sharedPref;
-    public static SharedPreferences.Editor editor;
+    public SharedPreferences.Editor editor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
