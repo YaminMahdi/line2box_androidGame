@@ -16,48 +16,78 @@
         android:src="@drawable/bg1" />
 
     <LinearLayout
-        android:layout_width="100dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="end"
         android:layout_marginHorizontal="20dp"
         android:layout_marginTop="40dp"
+        android:baselineAligned="false">
 
-        >
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="horizontal"
 
-        <ImageButton
-            android:id="@+id/volBtn"
-            android:layout_width="45dp"
-            android:layout_height="45dp"
+            >
+
+            <ImageButton
+                android:layout_width="45dp"
+                android:layout_height="45dp"
+                android:layout_gravity="end"
+                android:background="@drawable/btn_grn_bg"
+                android:fontFamily="@font/sortie"
+                android:onClick="backBtn"
+                android:paddingVertical="10dp"
+                android:src="@drawable/icon_home"
+                android:textColor="@color/white"
+                android:textSize="9sp"
+                tools:ignore="HardcodedText,SmallSp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
             android:layout_gravity="end"
-            android:layout_marginEnd="10dp"
-            android:background="@drawable/btn_ylw_bg"
-            android:fontFamily="@font/sortie"
-            android:onClick="volButton"
-            android:paddingVertical="10dp"
-            android:src="@drawable/icon_vol_unmute"
-            android:textColor="@color/white"
-            android:textSize="9sp"
-            tools:ignore="HardcodedText,SmallSp" />
 
-        <ImageButton
-            android:layout_width="45dp"
-            android:layout_height="45dp"
-            android:layout_gravity="end"
-            android:background="@drawable/btn_gry_bg"
-            android:fontFamily="@font/sortie"
-            android:onClick="ideaBtn"
-            android:paddingVertical="10dp"
-            android:src="@drawable/icon_i"
-            android:textColor="@color/white"
-            android:textSize="9sp"
-            tools:ignore="HardcodedText,SmallSp" />
+            >
+
+            <ImageButton
+                android:id="@+id/volBtn"
+                android:layout_width="45dp"
+                android:layout_height="45dp"
+                android:layout_gravity="end"
+                android:layout_marginEnd="10dp"
+                android:background="@drawable/btn_ylw_bg"
+                android:fontFamily="@font/sortie"
+                android:onClick="volButton"
+                android:paddingVertical="10dp"
+                android:src="@drawable/icon_vol_unmute"
+                android:textColor="@color/white"
+                android:textSize="9sp"
+                tools:ignore="HardcodedText,SmallSp" />
+
+            <ImageButton
+                android:layout_width="45dp"
+                android:layout_height="45dp"
+                android:layout_gravity="end"
+                android:background="@drawable/btn_gry_bg"
+                android:fontFamily="@font/sortie"
+                android:onClick="ideaBtn"
+                android:paddingVertical="10dp"
+                android:src="@drawable/icon_i"
+                android:textColor="@color/white"
+                android:textSize="9sp"
+                tools:ignore="HardcodedText,SmallSp" />
+        </LinearLayout>
+
     </LinearLayout>
+
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
         android:layout_marginTop="40dp"
+        android:orientation="vertical"
 
         >
 
@@ -154,7 +184,6 @@
                     tools:ignore="HardcodedText" />
 
             </LinearLayout>
-
 
 
         </LinearLayout>

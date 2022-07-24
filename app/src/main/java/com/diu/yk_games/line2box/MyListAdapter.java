@@ -39,7 +39,7 @@ public class MyListAdapter extends ArrayAdapter<DataStore> {
         TextView redData = convertView.findViewById(R.id.redShow);
         TextView blueData = convertView.findViewById(R.id.blueShow);
 
-        timeData.setText("Time:  "+ds.get(position).timeData+"              Rating  :"+ds.get(position).starData);
+        timeData.setText("Time:  "+ds.get(position).timeData+"                Rating  :"+ds.get(position).starData);
         redData.setText(ds.get(position).redData);
         blueData.setText(ds.get(position).blueData);
 

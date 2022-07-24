@@ -8,12 +8,12 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Paint;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.StateListDrawable;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
@@ -38,6 +38,9 @@ import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import pl.droidsonroids.gif.GifImageView;
 
 public class GameActivity1 extends AppCompatActivity
 {
@@ -48,8 +51,9 @@ public class GameActivity1 extends AppCompatActivity
     TextView scoreRedView, scoreBlueView, redTxt, blueTxt, nm1Txt, nm2Txt;
     public static boolean one = true, flag = true;
     //MediaPlayer lineClick, boxPlus, winSoundEf, btnClick;
-    public SharedPreferences sharedPref;
+    public static SharedPreferences sharedPref;
     public SharedPreferences.Editor editor;
+    boolean isFirstRun=false;
 
 
     @SuppressLint("StaticFieldLeak")
@@ -68,6 +72,13 @@ public class GameActivity1 extends AppCompatActivity
             nm1Txt.setVisibility(View.GONE);
         if(Objects.equals(nm2, "Blue"))
             nm2Txt.setVisibility(View.GONE);
+        Handler handler = new Handler();
+        handler.postDelayed(() ->
+        {
+            if(isFirstRun)
+                infoShow();
+        }, 200);
+
 
     }
 
@@ -96,6 +107,7 @@ public class GameActivity1 extends AppCompatActivity
         super.onCreate(savedInstanceState);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_game1);
+        isFirstRun=StartActivity.isFirstRun;
         PACKAGE_NAME = getApplicationContext().getPackageName();
         scoreRedView = findViewById(R.id.scoreRed);
         scoreBlueView = findViewById(R.id.scoreBlue);
@@ -118,7 +130,7 @@ public class GameActivity1 extends AppCompatActivity
             ft.replace(R.id.nmFragment,new NameInfoFragment());
             ft.commit();
             findViewById(R.id.relativeLayout).setVisibility(View.INVISIBLE);
-            findViewById(R.id.txtLayout).setVisibility(View.INVISIBLE);
+            findViewById(R.id.txtLayout).setVisibility(View.GONE);
             findViewById(R.id.nmLayout).setVisibility(View.INVISIBLE);
             flag=false;
         }
@@ -663,7 +675,7 @@ public class GameActivity1 extends AppCompatActivity
     {
         AlertDialog.Builder builder = new AlertDialog.Builder(GameActivity1.this);
         View view = LayoutInflater.from(GameActivity1.this).inflate(
-                R.layout.alert_dialog_layout, findViewById(R.id.layoutDialog)
+                R.layout.dialog_layout_alert, findViewById(R.id.layoutDialog)
         );
         builder.setView(view);
 
@@ -683,6 +695,8 @@ public class GameActivity1 extends AppCompatActivity
             clickCount = 0;
             flag=true;
             super.onBackPressed();
+            startActivity(new Intent(this,StartActivity.class));
+            finish();
             //android.os.Process.killProcess(android.os.Process.myPid());
         });
         view.findViewById(R.id.buttonNo).setOnClickListener(view2 ->
@@ -702,7 +716,7 @@ public class GameActivity1 extends AppCompatActivity
     {
         AlertDialog.Builder builder = new AlertDialog.Builder(GameActivity1.this);
         View view = LayoutInflater.from(GameActivity1.this).inflate(
-                R.layout.alert_dialog_layout, findViewById(R.id.layoutDialog)
+                R.layout.dialog_layout_alert, findViewById(R.id.layoutDialog)
         );
         builder.setView(view);
         builder.setCancelable(false);
@@ -722,11 +736,9 @@ public class GameActivity1 extends AppCompatActivity
             if(!isMuted())
                 MediaPlayer.create(this, R.raw.btn_click_ef).start();
             alertDialog.dismiss();
-            finish();
             startActivity(new Intent(GameActivity1.this, GameActivity1.class));
+            finish();
             saveToFirebase();
-            scoreRed=0;
-            scoreBlue=0;
             clickCount=0;
             Toast.makeText(this, "Score Saved to Online Score Board", Toast.LENGTH_SHORT).show();
 
@@ -738,10 +750,9 @@ public class GameActivity1 extends AppCompatActivity
             if(!isMuted())
                 MediaPlayer.create(this, R.raw.btn_click_ef).start();
             alertDialog.dismiss();
+            startActivity(new Intent(this,StartActivity.class));
             finish();
             saveToFirebase();
-            scoreRed=0;
-            scoreBlue=0;
             clickCount = 0;
             flag=true;
             Toast.makeText(this, "Score Saved to Online Score Board", Toast.LENGTH_SHORT).show();
@@ -758,7 +769,7 @@ public class GameActivity1 extends AppCompatActivity
         String redData, blueData, starData, timeData;
 
 
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("d MMMM, h:m a");
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd MMM, hh:mm a");
         LocalDateTime now = LocalDateTime.now();
         timeData = dtf.format(now);
 
@@ -775,6 +786,7 @@ public class GameActivity1 extends AppCompatActivity
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference myRef = database.getReference("ScoreBoard");
         //single
+        DatabaseReference finalMyRef = myRef;
         myRef.child("Last Best Player").addValueEventListener(new ValueEventListener() {
             @SuppressLint("SetTextI18n")
             @Override
@@ -784,20 +796,26 @@ public class GameActivity1 extends AppCompatActivity
                 assert bestScoreData != null;
                 String[] arrOfStr =bestScoreData.split(" ");
                 bestScore= Integer.parseInt(arrOfStr[arrOfStr.length-1]);
+                if(bestScore < scoreRed)
+                    finalMyRef.child("Last Best Player").setValue(redData);
+                else if(bestScore < scoreBlue)
+                    finalMyRef.child("Last Best Player").setValue(blueData);
+                scoreRed=0;
+                scoreBlue=0;
             }
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 Log.w("saveToFirebase", "Failed to read value.", error.toException());
             }
         });
-        int max=Math.max(scoreRed, scoreBlue);
-        if(max>bestScore)
+
+        Handler handler = new Handler();
+        handler.postDelayed(() ->
         {
-            if(max== scoreRed)
-                myRef.child("Last Best Player").setValue(redData);
-            else
-                myRef.child("Last Best Player").setValue(blueData);
-        }
+
+        }, 2000);
+
+
 
 
         //multiple
@@ -808,7 +826,6 @@ public class GameActivity1 extends AppCompatActivity
 
 
     }
-
 
     public void volButton(View view)
     {
@@ -827,10 +844,77 @@ public class GameActivity1 extends AppCompatActivity
         }
     }
 
-    public void ideaBtn(View view)
+    public void ideaBtn(View view) {
+        if(!isMuted())
+            MediaPlayer.create(this, R.raw.btn_click_ef).start();
+        infoShow();
+
+    }
+
+    public void infoShow() {
+        AtomicInteger i= new AtomicInteger();
+        int[] gifs={R.drawable.g0,
+                R.drawable.g1,
+                R.drawable.g2,
+                R.drawable.g3,
+                R.drawable.g4};
+        String[] msg={"If the color of RED is popped, it's the TURN of the first player.",
+                "Click on a LINE to connect two DOT.",
+                "The player who makes a BOX gets a point.",
+                "Take a bonus TURN after making a BOX.",
+                "Click on this button anytime to see the rules again."};
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(GameActivity1.this);
+        View view = LayoutInflater.from(GameActivity1.this).inflate(
+                R.layout.dialog_layout_info, findViewById(R.id.layoutInfo)
+        );
+        builder.setView(view);
+        builder.setCancelable(false);
+
+        ((TextView) view.findViewById(R.id.textMessage)).setText(msg[0]);
+        ((GifImageView)view.findViewById(R.id.playGif)).setImageResource(gifs[0]);
+        view.findViewById(R.id.buttonPre).setVisibility(View.INVISIBLE);
+        final AlertDialog alertDialog = builder.create();
+        view.findViewById(R.id.buttonPre).setOnClickListener(view1 ->
+        {
+            if(!isMuted())
+                MediaPlayer.create(this, R.raw.btn_click_ef).start();
+            if(i.get()!=0)
+                i.getAndDecrement();
+            if(i.get()==0)
+                view.findViewById(R.id.buttonPre).setVisibility(View.INVISIBLE);
+            ((TextView) view.findViewById(R.id.textMessage)).setText(msg[i.get()]);
+            ((GifImageView)view.findViewById(R.id.playGif)).setImageResource(gifs[i.get()]);
+
+        });
+        view.findViewById(R.id.buttonNext).setOnClickListener(view2 ->
+        {
+            if(!isMuted())
+                MediaPlayer.create(this, R.raw.btn_click_ef).start();
+            i.getAndIncrement();
+            if(!isFirstRun&&i.get()==4)
+                i.getAndIncrement();
+            if(i.get()==1)
+                view.findViewById(R.id.buttonPre).setVisibility(View.VISIBLE);
+            if(i.get()==5)
+                alertDialog.dismiss();
+            else
+            {
+                ((TextView) view.findViewById(R.id.textMessage)).setText(msg[i.get()]);
+                ((GifImageView)view.findViewById(R.id.playGif)).setImageResource(gifs[i.get()]);
+            }
+        });
+        if (alertDialog.getWindow() != null) {
+            alertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(0));
+        }
+        alertDialog.show();
+    }
+
+    public void backBtn(View view)
     {
         if(!isMuted())
             MediaPlayer.create(this, R.raw.btn_click_ef).start();
+        onBackPressed();
     }
 }
 

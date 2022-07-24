@@ -30,7 +30,7 @@ public class DisplayFragment extends Fragment
 {
 
 
-    private final String TAG="Disfrag";
+    private final String TAG="Dis_frag";
     ArrayList<DataStore> dsList;
     String bestScore="\n\n\nNetwork Error";
 
@@ -40,6 +40,18 @@ public class DisplayFragment extends Fragment
 
         // Initialize dataset, this data would usually come from a local content provider or
         // remote server.
+
+    }
+
+
+    @SuppressLint("SetTextI18n")
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState)
+    {
+
+        View v=inflater.inflate(R.layout.fragment_display, container, false);
+        TextView lbs= v.findViewById(R.id.lastBestScore);
         dsList = new ArrayList<>();
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference myRef = database.getReference("ScoreBoard");
@@ -52,6 +64,7 @@ public class DisplayFragment extends Fragment
                 // This method is called once with the initial value and again
                 // whenever data at this location is updated.
                 bestScore = dataSnapshot.getValue(String.class);
+                lbs.setText("Last Best Score is from:     "+bestScore);
                 //Log.d(TAG, "Last Value is: " + bestScore);
 
             }
@@ -69,7 +82,12 @@ public class DisplayFragment extends Fragment
                 DataStore ds = dataSnapshot.getValue(DataStore.class);
                 assert ds != null;
                 //ds.timeData = dataSnapshot.getKey();
-                dsList.add(ds);
+                dsList.add(0,ds);
+                //Collections.reverse(dsList);
+                //Log.d(TAG, "Last Value is: " + bestScore);
+                MyListAdapter adapter=new MyListAdapter(getActivity(),dsList);  //
+                ListView list = v.findViewById(R.id.showNotesList);
+                list.setAdapter(adapter);
                 //Log.i(TAG,"key data = " + ds.timeData);
 
             }
@@ -93,29 +111,6 @@ public class DisplayFragment extends Fragment
             }
 
         });
-    }
-
-
-    @SuppressLint("SetTextI18n")
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState)
-    {
-
-        View v=inflater.inflate(R.layout.fragment_display, container, false);
-        TextView lbs= v.findViewById(R.id.lastBestScore);
-
-        Handler handler = new Handler();
-        handler.postDelayed(() ->
-        {
-            lbs.setText("Last Best Score is from:     "+bestScore);
-            Collections.reverse(dsList);
-            //Log.d(TAG, "Last Value is: " + bestScore);
-            MyListAdapter adapter=new MyListAdapter(getActivity(),dsList);  //
-            ListView list = v.findViewById(R.id.showNotesList);
-            list.setAdapter(adapter);
-        }, 1420);
-
         return v;
     }
 
