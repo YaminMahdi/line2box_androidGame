@@ -3,84 +3,81 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/box"
     android:layout_margin="30dp"
+    android:background="@drawable/box"
     android:orientation="vertical"
     tools:context=".NameInfoFragment">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
         android:layout_margin="20dp"
-        >
+        android:orientation="vertical">
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="Change Name (Optional)"
-            android:fontFamily="@font/sortie"
-            android:textColor="@color/white"
-            android:textSize="20sp"
             android:layout_marginBottom="10dp"
-            />
+            android:fontFamily="@font/sortie"
+            android:gravity="center"
+            android:text="Change Name"
+            android:textColor="@color/white"
+            android:textSize="20sp" />
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="1st Player Name: "
-            android:layout_marginTop="10dp"
-            android:textColor="@color/white"
-            android:fontFamily="@font/sortie"
             android:layout_marginStart="4dp"
-            />
+            android:layout_marginTop="10dp"
+            android:fontFamily="@font/sortie"
+            android:text="1st Player Name: "
+            android:textColor="@color/white" />
+
         <EditText
+            android:id="@+id/palyerRed"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="RED"
-            android:id="@+id/palyerRed"
-            android:textColorHint="#CCE8E8E8"
-            android:textColor="@color/white"
             android:autofillHints="Red"
             android:fontFamily="@font/sortie"
+            android:hint="RED"
             android:inputType="text"
-            />
+            android:textColor="@color/white"
+            android:textColorHint="#CCE8E8E8" />
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="2nd Player Name: "
-            android:layout_marginTop="10dp"
-            android:textColor="@color/white"
-            android:fontFamily="@font/sortie"
             android:layout_marginStart="4dp"
-            />
+            android:layout_marginTop="10dp"
+            android:fontFamily="@font/sortie"
+            android:text="2nd Player Name: "
+            android:textColor="@color/white" />
+
         <EditText
+            android:id="@+id/palyerBlue"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="BLUE"
-            android:id="@+id/palyerBlue"
-            android:textColorHint="#CCE8E8E8"
-            android:textColor="@color/white"
             android:autofillHints="Blue"
             android:fontFamily="@font/sortie"
+            android:hint="BLUE"
             android:inputType="text"
-            />
-
+            android:textColor="@color/white"
+            android:textColorHint="#CCE8E8E8" />
 
 
         <Button
+            android:id="@+id/playBtn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
             android:layout_marginStart="40dp"
+            android:layout_marginTop="20dp"
             android:layout_marginEnd="40dp"
             android:layout_marginBottom="10dp"
+            android:background="@drawable/radio_btn_selector"
+            android:fontFamily="@font/sortie"
             android:text="Play"
             android:textColor="@color/white"
-            android:fontFamily="@font/sortie"
             android:textSize="30dp"
-            android:background="@drawable/radio_btn_selector"
-            android:id="@+id/playBtn"
 
             />
     </LinearLayout>

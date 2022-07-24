@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -13,7 +14,9 @@
         android:layout_height="match_parent"
         android:contentDescription="@string/background"
         android:scaleType="centerCrop"
-        android:src="@drawable/bg1" />
+        android:src="@drawable/bg1"
+        app:tint="#650D1C67"
+        app:tintMode="src_atop" />
 
     <TextView
         android:id="@+id/scrBrdNm"
@@ -65,7 +68,7 @@
     </LinearLayout>
 
     <LinearLayout
-        android:id="@+id/linearLayoutStart"
+        android:id="@+id/linearLayoutStart1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="40dp"
@@ -147,14 +150,22 @@
             android:padding="10dp"
             android:src="@drawable/logo" />
 
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/linearLayoutStart2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:orientation="vertical">
+
         <RadioGroup
             android:id="@+id/vsRadioGrp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="90dp"
             android:orientation="horizontal"
             android:weightSum="2"
-
 
             >
 
@@ -204,7 +215,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="60dp"
             android:layout_marginBottom="100dp"
             android:background="@drawable/btn_red_bg"
             android:fontFamily="@font/sortie"
@@ -215,7 +226,7 @@
             android:paddingBottom="20dp"
             android:text="@string/start"
             android:textColor="@color/white"
-            android:textSize="60sp" />
+            android:textSize="45sp" />
     </LinearLayout>
 
 

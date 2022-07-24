@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/updateLayoutDialog"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginLeft="20dp"
+    android:layout_marginTop="150dp"
+    android:layout_marginRight="20dp"
+    android:background="@drawable/box"
+    android:orientation="vertical"
+
+    >
+
+    <TextView
+        android:id="@+id/textMessage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        android:fontFamily="@font/sortie"
+        android:gravity="center"
+        android:text="Update Available !"
+        android:textColor="@color/greenY"
+        android:textSize="30sp" />
+    <TextView
+        android:id="@+id/starTxt"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Updating the game makes playing the game more fun."
+        android:gravity="center"
+        android:textColor="@color/whiteY"
+        android:fontFamily="@font/sortie"
+        android:layout_marginHorizontal="24dp"
+        />
+
+    <Button
+        android:id="@+id/buttonUpdate"
+        android:layout_width="100dp"
+        android:layout_height="40dp"
+        android:layout_marginBottom="20dp"
+        android:layout_marginTop="30dp"
+        android:text="Update"
+        android:background="@drawable/btn_grn_bg"
+        android:fontFamily="@font/sortie"
+        android:textColor="@color/white"
+        android:layout_gravity="center"
+        android:textSize="18sp"
+        tools:ignore="ButtonStyle" />
+
+</LinearLayout>

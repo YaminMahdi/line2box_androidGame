@@ -45,8 +45,8 @@ public class NameInfoFragment extends Fragment
         Button btn = view.findViewById(R.id.playBtn);
         btn.setOnClickListener(arg0 ->
         {
-            SharedPreferences sharedPref = requireActivity().getPreferences(Context.MODE_PRIVATE);
-            if(sharedPref.getBoolean("muted", false))
+            SharedPreferences sharedPref = GameActivity1.sharedPref;
+            if(!sharedPref.getBoolean("muted", false))
                 MediaPlayer.create(getContext(), R.raw.btn_click_ef).start();
             if(!nm1EditText.getText().toString().equals(""))
             {
