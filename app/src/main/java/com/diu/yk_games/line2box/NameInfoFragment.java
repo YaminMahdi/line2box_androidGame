@@ -13,6 +13,8 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 
+import java.util.Objects;
+
 /**
  * A simple {@link Fragment} subclass.
  * Use the {@link NameInfoFragment# newInstance} factory method to
@@ -45,7 +47,8 @@ public class NameInfoFragment extends Fragment
         Button btn = view.findViewById(R.id.playBtn);
         btn.setOnClickListener(arg0 ->
         {
-            SharedPreferences sharedPref = GameActivity1.sharedPref;
+            SharedPreferences sharedPref = requireContext().getSharedPreferences(
+                    getString(R.string.preference_file_key), Context.MODE_PRIVATE);
             if(!sharedPref.getBoolean("muted", false))
                 MediaPlayer.create(getContext(), R.raw.btn_click_ef).start();
             if(!nm1EditText.getText().toString().equals(""))

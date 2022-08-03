@@ -12,8 +12,10 @@
     <color name="whiteY">#D9D9D9</color>
     <color name="blueX">#99056DFF</color>
     <color name="blueY">#1B73EF</color>
+    <color name="blueZ">#7CAFF7</color>
     <color name="redX">#99E91E1E</color>
     <color name="redY">#DE2D45</color>
+    <color name="redZ">#EA7B8A</color>
     <color name="darkX">#3A3737</color>
     <color name="greenX">#9923AA14</color>
     <color name="greenY">#249817</color>

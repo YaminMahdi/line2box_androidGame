@@ -90,6 +90,7 @@
                 >
 
                 <ImageButton
+                    android:id="@+id/scrBrdBtn"
                     android:layout_width="45dp"
                     android:layout_height="45dp"
                     android:layout_gravity="end"

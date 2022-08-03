@@ -1,11 +1,5 @@
 package com.diu.yk_games.line2box;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
-import androidx.core.content.res.ResourcesCompat;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -14,7 +8,6 @@ import android.content.SharedPreferences;
 import android.graphics.Paint;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.GradientDrawable;
-import android.graphics.drawable.StateListDrawable;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
@@ -29,6 +22,17 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+import androidx.core.content.res.ResourcesCompat;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+
+import com.diu.yk_games.line2box.databinding.ActivityGame2Binding;
+import com.google.android.material.navigation.NavigationView;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -38,51 +42,36 @@ import com.google.firebase.database.ValueEventListener;
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import pl.droidsonroids.gif.GifImageView;
 
-public class GameActivity1 extends AppCompatActivity
-{
+public class GameActivity2 extends AppCompatActivity {
+    private static final String TAG = "TAG: GameActivity2";
+    private ActivityGame2Binding binding;
     public static int clickCount = 0, scoreRed = 0, scoreBlue = 0, bestScore=9999;
-    public static String idNm, fst = "r1c1", top, left, circle, nm1, nm2;
-
+    public static String idNm, fst = "r1c1", top, left, circle, nm1="Red", nm2="Blue";
     public static String PACKAGE_NAME;
     TextView scoreRedView, scoreBlueView, redTxt, blueTxt, nm1Txt, nm2Txt;
     public static boolean one = true, flag = true;
     //MediaPlayer lineClick, boxPlus, winSoundEf, btnClick;
     SharedPreferences sharedPref;
     SharedPreferences.Editor editor;
-    boolean isFirstRun=false;
-    GradientDrawable temp;
-
+    static boolean isFirstRun=false, plyr1, plyrTurn, lastTurn;
+    DrawerLayout mDrawerLayout;
+    Integer lvl1,lvl2;
+    String key;
+    static FirebaseDatabase database;
+    static DatabaseReference myRef;
+    ArrayList<Integer> matchInfoList;
+    static Integer whoseChance=1;
 
     @SuppressLint("StaticFieldLeak")
     static Spinner starSpinner;
     static ArrayAdapter<CharSequence> arrAdapter;
 
-    @SuppressLint("SetTextI18n")
-    public void onStopFragment()
-    {
-        findViewById(R.id.relativeLayout).setVisibility(View.VISIBLE);
-        findViewById(R.id.txtLayout).setVisibility(View.VISIBLE);
-        findViewById(R.id.nmLayout).setVisibility(View.VISIBLE);
-        nm1Txt.setText("("+nm1+")");
-        nm2Txt.setText("("+nm2+")");
-        if(Objects.equals(nm1, "Red"))
-            nm1Txt.setVisibility(View.GONE);
-        if(Objects.equals(nm2, "Blue"))
-            nm2Txt.setVisibility(View.GONE);
-        Handler handler = new Handler();
-        handler.postDelayed(() ->
-        {
-            if(isFirstRun)
-                infoShow();
-        }, 200);
-
-
-    }
 
     public boolean isMuted()
     {
@@ -103,44 +92,110 @@ public class GameActivity1 extends AppCompatActivity
 
     }
 
+
     @Override
-    protected void onCreate(Bundle savedInstanceState)
-    {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        binding = ActivityGame2Binding.inflate(getLayoutInflater());
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        setContentView(R.layout.activity_game1);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+        setContentView(binding.getRoot());
+
+        sharedPref = this.getSharedPreferences(
+                getString(R.string.preference_file_key), Context.MODE_PRIVATE);
+        editor = sharedPref.edit();
+        GameProfile.setPreferences(sharedPref);
+        DrawerLayout drawer = binding.drawerLayout;
+        NavigationView navigationView = binding.navView;
+        // Passing each menu ID as a set of Ids because each
+        // menu should be considered as top level destinations.
         isFirstRun=StartActivity.isFirstRun;
         PACKAGE_NAME = getApplicationContext().getPackageName();
+        ifMuted();
+        key= getIntent().getExtras().getString("gameKey");
+        nm1 = getIntent().getExtras().getString("nm1");
+        nm2 = getIntent().getExtras().getString("nm2");
+        lvl1 = getIntent().getExtras().getInt("lvl1");
+        lvl2 = getIntent().getExtras().getInt("lvl2");
+        plyr1 = getIntent().getExtras().getBoolean("plyr1");
+        plyrTurn = plyr1;
+        //plyrTurn=!plyr1;
+        Log.d(TAG, "key: "+key+" nm1: "+nm1+" nm2: "+nm2+" lvl1: "+lvl1+" lvl2: "+lvl2);
         scoreRedView = findViewById(R.id.scoreRed);
         scoreBlueView = findViewById(R.id.scoreBlue);
         redTxt = findViewById(R.id.red);
         blueTxt = findViewById(R.id.blue);
         nm1Txt= findViewById(R.id.nm1Id);
         nm2Txt= findViewById(R.id.nm2Id);
-//        lineClick = MediaPlayer.create(this, R.raw.line_click_ef);
-//        boxPlus = MediaPlayer.create(this,R.raw.box_ef);
-//        winSoundEf = MediaPlayer.create(this,R.raw.win_ef);
-//        btnClick = MediaPlayer.create(this, R.raw.btn_click_ef);
-        sharedPref = this.getSharedPreferences(
-                getString(R.string.preference_file_key), Context.MODE_PRIVATE);
-        editor = sharedPref.edit();
-        ifMuted();
-        if(flag)
-        {
-            FragmentManager fm=getSupportFragmentManager();
-            FragmentTransaction ft=fm.beginTransaction();
-            ft.replace(R.id.nmFragment,new NameInfoFragment());
-            ft.commit();
-            findViewById(R.id.relativeLayout).setVisibility(View.INVISIBLE);
-            findViewById(R.id.txtLayout).setVisibility(View.GONE);
-            findViewById(R.id.nmLayout).setVisibility(View.INVISIBLE);
-            flag=false;
-        }
-        else
-            onStopFragment();
-
+        nm1Txt.setText(nm1);
+        nm2Txt.setText(nm2);
+        mDrawerLayout = findViewById(R.id.drawer_layout);
+        mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
 //        nm1=NameInfoFragment.nm1;
 //        nm2=NameInfoFragment.nm2;
+        database = FirebaseDatabase.getInstance();
+        myRef = database.getReference("MultiPlayer").child(key).child("matchInfo");
+//        if(plyr1)
+//            myRef.child("whoseChance").setValue(whoseChance);
+//        myRef.child("whoseChance").addValueEventListener(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(@NonNull DataSnapshot snapshot) {
+//                whoseChance=snapshot.getValue(Integer.class);
+//            }
+//            @Override
+//            public void onCancelled(@NonNull DatabaseError error) {
+//
+//            }
+//        });
+        myRef.child("plyr2").addChildEventListener(new ChildEventListener()
+        {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, String s)
+            {
+                if(plyr1)
+                {
+                    int viewFromServer = Objects.requireNonNull(dataSnapshot.getValue(Integer.class));
+                    plyrTurn=true;
+                    lineClick(findViewById(viewFromServer));
+                    Log.d(TAG, "onChildAdded (view): "+getResources().getResourceEntryName(viewFromServer)+" "+plyrTurn);
+                }
+            }
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {}
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {}
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {}
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.w(TAG, "Failed to read value.", databaseError.toException());
+            }
+        });
+        myRef.child("plyr1").addChildEventListener(new ChildEventListener()
+        {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, String s)
+            {
+                if(!plyr1)
+                {
+                    int viewFromServer = Objects.requireNonNull(dataSnapshot.getValue(Integer.class));
+                    plyrTurn=true;
+                    lineClick(findViewById(viewFromServer));
+                    Log.d(TAG, "onChildAdded (view): "+getResources().getResourceEntryName(viewFromServer)+" "+plyrTurn);
+                }
+            }
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {}
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {}
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {}
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.w(TAG, "Failed to read value.", databaseError.toException());
+            }
+
+        });
 
 
         StringBuilder index = new StringBuilder();
@@ -247,39 +302,41 @@ public class GameActivity1 extends AppCompatActivity
                 }
 
             }
+
         }
-
-
     }
-    // Hide the status bar.
-    //WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
-    //getWindow().getDecorView().setSystemUiVisibility(getWindow().getDecorView().SYSTEM_UI_FLAG_FULLSCREEN);
-    //getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
-    //getActionBar().hide();
+
 
     @SuppressLint("SetTextI18n")
     public void lineClick(View view)
     {
+        Log.d(TAG, "After lineClick (plyrTurn): "+plyrTurn);
         //Toast.makeText(this, "clicked", Toast.LENGTH_SHORT).show();
         idNm = getResources().getResourceEntryName(view.getId());
+
         GradientDrawable bg = (GradientDrawable) view.getBackground();
         int color = getColorGrad(bg);
         boolean change = false;
         int red = getResources().getColor(R.color.redX, getTheme());
         int blue = getResources().getColor(R.color.blueX, getTheme());
-//        if(temp != null)
-//        {
-//            if(getColorGrad(temp)==ContextCompat.getColor(getApplicationContext(), R.color.redZ))
-//                temp.setColor(red);
-//            else
-//                temp.setColor(blue);
-//        }
-//        temp=bg;
-        if (color == getResources().getColor(R.color.whiteX, getTheme()))
+
+        if (color == getResources().getColor(R.color.whiteX, getTheme()) && plyrTurn)
         {
             if(!isMuted())
                 MediaPlayer.create(this, R.raw.line_click_ef).start();
             clickCount++;
+            if(plyr1&&clickCount % 2 == 1)
+            {
+                String key = myRef.child("plyr1").push().getKey();
+                assert key != null;
+                myRef.child("plyr1").child(key).setValue(view.getId());
+            }
+            else if(!plyr1&&clickCount % 2 == 0)
+            {
+                String key = myRef.child("plyr2").push().getKey();
+                assert key != null;
+                myRef.child("plyr2").child(key).setValue(view.getId());
+            }
             if (clickCount % 2 == 1)
             {
                 bg.setColor(ContextCompat.getColor(getApplicationContext(), R.color.redX));
@@ -455,21 +512,37 @@ public class GameActivity1 extends AppCompatActivity
                 }
             }
             if (change)
+            {
+                if(clickCount % 2 == 1)
+                {
+                    if(!plyr1)
+                        plyrTurn=false;
+                }
+                else
+                {
+                    if(plyr1)
+                        plyrTurn=false;
+                }
                 clickCount--;
+            }
             else
             {
-                if (clickCount % 2 == 1) {
+                if (clickCount % 2 == 1)
+                {
                     redTxt.setTextSize(30);
                     redTxt.setTextColor(getResources().getColor(R.color.whiteT, getTheme()));
                     blueTxt.setTextSize(35);
                     blueTxt.setTextColor(getResources().getColor(R.color.white, getTheme()));
+                    if(plyr1)
+                        plyrTurn=false;
                 } else
                 {
                     blueTxt.setTextSize(30);
                     blueTxt.setTextColor(getResources().getColor(R.color.whiteT, getTheme()));
                     redTxt.setTextSize(35);
                     redTxt.setTextColor(getResources().getColor(R.color.white, getTheme()));
-
+                    if(!plyr1)
+                        plyrTurn=false;
                 }
             }
             if (scoreRed + scoreBlue == 36)
@@ -493,7 +566,10 @@ public class GameActivity1 extends AppCompatActivity
 
             }
 
+//            if((clickCount %2 == 1 && plyr1)||(clickCount %2 == 0 && !plyr1))
+//                plyrTurn=false;
         }
+
         overridePendingTransition(0, 0);
     }
 
@@ -683,8 +759,8 @@ public class GameActivity1 extends AppCompatActivity
     @Override
     public void onBackPressed()
     {
-        AlertDialog.Builder builder = new AlertDialog.Builder(GameActivity1.this);
-        View view = LayoutInflater.from(GameActivity1.this).inflate(
+        AlertDialog.Builder builder = new AlertDialog.Builder(GameActivity2.this);
+        View view = LayoutInflater.from(GameActivity2.this).inflate(
                 R.layout.dialog_layout_alert, findViewById(R.id.layoutDialog)
         );
         builder.setView(view);
@@ -705,7 +781,7 @@ public class GameActivity1 extends AppCompatActivity
             clickCount = 0;
             flag=true;
             super.onBackPressed();
-            startActivity(new Intent(this,StartActivity.class));
+            startActivity(new Intent(this,MultiplayerActivity.class));
             finish();
             //android.os.Process.killProcess(android.os.Process.myPid());
         });
@@ -724,8 +800,8 @@ public class GameActivity1 extends AppCompatActivity
     @SuppressLint("SetTextI18n")
     public void onGameOver(String winMsg)
     {
-        AlertDialog.Builder builder = new AlertDialog.Builder(GameActivity1.this);
-        View view = LayoutInflater.from(GameActivity1.this).inflate(
+        AlertDialog.Builder builder = new AlertDialog.Builder(GameActivity2.this);
+        View view = LayoutInflater.from(GameActivity2.this).inflate(
                 R.layout.dialog_layout_alert, findViewById(R.id.layoutDialog)
         );
         builder.setView(view);
@@ -746,7 +822,7 @@ public class GameActivity1 extends AppCompatActivity
             if(!isMuted())
                 MediaPlayer.create(this, R.raw.btn_click_ef).start();
             alertDialog.dismiss();
-            startActivity(new Intent(GameActivity1.this, GameActivity1.class));
+            startActivity(new Intent(GameActivity2.this, GameActivity2.class));
             finish();
             saveToFirebase();
             clickCount=0;
@@ -760,7 +836,7 @@ public class GameActivity1 extends AppCompatActivity
             if(!isMuted())
                 MediaPlayer.create(this, R.raw.btn_click_ef).start();
             alertDialog.dismiss();
-            startActivity(new Intent(this,StartActivity.class));
+            startActivity(new Intent(this,MultiplayerActivity.class));
             finish();
             saveToFirebase();
             clickCount = 0;
@@ -819,6 +895,14 @@ public class GameActivity1 extends AppCompatActivity
             }
         });
 
+        Handler handler = new Handler();
+        handler.postDelayed(() ->
+        {
+
+        }, 2000);
+
+
+
 
         //multiple
         myRef=myRef.child("allScore");
@@ -866,8 +950,8 @@ public class GameActivity1 extends AppCompatActivity
                 "Take a bonus TURN after making a BOX.",
                 "Click on this button anytime to see the rules again."};
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(GameActivity1.this);
-        View view = LayoutInflater.from(GameActivity1.this).inflate(
+        AlertDialog.Builder builder = new AlertDialog.Builder(GameActivity2.this);
+        View view = LayoutInflater.from(GameActivity2.this).inflate(
                 R.layout.dialog_layout_info, findViewById(R.id.layoutInfo)
         );
         builder.setView(view);
@@ -912,6 +996,19 @@ public class GameActivity1 extends AppCompatActivity
         alertDialog.show();
     }
 
+    public void closeNavBtn(View view)
+    {
+        if(!isMuted())
+            MediaPlayer.create(this, R.raw.btn_click_ef).start();
+        mDrawerLayout.closeDrawer(GravityCompat.START);
+    }
+    public void openNavBtn(View view)
+    {
+        if(!isMuted())
+            MediaPlayer.create(this, R.raw.btn_click_ef).start();
+        mDrawerLayout.openDrawer(GravityCompat.START);
+    }
+
     public void backBtn(View view)
     {
         if(!isMuted())
@@ -919,19 +1016,3 @@ public class GameActivity1 extends AppCompatActivity
         onBackPressed();
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
