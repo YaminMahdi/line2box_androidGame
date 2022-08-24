@@ -18,217 +18,226 @@
         app:tint="#650D1C67"
         app:tintMode="src_atop" />
 
-    <TextView
-        android:id="@+id/scrBrdNm"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="50dp"
-        android:fontFamily="@font/sortie"
-        android:gravity="center"
-        android:text="Global Score Board"
-        android:textColor="@color/white"
-        android:textSize="40sp"
-        tools:ignore="HardcodedText" />
-
-    <androidx.fragment.app.FragmentContainerView
-        android:id="@+id/disFragment"
-        android:name="com.diu.yk_games.line2box.BlankFragment"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center" />
-
     <LinearLayout
-        android:id="@+id/linearLayoutBtn"
+        android:id="@+id/globalScoreFrag"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        android:layout_marginHorizontal="40dp"
-        android:layout_marginTop="60dp"
-        android:layout_marginBottom="40dp"
-        android:orientation="vertical">
+        android:layout_height="match_parent"
+        android:layout_marginTop="50dp"
+        android:orientation="vertical"
+        android:weightSum="10">
 
-
-        <Button
-            android:id="@+id/btnBack"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="end"
-            android:layout_marginStart="40dp"
-            android:background="@drawable/btn_grn_bg"
-            android:drawableStart="@drawable/icon_back"
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight=".5"
             android:fontFamily="@font/sortie"
-            android:onClick="goBack"
-            android:padding="20dp"
-            android:text="  Go Back "
+            android:gravity="center"
+            android:text="Global Score Board"
             android:textColor="@color/white"
-            android:textSize="19sp"
+            android:textSize="40sp"
             tools:ignore="HardcodedText" />
 
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/disFragment"
+            android:name="com.diu.yk_games.line2box.BlankFragment"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="8"
 
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/linearLayoutStart1"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="40dp"
-        android:orientation="vertical">
-
+            />
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="20dp"
-            android:baselineAligned="false">
+            android:layout_height="0dp"
+            android:layout_marginHorizontal="40dp"
+            android:layout_weight="1.5"
+            android:gravity="center"
+            android:orientation="vertical">
 
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="horizontal"
 
-                >
-
-                <ImageButton
-                    android:id="@+id/scrBrdBtn"
-                    android:layout_width="45dp"
-                    android:layout_height="45dp"
-                    android:layout_gravity="end"
-                    android:background="@drawable/btn_grn_bg"
-                    android:fontFamily="@font/sortie"
-                    android:onClick="scoreBoard"
-                    android:paddingVertical="10dp"
-                    android:src="@drawable/icon_globe"
-                    android:textColor="@color/white"
-                    android:textSize="9sp"
-                    tools:ignore="HardcodedText,SmallSp" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="100dp"
+            <Button
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="end"
-
-                >
-
-                <ImageButton
-                    android:id="@+id/volBtn"
-                    android:layout_width="45dp"
-                    android:layout_height="45dp"
-                    android:layout_gravity="end"
-                    android:layout_marginEnd="10dp"
-                    android:background="@drawable/btn_ylw_bg"
-                    android:fontFamily="@font/sortie"
-                    android:onClick="volButton"
-                    android:paddingVertical="10dp"
-                    android:src="@drawable/icon_vol_unmute"
-                    android:textColor="@color/white"
-                    android:textSize="9sp"
-                    tools:ignore="HardcodedText,SmallSp" />
-
-                <ImageButton
-                    android:layout_width="45dp"
-                    android:layout_height="45dp"
-                    android:layout_gravity="end"
-                    android:background="@drawable/btn_gry_bg"
-                    android:fontFamily="@font/sortie"
-                    android:onClick="ideaBtn"
-                    android:paddingVertical="10dp"
-                    android:src="@drawable/icon_i"
-                    android:textColor="@color/white"
-                    android:textSize="9sp"
-                    tools:ignore="HardcodedText,SmallSp" />
-            </LinearLayout>
+                android:background="@drawable/btn_grn_bg"
+                android:drawableStart="@drawable/icon_back"
+                android:fontFamily="@font/sortie"
+                android:onClick="goBack"
+                android:padding="20dp"
+                android:text="  Go Back "
+                android:textColor="@color/white"
+                android:textSize="19sp"
+                tools:ignore="HardcodedText" />
 
         </LinearLayout>
 
-
-        <ImageView
-            android:layout_width="300dp"
-            android:layout_height="300dp"
-            android:layout_gravity="center"
-            android:contentDescription="@string/background"
-            android:padding="10dp"
-            android:src="@drawable/logo" />
-
-
     </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/linearLayoutStart2"
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        android:orientation="vertical">
+        android:layout_height="match_parent"
 
-        <RadioGroup
-            android:id="@+id/vsRadioGrp"
+        >
+
+        <LinearLayout
+            android:id="@+id/linearLayoutStart1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:weightSum="2"
+            android:orientation="vertical"
+            android:layout_marginTop="40dp"
+            app:layout_constraintTop_toTopOf="parent">
 
-            >
 
-            <RadioButton
-                android:id="@+id/radioBtnHuman"
-                android:layout_width="0dp"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="40dp"
+                android:layout_marginHorizontal="20dp"
+                android:baselineAligned="false">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="horizontal"
+
+                    >
+
+                    <ImageButton
+                        android:id="@+id/scrBrdBtn"
+                        android:layout_width="45dp"
+                        android:layout_height="45dp"
+                        android:layout_gravity="end"
+                        android:background="@drawable/btn_grn_bg"
+                        android:fontFamily="@font/sortie"
+                        android:onClick="scoreBoard"
+                        android:paddingVertical="10dp"
+                        android:src="@drawable/icon_globe"
+                        android:textColor="@color/white"
+                        android:textSize="9sp"
+                        tools:ignore="HardcodedText,SmallSp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="100dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end"
+
+                    >
+
+                    <ImageButton
+                        android:id="@+id/volBtn"
+                        android:layout_width="45dp"
+                        android:layout_height="45dp"
+                        android:layout_gravity="end"
+                        android:layout_marginEnd="10dp"
+                        android:background="@drawable/btn_ylw_bg"
+                        android:fontFamily="@font/sortie"
+                        android:onClick="volButton"
+                        android:paddingVertical="10dp"
+                        android:src="@drawable/icon_vol_unmute"
+                        android:textColor="@color/white"
+                        android:textSize="9sp"
+                        tools:ignore="HardcodedText,SmallSp" />
+
+                    <ImageButton
+                        android:layout_width="45dp"
+                        android:layout_height="45dp"
+                        android:layout_gravity="end"
+                        android:background="@drawable/btn_gry_bg"
+                        android:fontFamily="@font/sortie"
+                        android:onClick="ideaBtn"
+                        android:paddingVertical="10dp"
+                        android:src="@drawable/icon_i"
+                        android:textColor="@color/white"
+                        android:textSize="9sp"
+                        tools:ignore="HardcodedText,SmallSp" />
+                </LinearLayout>
+
+            </LinearLayout>
+
+
+            <ImageView
+                android:layout_width="275dp"
+                android:layout_height="275dp"
+                android:layout_gravity="center"
                 android:layout_marginBottom="20dp"
-                android:layout_weight="1"
-                android:background="@drawable/radio_btn_selector"
-                android:button="@null"
-                android:checked="true"
-                android:drawableStart="@drawable/icon_human"
-                android:drawableEnd="@drawable/icon_human"
-                android:fontFamily="@font/sortie"
-                android:gravity="center"
-                android:padding="20dp"
-                android:text="vs"
-                android:textColor="@color/white"
-                android:textSize="20sp"
-                tools:ignore="HardcodedText" />
-
-            <RadioButton
-                android:id="@+id/radioBtnAi"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_margin="40dp"
-                android:layout_weight="1"
-                android:background="@drawable/radio_btn_selector"
-                android:button="@null"
-                android:drawableStart="@drawable/icon_human"
-                android:drawableEnd="@drawable/icon_ai"
-                android:fontFamily="@font/sortie"
-                android:gravity="center"
-                android:padding="20dp"
-                android:text="vs"
-                android:textColor="@color/white"
-                android:textSize="20sp"
-                tools:ignore="HardcodedText" />
+                android:contentDescription="@string/background"
+                android:padding="10dp"
+                android:src="@drawable/logo" />
 
 
-        </RadioGroup>
+        </LinearLayout>
 
-        <Button
-            android:id="@+id/startBtnId"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:id="@+id/linearLayoutStart2"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginTop="60dp"
-            android:layout_marginBottom="100dp"
-            android:background="@drawable/btn_red_bg"
-            android:fontFamily="@font/sortie"
-            android:onClick="startBtn"
-            android:paddingLeft="50dp"
-            android:paddingTop="20dp"
-            android:paddingRight="50dp"
-            android:paddingBottom="20dp"
-            android:text="@string/start"
-            android:textColor="@color/white"
-            android:textSize="45sp" />
-    </LinearLayout>
+            android:layout_gravity="bottom"
+            android:orientation="vertical"
+            app:layout_constraintBottom_toBottomOf="parent">
 
+            <Button
+                android:id="@+id/startBtnId"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="40dp"
+                android:layout_marginBottom="80dp"
+                android:background="@drawable/btn_redx_bg"
+                android:fontFamily="@font/sortie"
+                android:onClick="startBtn"
+                android:paddingHorizontal="30dp"
+                android:paddingVertical="15dp"
+                android:text="@string/start"
+                android:textColor="@color/white"
+                android:textSize="40sp" />
+        </LinearLayout>
+
+        <androidx.constraintlayout.motion.widget.MotionLayout
+            android:id="@+id/motionLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layoutDescription="@xml/activity_start_scene"
+            app:layout_constraintBottom_toTopOf="@+id/linearLayoutStart2"
+            app:layout_constraintTop_toBottomOf="@+id/linearLayoutStart1">
+
+            <ImageView
+                android:id="@+id/mode1"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:layout_marginStart="10dp"
+                android:background="@drawable/box"
+                android:src="@drawable/mode_box_offline"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/mode2"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <ImageView
+                android:id="@+id/mode3"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:layout_marginEnd="10dp"
+                android:background="@drawable/box"
+                android:src="@drawable/mode_box_multi"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/mode2"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <ImageView
+                android:id="@+id/mode2"
+                android:layout_width="200dp"
+                android:layout_height="200dp"
+                android:background="@drawable/box"
+                android:src="@drawable/mode_box_ai"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/mode3"
+                app:layout_constraintStart_toEndOf="@+id/mode1"
+                app:layout_constraintTop_toTopOf="parent" />
+
+
+        </androidx.constraintlayout.motion.widget.MotionLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </FrameLayout>

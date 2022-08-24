@@ -37,10 +37,8 @@ public class DisplayFragment extends Fragment
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         // Initialize dataset, this data would usually come from a local content provider or
         // remote server.
-
     }
 
 
@@ -86,29 +84,16 @@ public class DisplayFragment extends Fragment
                 //Collections.reverse(dsList);
                 //Log.d(TAG, "Last Value is: " + bestScore);
                 MyListAdapter adapter=new MyListAdapter(getActivity(),dsList);  //
-                ListView list = v.findViewById(R.id.showNotesList);
+                ListView list = v.findViewById(R.id.showScoreList);
                 list.setAdapter(adapter);
                 //Log.i(TAG,"key data = " + ds.timeData);
 
             }
-            @Override
-            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-
-            }
-            @Override
-            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-
-            }
-            @Override
-            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-
-            }
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                Log.w(TAG, "Failed to read value.", databaseError.toException());
-
-            }
+            @Override public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {}
+            @Override public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {}
+            @Override public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {}
+            @Override public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.w(TAG, "Failed to read value.", databaseError.toException());}
 
         });
         return v;

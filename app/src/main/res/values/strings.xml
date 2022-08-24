@@ -19,7 +19,7 @@
         <item>★★★★★</item>
     </string-array>
 
-    <string translatable="false"  name="game_services_project_id">351530286669</string>
+    <string name="game_services_project_id" translatable="false">351530286669</string>
     <string name="title_activity_game2">GameActivity2</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>

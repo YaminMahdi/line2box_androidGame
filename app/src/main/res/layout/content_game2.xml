@@ -18,26 +18,7 @@
         android:scaleType="centerCrop"
         android:src="@drawable/bg1" />
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_gravity="bottom"
 
-        >
-
-        <ImageButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="20dp"
-            android:layout_marginStart="-30dp"
-            android:background="@drawable/btn_grn_bg"
-            android:paddingVertical="50dp"
-            android:paddingStart="35dp"
-            android:paddingEnd="10dp"
-            android:src="@drawable/icon_forward"
-            android:onClick="openNavBtn"/>
-    </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -1951,6 +1932,55 @@
         </RelativeLayout>
 
 
+    </LinearLayout>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginTop="210dp"
+
+
+
+        >
+
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="-30dp"
+            android:layout_marginBottom="20dp"
+            android:layout_marginTop="2dp"
+            android:background="@drawable/btn_chat_bg"
+            android:onClick="openNavBtn"
+            android:paddingVertical="40dp"
+            android:paddingStart="35dp"
+            android:paddingEnd="10dp"
+            android:src="@drawable/icon_forward"
+            app:tint="@color/cocZz" />
+
+        <com.mikhaellopez.circularimageview.CircularImageView
+            android:id="@+id/newMsgBoltu"
+            android:layout_marginStart="22dp"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@drawable/icon_home"
+            app:civ_border_color="@color/redY"
+            app:civ_border_width="20dp" />
+    </RelativeLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:layout_gravity="bottom"
+        android:orientation="vertical"
+        android:layout_marginBottom="20dp"
+        >
+        <pl.droidsonroids.gif.GifImageView
+            android:id="@+id/emojiPlay"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/emoji_haha"
+            android:layout_gravity="end"
+            />
     </LinearLayout>
 
 </FrameLayout>

@@ -5,8 +5,9 @@
     android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="false"
-    tools:openDrawer="start">
+    tools:openDrawer="start"
+
+    >
 
     <include
         android:id="@+id/app_bar_game2"
@@ -23,17 +24,16 @@
         android:background="#0000"
         android:outlineProvider="none"
         android:scrollIndicators="none"
-        app:headerLayout="@layout/nav_header_game2"
         app:subheaderColor="@color/white"
 
         >
 
         <LinearLayout
+            android:id="@+id/navCloseButtonLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
+            android:layout_marginTop="210dp"
             android:orientation="vertical"
-            android:layout_marginBottom="20dp"
 
             >
 
@@ -41,48 +41,124 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="end"
-                android:background="@drawable/btn_grn_bg"
-                android:paddingVertical="50dp"
+                android:layout_marginTop="2dp"
+                android:background="@drawable/btn_chat_bg"
+                android:onClick="closeNavBtn"
+                android:paddingVertical="40dp"
                 android:paddingStart="30dp"
-                android:paddingEnd="15dp"
+                android:paddingEnd="10dp"
                 android:src="@drawable/icon_backword"
-                android:onClick="closeNavBtn"/>
+                app:tint="@color/cocZz" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="-20dp"
+            android:layout_marginEnd="35dp"
+            android:layout_marginBottom="-20dp"
+            android:background="@drawable/btn_box_chat">
+
+
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="@dimen/nav_header_weight"
+            android:layout_height="@dimen/nav_header_height"
+            android:background="@drawable/side_nav_bar"
+            android:paddingLeft="@dimen/activity_horizontal_margin"
+            android:paddingTop="@dimen/activity_vertical_margin"
+            android:paddingRight="@dimen/activity_horizontal_margin"
+            android:paddingBottom="@dimen/activity_vertical_margin">
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="top"
+                android:orientation="vertical"
+
+                >
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/sortie"
+                    android:gravity="center"
+                    android:paddingTop="@dimen/nav_header_vertical_spacing"
+                    android:text="@string/nav_header_title"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+                    android:textColor="@color/white"
+                    android:textSize="25sp" />
+
+
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/navRelativeLayout"
+            android:layout_width="@dimen/nav_header_weight"
             android:layout_height="match_parent"
+            android:layout_alignParentBottom="true"
             android:layout_marginTop="@dimen/nav_header_height"
-            android:background="#444540"
+            android:background="@color/cocX"
+            android:fitsSystemWindows="true"
             android:orientation="vertical">
 
-            <com.google.android.material.tabs.TabLayout
+            <!--            <com.google.android.material.tabs.TabLayout-->
+            <!--                android:layout_width="match_parent"-->
+            <!--                android:layout_height="wrap_content"-->
+            <!--                app:tabMode="fixed"-->
+            <!--                app:tabTextColor="@color/white">-->
+
+            <!--                <com.google.android.material.tabs.TabItem-->
+            <!--                    android:layout_width="wrap_content"-->
+            <!--                    android:layout_height="wrap_content"-->
+            <!--                    android:text="Global"-->
+
+            <!--                    />-->
+
+            <!--                <com.google.android.material.tabs.TabItem-->
+            <!--                    android:layout_width="wrap_content"-->
+            <!--                    android:layout_height="wrap_content"-->
+            <!--                    android:checked="true"-->
+            <!--                    android:text="In Game" />-->
+
+            <!--            </com.google.android.material.tabs.TabLayout>-->
+            <io.ak1.BubbleTabBar
+                android:id="@+id/bubbleTabBar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:tabMode="fixed"
-                app:tabTextColor="@color/white">
+                android:background="@color/cocXx"
+                android:elevation="16dp"
+                android:padding="7dp"
+                app:bubbletab_custom_font="@font/sortie"
+                app:bubbletab_disabled_icon_color="@color/cocZ"
+                app:bubbletab_horizontal_padding="20dp"
+                app:bubbletab_icon_padding="5sp"
+                app:bubbletab_icon_size="20dp"
+                app:bubbletab_menuResource="@menu/chat_list_menu"
+                app:bubbletab_tab_corner_radius="12dp"
+                app:bubbletab_title_size="16sp"
+                app:bubbletab_vertical_padding="10dp"
 
-                <com.google.android.material.tabs.TabItem
-                    android:layout_width="wrap_content"
+                />
+
+            <LinearLayout
+                android:id="@+id/chatFragmentLinerLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <androidx.fragment.app.FragmentContainerView
+                    android:id="@+id/chatFragment"
+                    android:name="com.diu.yk_games.line2box.ChatFragmentGlobal"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Global"
+                    android:fitsSystemWindows="true"
 
                     />
+            </LinearLayout>
 
-                <com.google.android.material.tabs.TabItem
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:checked="true"
-                    android:text="In Game" />
-
-            </com.google.android.material.tabs.TabLayout>
-
-            <androidx.fragment.app.FragmentContainerView
-                android:id="@+id/chatFragment"
-                android:name="com.diu.yk_games.line2box.BlankFragment"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1" />
 
         </LinearLayout>
 

@@ -9,11 +9,13 @@ public class GameProfile
 {
     public static SharedPreferences preferences;
     public static SharedPreferences.Editor preferencesEditor;
-    public String nm=preferences.getString("nm", "noob"+(int)Math.floor(Math.random()*(999-100+1)+100));
-    public Integer matchWinAI=preferences.getInt("matchWinAI",0);
+    public String nm=preferences.getString("nm", "Noob"+(int)Math.floor(Math.random()*(900)+100));
+    public Integer matchPlayed=preferences.getInt("matchPlayed",0);
     public Integer matchWinMulti=preferences.getInt("matchWinMulti",0);
-    public Integer coin=preferences.getInt("coin",0);
+    public Integer coin=preferences.getInt("coins",100);
     public Integer lvl=preferences.getInt("lvl",getLvl());
+
+    public String playerId;
     //preferences.getBoolean("needProfile",true)
     public static void setPreferences(SharedPreferences x)
     {
@@ -23,45 +25,43 @@ public class GameProfile
 
     public GameProfile() {}
 
-    public GameProfile(String nm, Integer coin, Integer matchWinAI, Integer matchWinMulti) {
+    public GameProfile(String nm, Integer coin, Integer matchPlayed, Integer matchWinMulti) {
         this.nm = nm;
         this.coin = coin;
-        this.matchWinAI = matchWinAI;
+        this.matchPlayed = matchPlayed;
         this.matchWinMulti = matchWinMulti;
-
-        preferencesEditor.putString("nm",nm).apply();
-        preferencesEditor.putInt("coin",coin).apply();
-        preferencesEditor.putInt("lvl",lvl).apply();
-        preferencesEditor.putInt("matchWinAI",matchWinAI).apply();
-        preferencesEditor.putInt("matchWinMulti",matchWinMulti).apply();
     }
     public void apply()
     {
         preferencesEditor.putString("nm",this.nm).apply();
-        preferencesEditor.putInt("coin",this.coin).apply();
+        preferencesEditor.putInt("coins",this.coin).apply();
         preferencesEditor.putInt("lvl",this.lvl).apply();
-        preferencesEditor.putInt("matchWinAI",this.matchWinAI).apply();
+        preferencesEditor.putInt("matchPlayed",this.matchPlayed).apply();
         preferencesEditor.putInt("matchWinMulti",this.matchWinMulti).apply();
 
     }
     public void setNm(String nm) {
         this.nm = nm;
+        //preferencesEditor.putString("nm",this.nm).apply();
     }
-    public void setCoin(Integer coin) {
-        this.coin = coin;
+    public void setCoin(Integer coins) {
+        this.coin = coins;
+        //preferencesEditor.putInt("coins",this.coin).apply();
     }
 
     private Integer getLvl()
     {
         int mul=matchWinMulti+1;
-        int ai=matchWinAI+1;
-        int lv= (int) Math.sqrt(mul*(mul/7.0)+ai*2);
+        int pld=matchPlayed+1;
+        int lv= (int) Math.sqrt(mul*(mul/7.0)+pld*2);
         return lv;
     }
-    public void setMatchWinAI() {
-        this.matchWinAI++;
+    public void setMatchPlayed() {
+        this.matchPlayed++;
+        //preferencesEditor.putInt("matchPlayed",this.matchPlayed).apply();
     }
     public void setMatchWinMulti() {
         this.matchWinMulti++;
+        //preferencesEditor.putInt("matchWinMulti",this.matchWinMulti).apply();
     }
 }

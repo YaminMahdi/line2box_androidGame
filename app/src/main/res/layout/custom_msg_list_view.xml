@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+
+    >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="2dp"
+        android:background="@color/cocXx"
+        android:orientation="vertical"
+        android:paddingHorizontal="1dp"
+        android:paddingVertical="5dp"
+        tools:ignore="UselessParent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingHorizontal="10dp"
+            android:paddingBottom="2sp">
+
+            <TextView
+                android:id="@+id/nmId"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/sortie"
+                android:text="Mahdi"
+                android:textColor="@color/cocZz"
+                android:textSize="15sp"
+                tools:ignore="HardcodedText" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/sortie"
+                android:text="lvl."
+                android:layout_gravity="start"
+                android:paddingTop="1sp"
+                android:paddingStart="2sp"
+                android:paddingEnd="0dp"
+                android:textColor="@color/white"
+                android:textSize="10sp"
+                tools:ignore="HardcodedText" />
+            <TextView
+                android:id="@+id/lvlId"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/sortie"
+                android:text="1"
+                android:layout_gravity="start"
+                android:textColor="@color/greenY"
+                android:textSize="12sp"
+                tools:ignore="HardcodedText" />
+
+            <TextView
+                android:id="@+id/timeshowId"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start"
+                android:fontFamily="@font/sortie"
+                android:gravity="end"
+                android:text="24 July, 4:24 PM"
+                android:textColor="@color/cocZ"
+                android:textSize="11sp"
+                tools:ignore="HardcodedText" />
+        </LinearLayout>
+        <TextView
+            android:id="@+id/msgId"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/sortie"
+            android:paddingHorizontal="10sp"
+            android:paddingVertical="5dp"
+            android:text="Bla bla bla ..."
+            android:textColor="@color/whiteY"
+            android:textSize="18sp"
+            tools:ignore="HardcodedText" />
+    </LinearLayout>
+
+</LinearLayout>

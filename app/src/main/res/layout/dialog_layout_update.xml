@@ -13,7 +13,7 @@
     >
 
     <TextView
-        android:id="@+id/textMessage"
+        android:id="@+id/warningMessage"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="20dp"
@@ -23,7 +23,7 @@
         android:textColor="@color/greenY"
         android:textSize="30sp" />
     <TextView
-        android:id="@+id/starTxt"
+        android:id="@+id/UpdateInfo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Updating the game makes playing the game more fun."

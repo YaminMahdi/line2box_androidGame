@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android"
+    >
+
+    <!-- Drop Shadow Stack -->
+    <item
+        android:width="420dp"
+        android:height="420dp"
+        android:drawable="@drawable/box" />
+    <item
+        android:start="35dp"
+        android:top="45dp"
+        android:width="90dp"
+        android:height="88dp"
+        android:drawable="@drawable/icon_human_glow"/>
+
+    <item
+        android:start="265dp"
+        android:bottom="45dp"
+        android:width="85dp"
+        android:height="85dp"
+        android:drawable="@drawable/logo_ai_glow"
+        android:gravity="bottom"
+
+        />
+
+    <item
+        android:width="214.875dp"
+        android:height="393.625dp"
+        android:gravity="center_horizontal"
+        android:end="30dp"
+        android:drawable="@drawable/lightening_vs"
+        />
+
+</layer-list>

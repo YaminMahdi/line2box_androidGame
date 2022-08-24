@@ -57,11 +57,6 @@ public class GameActivity1 extends AppCompatActivity
     boolean isFirstRun=false;
     GradientDrawable temp;
 
-
-    @SuppressLint("StaticFieldLeak")
-    static Spinner starSpinner;
-    static ArrayAdapter<CharSequence> arrAdapter;
-
     @SuppressLint("SetTextI18n")
     public void onStopFragment()
     {
@@ -117,6 +112,7 @@ public class GameActivity1 extends AppCompatActivity
         blueTxt = findViewById(R.id.blue);
         nm1Txt= findViewById(R.id.nm1Id);
         nm2Txt= findViewById(R.id.nm2Id);
+        clickCount = 0; scoreRed = 0; scoreBlue = 0; bestScore=9999;
 //        lineClick = MediaPlayer.create(this, R.raw.line_click_ef);
 //        boxPlus = MediaPlayer.create(this,R.raw.box_ef);
 //        winSoundEf = MediaPlayer.create(this,R.raw.win_ef);
@@ -692,8 +688,6 @@ public class GameActivity1 extends AppCompatActivity
         ((TextView) view.findViewById(R.id.textMessage)).setText("Do you really want to go back?");
         ((Button) view.findViewById(R.id.buttonYes)).setText("YES");
         ((Button) view.findViewById(R.id.buttonNo)).setText("NO");
-        view.findViewById(R.id.starSpinner).setVisibility(View.GONE);
-        view.findViewById(R.id.starTxt).setVisibility(View.GONE);
         final AlertDialog alertDialog = builder.create();
         view.findViewById(R.id.buttonYes).setOnClickListener(view1 ->
         {
@@ -731,11 +725,7 @@ public class GameActivity1 extends AppCompatActivity
         builder.setView(view);
         builder.setCancelable(false);
 
-        starSpinner=view.findViewById(R.id.starSpinner);
-        arrAdapter= ArrayAdapter.createFromResource(view.getContext(),R.array.star, R.layout.spinner_list);
-        arrAdapter.setDropDownViewResource(R.layout.spinner_list);
-        starSpinner.setAdapter(arrAdapter);
-
+        saveToFirebase();
         ((TextView) view.findViewById(R.id.textMessage)).setText("" + winMsg);
         ((Button) view.findViewById(R.id.buttonNo)).setText("Exit");
         ((Button) view.findViewById(R.id.buttonYes)).setText("Retry!");
@@ -748,8 +738,6 @@ public class GameActivity1 extends AppCompatActivity
             alertDialog.dismiss();
             startActivity(new Intent(GameActivity1.this, GameActivity1.class));
             finish();
-            saveToFirebase();
-            clickCount=0;
             Toast.makeText(this, "Score Saved to Online Score Board", Toast.LENGTH_SHORT).show();
 
             //recreate();
@@ -762,8 +750,6 @@ public class GameActivity1 extends AppCompatActivity
             alertDialog.dismiss();
             startActivity(new Intent(this,StartActivity.class));
             finish();
-            saveToFirebase();
-            clickCount = 0;
             flag=true;
             Toast.makeText(this, "Score Saved to Online Score Board", Toast.LENGTH_SHORT).show();
             //android.os.Process.killProcess(android.os.Process.myPid());
@@ -778,16 +764,11 @@ public class GameActivity1 extends AppCompatActivity
     {
         String redData, blueData, starData, timeData;
 
-
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd MMM, hh:mm a");
         LocalDateTime now = LocalDateTime.now();
         timeData = dtf.format(now);
 
-        int x= starSpinner.getSelectedItemPosition();
-        if(!arrAdapter.getItem(x).toString().equals("--(Give Star)--"))
-            starData = arrAdapter.getItem(x).toString();
-        else
-            starData = "★";
+        starData = "friendly";
 
         redData= nm1+": "+scoreRed;
         blueData= nm2+": "+scoreBlue;

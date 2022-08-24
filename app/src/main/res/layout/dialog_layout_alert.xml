@@ -24,27 +24,6 @@
         android:gravity="center"
         android:textColor="@color/white"
         android:textSize="30sp" />
-    <TextView
-        android:id="@+id/starTxt"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Rate The Gameplay: (Optional)"
-        android:layout_marginTop="20dp"
-        android:textColor="#C6FFFFFF"
-        android:fontFamily="@font/sortie"
-        android:layout_marginStart="24dp"
-        />
-    <Spinner
-        android:id="@+id/starSpinner"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:layout_marginEnd="20dp"
-        android:spinnerMode="dropdown"
-        android:popupBackground="@drawable/box"
-        android:background="@drawable/box"
-
-        />
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -65,6 +44,7 @@
             android:textColor="@color/white"
             android:textSize="18sp"
             tools:ignore="ButtonStyle" />
+
         <Button
             android:id="@+id/buttonNo"
             android:layout_width="100dp"

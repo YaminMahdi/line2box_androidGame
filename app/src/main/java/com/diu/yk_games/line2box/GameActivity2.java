@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Paint;
+import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.GradientDrawable;
 import android.media.MediaPlayer;
@@ -15,10 +16,11 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.ArrayAdapter;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.Spinner;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -29,6 +31,8 @@ import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 import com.diu.yk_games.line2box.databinding.ActivityGame2Binding;
 import com.google.android.material.navigation.NavigationView;
@@ -38,14 +42,19 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Objects;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import io.ak1.BubbleTabBar;
 import pl.droidsonroids.gif.GifImageView;
 
 public class GameActivity2 extends AppCompatActivity {
@@ -62,16 +71,13 @@ public class GameActivity2 extends AppCompatActivity {
     static boolean isFirstRun=false, plyr1, plyrTurn, lastTurn;
     DrawerLayout mDrawerLayout;
     Integer lvl1,lvl2;
-    String key;
+    String key, playerId;
     static FirebaseDatabase database;
     static DatabaseReference myRef;
     ArrayList<Integer> matchInfoList;
     static Integer whoseChance=1;
-
-    @SuppressLint("StaticFieldLeak")
-    static Spinner starSpinner;
-    static ArrayAdapter<CharSequence> arrAdapter;
-
+    BubbleTabBar bubbleTabBar;
+    Bundle bundleInfo=new Bundle();
 
     public boolean isMuted()
     {
@@ -98,7 +104,7 @@ public class GameActivity2 extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         binding = ActivityGame2Binding.inflate(getLayoutInflater());
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+        //getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
         setContentView(binding.getRoot());
 
         sharedPref = this.getSharedPreferences(
@@ -112,12 +118,14 @@ public class GameActivity2 extends AppCompatActivity {
         isFirstRun=StartActivity.isFirstRun;
         PACKAGE_NAME = getApplicationContext().getPackageName();
         ifMuted();
-        key= getIntent().getExtras().getString("gameKey");
-        nm1 = getIntent().getExtras().getString("nm1");
-        nm2 = getIntent().getExtras().getString("nm2");
-        lvl1 = getIntent().getExtras().getInt("lvl1");
-        lvl2 = getIntent().getExtras().getInt("lvl2");
-        plyr1 = getIntent().getExtras().getBoolean("plyr1");
+        bundleInfo= getIntent().getBundleExtra("bundleInfo");
+        key= bundleInfo.getString("gameKey");
+        nm1 = bundleInfo.getString("nm1");
+        nm2 = bundleInfo.getString("nm2");
+        lvl1 = bundleInfo.getInt("lvl1");
+        lvl2 = bundleInfo.getInt("lvl2");
+        plyr1 = bundleInfo.getBoolean("plyr1");
+        playerId = bundleInfo.getString("playerId");
         plyrTurn = plyr1;
         //plyrTurn=!plyr1;
         Log.d(TAG, "key: "+key+" nm1: "+nm1+" nm2: "+nm2+" lvl1: "+lvl1+" lvl2: "+lvl2);
@@ -129,24 +137,76 @@ public class GameActivity2 extends AppCompatActivity {
         nm2Txt= findViewById(R.id.nm2Id);
         nm1Txt.setText(nm1);
         nm2Txt.setText(nm2);
+        clickCount = 0; scoreRed = 0; scoreBlue = 0; bestScore=9999;
+        findViewById(R.id.newMsgBoltu).setVisibility(View.GONE);
+        findViewById(R.id.emojiPlay).setVisibility(View.GONE);
         mDrawerLayout = findViewById(R.id.drawer_layout);
         mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
-//        nm1=NameInfoFragment.nm1;
-//        nm2=NameInfoFragment.nm2;
+        mDrawerLayout.addDrawerListener(new DrawerLayout.DrawerListener() {
+            @Override public void onDrawerSlide(@NonNull View drawerView, float slideOffset) {}
+            @Override public void onDrawerOpened(@NonNull View drawerView) {}
+            @Override public void onDrawerClosed(@NonNull View drawerView) {}
+            @Override public void onDrawerStateChanged(int newState) {
+                Log.d("TAG", "onDrawerStateChanged: "+newState);
+                if(newState==2)
+                {
+                    closeKeyboard();
+                    if(!isMuted())
+                        MediaPlayer.create(GameActivity2.this, R.raw.slide).start();
+                }
+            }
+        });
+        bubbleTabBar = findViewById(R.id.bubbleTabBar);
+        bubbleTabBar.setSelected(1,true);
+        FragmentManager fm=getSupportFragmentManager();
+        FragmentTransaction ft=fm.beginTransaction();
+        ft.replace(R.id.chatFragment,ChatFragmentFriendly.newInstance(key));
+        ft.commit();
+        bubbleTabBar.addBubbleListener(id ->
+        {
+            FragmentManager fm2=getSupportFragmentManager();
+            FragmentTransaction ft2=fm2.beginTransaction();
+            if(id==R.id.globalChat)
+            {
+                ft2.replace(R.id.chatFragment,new ChatFragmentGlobal());
+            }
+            else
+            {
+                if(key!=null)
+                    ft2.replace(R.id.chatFragment,ChatFragmentFriendly.newInstance(key));
+                else
+                    ft2.replace(R.id.chatFragment,new BlankFragment());
+            }
+            ft2.commit();
+        });
+        final View activityRootView = this.getWindow().getDecorView();
+        activityRootView.getViewTreeObserver().addOnGlobalLayoutListener(() ->
+        {
+            Rect r = new Rect();
+            //r will be populated with the coordinates of your view that area still visible.
+            activityRootView.getWindowVisibleDisplayFrame(r);
+            int maxHight=activityRootView.getRootView().getHeight();
+            int heightDiff = maxHight - r.height();
+            Log.d("TAG", "onGlobalLayout: "+"heidiff: "+heightDiff+" "+r.height()+" "+maxHight);
+            LinearLayout layout1 = findViewById(R.id.chatFragmentLinerLayout);
+            LinearLayout layout2 = findViewById(R.id.navCloseButtonLayout);
+            if (heightDiff > 0.25* maxHight)
+            {
+                // if more than 25% of the screen, its probably a keyboard......do something here
+                Log.d("TAG", "onGlobalLayout: here");
+                layout1.setPadding(0, 0, 0, heightDiff);
+                layout2.setPadding(0, 0, 0, heightDiff);
+            }
+            else
+            {
+                layout1.setPadding(0, 0, 0, 0);
+                layout2.setPadding(0, 0, 0, 0);
+            }
+
+        });
+
         database = FirebaseDatabase.getInstance();
         myRef = database.getReference("MultiPlayer").child(key).child("matchInfo");
-//        if(plyr1)
-//            myRef.child("whoseChance").setValue(whoseChance);
-//        myRef.child("whoseChance").addValueEventListener(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(@NonNull DataSnapshot snapshot) {
-//                whoseChance=snapshot.getValue(Integer.class);
-//            }
-//            @Override
-//            public void onCancelled(@NonNull DatabaseError error) {
-//
-//            }
-//        });
         myRef.child("plyr2").addChildEventListener(new ChildEventListener()
         {
             @Override
@@ -547,27 +607,75 @@ public class GameActivity2 extends AppCompatActivity {
             }
             if (scoreRed + scoreBlue == 36)
             {
+                FirebaseFirestore db = FirebaseFirestore.getInstance();
+                DocumentReference doc=db.collection("gamerProfile").document(playerId);
+                doc.update("matchPlayed" , FieldValue.increment(1));
+                GameProfile updatePro = new GameProfile();
+                int winCoin =new Random().nextInt(80)+45;
+                int lostCoin =new Random().nextInt(35)+15;
+                updatePro.setMatchPlayed();
                 Handler handler = new Handler();
-                handler.postDelayed(() ->
+                if(!isMuted())
+                    MediaPlayer.create(this, R.raw.win_ef).start();
+                redTxt.setTextSize(30);
+                redTxt.setTextColor(getResources().getColor(R.color.white, getTheme()));
+                blueTxt.setTextSize(30);
+                blueTxt.setTextColor(getResources().getColor(R.color.white, getTheme()));
+                String winTxt, wCoin;
+                if (scoreRed > scoreBlue)
                 {
-                    if(!isMuted())
-                        MediaPlayer.create(this, R.raw.win_ef).start();
-                    redTxt.setTextSize(30);
-                    redTxt.setTextColor(getResources().getColor(R.color.white, getTheme()));
-                    blueTxt.setTextSize(30);
-                    blueTxt.setTextColor(getResources().getColor(R.color.white, getTheme()));
-                    if (scoreRed > scoreBlue)
-                        onGameOver("Player RED won the match.");
-                    else if (scoreRed < scoreBlue)
-                        onGameOver("Player BLUE won the match.");
+                    if(plyr1)
+                    {
+                        doc.update("matchWinMulti" , FieldValue.increment(1));
+                        updatePro.setMatchWinMulti();
+                        updatePro.setCoin(updatePro.coin+winCoin);
+                        updatePro.apply();
+                        doc.update("coin" , updatePro.coin);
+                        winTxt= "You won the match.";
+                        wCoin="+"+winCoin;
+                    }
                     else
-                        onGameOver("Match Draw.");
-                }, 800);
+                    {
+                        updatePro.setCoin(updatePro.coin-lostCoin);
+                        updatePro.apply();
+                        doc.update("coin" , updatePro.coin);
+                        winTxt= "You lost the match.";
+                        wCoin="-"+lostCoin;
+                    }
+
+                }
+                else if (scoreRed < scoreBlue)
+                {
+                    if(!plyr1)
+                    {
+                        doc.update("matchWinMulti" , FieldValue.increment(1));
+                        updatePro.setMatchWinMulti();
+                        updatePro.setCoin(updatePro.coin+winCoin);
+                        updatePro.apply();
+                        doc.update("coin" , updatePro.coin);
+                        winTxt= "You won the match.";
+                        wCoin="+"+winCoin;
+                    }
+                    else
+                    {
+                        updatePro.setCoin(updatePro.coin-lostCoin);
+                        updatePro.apply();
+                        doc.update("coin" , updatePro.coin);
+                        winTxt= "You lost the match.";
+                        wCoin="-"+lostCoin;
+                    }
+                }
+                else
+                {
+                    updatePro.setCoin(50);
+                    updatePro.apply();
+                    doc.update("coin" , updatePro.coin);
+                    winTxt= "Match Draw.";
+                    wCoin="+"+winCoin;
+                }
+                handler.postDelayed(() -> onGameOver(winTxt,wCoin), 1200);
 
             }
-
-//            if((clickCount %2 == 1 && plyr1)||(clickCount %2 == 0 && !plyr1))
-//                plyrTurn=false;
         }
 
         overridePendingTransition(0, 0);
@@ -768,8 +876,6 @@ public class GameActivity2 extends AppCompatActivity {
         ((TextView) view.findViewById(R.id.textMessage)).setText("Do you really want to go back?");
         ((Button) view.findViewById(R.id.buttonYes)).setText("YES");
         ((Button) view.findViewById(R.id.buttonNo)).setText("NO");
-        view.findViewById(R.id.starSpinner).setVisibility(View.GONE);
-        view.findViewById(R.id.starTxt).setVisibility(View.GONE);
         final AlertDialog alertDialog = builder.create();
         view.findViewById(R.id.buttonYes).setOnClickListener(view1 ->
         {
@@ -781,7 +887,7 @@ public class GameActivity2 extends AppCompatActivity {
             clickCount = 0;
             flag=true;
             super.onBackPressed();
-            startActivity(new Intent(this,MultiplayerActivity.class));
+            startActivity(new Intent(this,MultiplayerActivity.class).putExtra("playerId",playerId));
             finish();
             //android.os.Process.killProcess(android.os.Process.myPid());
         });
@@ -798,21 +904,20 @@ public class GameActivity2 extends AppCompatActivity {
     }
 
     @SuppressLint("SetTextI18n")
-    public void onGameOver(String winMsg)
+    public void onGameOver(String winMsg, String winCoin)
     {
         AlertDialog.Builder builder = new AlertDialog.Builder(GameActivity2.this);
         View view = LayoutInflater.from(GameActivity2.this).inflate(
-                R.layout.dialog_layout_alert, findViewById(R.id.layoutDialog)
+                R.layout.dialog_layout_game_over, findViewById(R.id.layoutDialogGameOver)
         );
         builder.setView(view);
-        builder.setCancelable(false);
+        //builder.setCancelable(false);
 
-        starSpinner=view.findViewById(R.id.starSpinner);
-        arrAdapter= ArrayAdapter.createFromResource(view.getContext(),R.array.star, R.layout.spinner_list);
-        arrAdapter.setDropDownViewResource(R.layout.spinner_list);
-        starSpinner.setAdapter(arrAdapter);
+        if(plyr1)
+            saveToFirebase();
 
         ((TextView) view.findViewById(R.id.textMessage)).setText("" + winMsg);
+        ((TextView) view.findViewById(R.id.coinWin)).setText("" + winCoin);
         ((Button) view.findViewById(R.id.buttonNo)).setText("Exit");
         ((Button) view.findViewById(R.id.buttonYes)).setText("Retry!");
 
@@ -822,10 +927,8 @@ public class GameActivity2 extends AppCompatActivity {
             if(!isMuted())
                 MediaPlayer.create(this, R.raw.btn_click_ef).start();
             alertDialog.dismiss();
-            startActivity(new Intent(GameActivity2.this, GameActivity2.class));
+            startActivity(new Intent(GameActivity2.this, GameActivity2.class).putExtra("bundleInfo",bundleInfo));
             finish();
-            saveToFirebase();
-            clickCount=0;
             Toast.makeText(this, "Score Saved to Online Score Board", Toast.LENGTH_SHORT).show();
 
             //recreate();
@@ -836,10 +939,8 @@ public class GameActivity2 extends AppCompatActivity {
             if(!isMuted())
                 MediaPlayer.create(this, R.raw.btn_click_ef).start();
             alertDialog.dismiss();
-            startActivity(new Intent(this,MultiplayerActivity.class));
+            startActivity(new Intent(this,MultiplayerActivity.class).putExtra("playerId",playerId));
             finish();
-            saveToFirebase();
-            clickCount = 0;
             flag=true;
             Toast.makeText(this, "Score Saved to Online Score Board", Toast.LENGTH_SHORT).show();
             //android.os.Process.killProcess(android.os.Process.myPid());
@@ -854,16 +955,11 @@ public class GameActivity2 extends AppCompatActivity {
     {
         String redData, blueData, starData, timeData;
 
-
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd MMM, hh:mm a");
         LocalDateTime now = LocalDateTime.now();
         timeData = dtf.format(now);
 
-        int x= starSpinner.getSelectedItemPosition();
-        if(!arrAdapter.getItem(x).toString().equals("--(Give Star)--"))
-            starData = arrAdapter.getItem(x).toString();
-        else
-            starData = "★";
+        starData = "globe";
 
         redData= nm1+": "+scoreRed;
         blueData= nm2+": "+scoreBlue;
@@ -894,15 +990,6 @@ public class GameActivity2 extends AppCompatActivity {
                 Log.w("saveToFirebase", "Failed to read value.", error.toException());
             }
         });
-
-        Handler handler = new Handler();
-        handler.postDelayed(() ->
-        {
-
-        }, 2000);
-
-
-
 
         //multiple
         myRef=myRef.child("allScore");
@@ -996,23 +1083,31 @@ public class GameActivity2 extends AppCompatActivity {
         alertDialog.show();
     }
 
+    private void closeKeyboard()
+    {
+        View view = this.getCurrentFocus();
+        //if (view != null)
+        Log.d("TAG", "closeKeyboard: "+(view instanceof EditText));
+        if(view instanceof EditText)
+        {
+            InputMethodManager manager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            manager.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        }
+    }
+
     public void closeNavBtn(View view)
     {
-        if(!isMuted())
-            MediaPlayer.create(this, R.raw.btn_click_ef).start();
+        closeKeyboard();
         mDrawerLayout.closeDrawer(GravityCompat.START);
+        findViewById(R.id.newMsgBoltu).setVisibility(View.GONE);
     }
     public void openNavBtn(View view)
     {
-        if(!isMuted())
-            MediaPlayer.create(this, R.raw.btn_click_ef).start();
         mDrawerLayout.openDrawer(GravityCompat.START);
     }
 
     public void backBtn(View view)
     {
-        if(!isMuted())
-            MediaPlayer.create(this, R.raw.btn_click_ef).start();
         onBackPressed();
     }
 }

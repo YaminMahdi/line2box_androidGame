@@ -6,10 +6,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
-import java.util.Collections;
 
 public class MyListAdapter extends ArrayAdapter<DataStore> {
 
@@ -38,8 +38,22 @@ public class MyListAdapter extends ArrayAdapter<DataStore> {
         TextView timeData = convertView.findViewById(R.id.timeId);
         TextView redData = convertView.findViewById(R.id.redShow);
         TextView blueData = convertView.findViewById(R.id.blueShow);
+        ImageView imV =convertView.findViewById(R.id.playFromImg);
 
-        timeData.setText("Time:  "+ds.get(position).timeData+"                Rating  :"+ds.get(position).starData);
+        if(ds.get(position).starData.charAt(0)=='★')
+        {
+            timeData.setText("Time:  "+ds.get(position).timeData+"                Rating  :"+ds.get(position).starData);
+            imV.setVisibility(View.INVISIBLE);
+        }
+        else
+        {
+            imV.setVisibility(View.VISIBLE);
+            timeData.setText("Time:  "+ds.get(position).timeData);
+            if(ds.get(position).starData.equals("globe"))
+                imV.setImageResource(R.drawable.icon_globe);
+            else
+                imV.setImageResource(R.drawable.icon_friends);
+        }
         redData.setText(ds.get(position).redData);
         blueData.setText(ds.get(position).blueData);
 

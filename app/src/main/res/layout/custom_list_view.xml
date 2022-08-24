@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -9,8 +10,8 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="5dp"
         android:layout_marginVertical="7dp"
+        android:layout_marginStart="5dp"
         android:layout_marginEnd="5dp"
         android:background="@drawable/btn_grn_bg"
         android:orientation="vertical"
@@ -19,16 +20,37 @@
 
         tools:ignore="UselessParent">
 
-        <TextView
-            android:id="@+id/timeId"
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:fontFamily="@font/sortie"
-            android:padding="10dp"
-            android:text="Play Time"
-            android:textColor="@color/white"
-            android:textSize="12sp"
-            tools:ignore="HardcodedText" />
+            android:paddingHorizontal="10dp"
+            android:paddingTop="10dp"
+            android:paddingBottom="6dp"
+
+            >
+
+            <TextView
+                android:id="@+id/timeId"
+                android:layout_width="wrap_content"
+                android:layout_height="12sp"
+                android:fontFamily="@font/sortie"
+                android:text="Play Time"
+                android:textColor="@color/white"
+                android:textSize="12sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:ignore="HardcodedText" />
+
+            <ImageView
+                android:id="@+id/playFromImg"
+                android:layout_width="15sp"
+                android:layout_height="15sp"
+                android:src="@drawable/icon_globe"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
 
         <LinearLayout
@@ -40,7 +62,7 @@
             <TextView
                 android:id="@+id/redShow"
                 android:layout_width="0dp"
-                android:layout_height="26sp"
+                android:layout_height="24sp"
                 android:layout_weight="1"
                 android:fontFamily="@font/sortie"
                 android:text="Red"
@@ -50,25 +72,27 @@
 
             <TextView
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight=".20"
+                android:layout_height="15sp"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:layout_weight=".25"
                 android:fontFamily="@font/brad"
                 android:text="vs"
-                android:layout_gravity="center"
                 android:textColor="@color/white"
                 android:textSize="15sp"
 
                 tools:ignore="HardcodedText" />
+
             <TextView
                 android:id="@+id/blueShow"
                 android:layout_width="0dp"
                 android:layout_height="24sp"
                 android:layout_weight="1"
                 android:fontFamily="@font/sortie"
-                android:text="Blue"
                 android:gravity="end"
+                android:text="Blue"
                 android:textColor="@color/white"
-                android:textSize="26sp"
+                android:textSize="24sp"
 
                 tools:ignore="HardcodedText" />
         </LinearLayout>

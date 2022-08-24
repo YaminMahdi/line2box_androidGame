@@ -1,6 +1,7 @@
 package com.diu.yk_games.line2box;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.helper.widget.Carousel;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import android.annotation.SuppressLint;
@@ -9,26 +10,24 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
-import android.preference.Preference;
-import android.preference.PreferenceManager;
+import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.auth.api.signin.GoogleSignIn;
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
-import com.google.android.gms.auth.api.signin.SignInAccount;
 import com.google.android.gms.games.GamesSignInClient;
 import com.google.android.gms.games.PlayGames;
 import com.google.android.gms.games.PlayGamesSdk;
@@ -36,6 +35,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.card.MaterialCardView;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
@@ -55,12 +55,14 @@ public class StartActivity extends AppCompatActivity
 {
     private static final String TAG = "TAG: StartActivity";
     RadioGroup vsRadioGrp;
-    public static boolean scrBrdVisible =false, isFirstRun=true;
+    public static boolean scrBrdVisible =false, isFirstRun;
     SharedPreferences preferences;
     SharedPreferences.Editor preferencesEditor;
     String onlineVersionName=null;
     private FirebaseAuth mAuth;
+    Context context;
     public static String playerId;
+    ImageView mode1, mode2, mode3;
 // ...
 // Initialize Firebase Auth
 
@@ -72,12 +74,25 @@ public class StartActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         mAuth = FirebaseAuth.getInstance();
         PlayGamesSdk.initialize(this);
+        context=this;
+        setContentView(R.layout.activity_start);
+        int[] colors = {
+                Color.parseColor("#ffd54f"),
+                Color.parseColor("#ffca28"),
+                Color.parseColor("#ffc107")
+        };
+        mode1=findViewById(R.id.mode1);
+        mode2=findViewById(R.id.mode2);
+        mode3=findViewById(R.id.mode3);
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         preferences = this.getSharedPreferences(
                 getString(R.string.preference_file_key), Context.MODE_PRIVATE);
         //SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(ApplicationConstants.PREFERENCES, Context.MODE_PRIVATE);
         preferencesEditor = preferences.edit();
         GameProfile.setPreferences(preferences);
+        isFirstRun= preferences.getBoolean("firstRun", true);
+        if(isFirstRun)
+            loadingUI();
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_GAMES_SIGN_IN)
                 .requestServerAuthCode(getString(R.string.default_web_client_id))
                 .build();
@@ -85,6 +100,8 @@ public class StartActivity extends AppCompatActivity
         GamesSignInClient gamesSignInClient = PlayGames.getGamesSignInClient(this);
         gamesSignInClient.isAuthenticated().addOnCompleteListener(isAuthenticatedTask ->
         {
+            boolean isAuthenticated = (isAuthenticatedTask.isSuccessful() &&
+                    isAuthenticatedTask.getResult().isAuthenticated());
             gamesSignInClient.requestServerSideAccess(getString(R.string.default_web_client_id),
                             /*forceRefreshToken=*/ false)
                     .addOnCompleteListener( task -> {
@@ -99,12 +116,82 @@ public class StartActivity extends AppCompatActivity
                                         public void onComplete(@NonNull Task<AuthResult> task) {
                                             if (task.isSuccessful()) {
                                                 // Sign in success, update UI with the signed-in user's information
-                                                Log.d(TAG, "signInWithCredential:success");
+                                                Log.d(TAG, "signInWithCredential: success");
                                                 FirebaseUser user = auth.getCurrentUser();
+                                                if (isAuthenticated)
+                                                {
+                                                    PlayGames.getPlayersClient(StartActivity.this).getCurrentPlayer().addOnCompleteListener(mTask ->
+                                                            {
+                                                                GameProfile gameProfile=new GameProfile();
+                                                                playerId= mTask.getResult().getPlayerId();
+                                                                Toast.makeText(StartActivity.this, "id: "+mTask.getResult().getPlayerId() , Toast.LENGTH_SHORT).show();
+                                                                if(preferences.getBoolean("needProfile",true))
+                                                                {
+                                                                    db.collection("gamerProfile").document(playerId)
+                                                                            .get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                                                                @Override
+                                                                                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                                                                    if (task.isSuccessful()) {
+                                                                                        DocumentSnapshot document = task.getResult();
+                                                                                        if (document.exists()) {
+                                                                                            preferencesEditor.putBoolean("needProfile", false).apply();
+                                                                                            preferencesEditor.putBoolean("firstRun", false).apply();
+                                                                                            loadProfileFromServer(db);
+                                                                                            Log.d(TAG, "Profile exists!");
+                                                                                            Toast.makeText(StartActivity.this, "Profile exists!", Toast.LENGTH_SHORT).show();
+                                                                                        } else {
+                                                                                            Log.d(TAG, "Profile does not exist!");
+                                                                                            Toast.makeText(StartActivity.this, "Profile does not exist!", Toast.LENGTH_SHORT).show();
+
+                                                                                            db.collection("gamerProfile").document(mTask.getResult().getPlayerId())
+                                                                                                    .set(gameProfile)
+                                                                                                    .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                                                                        @Override
+                                                                                                        public void onSuccess(Void unused) {
+                                                                                                            preferencesEditor.putBoolean("needProfile", false).apply();
+                                                                                                            gameProfile.apply();
+                                                                                                            Log.i(TAG, "onSuccess: Profile Created");
+                                                                                                            Toast.makeText(StartActivity.this, "onSuccess: Profile Created", Toast.LENGTH_SHORT).show();
+                                                                                                        }
+                                                                                                    }).addOnFailureListener(new OnFailureListener() {
+                                                                                                        @Override
+                                                                                                        public void onFailure(@NonNull Exception e) {
+                                                                                                            Log.i("TAG", "onSuccess: Profile Creation Failed");
+                                                                                                            Toast.makeText(StartActivity.this, "onSuccess: Profile Creation Failed", Toast.LENGTH_SHORT).show();
+
+                                                                                                        }
+                                                                                                    });
+                                                                                        }
+                                                                                    } else {
+                                                                                        Log.d(TAG, "Failed with: ", task.getException());
+                                                                                    }
+                                                                                }
+                                                                            });
+                                                                }
+                                                                else
+                                                                {
+                                                                    loadProfileFromServer(db);
+                                                                }
+                                                            }
+
+                                                    );
+
+                                                    // Continue with Play Games Services
+
+                                                }
+                                                else
+                                                {
+                                                    Toast.makeText(StartActivity.this, "Failed", Toast.LENGTH_SHORT).show();
+
+                                                    // Disable your integration with Play Games Services or show a
+                                                    // login button to ask  players to sign-in. Clicking it should
+                                                    // call GamesSignInClient.signIn();
+                                                    updateUI(null);
+                                                }
                                                 updateUI(user);
                                             } else {
                                                 // If sign in fails, display a message to the user.
-                                                Log.w(TAG, "signInWithCredential:failure", task.getException());
+                                                Log.w(TAG, "signInWithCredential: failure", task.getException());
                                                 Toast.makeText(StartActivity.this, "Authentication failed.",
                                                         Toast.LENGTH_SHORT).show();
                                                 updateUI(null);
@@ -116,112 +203,97 @@ public class StartActivity extends AppCompatActivity
                         } else {
                             // Failed to retrieve authentication code.
                             Log.w(TAG, "signInWithCredential:failure", task.getException());
-                            Toast.makeText(StartActivity.this, "Authentication failed.",
+                            Toast.makeText(StartActivity.this, "No Internet.",
                                     Toast.LENGTH_SHORT).show();
                             updateUI(null);
                         }
                     });
-            boolean isAuthenticated = (isAuthenticatedTask.isSuccessful() &&
-                            isAuthenticatedTask.getResult().isAuthenticated());
-            if (isAuthenticated)
-            {
-                PlayGames.getPlayersClient(this).getCurrentPlayer().addOnCompleteListener(mTask ->
-                        {
-                            GameProfile gameProfile=new GameProfile();
-                            playerId= mTask.getResult().getPlayerId();
-                            Toast.makeText(this, "id: "+mTask.getResult().getPlayerId() , Toast.LENGTH_SHORT).show();
-                            if(preferences.getBoolean("needProfile",true))
-                            {
-                                db.collection("gamerProfile").document(playerId)
-                                        .get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                                            @Override
-                                            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                                                if (task.isSuccessful()) {
-                                                    DocumentSnapshot document = task.getResult();
-                                                    if (document.exists()) {
-                                                        preferencesEditor.putBoolean("needProfile", false).apply();
-                                                        Log.d(TAG, "Profile exists!");
-                                                        Toast.makeText(StartActivity.this, "Profile exists!", Toast.LENGTH_SHORT).show();
-                                                    } else {
-                                                        Log.d(TAG, "Profile does not exist!");
-                                                        Toast.makeText(StartActivity.this, "Profile does not exist!", Toast.LENGTH_SHORT).show();
 
-                                                        db.collection("gamerProfile").document(mTask.getResult().getPlayerId())
-                                                                .set(gameProfile)
-                                                                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                                                    @Override
-                                                                    public void onSuccess(Void unused) {
-                                                                        preferencesEditor.putBoolean("needProfile", false).apply();
-                                                                        Log.i(TAG, "onSuccess: Profile Created");
-                                                                        Toast.makeText(StartActivity.this, "onSuccess: Profile Created", Toast.LENGTH_SHORT).show();
-                                                                    }
-                                                                }).addOnFailureListener(new OnFailureListener() {
-                                                                    @Override
-                                                                    public void onFailure(@NonNull Exception e) {
-                                                                        Log.i("TAG", "onSuccess: Profile Creation Failed");
-                                                                        Toast.makeText(StartActivity.this, "onSuccess: Profile Creation Failed", Toast.LENGTH_SHORT).show();
-
-                                                                    }
-                                                                });
-                                                    }
-                                                } else {
-                                                    Log.d(TAG, "Failed with: ", task.getException());
-                                                }
-                                            }
-                                        });
-                            }
-                            else
-                            {
-                                db.collection("gamerProfile").document(playerId)
-                                        .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>(){
-                                            @Override
-                                            public void onSuccess(DocumentSnapshot documentSnapshot) {
-                                                GameProfile server2device =documentSnapshot.toObject(GameProfile.class);
-                                                assert server2device != null;
-                                                server2device.apply();
-                                            }
-                                        });
-                            }
-                        }
-
-                );
-
-                // Continue with Play Games Services
-
-
-
-
-            }
-            else
-            {
-                Toast.makeText(this, "Failed", Toast.LENGTH_SHORT).show();
-
-                // Disable your integration with Play Games Services or show a
-                // login button to ask  players to sign-in. Clicking it should
-                // call GamesSignInClient.signIn();
-            }
         });
 
         //gamesSignInClient.signIn();
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        setContentView(R.layout.activity_start);
-        findViewById(R.id.btnBack).setVisibility(View.GONE);
-        findViewById(R.id.scrBrdNm).setVisibility(View.GONE);
-        vsRadioGrp=findViewById(R.id.vsRadioGrp);
-        isFirstRun= isFirstRun(this);
-        if(isFirstRun)
-        {
-            preferencesEditor.putBoolean("muted", false).apply();
-        }
+        findViewById(R.id.globalScoreFrag).setVisibility(View.GONE);
+        //vsRadioGrp=findViewById(R.id.vsRadioGrp);
         ifMuted();
         isUpdateAvailable();
 
+    }
+    public void loadProfileFromServer(FirebaseFirestore db)
+    {
+        db.collection("gamerProfile").document(playerId)
+                .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>(){
+                    @Override
+                    public void onSuccess(DocumentSnapshot documentSnapshot) {
+                        GameProfile server2device =documentSnapshot.toObject(GameProfile.class);
+                        assert server2device != null;
+                        server2device.apply();
+                    }
+                });
+    }
+    public void loadingUI()
+    {
+        AlertDialog.Builder builder = new AlertDialog.Builder(StartActivity.this);
+        View view = LayoutInflater.from(StartActivity.this).inflate(
+                R.layout.dialog_layout_loading, findViewById(R.id.updateLayoutLoadingUI));
+        builder.setView(view);
+        builder.setCancelable(false);
+        final AlertDialog alertDialog = builder.create();
+        Handler handler = new Handler();
+        handler.postDelayed(alertDialog::dismiss, 4500);
+        if (alertDialog.getWindow() != null)
+            alertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(0));
+        alertDialog.show();
     }
     public void updateUI(FirebaseUser currentUser)
     {
         if(currentUser==null)
         {
-            findViewById(R.id.scrBrdBtn).setEnabled(false);
+            if(isFirstRun)
+            {
+                AlertDialog.Builder builder = new AlertDialog.Builder(StartActivity.this);
+                View view = LayoutInflater.from(StartActivity.this).inflate(
+                        R.layout.dialog_layout_updateui, findViewById(R.id.updateLayoutDialogUI)
+                );
+                builder.setView(view);
+                builder.setCancelable(false);
+                final AlertDialog alertDialog = builder.create();
+                view.findViewById(R.id.buttonUpdate).setOnClickListener(view1 ->
+                {
+                    if(!isMuted())
+                        MediaPlayer.create(context, R.raw.btn_click_ef).start();
+                    recreate();
+                    alertDialog.dismiss();
+                });
+                if (alertDialog.getWindow() != null) {
+                    alertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(0));
+                }
+                alertDialog.show();
+            }
+            else
+            {
+                findViewById(R.id.scrBrdBtn).setEnabled(false);
+                AlertDialog.Builder builder = new AlertDialog.Builder(StartActivity.this);
+                View view = LayoutInflater.from(StartActivity.this).inflate(
+                        R.layout.dialog_layout_updateui, findViewById(R.id.updateLayoutDialogUI)
+                );
+                builder.setView(view);
+                builder.setCancelable(false);
+                final AlertDialog alertDialog = builder.create();
+                ((TextView)view.findViewById(R.id.UpdateInfo)).setText("Some functionalities are disabled.");
+                ((TextView)view.findViewById(R.id.buttonUpdate)).setText("Continue");
+                view.findViewById(R.id.buttonUpdate).setOnClickListener(view1 ->
+                {
+                    if(!isMuted())
+                        MediaPlayer.create(context, R.raw.btn_click_ef).start();
+                    alertDialog.dismiss();
+                });
+                if (alertDialog.getWindow() != null) {
+                    alertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(0));
+                }
+                alertDialog.show();
+            }
+
         }
     }
 
@@ -295,9 +367,8 @@ public class StartActivity extends AppCompatActivity
         }
 
     }
-    public static boolean isFirstRun(Activity acc)
+    public static boolean isFirstRunxx(Activity acc,SharedPreferences sharedPreferences)
     {
-        SharedPreferences sharedPreferences = acc.getPreferences(Context.MODE_PRIVATE);
         SharedPreferences.Editor preferencesEditor = sharedPreferences.edit();
         String forWhat="FirstRun";
         if (sharedPreferences.getBoolean(forWhat, true))
@@ -329,8 +400,6 @@ public class StartActivity extends AppCompatActivity
             ((TextView) view.findViewById(R.id.textMessage)).setText("Do you really want to exit?");
             ((Button) view.findViewById(R.id.buttonYes)).setText("YES");
             ((Button) view.findViewById(R.id.buttonNo)).setText("NO");
-            view.findViewById(R.id.starSpinner).setVisibility(View.GONE);
-            view.findViewById(R.id.starTxt).setVisibility(View.GONE);
             final AlertDialog alertDialog = builder.create();
             view.findViewById(R.id.buttonYes).setOnClickListener(view1 ->
             {
@@ -365,8 +434,7 @@ public class StartActivity extends AppCompatActivity
         ft.commit();
         findViewById(R.id.linearLayoutStart1).setVisibility(View.GONE);
         findViewById(R.id.linearLayoutStart2).setVisibility(View.GONE);
-        findViewById(R.id.scrBrdNm).setVisibility(View.VISIBLE);
-        findViewById(R.id.btnBack).setVisibility(View.VISIBLE);
+        findViewById(R.id.globalScoreFrag).setVisibility(View.VISIBLE);
 
     }
 
@@ -386,8 +454,7 @@ public class StartActivity extends AppCompatActivity
         ft.commit();
         findViewById(R.id.linearLayoutStart1).setVisibility(View.VISIBLE);
         findViewById(R.id.linearLayoutStart2).setVisibility(View.VISIBLE);
-        findViewById(R.id.btnBack).setVisibility(View.GONE);
-        findViewById(R.id.scrBrdNm).setVisibility(View.GONE);
+        findViewById(R.id.globalScoreFrag).setVisibility(View.GONE);
     }
 
     public void volButton(View view)
@@ -477,16 +544,21 @@ public class StartActivity extends AppCompatActivity
     {
         if(!isMuted())
             MediaPlayer.create(this, R.raw.btn_click_ef).start();
-        if(vsRadioGrp.getCheckedRadioButtonId()==R.id.radioBtnHuman)
+        if(mode1.getVisibility()==View.INVISIBLE)
+        {
+            Toast.makeText(this, "Multiplayer Beta", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(this, MultiplayerActivity.class).putExtra("playerId",playerId));
+            finish();
+        }
+        else if (mode3.getVisibility()==View.INVISIBLE)
         {
             startActivity(new Intent(this,GameActivity1.class));
+            finish();
         }
         else
         {
-            Toast.makeText(this, "Multiplayer Beta", Toast.LENGTH_SHORT).show();
-            startActivity(new Intent(this, MultiplayerActivity.class));
+            Toast.makeText(this, "One day AI will come", Toast.LENGTH_SHORT).show();
         }
-        finish();
 
     }
 }

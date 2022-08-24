@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+
+    android:id="@+id/profileLayoutDialog"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginLeft="20dp"
+    android:layout_marginTop="150dp"
+    android:layout_marginRight="20dp"
+    android:background="@drawable/box_chat"
+    android:orientation="vertical"
+
+    >
+
+    <TextView
+        android:id="@+id/textMessage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        android:fontFamily="@font/sortie"
+        android:gravity="center"
+        android:text="Profile"
+        android:textColor="@color/greenY"
+        android:textSize="30sp"
+
+        />
+
+    <RelativeLayout
+        android:id="@+id/shape_layout"
+        android:layout_width="102dp"
+        android:layout_height="102dp"
+        android:background="@drawable/circle"
+        android:layout_gravity="center"
+        >
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/myCardView"
+            android:layout_width="96dp"
+            android:layout_height="96dp"
+            android:layout_centerInParent="true"
+            app:cardCornerRadius="50dp">
+
+            <ImageView
+                android:id="@+id/profile_image"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop" />
+        </androidx.cardview.widget.CardView>
+    </RelativeLayout>
+<!--    <de.hdodenhof.circleimageview.CircleImageView-->
+<!--        android:id="@+id/profile_image"-->
+<!--        android:layout_width="96dp"-->
+<!--        android:layout_height="96dp"-->
+<!--        android:layout_gravity="center"-->
+<!--        android:src="@drawable/ic_launcher_foreground"-->
+<!--        app:civ_border_color="@color/cocZz"-->
+<!--        app:civ_border_width="5dp" />-->
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_margin="10dp"
+
+        >
+
+        <EditText
+            android:id="@+id/nmTxt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="5dp"
+            android:enabled="false"
+            android:fontFamily="@font/sortie"
+            android:text="Noob"
+            android:hint="Name"
+            android:padding="10dp"
+            android:textColor="@color/white"
+            android:textColorHint="@color/whiteY"
+            android:gravity="center"
+            android:textSize="24sp" />
+
+        <ImageButton
+            android:id="@+id/nmEditBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:background="@drawable/btn_special_bg"
+            android:src="@drawable/icon_edit"
+
+            />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+
+        >
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/sortie"
+            android:paddingStart="0dp"
+            android:text="Level: "
+            android:textColor="@color/white"
+            android:textSize="20sp"
+
+            />
+
+        <TextView
+            android:id="@+id/lvlTxt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/sortie"
+            android:text="1"
+            android:textColor="@color/white"
+            android:textSize="20sp"
+
+            />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="5sp"
+
+        >
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/sortie"
+            android:text="Match Played: "
+            android:textColor="@color/white"
+            android:textSize="20sp"
+
+            />
+
+        <TextView
+            android:id="@+id/matchPlayedTxt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/sortie"
+            android:text="1"
+            android:textColor="@color/white"
+            android:textSize="20sp"
+
+            />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="5sp"
+
+        >
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/sortie"
+            android:text="Match Won: "
+            android:textColor="@color/white"
+            android:textSize="20sp"
+
+            />
+
+        <TextView
+            android:id="@+id/matchWonTxt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/sortie"
+            android:text="1"
+            android:textColor="@color/white"
+            android:textSize="20sp"
+            android:maxLength="8"
+
+            />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="40dp"
+        android:layout_marginTop="20dp"
+        android:background="@drawable/box_chat"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20sp"
+            android:layout_marginTop="15sp"
+            android:fontFamily="@font/sortie"
+            android:text="Themes: "
+            android:textColor="@color/whiteY"
+            android:textSize="17sp"
+
+            />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:fontFamily="@font/sortie"
+            android:padding="30dp"
+            android:text="Coming Later.."
+            android:textColor="@color/cocZz"
+            android:textSize="17sp" />
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/buttonSaveInfo"
+        android:layout_width="100dp"
+        android:layout_height="40dp"
+        android:layout_gravity="center"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="20dp"
+        android:background="@drawable/btn_grn_bg"
+        android:fontFamily="@font/sortie"
+        android:text="Save"
+        android:textColor="@color/white"
+        android:textSize="18sp"
+        tools:ignore="ButtonStyle" />
+
+</LinearLayout>

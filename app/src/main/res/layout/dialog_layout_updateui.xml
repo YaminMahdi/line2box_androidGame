@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/updateLayoutDialogUI"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginLeft="20dp"
+    android:layout_marginTop="150dp"
+    android:layout_marginRight="20dp"
+    android:background="@drawable/box"
+    android:orientation="vertical"
+
+    >
+
+    <TextView
+        android:id="@+id/warningMessage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        android:fontFamily="@font/sortie"
+        android:gravity="center"
+        android:text="No Internet !"
+        android:textColor="@color/redY"
+        android:textSize="30sp" />
+    <TextView
+        android:id="@+id/UpdateInfo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="You must have INTERNET connection for the first time to run the gmae"
+        android:gravity="center"
+        android:textSize="18sp"
+        android:textColor="@color/whiteY"
+        android:fontFamily="@font/sortie"
+        android:layout_marginHorizontal="24dp"
+        />
+
+    <Button
+        android:id="@+id/buttonUpdate"
+        android:layout_width="100dp"
+        android:layout_height="40dp"
+        android:layout_marginBottom="20dp"
+        android:layout_marginTop="30dp"
+        android:text="Retry"
+        android:background="@drawable/btn_grn_bg"
+        android:fontFamily="@font/sortie"
+        android:textColor="@color/white"
+        android:layout_gravity="center"
+        android:textSize="18sp"
+        tools:ignore="ButtonStyle" />
+
+</LinearLayout>

@@ -20,13 +20,17 @@
             android:name=".MultiplayerActivity"
             android:exported="true"
             android:screenOrientation="sensorPortrait"
-            tools:ignore="LockedOrientationActivity" />
+            tools:ignore="LockedOrientationActivity"
+            android:windowSoftInputMode="adjustPan"
+            />
         <activity
             android:name=".GameActivity2"
             android:exported="true"
             android:label="@string/title_activity_game2"
             android:screenOrientation="sensorPortrait"
-            tools:ignore="LockedOrientationActivity" />
+            tools:ignore="LockedOrientationActivity"
+            android:windowSoftInputMode="adjustResize"
+            />
         <activity
             android:name=".StartActivity"
             android:exported="true"
@@ -44,6 +48,7 @@
             android:screenOrientation="sensorPortrait"
             tools:ignore="LockedOrientationActivity">
         </activity>
+
         <meta-data
             android:name="com.google.android.gms.games.APP_ID"
             android:value="@string/game_services_project_id"/>
