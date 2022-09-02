@@ -2,7 +2,7 @@
 # Line2Box : A Dot and Boxes Android Game
 
 
-**FEATURES**  
+## FEATURES
 
 *   Offline Mode (Two Player)
   
@@ -32,7 +32,7 @@ Most novice players always claim a box if they can, but expert players take time
 **HISTORY**  
 Dots and Boxes have classically been played on paper using pencils. It was first described by a French mathematician, Édouard Lucas, in the 19th century. Mr Lucas called it La Pipopipette.  
   
-**CREDITS**  
+## CREDITS
 This application uses Open Source components. You can find the source code of their open source projects along with license information below. I acknowledge and am grateful to these developers for their contributions to open source.  
 
 *   **StickySwitch**
