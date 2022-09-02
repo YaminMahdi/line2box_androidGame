@@ -4,6 +4,7 @@ import static androidx.constraintlayout.widget.ConstraintLayout.*;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,11 +17,12 @@ import java.util.ArrayList;
 
 public class RankListAdapter extends ArrayAdapter<GameProfile>
 {
-    private final Activity context;
+    private final Context context;
     private final ArrayList<GameProfile> rankList;
+    public static int myPosition=0;
     String playerId;
 
-    public RankListAdapter(Activity context, ArrayList<GameProfile> rankList, String playerId)
+    public RankListAdapter(Context context, ArrayList<GameProfile> rankList, String playerId)
     {
         //super(context, R.layout.custom_list_view);
         super(context, 0, rankList);
@@ -36,11 +38,13 @@ public class RankListAdapter extends ArrayAdapter<GameProfile>
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         if (convertView == null) {
-            convertView = LayoutInflater.from(context).inflate(R.layout.custom_rank_list_view, parent, false);
+            convertView = LayoutInflater.from(getContext()).inflate(R.layout.custom_rank_list_view, parent, false);
         }
         if(rankList.get(position).playerId.equals(playerId))
         {
+            myPosition=position;
             convertView.findViewById(R.id.rankListItemBg).setBackgroundResource(R.drawable.box_chat_fill);
+
         }
         else
         {
@@ -55,6 +59,7 @@ public class RankListAdapter extends ArrayAdapter<GameProfile>
         serialNo.setText(position+1+".");
         nmData.setText(rankList.get(position).nm);
         coinData.setText(""+rankList.get(position).coin);
+        ((TextView)convertView.findViewById(R.id.lvlId)).setText(""+rankList.get(position).lvl);
 
         return convertView;
 

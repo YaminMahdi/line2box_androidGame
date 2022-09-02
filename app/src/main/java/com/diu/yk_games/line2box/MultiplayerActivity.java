@@ -4,9 +4,9 @@ import static java.util.Objects.requireNonNull;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.content.ActivityNotFoundException;
 import android.content.ClipData;
 import android.content.ClipboardManager;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -43,9 +43,8 @@ import androidx.fragment.app.FragmentTransaction;
 
 import com.diu.yk_games.line2box.databinding.ActivityGameMultiBinding;
 import com.google.android.gms.common.images.ImageManager;
-import com.google.android.gms.games.Games;
 import com.google.android.gms.games.PlayGames;
-import com.google.android.gms.games.Player;
+
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -81,10 +80,10 @@ public class MultiplayerActivity extends AppCompatActivity{
     String nm1,nm2;
     Integer lvl1,lvl2;
     boolean editing=false;
-    int playerCountLocal=1;
     Bundle mBundle = new Bundle();
-    String playerId;
+    String playerId, tmpKey=null;
     BubbleTabBar bubbleTabBar;
+    View v;
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
@@ -106,6 +105,10 @@ public class MultiplayerActivity extends AppCompatActivity{
         findViewById(R.id.globalScoreFrag).setVisibility(View.GONE);
         findViewById(R.id.newMsgBoltu).setVisibility(View.GONE);
         findViewById(R.id.emojiPlay).setVisibility(View.GONE);
+        if(sharedPref.getBoolean("needName", true))
+            changeNameNeeded();
+
+
 
         mDrawerLayout = findViewById(R.id.drawer_layout);
         mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
@@ -118,8 +121,12 @@ public class MultiplayerActivity extends AppCompatActivity{
                 if(newState==2)
                 {
                     closeKeyboard();
-                    if(!isMuted())
-                        MediaPlayer.create(MultiplayerActivity.this, R.raw.slide).start();
+                    if (!isMuted())
+                    {
+                        MediaPlayer mediaPlayer = MediaPlayer.create(MultiplayerActivity.this, R.raw.slide);
+                        mediaPlayer.start();
+                        mediaPlayer.setOnCompletionListener(MediaPlayer::release);
+                    }
                 }
             }
         });
@@ -128,6 +135,7 @@ public class MultiplayerActivity extends AppCompatActivity{
         copyPastBtn=findViewById(R.id.copyPastBtn);
         startMatchBtn=findViewById(R.id.startMatchBtnId);
         playerId=getIntent().getExtras().getString("playerId");
+        lvlUpgrade();
         mBundle.putString("playerId",playerId);
         copyPastBtn.setImageResource(R.drawable.icon_paste);
         copyPastBtn.setTag(R.drawable.icon_paste);
@@ -137,6 +145,7 @@ public class MultiplayerActivity extends AppCompatActivity{
         dsList = new ArrayList<>();
         database = FirebaseDatabase.getInstance();
         myRef = database.getReference("MultiPlayer");
+        myRef.child(sharedPref.getString("tmpKey","69")).removeValue();
         myRef.addChildEventListener(new ChildEventListener()
         {
             @Override
@@ -171,51 +180,59 @@ public class MultiplayerActivity extends AppCompatActivity{
                         @Override
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot)
                         {
-                            int playerCount = Integer.parseInt(requireNonNull(dataSnapshot.getValue(String.class)));
-                            if(playerCount==1&&getKey()!=null)
+                            if(dataSnapshot.exists())
                             {
-                                myRef.child(getKey()).child("playerCount").setValue("2");
-                                //playerCountLocal=2;
-                                startMatchBtn.setEnabled(true);
-                                myRef.child(getKey()).child("playerInfo").child("nm2").setValue(new GameProfile().nm);
-                                myRef.child(getKey()).child("playerInfo").child("lvl2").setValue(new GameProfile().lvl);
+                                int playerCount = Integer.parseInt(requireNonNull(dataSnapshot.getValue(String.class)));
+                                if(playerCount==1&&getKey()!=null)
+                                {
+                                    myRef.child(getKey()).child("playerCount").setValue("2");
+                                    //playerCountLocal=2;
+                                    startMatchBtn.setEnabled(true);
+                                    tmpKey=getKey();
+                                    editor.putString("tmpKey",getKey()).apply();
+                                    myRef.child(getKey()).child("playerInfo").child("nm2").setValue(new GameProfile().nm);
+                                    myRef.child(getKey()).child("playerInfo").child("lvl2").setValue(new GameProfile().getLvlByCal());
 
-                                MsgStore ms =new MsgStore();
-                                ms.nmData= nm2;
-                                ms.lvlData= lvl2.toString();
-                                DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd MMM, hh:mm a");
-                                LocalDateTime now = LocalDateTime.now();
-                                ms.timeData = dtf.format(now);
-                                ms.msgData="Joined the match.";
+                                    MsgStore ms =new MsgStore();
+                                    ms.nmData= nm2;
+                                    ms.lvlData= lvl2.toString();
+                                    DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd MMM, hh:mm a");
+                                    LocalDateTime now = LocalDateTime.now();
+                                    ms.timeData = dtf.format(now);
+                                    ms.msgData="Joined the match.";
 
-                                String key2 = myRef.child(getKey()).child("friendlyChat").push().getKey();
-                                assert key2 != null;
-                                myRef.child(getKey()).child("friendlyChat").child(key2).setValue(ms);
+                                    String key2 = myRef.child(getKey()).child("friendlyChat").push().getKey();
+                                    assert key2 != null;
+                                    myRef.child(getKey()).child("friendlyChat").child(key2).setValue(ms);
 
-                                bubbleTabBar.setSelected(1,true);
-                                FragmentManager fm=getSupportFragmentManager();
-                                FragmentTransaction ft=fm.beginTransaction();
-                                ft.replace(R.id.chatFragment,ChatFragmentFriendly.newInstance(getKey()));
-                                ft.commit();
+                                    bubbleTabBar.setSelected(1,true);
+                                    FragmentManager fm=getSupportFragmentManager();
+                                    FragmentTransaction ft=fm.beginTransaction();
+                                    ft.replace(R.id.chatFragment,ChatFragmentFriendly.newInstance(getKey()));
+                                    ft.commit();
 
-                                myRef.child(getKey()).child("playerInfo").addValueEventListener(new ValueEventListener() {
-                                    @Override
-                                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                        if (getKey() != null)
-                                        {
-                                            nm1 = dataSnapshot.child("nm1").getValue(String.class);
-                                            lvl1 = dataSnapshot.child("lvl1").getValue(Integer.class);
-                                            mBundle.putString("nm1", nm1);
-                                            mBundle.putInt("lvl1", lvl1);
+                                    myRef.child(getKey()).child("playerInfo").addValueEventListener(new ValueEventListener() {
+                                        @Override
+                                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                            if (dataSnapshot.exists())
+                                            {
+                                                nm1 = dataSnapshot.child("nm1").getValue(String.class);
+                                                lvl1 = dataSnapshot.child("lvl1").getValue(Integer.class);
+                                                mBundle.putString("nm1", nm1);
+                                                mBundle.putInt("lvl1", lvl1);
+                                            }
                                         }
-                                    }
-                                    @Override
-                                    public void onCancelled(@NonNull DatabaseError error) {
+                                        @Override
+                                        public void onCancelled(@NonNull DatabaseError error) {
 
-                                    }
-                                });
+                                        }
+                                    });
 
+                                }
                             }
+                            else
+                                startMatchBtn.setEnabled(false);
+
                         }
                         @Override public void onCancelled(@NonNull DatabaseError error) {
                             // Failed to read value
@@ -227,7 +244,7 @@ public class MultiplayerActivity extends AppCompatActivity{
             }
         });
         nm2=new GameProfile().nm;
-        lvl2=new GameProfile().lvl;
+        lvl2=new GameProfile().getLvlByCal();
         Log.d("TAG left", "ver: "+nm1+" "+lvl1);
         mBundle.putString("nm2", nm2);
         mBundle.putInt("lvl2", lvl2);
@@ -243,10 +260,18 @@ public class MultiplayerActivity extends AppCompatActivity{
                 joinId.setText("");
                 mBundle.putBoolean("plyr1", false);
                 nm2=new GameProfile().nm;
-                lvl2=new GameProfile().lvl;
+                lvl2=new GameProfile().getLvlByCal();
                 Log.d("TAG left", "ver: "+nm1+" "+lvl1);
                 mBundle.putString("nm2", nm2);
                 mBundle.putInt("lvl2", lvl2);
+
+                bubbleTabBar.setSelected(0,true);
+                FragmentManager fm=getSupportFragmentManager();
+                FragmentTransaction ft=fm.beginTransaction();
+                ft.replace(R.id.chatFragment,new ChatFragmentGlobal());
+                ft.commit();
+                findViewById(R.id.newMsgBoltu).setVisibility(View.GONE);
+
                 final Handler handler = new Handler();
                 handler.postDelayed(()->
                 {
@@ -269,18 +294,18 @@ public class MultiplayerActivity extends AppCompatActivity{
                 joinId.setText("");
                 mBundle.putBoolean("plyr1", true);
                 nm1=new GameProfile().nm;
-                lvl1=new GameProfile().lvl;
+                lvl1=new GameProfile().getLvlByCal();
                 Log.d("TAG", "ver: "+nm1+" "+lvl1);
                 mBundle.putString("nm1", nm1);
                 mBundle.putInt("lvl1", lvl1);
                 key = myRef.push().getKey();
-
+                editor.putString("tmpKey",key).apply();
                 Log.d("TAG", "onCreate key: "+key);
                 mBundle.putString("gameKey", key);
                 assert key != null;
                 myRef.child(key).child("playerCount").setValue("1");
                 myRef.child(key).child("playerInfo").child("nm1").setValue(new GameProfile().nm);
-                myRef.child(key).child("playerInfo").child("lvl1").setValue(new GameProfile().lvl);
+                myRef.child(key).child("playerInfo").child("lvl1").setValue(new GameProfile().getLvlByCal());
                 myRef.child(key).child("playerInfo").child("nm2").setValue("");
                 myRef.child(key).child("playerInfo").child("lvl2").setValue(0);
 
@@ -302,25 +327,32 @@ public class MultiplayerActivity extends AppCompatActivity{
                 ft.replace(R.id.chatFragment,ChatFragmentFriendly.newInstance(key));
                 ft.commit();
 
+
                 myRef.child(key).addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        if(key!=null) {
+                        if(dataSnapshot.exists())
+                        {
                             Log.d("TAG -int key", "onDataChange: "+key+" "+getKey()+" "+dataSnapshot.child("playerCount").getValue(String.class));
-                            int playerCount = Integer.parseInt(requireNonNull(dataSnapshot.child("playerCount").getValue(String.class)));
-                            nm2=dataSnapshot.child("playerInfo").child("nm2").getValue(String.class);
-                            lvl2=dataSnapshot.child("playerInfo").child("lvl2").getValue(Integer.class);
-                            Log.d("TAG", "ver2: "+nm2+" "+lvl2);
-                            mBundle.putString("nm2", nm2);
-                            mBundle.putInt("lvl2", lvl2);
-                            if (playerCount == 2)
-                            {
-                                startMatchBtn.setEnabled(true);
-                                //playerCountLocal=2;
-
+                            try {
+                                int playerCount = Integer.parseInt(requireNonNull(dataSnapshot.child("playerCount").getValue(String.class)));
+                                nm2=dataSnapshot.child("playerInfo").child("nm2").getValue(String.class);
+                                lvl2=dataSnapshot.child("playerInfo").child("lvl2").getValue(Integer.class);
+                                Log.d("TAG", "ver2: "+nm2+" "+lvl2);
+                                mBundle.putString("nm2", nm2);
+                                mBundle.putInt("lvl2", lvl2);
+                                if (playerCount == 2)
+                                {
+                                    startMatchBtn.setEnabled(true);
+                                    //playerCountLocal=2;
+                                }
                             }
+                            catch (NullPointerException npe) {npe.printStackTrace();}
+
 
                         }
+                        else
+                            startMatchBtn.setEnabled(false);
                     }
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
@@ -336,6 +368,11 @@ public class MultiplayerActivity extends AppCompatActivity{
                     copyPastBtn.setImageResource(R.drawable.icon_copy);
                     copyPastBtn.setTag(R.drawable.icon_copy);
                     stickySwitch.setSwitchColor(ContextCompat.getColor(getApplicationContext(), R.color.greenY));
+                    if(tmpKey!=null)
+                    {
+                        myRef.child(tmpKey).removeValue();
+                        tmpKey=null;
+                    }
 
                 }, 400);
             }
@@ -344,7 +381,10 @@ public class MultiplayerActivity extends AppCompatActivity{
         copyPastBtn.setOnClickListener(v ->
         {
             if(!isMuted())
-                MediaPlayer.create(this, R.raw.btn_click_ef).start();
+            {
+                MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef);
+                mediaPlayer.start();
+                mediaPlayer.setOnCompletionListener(MediaPlayer::release);}
             Integer resource = (Integer) copyPastBtn.getTag();
 
             if(resource==R.drawable.icon_copy)
@@ -426,7 +466,7 @@ public class MultiplayerActivity extends AppCompatActivity{
                 if(key!=null)
                     ft.replace(R.id.chatFragment,ChatFragmentFriendly.newInstance(key));
                 else
-                    ft.replace(R.id.chatFragment,new BlankFragment());
+                    ft.replace(R.id.chatFragment,new BlankChatFragment());
 
             }
             ft.commit();
@@ -461,6 +501,73 @@ public class MultiplayerActivity extends AppCompatActivity{
             }
         }
         return null;
+    }
+    @SuppressLint("SetTextI18n")
+    public void lvlUpgrade()
+    {
+        GameProfile pf =new GameProfile();
+        int tmpLvl=sharedPref.getInt("tmpLvl",1);
+        if(tmpLvl!=pf.getLvlByCal())
+        {
+            if (!isMuted())
+            {
+                MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.win_ef);
+                mediaPlayer.start();
+                mediaPlayer.setOnCompletionListener(MediaPlayer::release);
+            }
+            FirebaseFirestore.getInstance().collection("gamerProfile").document(playerId).update("lvl" ,pf.getLvlByCal());
+            editor.putInt("tmpLvl",pf.getLvlByCal()).apply();
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            View view = LayoutInflater.from(this).inflate(
+                    R.layout.dialog_layout_update, findViewById(R.id.updateLayoutDialog)
+            );
+            builder.setView(view);
+            builder.setCancelable(false);
+            final AlertDialog alertDialog = builder.create();
+            ((TextView)view.findViewById(R.id.warningMessage)).setText("Level Upgraded !");
+            TextView updateInfo= view.findViewById(R.id.UpdateInfo);
+            updateInfo.setText(tmpLvl+" --> "+ pf.getLvlByCal());
+            updateInfo.setTypeface(getResources().getFont(R.font.baloopaaji));
+            updateInfo.setTextSize(25);
+            ((Button)view.findViewById(R.id.buttonUpdate)).setText("Continue");
+            view.findViewById(R.id.buttonUpdate).setOnClickListener(view1 ->
+            {
+                if (!isMuted())
+                {
+                    MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef);
+                    mediaPlayer.start();
+                    mediaPlayer.setOnCompletionListener(MediaPlayer::release);
+                }
+                alertDialog.dismiss();
+            });
+
+            if (alertDialog.getWindow() != null) {
+                alertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(0));
+            }
+            try {alertDialog.show();}
+                catch (NullPointerException npe) {npe.printStackTrace();}
+        }
+
+    }
+    public void changeNameNeeded()
+    {
+        Toast.makeText(this, "Change Your Name.", Toast.LENGTH_SHORT).show();
+        editor.putBoolean("muted", true).apply();
+        profileBtn(findViewById(R.id.profileBtn));
+        editor.putBoolean("muted", false).apply();
+        EditText nmEditText = v.findViewById(R.id.nmTxt);
+        nmEditText.setEnabled(true);
+        editing=true;
+        ((ImageButton) v.findViewById(R.id.nmEditBtn)).setImageResource(R.drawable.icon_save);
+        Handler handler = new Handler();
+        handler.postDelayed(() ->
+        {
+            if(nmEditText.requestFocus()) {
+                InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, InputMethodManager.HIDE_IMPLICIT_ONLY);
+                nmEditText.setSelection(nmEditText.getText().length());
+            }
+        }, 200);
     }
     public String getClipboardText()
     {
@@ -514,14 +621,17 @@ public class MultiplayerActivity extends AppCompatActivity{
             );
             builder.setView(view);
 
-            ((TextView) view.findViewById(R.id.textMessage)).setText("Do you really want to exit?");
+            ((TextView) view.findViewById(R.id.textMessage)).setText("Do you really want to go back?");
             ((Button) view.findViewById(R.id.buttonYes)).setText("YES");
             ((Button) view.findViewById(R.id.buttonNo)).setText("NO");
             final AlertDialog alertDialog = builder.create();
             view.findViewById(R.id.buttonYes).setOnClickListener(view1 ->
             {
                 if(!isMuted())
-                    MediaPlayer.create(this, R.raw.btn_click_ef).start();
+                {
+                MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef);
+                mediaPlayer.start();
+                mediaPlayer.setOnCompletionListener(MediaPlayer::release);}
                 alertDialog.dismiss();
                 super.onBackPressed();
                 startActivity(new Intent(this,StartActivity.class));
@@ -531,20 +641,27 @@ public class MultiplayerActivity extends AppCompatActivity{
             view.findViewById(R.id.buttonNo).setOnClickListener(view2 ->
             {
                 if(!isMuted())
-                    MediaPlayer.create(this, R.raw.btn_click_ef).start();
+                {
+                MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef);
+                mediaPlayer.start();
+                mediaPlayer.setOnCompletionListener(MediaPlayer::release);}
                 alertDialog.dismiss();
             });
             if (alertDialog.getWindow() != null) {
                 alertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(0));
             }
-            alertDialog.show();
+            try {alertDialog.show();}
+                catch (NullPointerException npe) {npe.printStackTrace();}
         }
     }
 
     public void goBack(View view)
     {
         if(!isMuted())
-            MediaPlayer.create(this, R.raw.btn_click_ef).start();
+        {
+                MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef);
+                mediaPlayer.start();
+                mediaPlayer.setOnCompletionListener(MediaPlayer::release);}
         onGoBack();
     }
 
@@ -569,22 +686,56 @@ public class MultiplayerActivity extends AppCompatActivity{
         }
         else
         {
-            MediaPlayer.create(this, R.raw.btn_click_ef).start();
+            MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef);
+            mediaPlayer.start();
+            mediaPlayer.setOnCompletionListener(MediaPlayer::release);
             findViewById(R.id.volBtn).setBackgroundResource(R.drawable.btn_ylw_bg);
             ((ImageButton)findViewById(R.id.volBtn)).setImageResource(R.drawable.icon_vol_unmute);
             editor.putBoolean("muted", false).apply();
         }
     }
-    public void ideaBtn(View view)
+    public void ideaBtn(View v)
     {
         if(!isMuted())
-            MediaPlayer.create(this, R.raw.btn_click_ef).start();
+        {
+            MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef);
+            mediaPlayer.start();
+            mediaPlayer.setOnCompletionListener(MediaPlayer::release);
+        }
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View view = LayoutInflater.from(this).inflate(
+                R.layout.dialog_layout_info_mul, findViewById(R.id.infoMultiLayoutDialog)
+        );
+        builder.setView(view);
+        builder.setCancelable(false);
+        final AlertDialog alertDialog = builder.create();
+
+        view.findViewById(R.id.buttonOkey).setOnClickListener(view1 ->
+        {
+            if (!isMuted())
+            {
+                MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef);
+                mediaPlayer.start();
+                mediaPlayer.setOnCompletionListener(MediaPlayer::release);
+            }
+            alertDialog.dismiss();
+        });
+
+        if (alertDialog.getWindow() != null) {
+            alertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(0));
+        }
+        try {alertDialog.show();}
+        catch (NullPointerException npe) {npe.printStackTrace();}
+
     }
 
     public void scoreBoard(View view)
     {
         if(!isMuted())
-            MediaPlayer.create(this, R.raw.btn_click_ef).start();
+        {
+                MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef);
+                mediaPlayer.start();
+                mediaPlayer.setOnCompletionListener(MediaPlayer::release);}
         scrBrdVisible =true;
         FragmentManager fm=getSupportFragmentManager();
         FragmentTransaction ft=fm.beginTransaction();
@@ -599,7 +750,10 @@ public class MultiplayerActivity extends AppCompatActivity{
     public void leaderBoard(View view)
     {
         if(!isMuted())
-            MediaPlayer.create(this, R.raw.btn_click_ef).start();
+        {
+                MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef);
+                mediaPlayer.start();
+                mediaPlayer.setOnCompletionListener(MediaPlayer::release);}
         scrBrdVisible =true;
         FragmentManager fm=getSupportFragmentManager();
         FragmentTransaction ft=fm.beginTransaction();
@@ -613,16 +767,19 @@ public class MultiplayerActivity extends AppCompatActivity{
     public void profileBtn(View view)
     {
         if(!isMuted())
-            MediaPlayer.create(this, R.raw.btn_click_ef).start();
+        {
+                MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef);
+                mediaPlayer.start();
+                mediaPlayer.setOnCompletionListener(MediaPlayer::release);}
 
         AlertDialog.Builder builder = new AlertDialog.Builder(MultiplayerActivity.this);
-        View v = LayoutInflater.from(MultiplayerActivity.this).inflate(
+        v = LayoutInflater.from(MultiplayerActivity.this).inflate(
                 R.layout.dialog_layout_profile, findViewById(R.id.profileLayoutDialog)
         );
         builder.setView(v);
         //builder.setCancelable(false);
         GameProfile.setPreferences(sharedPref);
-        ((TextView) v.findViewById(R.id.lvlTxt)).setText(""+new GameProfile().lvl);
+        ((TextView) v.findViewById(R.id.lvlTxt)).setText(""+new GameProfile().getLvlByCal());
         ((TextView) v.findViewById(R.id.matchPlayedTxt)).setText(""+new GameProfile().matchPlayed);
         ((TextView) v.findViewById(R.id.matchWonTxt)).setText(""+new GameProfile().matchWinMulti);
         EditText nmEditText = v.findViewById(R.id.nmTxt);
@@ -644,11 +801,15 @@ public class MultiplayerActivity extends AppCompatActivity{
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         civ.setOnClickListener(vv->
         {
-            Intent intent = new Intent().setClassName("com.google.android.play.games", "com.google.android.gms.games.ui.destination.main.MainActivity");
-
-            if (intent == null) {
-                intent = new Intent();
+            Intent intent = new Intent(Intent.ACTION_VIEW).setClassName("com.google.android.play.games", "com.google.android.gms.games.ui.destination.main.MainActivity");
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            try {
+                startActivity(intent);
+            } catch (ActivityNotFoundException e) {
+                intent = new Intent(Intent.ACTION_VIEW);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 intent.setData(Uri.parse("market://details?id=" + "com.google.android.play.games"));
+                startActivity(intent);
             }
             startActivity(intent);
 //            PlayGames.getPlayersClient(this).getCompareProfileIntent("a_6510766239748384229").addOnCompleteListener(TResult->
@@ -659,7 +820,6 @@ public class MultiplayerActivity extends AppCompatActivity{
 ////Clear the activity so the back button returns to your app
 //            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 ////Manually specify the package and activity name
-//            intent.setComponent(new ComponentName("com.google.android.play.games", "com.google.android.gms.games.ui.destination.api.ApiActivity"));
 ////Not really needed as default happens if you don't specify it.
 //            intent.addCategory(Intent.CATEGORY_DEFAULT);
 ////You must specify the current players user. It ensures that Google Play Games is logged in as the same person.
@@ -699,32 +859,37 @@ public class MultiplayerActivity extends AppCompatActivity{
                     z.setNm(newNm);
                     z.apply();
                     Log.d("TAG", "profileBtn: "+playerId);
-                    db.collection("gamerProfile").document(playerId).update("nm" ,""+newNm);
+                    if(playerId!=null)
+                        db.collection("gamerProfile").document(playerId).update("nm" ,""+newNm);
+                    nmEditText.setEnabled(false);
+                    ((ImageButton) v.findViewById(R.id.nmEditBtn)).setImageResource(R.drawable.icon_edit);
+                    editing=false;
+                    editor.putBoolean("needName",false).apply();
                 }
-                nmEditText.setEnabled(false);
-                ((ImageButton) v.findViewById(R.id.nmEditBtn)).setImageResource(R.drawable.icon_edit);
-                editing=false;
             }
         });
         v.findViewById(R.id.buttonSaveInfo).setOnClickListener(view1 ->
         {
             if(!isMuted())
-                MediaPlayer.create(this, R.raw.btn_click_ef).start();
+            {
+                MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef);
+                mediaPlayer.start();
+                mediaPlayer.setOnCompletionListener(MediaPlayer::release);}
             alertDialog.dismiss();
             closeKeyboard();
+            editor.putBoolean("needName",false).apply();
         });
 
 
         if (alertDialog.getWindow() != null) {
             alertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(0));
         }
-        alertDialog.show();
+        try {alertDialog.show();}
+                catch (NullPointerException npe) {npe.printStackTrace();}
     }
 
     public void closeNavBtn(View view)
     {
-//        if(!isMuted())
-//            MediaPlayer.create(this, R.raw.btn_click_ef).start();
         closeKeyboard();
         mDrawerLayout.closeDrawer(GravityCompat.START);
         findViewById(R.id.newMsgBoltu).setVisibility(View.GONE);
@@ -733,8 +898,6 @@ public class MultiplayerActivity extends AppCompatActivity{
     }
     public void openNavBtn(View view)
     {
-//        if(!isMuted())
-//            MediaPlayer.create(this, R.raw.btn_click_ef).start();
         mDrawerLayout.openDrawer(GravityCompat.START);
 
 //        FragmentManager fm=getSupportFragmentManager();
@@ -768,13 +931,28 @@ public class MultiplayerActivity extends AppCompatActivity{
 
     }
 
+    public void backBtn(View view)
+    {
+        if (!isMuted())
+        {
+            MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef);
+            mediaPlayer.start();
+            mediaPlayer.setOnCompletionListener(MediaPlayer::release);
+        }
+        onBackPressed();
+    }
+
     public void startBtn(View view)
     {
         if(!isMuted())
-            MediaPlayer.create(this, R.raw.btn_click_ef).start();
+        {
+                MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef);
+                mediaPlayer.start();
+                mediaPlayer.setOnCompletionListener(MediaPlayer::release);}
         Intent mIntent = new Intent(this, GameActivity2.class);
         startActivity(mIntent.putExtra("bundleInfo",mBundle));
         finish();
     }
+
 
 }

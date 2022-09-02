@@ -2,6 +2,7 @@ package com.diu.yk_games.line2box;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,10 +14,10 @@ import java.util.ArrayList;
 
 public class MyListAdapter extends ArrayAdapter<DataStore> {
 
-    private final Activity context;
+    private final Context context;
     private final ArrayList<DataStore> ds;
 
-    public MyListAdapter(Activity context, ArrayList<DataStore> ds) {
+    public MyListAdapter(Context context, ArrayList<DataStore> ds) {
         //super(context, R.layout.custom_list_view);
         super(context, 0, ds);
         // TODO Auto-generated constructor stub

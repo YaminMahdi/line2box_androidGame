@@ -50,7 +50,10 @@ public class NameInfoFragment extends Fragment
             SharedPreferences sharedPref = requireContext().getSharedPreferences(
                     getString(R.string.preference_file_key), Context.MODE_PRIVATE);
             if(!sharedPref.getBoolean("muted", false))
-                MediaPlayer.create(getContext(), R.raw.btn_click_ef).start();
+            {
+                MediaPlayer mediaPlayer = MediaPlayer.create(getContext(), R.raw.btn_click_ef);
+                mediaPlayer.start();
+                mediaPlayer.setOnCompletionListener(MediaPlayer::release);}
             if(!nm1EditText.getText().toString().equals(""))
             {
                 nm1=nm1EditText.getText().toString();

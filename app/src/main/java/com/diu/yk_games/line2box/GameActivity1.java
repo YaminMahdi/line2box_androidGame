@@ -14,26 +14,24 @@ import android.content.SharedPreferences;
 import android.graphics.Paint;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.GradientDrawable;
-import android.graphics.drawable.StateListDrawable;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
@@ -55,7 +53,6 @@ public class GameActivity1 extends AppCompatActivity
     SharedPreferences sharedPref;
     SharedPreferences.Editor editor;
     boolean isFirstRun=false;
-    GradientDrawable temp;
 
     @SuppressLint("SetTextI18n")
     public void onStopFragment()
@@ -113,10 +110,7 @@ public class GameActivity1 extends AppCompatActivity
         nm1Txt= findViewById(R.id.nm1Id);
         nm2Txt= findViewById(R.id.nm2Id);
         clickCount = 0; scoreRed = 0; scoreBlue = 0; bestScore=9999;
-//        lineClick = MediaPlayer.create(this, R.raw.line_click_ef);
-//        boxPlus = MediaPlayer.create(this,R.raw.box_ef);
-//        winSoundEf = MediaPlayer.create(this,R.raw.win_ef);
-//        btnClick = MediaPlayer.create(this, R.raw.btn_click_ef);
+
         sharedPref = this.getSharedPreferences(
                 getString(R.string.preference_file_key), Context.MODE_PRIVATE);
         editor = sharedPref.edit();
@@ -134,10 +128,6 @@ public class GameActivity1 extends AppCompatActivity
         }
         else
             onStopFragment();
-
-//        nm1=NameInfoFragment.nm1;
-//        nm2=NameInfoFragment.nm2;
-
 
         StringBuilder index = new StringBuilder();
         for (int i = 1; i <= 6; i++)
@@ -189,7 +179,7 @@ public class GameActivity1 extends AppCompatActivity
                     bgTop.setColor(ContextCompat.getColor(getApplicationContext(), R.color.whiteX));
                     bgCircle.setColor(ContextCompat.getColor(getApplicationContext(), R.color.white));
                     bgCircle.setStroke(14, ContextCompat.getColor(getApplicationContext(), R.color.whiteY));
-                    //Log.d("TAG", "onDestroy: " + top + " " + circle);
+                    ////Log.d("TAG", "onDestroy: " + top + " " + circle);
                 }
                 index.setLength(0);
                 index.append(top);
@@ -273,8 +263,12 @@ public class GameActivity1 extends AppCompatActivity
 //        temp=bg;
         if (color == getResources().getColor(R.color.whiteX, getTheme()))
         {
-            if(!isMuted())
-                MediaPlayer.create(this, R.raw.line_click_ef).start();
+            if (!isMuted())
+            {
+                MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.line_click_ef);
+                mediaPlayer.start();
+                mediaPlayer.setOnCompletionListener(MediaPlayer::release);
+            }
             clickCount++;
             if (clickCount % 2 == 1)
             {
@@ -312,8 +306,12 @@ public class GameActivity1 extends AppCompatActivity
                     TextView txt = findViewById(txtId);
                     if (clickCount % 2 == 1)
                     {
-                        if(!isMuted())
-                            MediaPlayer.create(this, R.raw.box_ef).start();
+                        if (!isMuted())
+                        {
+                            MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.box_ef);
+                            mediaPlayer.start();
+                            mediaPlayer.setOnCompletionListener(MediaPlayer::release);
+                        }
                         scoreRed++;
                         scoreRedView.setText("" + scoreRed);
                         txt.setText(""+nm1.charAt(0));
@@ -339,8 +337,12 @@ public class GameActivity1 extends AppCompatActivity
                         }
                     } else
                     {
-                        if(!isMuted())
-                            MediaPlayer.create(this, R.raw.box_ef).start();
+                        if (!isMuted())
+                        {
+                            MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.box_ef);
+                            mediaPlayer.start();
+                            mediaPlayer.setOnCompletionListener(MediaPlayer::release);
+                        }
                         scoreBlue++;
                         scoreBlueView.setText("" + scoreBlue);
                         txt.setText(""+nm2.charAt(0));
@@ -398,8 +400,12 @@ public class GameActivity1 extends AppCompatActivity
                     TextView txt = findViewById(txtId);
                     if (clickCount % 2 == 1)
                     {
-                        if(!isMuted())
-                            MediaPlayer.create(this, R.raw.box_ef).start();
+                        if (!isMuted())
+                        {
+                            MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.box_ef);
+                            mediaPlayer.start();
+                            mediaPlayer.setOnCompletionListener(MediaPlayer::release);
+                        }
                         scoreRed++;
                         scoreRedView.setText("" + scoreRed);
                         txt.setText(""+nm1.charAt(0));
@@ -423,8 +429,12 @@ public class GameActivity1 extends AppCompatActivity
                         }
                     } else
                     {
-                        if(!isMuted())
-                            MediaPlayer.create(this, R.raw.box_ef).start();
+                        if (!isMuted())
+                        {
+                            MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.box_ef);
+                            mediaPlayer.start();
+                            mediaPlayer.setOnCompletionListener(MediaPlayer::release);
+                        }
                         scoreBlue++;
                         scoreBlueView.setText("" + scoreBlue);
                         txt.setText(""+nm2.charAt(0));
@@ -473,8 +483,12 @@ public class GameActivity1 extends AppCompatActivity
                 Handler handler = new Handler();
                 handler.postDelayed(() ->
                 {
-                    if(!isMuted())
-                        MediaPlayer.create(this, R.raw.win_ef).start();
+                    if (!isMuted())
+                    {
+                        MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.win_ef);
+                        mediaPlayer.start();
+                        mediaPlayer.setOnCompletionListener(MediaPlayer::release);
+                    }
                     redTxt.setTextSize(30);
                     redTxt.setTextColor(getResources().getColor(R.color.white, getTheme()));
                     blueTxt.setTextSize(30);
@@ -490,7 +504,6 @@ public class GameActivity1 extends AppCompatActivity
             }
 
         }
-        overridePendingTransition(0, 0);
     }
 
     public static String[] getIdNm(String idNm)
@@ -685,14 +698,18 @@ public class GameActivity1 extends AppCompatActivity
         );
         builder.setView(view);
 
-        ((TextView) view.findViewById(R.id.textMessage)).setText("Do you really want to go back?");
+        ((TextView) view.findViewById(R.id.textMessage)).setText("Do you really want to QUIT the match?");
         ((Button) view.findViewById(R.id.buttonYes)).setText("YES");
         ((Button) view.findViewById(R.id.buttonNo)).setText("NO");
         final AlertDialog alertDialog = builder.create();
         view.findViewById(R.id.buttonYes).setOnClickListener(view1 ->
         {
             if(!isMuted())
-                MediaPlayer.create(this, R.raw.btn_click_ef).start();
+                {
+                MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef);
+                mediaPlayer.start();
+                mediaPlayer.setOnCompletionListener(MediaPlayer::release);
+            }
             alertDialog.dismiss();
             scoreRed=0;
             scoreBlue=0;
@@ -706,13 +723,18 @@ public class GameActivity1 extends AppCompatActivity
         view.findViewById(R.id.buttonNo).setOnClickListener(view2 ->
         {
             if(!isMuted())
-                MediaPlayer.create(this, R.raw.btn_click_ef).start();
+                {
+                MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef);
+                mediaPlayer.start();
+                mediaPlayer.setOnCompletionListener(MediaPlayer::release);
+            }
             alertDialog.dismiss();
         });
         if (alertDialog.getWindow() != null) {
             alertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(0));
         }
-        alertDialog.show();
+        try {alertDialog.show();}
+                catch (NullPointerException npe) {npe.printStackTrace();}
     }
 
     @SuppressLint("SetTextI18n")
@@ -723,7 +745,7 @@ public class GameActivity1 extends AppCompatActivity
                 R.layout.dialog_layout_alert, findViewById(R.id.layoutDialog)
         );
         builder.setView(view);
-        builder.setCancelable(false);
+        //builder.setCancelable(false);
 
         saveToFirebase();
         ((TextView) view.findViewById(R.id.textMessage)).setText("" + winMsg);
@@ -734,9 +756,14 @@ public class GameActivity1 extends AppCompatActivity
         view.findViewById(R.id.buttonYes).setOnClickListener(view1 ->
         {
             if(!isMuted())
-                MediaPlayer.create(this, R.raw.btn_click_ef).start();
+                {
+                MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef);
+                mediaPlayer.start();
+                mediaPlayer.setOnCompletionListener(MediaPlayer::release);
+            }
             alertDialog.dismiss();
             startActivity(new Intent(GameActivity1.this, GameActivity1.class));
+
             finish();
             Toast.makeText(this, "Score Saved to Online Score Board", Toast.LENGTH_SHORT).show();
 
@@ -746,7 +773,11 @@ public class GameActivity1 extends AppCompatActivity
         view.findViewById(R.id.buttonNo).setOnClickListener(view2 ->
         {
             if(!isMuted())
-                MediaPlayer.create(this, R.raw.btn_click_ef).start();
+                {
+                MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef);
+                mediaPlayer.start();
+                mediaPlayer.setOnCompletionListener(MediaPlayer::release);
+            }
             alertDialog.dismiss();
             startActivity(new Intent(this,StartActivity.class));
             finish();
@@ -757,7 +788,8 @@ public class GameActivity1 extends AppCompatActivity
         if (alertDialog.getWindow() != null) {
             alertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(0));
         }
-        alertDialog.show();
+        try {alertDialog.show();}
+                catch (NullPointerException npe) {npe.printStackTrace();}
     }
 
     public static void saveToFirebase()
@@ -774,38 +806,72 @@ public class GameActivity1 extends AppCompatActivity
         blueData= nm2+": "+scoreBlue;
 
         DataStore ds = new DataStore(timeData,redData,blueData,starData);
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference myRef = database.getReference("ScoreBoard");
+
+//        FirebaseDatabase database = FirebaseDatabase.getInstance();
+//        DatabaseReference myRef = database.getReference("ScoreBoard");
+//        //single
+//        DatabaseReference finalMyRef = myRef;
+//        myRef.child("Last Best Player").addValueEventListener(new ValueEventListener() {
+//            @SuppressLint("SetTextI18n")
+//            @Override
+//            public void onDataChange(@NonNull DataSnapshot dataSnapshot)
+//            {
+//                if(dataSnapshot.exists())
+//                {
+//                    String bestScoreData = dataSnapshot.getValue(String.class);
+//                    assert bestScoreData != null;
+//                    String[] arrOfStr =bestScoreData.split(" ");
+//                    bestScore= Integer.parseInt(arrOfStr[arrOfStr.length-1]);
+//                    if(bestScore < scoreRed)
+//                        finalMyRef.child("Last Best Player").setValue(redData);
+//                    else if(bestScore < scoreBlue)
+//                        finalMyRef.child("Last Best Player").setValue(blueData);
+//                    scoreRed=0;
+//                    scoreBlue=0;
+//                }
+//
+//            }
+//            @Override
+//            public void onCancelled(@NonNull DatabaseError error) {
+//                Log.w("saveToFirebase", "Failed to read value.", error.toException());
+//            }
+//        });
+//
+//        //multiple
+//        myRef=myRef.child("allScore");
+//        String key = myRef.push().getKey();
+//        assert key != null;
+//        myRef.child(key).setValue(ds);
+
         //single
-        DatabaseReference finalMyRef = myRef;
-        myRef.child("Last Best Player").addValueEventListener(new ValueEventListener() {
-            @SuppressLint("SetTextI18n")
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot)
-            {
-                String bestScoreData = dataSnapshot.getValue(String.class);
-                assert bestScoreData != null;
-                String[] arrOfStr =bestScoreData.split(" ");
-                bestScore= Integer.parseInt(arrOfStr[arrOfStr.length-1]);
-                if(bestScore < scoreRed)
-                    finalMyRef.child("Last Best Player").setValue(redData);
-                else if(bestScore < scoreBlue)
-                    finalMyRef.child("Last Best Player").setValue(blueData);
-                scoreRed=0;
-                scoreBlue=0;
-            }
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Log.w("saveToFirebase", "Failed to read value.", error.toException());
-            }
-        });
-
-
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        //Source source = Source.CACHE;
+        db.collection("LastBestPlayer").document("LastBestPlayer")
+                .get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if (task.isSuccessful()) {
+                            DocumentSnapshot document = task.getResult();
+                            //Log.d("TAG", "Cached document data: " + document.getData());
+                            String bestScoreData= Objects.requireNonNull(Objects.requireNonNull(document.getData()).get("info")).toString();
+                            String[] arrOfStr =bestScoreData.split(" ");
+                            bestScore= Integer.parseInt(arrOfStr[arrOfStr.length-1]);
+                            if(bestScore < scoreRed)
+                                db.collection("LastBestPlayer").document("LastBestPlayer").update("info",redData);
+                            else if(bestScore < scoreBlue)
+                                db.collection("LastBestPlayer").document("LastBestPlayer").update("info",blueData);
+                        }
+                    }
+                });
         //multiple
-        myRef=myRef.child("allScore");
+        DatabaseReference myRef = FirebaseDatabase.getInstance().getReference("ScoreBoard").child("allScore");   //he he
         String key = myRef.push().getKey();
         assert key != null;
-        myRef.child(key).setValue(ds);
+        db.collection("ScoreBoard").document(key).set(ds);
+        scoreRed=0;
+        scoreBlue=0;
+        clickCount = 0;
+        flag=true;
 
 
     }
@@ -820,7 +886,11 @@ public class GameActivity1 extends AppCompatActivity
         }
         else
         {
-            MediaPlayer.create(this, R.raw.btn_click_ef).start();
+            {
+                MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef);
+                mediaPlayer.start();
+                mediaPlayer.setOnCompletionListener(MediaPlayer::release);
+            }
             findViewById(R.id.volBtn).setBackgroundResource(R.drawable.btn_ylw_bg);
             ((ImageButton)findViewById(R.id.volBtn)).setImageResource(R.drawable.icon_vol_unmute);
             editor.putBoolean("muted", false).apply();
@@ -829,7 +899,11 @@ public class GameActivity1 extends AppCompatActivity
 
     public void ideaBtn(View view) {
         if(!isMuted())
-            MediaPlayer.create(this, R.raw.btn_click_ef).start();
+            {
+                MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef);
+                mediaPlayer.start();
+                mediaPlayer.setOnCompletionListener(MediaPlayer::release);
+            }
         infoShow();
 
     }
@@ -861,7 +935,11 @@ public class GameActivity1 extends AppCompatActivity
         view.findViewById(R.id.buttonPre).setOnClickListener(view1 ->
         {
             if(!isMuted())
-                MediaPlayer.create(this, R.raw.btn_click_ef).start();
+                {
+                MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef);
+                mediaPlayer.start();
+                mediaPlayer.setOnCompletionListener(MediaPlayer::release);
+            }
             if(i.get()!=0)
                 i.getAndDecrement();
             if(i.get()==0)
@@ -873,7 +951,11 @@ public class GameActivity1 extends AppCompatActivity
         view.findViewById(R.id.buttonNext).setOnClickListener(view2 ->
         {
             if(!isMuted())
-                MediaPlayer.create(this, R.raw.btn_click_ef).start();
+                {
+                MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef);
+                mediaPlayer.start();
+                mediaPlayer.setOnCompletionListener(MediaPlayer::release);
+            }
             i.getAndIncrement();
             if(!isFirstRun&&i.get()==4)
                 i.getAndIncrement();
@@ -890,13 +972,18 @@ public class GameActivity1 extends AppCompatActivity
         if (alertDialog.getWindow() != null) {
             alertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(0));
         }
-        alertDialog.show();
+        try {alertDialog.show();}
+                catch (NullPointerException npe) {npe.printStackTrace();}
     }
 
     public void backBtn(View view)
     {
-        if(!isMuted())
-            MediaPlayer.create(this, R.raw.btn_click_ef).start();
+        if (!isMuted())
+        {
+            MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef);
+            mediaPlayer.start();
+            mediaPlayer.setOnCompletionListener(MediaPlayer::release);
+        }
         onBackPressed();
     }
 }

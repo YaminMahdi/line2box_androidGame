@@ -74,6 +74,7 @@
             android:fontFamily="@font/sortie"
             android:paddingHorizontal="10sp"
             android:paddingVertical="5dp"
+            android:lineSpacingExtra="6sp"
             android:text="Bla bla bla ..."
             android:textColor="@color/whiteY"
             android:textSize="18sp"

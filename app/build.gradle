@@ -18,10 +18,9 @@ android {
         applicationId "com.diu.yk_games.line2box"
         minSdk 27
         targetSdk 32
-        versionCode 3
-        versionName '0.5'
+        versionCode 6
+        versionName '0.6'
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        versionNameSuffix '-beta'
     }
 
     buildTypes {
@@ -46,7 +45,7 @@ android {
 dependencies {
     implementation 'pl.droidsonroids.gif:android-gif-drawable:1.2.24'
     implementation 'com.github.GwonHyeok:StickySwitch:0.0.16'
-    implementation 'androidx.appcompat:appcompat:1.4.2'
+    implementation 'androidx.appcompat:appcompat:1.5.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.recyclerview:recyclerview:1.2.1'
     implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.5.1'
@@ -57,7 +56,7 @@ dependencies {
     implementation 'com.google.android.gms:play-services-location:20.0.0'
     implementation 'com.google.android.gms:play-services-games-v2:17.0.0'
     implementation 'com.google.firebase:firebase-database:20.0.5'
-    implementation 'com.google.firebase:firebase-firestore:24.2.1'
+    implementation 'com.google.firebase:firebase-firestore:24.2.2'
     implementation platform('com.google.firebase:firebase-bom:30.3.1')
     implementation 'com.google.firebase:firebase-auth'
     implementation 'com.google.android.gms:play-services-auth:20.2.0'
@@ -67,5 +66,4 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
 }
-//
-//    implementation 'de.hdodenhof:circleimageview:3.1.0'
+

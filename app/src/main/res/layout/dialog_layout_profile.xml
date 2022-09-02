@@ -75,6 +75,7 @@
             android:fontFamily="@font/sortie"
             android:text="Noob"
             android:hint="Name"
+            android:maxLength="8"
             android:padding="10dp"
             android:textColor="@color/white"
             android:textColorHint="@color/whiteY"

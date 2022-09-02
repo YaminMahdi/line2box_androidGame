@@ -1,33 +1,29 @@
 package com.diu.yk_games.line2box;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.constraintlayout.helper.widget.Carousel;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.media.MediaPlayer;
+import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Bundle;
+
 import android.os.Handler;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.games.GamesSignInClient;
 import com.google.android.gms.games.PlayGames;
 import com.google.android.gms.games.PlayGamesSdk;
@@ -35,7 +31,6 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
-import com.google.android.material.card.MaterialCardView;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
@@ -48,25 +43,40 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
+
+import java.util.ArrayList;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import kotlin.reflect.KVisibility;
 import pl.droidsonroids.gif.GifImageView;
 
 public class StartActivity extends AppCompatActivity
 {
     private static final String TAG = "TAG: StartActivity";
-    RadioGroup vsRadioGrp;
     public static boolean scrBrdVisible =false, isFirstRun;
     SharedPreferences preferences;
     SharedPreferences.Editor preferencesEditor;
     String onlineVersionName=null;
-    private FirebaseAuth mAuth;
+    FirebaseAuth mAuth;
     Context context;
     public static String playerId;
     ImageView mode1, mode2, mode3;
+    LoadingUI loadingUI;
+    String onlineStatus;
+    private static boolean showHadith = true;
 // ...
 // Initialize Firebase Auth
 
 
+//    @Override
+//    protected void onStart()
+//    {
+//        super.onStart();
+//
+//    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -76,14 +86,11 @@ public class StartActivity extends AppCompatActivity
         PlayGamesSdk.initialize(this);
         context=this;
         setContentView(R.layout.activity_start);
-        int[] colors = {
-                Color.parseColor("#ffd54f"),
-                Color.parseColor("#ffca28"),
-                Color.parseColor("#ffc107")
-        };
         mode1=findViewById(R.id.mode1);
         mode2=findViewById(R.id.mode2);
         mode3=findViewById(R.id.mode3);
+        loadingUI= new LoadingUI();
+        loadingUI.start();
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         preferences = this.getSharedPreferences(
                 getString(R.string.preference_file_key), Context.MODE_PRIVATE);
@@ -91,11 +98,21 @@ public class StartActivity extends AppCompatActivity
         preferencesEditor = preferences.edit();
         GameProfile.setPreferences(preferences);
         isFirstRun= preferences.getBoolean("firstRun", true);
-        if(isFirstRun)
-            loadingUI();
-        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_GAMES_SIGN_IN)
-                .requestServerAuthCode(getString(R.string.default_web_client_id))
-                .build();
+        //if(isFirstRun)
+
+//        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_GAMES_SIGN_IN)
+//                .requestServerAuthCode(getString(R.string.default_web_client_id))
+//                .build();
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        findViewById(R.id.globalScoreFrag).setVisibility(View.GONE);
+
+        if(showHadith&&!isFirstRun)
+        {
+            showAHadith();
+            showHadith=false;
+        }
+
+
         final FirebaseAuth auth = FirebaseAuth.getInstance();
         GamesSignInClient gamesSignInClient = PlayGames.getGamesSignInClient(this);
         gamesSignInClient.isAuthenticated().addOnCompleteListener(isAuthenticatedTask ->
@@ -105,18 +122,28 @@ public class StartActivity extends AppCompatActivity
             gamesSignInClient.requestServerSideAccess(getString(R.string.default_web_client_id),
                             /*forceRefreshToken=*/ false)
                     .addOnCompleteListener( task -> {
-                        if (task.isSuccessful()) {
+                        if (task.isSuccessful())
+                        {
+                            isUpdateAvailable();
+
                             String serverAuthToken = task.getResult();
-                            Toast.makeText(this, "serverAuthToken- "+serverAuthToken, Toast.LENGTH_SHORT).show();
+                            //Toast.makeText(this, "serverAuthToken- "+serverAuthToken, Toast.LENGTH_SHORT).show();
                             AuthCredential credential = PlayGamesAuthProvider.getCredential(serverAuthToken);
                             //AuthCredential credential = PlayGamesAuthProvider.getCredential(PlayGamesAuthProvider.PLAY_GAMES_SIGN_IN_METHOD);
                             auth.signInWithCredential(credential)
                                     .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                                         @Override
                                         public void onComplete(@NonNull Task<AuthResult> task) {
-                                            if (task.isSuccessful()) {
+                                            if (task.isSuccessful())
+                                            {
                                                 // Sign in success, update UI with the signed-in user's information
-                                                Log.d(TAG, "signInWithCredential: success");
+
+                                                //Log.d(TAG, "signInWithCredential: success");
+                                                if(showHadith&&isFirstRun)
+                                                {
+                                                    showAHadith();
+                                                    showHadith=false;
+                                                }
                                                 FirebaseUser user = auth.getCurrentUser();
                                                 if (isAuthenticated)
                                                 {
@@ -124,7 +151,7 @@ public class StartActivity extends AppCompatActivity
                                                             {
                                                                 GameProfile gameProfile=new GameProfile();
                                                                 playerId= mTask.getResult().getPlayerId();
-                                                                Toast.makeText(StartActivity.this, "id: "+mTask.getResult().getPlayerId() , Toast.LENGTH_SHORT).show();
+                                                                //Toast.makeText(StartActivity.this, "id: "+mTask.getResult().getPlayerId() , Toast.LENGTH_SHORT).show();
                                                                 if(preferences.getBoolean("needProfile",true))
                                                                 {
                                                                     db.collection("gamerProfile").document(playerId)
@@ -137,12 +164,17 @@ public class StartActivity extends AppCompatActivity
                                                                                             preferencesEditor.putBoolean("needProfile", false).apply();
                                                                                             preferencesEditor.putBoolean("firstRun", false).apply();
                                                                                             loadProfileFromServer(db);
-                                                                                            Log.d(TAG, "Profile exists!");
-                                                                                            Toast.makeText(StartActivity.this, "Profile exists!", Toast.LENGTH_SHORT).show();
+                                                                                            if(loadingUI.visibility)
+                                                                                            {
+                                                                                                onlineStatus="pass";
+                                                                                                loadingUI.stop();
+                                                                                            }
+                                                                                            //Log.d(TAG, "Profile exists!");
+                                                                                            Toast.makeText(StartActivity.this, "Profile Exists and Loaded!", Toast.LENGTH_SHORT).show();
                                                                                         } else {
-                                                                                            Log.d(TAG, "Profile does not exist!");
-                                                                                            Toast.makeText(StartActivity.this, "Profile does not exist!", Toast.LENGTH_SHORT).show();
-
+                                                                                            //Log.d(TAG, "Profile does not exist!");
+                                                                                            //Toast.makeText(StartActivity.this, "Profile does not exist!", Toast.LENGTH_SHORT).show();
+                                                                                            gameProfile.playerId=playerId;
                                                                                             db.collection("gamerProfile").document(mTask.getResult().getPlayerId())
                                                                                                     .set(gameProfile)
                                                                                                     .addOnSuccessListener(new OnSuccessListener<Void>() {
@@ -150,20 +182,35 @@ public class StartActivity extends AppCompatActivity
                                                                                                         public void onSuccess(Void unused) {
                                                                                                             preferencesEditor.putBoolean("needProfile", false).apply();
                                                                                                             gameProfile.apply();
-                                                                                                            Log.i(TAG, "onSuccess: Profile Created");
-                                                                                                            Toast.makeText(StartActivity.this, "onSuccess: Profile Created", Toast.LENGTH_SHORT).show();
+                                                                                                            if(loadingUI.visibility)
+                                                                                                            {
+                                                                                                                onlineStatus="pass";
+                                                                                                                loadingUI.stop();
+                                                                                                            }
+                                                                                                            //Log.d(TAG, "onSuccess: Profile Created");
+                                                                                                            //Toast.makeText(StartActivity.this, "onSuccess: Profile Created", Toast.LENGTH_SHORT).show();
                                                                                                         }
                                                                                                     }).addOnFailureListener(new OnFailureListener() {
                                                                                                         @Override
                                                                                                         public void onFailure(@NonNull Exception e) {
-                                                                                                            Log.i("TAG", "onSuccess: Profile Creation Failed");
-                                                                                                            Toast.makeText(StartActivity.this, "onSuccess: Profile Creation Failed", Toast.LENGTH_SHORT).show();
+                                                                                                            //Log.d("TAG", "onSuccess: Profile Creation Failed");
+                                                                                                            //Toast.makeText(StartActivity.this, "onSuccess: Profile Creation Failed", Toast.LENGTH_SHORT).show();
+                                                                                                            if(loadingUI.visibility)
+                                                                                                            {
+                                                                                                                onlineStatus="needReload";
+                                                                                                                loadingUI.stop();
+                                                                                                            }
 
                                                                                                         }
                                                                                                     });
                                                                                         }
                                                                                     } else {
-                                                                                        Log.d(TAG, "Failed with: ", task.getException());
+                                                                                        //Log.d(TAG, "Failed with: ", task.getException());
+                                                                                        if(loadingUI.visibility)
+                                                                                        {
+                                                                                            onlineStatus="needReload";
+                                                                                            loadingUI.stop();
+                                                                                        }
                                                                                     }
                                                                                 }
                                                                             });
@@ -171,6 +218,11 @@ public class StartActivity extends AppCompatActivity
                                                                 else
                                                                 {
                                                                     loadProfileFromServer(db);
+                                                                    if(loadingUI.visibility)
+                                                                    {
+                                                                        onlineStatus="pass";
+                                                                        loadingUI.stop();
+                                                                    }
                                                                 }
                                                             }
 
@@ -181,20 +233,29 @@ public class StartActivity extends AppCompatActivity
                                                 }
                                                 else
                                                 {
-                                                    Toast.makeText(StartActivity.this, "Failed", Toast.LENGTH_SHORT).show();
+                                                    //Toast.makeText(StartActivity.this, "Failed", Toast.LENGTH_SHORT).show();
 
                                                     // Disable your integration with Play Games Services or show a
                                                     // login button to ask  players to sign-in. Clicking it should
                                                     // call GamesSignInClient.signIn();
                                                     updateUI(null);
+                                                    if(loadingUI.visibility)
+                                                    {
+                                                        onlineStatus="needReload";
+                                                        loadingUI.stop();
+                                                    }
                                                 }
                                                 updateUI(user);
                                             } else {
                                                 // If sign in fails, display a message to the user.
-                                                Log.w(TAG, "signInWithCredential: failure", task.getException());
-                                                Toast.makeText(StartActivity.this, "Authentication failed.",
-                                                        Toast.LENGTH_SHORT).show();
+                                                //Log.d(TAG, "signInWithCredential: failure", task.getException());
+                                                //Toast.makeText(StartActivity.this, "Authentication failed.",Toast.LENGTH_SHORT).show();
                                                 updateUI(null);
+                                                if(loadingUI.visibility)
+                                                {
+                                                    onlineStatus="needReload";
+                                                    loadingUI.stop();
+                                                }
                                             }
 
                                             // ...
@@ -202,21 +263,31 @@ public class StartActivity extends AppCompatActivity
                                     });
                         } else {
                             // Failed to retrieve authentication code.
-                            Log.w(TAG, "signInWithCredential:failure", task.getException());
-                            Toast.makeText(StartActivity.this, "No Internet.",
-                                    Toast.LENGTH_SHORT).show();
+                            //Log.d(TAG, "signInWithCredential:failure", task.getException());
+                            //Toast.makeText(StartActivity.this, "No Internet.",Toast.LENGTH_SHORT).show();
+                            if (isAuthenticated)
+                            {
+                                PlayGames.getPlayersClient(StartActivity.this).getCurrentPlayer().addOnCompleteListener(mTask ->
+                                {
+                                    GameProfile gameProfile = new GameProfile();
+                                    playerId = mTask.getResult().getPlayerId();
+                                });
+                            }
                             updateUI(null);
+                            if(loadingUI.visibility)
+                            {
+                                onlineStatus="needReload";
+                                loadingUI.stop();
+                            }
                         }
                     });
 
         });
 
+
         //gamesSignInClient.signIn();
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        findViewById(R.id.globalScoreFrag).setVisibility(View.GONE);
         //vsRadioGrp=findViewById(R.id.vsRadioGrp);
         ifMuted();
-        isUpdateAvailable();
 
     }
     public void loadProfileFromServer(FirebaseFirestore db)
@@ -231,73 +302,229 @@ public class StartActivity extends AppCompatActivity
                     }
                 });
     }
-    public void loadingUI()
-    {
-        AlertDialog.Builder builder = new AlertDialog.Builder(StartActivity.this);
-        View view = LayoutInflater.from(StartActivity.this).inflate(
-                R.layout.dialog_layout_loading, findViewById(R.id.updateLayoutLoadingUI));
-        builder.setView(view);
-        builder.setCancelable(false);
-        final AlertDialog alertDialog = builder.create();
-        Handler handler = new Handler();
-        handler.postDelayed(alertDialog::dismiss, 4500);
-        if (alertDialog.getWindow() != null)
-            alertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(0));
-        alertDialog.show();
+    private boolean isNetworkConnected() {
+        ConnectivityManager cm = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
+        return cm.getActiveNetworkInfo() != null;
     }
+    public boolean internetIsConnected() {
+        try {
+            String command = "ping -c 1 google.com";
+            return (Runtime.getRuntime().exec(command).waitFor() == 0);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+    class LoadingUI
+    {
+        public AlertDialog.Builder builder = new AlertDialog.Builder(StartActivity.this);
+        public View view = LayoutInflater.from(StartActivity.this).inflate(
+                R.layout.dialog_layout_loading, findViewById(R.id.updateLayoutLoadingUI));
+        public AlertDialog alertDialog;
+        public boolean visibility=false;
+
+        public LoadingUI() {}
+
+        public void start()
+        {
+            builder.setView(view);
+            builder.setCancelable(false);
+            alertDialog = builder.create();
+
+            if (alertDialog.getWindow() != null)
+                alertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(0));
+            try {alertDialog.show();visibility=true;}
+                catch (Exception ex) {ex.printStackTrace();}
+            Handler handler = new Handler();
+            handler.postDelayed(() ->
+            {
+                if(visibility)
+                {
+                    onlineStatus="needReload";
+                    stop();
+                    updateUI(null);
+                }
+            }, 15000);
+
+
+        }
+        public void stop()
+        {
+            alertDialog.dismiss();
+            visibility=false;
+        }
+    }
+    @SuppressLint("SetTextI18n")
     public void updateUI(FirebaseUser currentUser)
     {
         if(currentUser==null)
         {
+            AlertDialog.Builder builder = new AlertDialog.Builder(StartActivity.this);
+            View view = LayoutInflater.from(StartActivity.this).inflate(
+                    R.layout.dialog_layout_updateui, findViewById(R.id.updateLayoutDialogUI)
+            );
+            builder.setView(view);
+            builder.setCancelable(false);
+            final AlertDialog alertDialog = builder.create();
             if(isFirstRun)
             {
-                AlertDialog.Builder builder = new AlertDialog.Builder(StartActivity.this);
-                View view = LayoutInflater.from(StartActivity.this).inflate(
-                        R.layout.dialog_layout_updateui, findViewById(R.id.updateLayoutDialogUI)
-                );
-                builder.setView(view);
-                builder.setCancelable(false);
-                final AlertDialog alertDialog = builder.create();
                 view.findViewById(R.id.buttonUpdate).setOnClickListener(view1 ->
                 {
-                    if(!isMuted())
-                        MediaPlayer.create(context, R.raw.btn_click_ef).start();
+                    if (!isMuted())
+                    {
+                        MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef);
+                        mediaPlayer.start();
+                        mediaPlayer.setOnCompletionListener(MediaPlayer::release);
+                    }
                     recreate();
                     alertDialog.dismiss();
                 });
-                if (alertDialog.getWindow() != null) {
-                    alertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(0));
-                }
-                alertDialog.show();
             }
             else
             {
-                findViewById(R.id.scrBrdBtn).setEnabled(false);
-                AlertDialog.Builder builder = new AlertDialog.Builder(StartActivity.this);
-                View view = LayoutInflater.from(StartActivity.this).inflate(
-                        R.layout.dialog_layout_updateui, findViewById(R.id.updateLayoutDialogUI)
-                );
-                builder.setView(view);
-                builder.setCancelable(false);
-                final AlertDialog alertDialog = builder.create();
+                //findViewById(R.id.scrBrdBtn).setEnabled(false);
                 ((TextView)view.findViewById(R.id.UpdateInfo)).setText("Some functionalities are disabled.");
-                ((TextView)view.findViewById(R.id.buttonUpdate)).setText("Continue");
+                ((Button)view.findViewById(R.id.buttonUpdate)).setText("Continue");
                 view.findViewById(R.id.buttonUpdate).setOnClickListener(view1 ->
                 {
-                    if(!isMuted())
-                        MediaPlayer.create(context, R.raw.btn_click_ef).start();
+                    if (!isMuted())
+                    {
+                        MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef);
+                        mediaPlayer.start();
+                        mediaPlayer.setOnCompletionListener(MediaPlayer::release);
+                    }
                     alertDialog.dismiss();
                 });
-                if (alertDialog.getWindow() != null) {
-                    alertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(0));
-                }
-                alertDialog.show();
             }
-
+            if (alertDialog.getWindow() != null) {
+                alertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(0));
+            }
+            try {alertDialog.show();}
+                catch (Exception ex) {ex.printStackTrace();}
         }
     }
 
+    public void showAHadith()
+    {
+        ArrayList<HadithStore> hadithList = new ArrayList<>();
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("dailyHadith")
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @SuppressLint("SetTextI18n")
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful())
+                        {
+                            for (QueryDocumentSnapshot document : task.getResult())
+                            {
+                                HadithStore h=document.toObject(HadithStore.class);
+                                hadithList.add(h);
+                            }
+                            if(hadithList.size()>0)
+                            {
+                                int index= new Random().nextInt(hadithList.size());
+                                AlertDialog.Builder builder = new AlertDialog.Builder(StartActivity.this);
+                                View view = LayoutInflater.from(StartActivity.this).inflate(
+                                        R.layout.dialog_layout_show_hadith, findViewById(R.id.hadithLayoutDialog)
+                                );
+                                builder.setView(view);
+                                builder.setCancelable(false);
+                                Button langBtn=view.findViewById(R.id.langBtn);
+                                TextView narratorInfo= view.findViewById(R.id.narratorInfo);
+                                TextView hadithTxt= view.findViewById(R.id.hadithTxt);
+                                TextView headTxt= view.findViewById(R.id.warningMessage);
+                                if(hadithList.get(index).t.equals("h"))
+                                    headTxt.setText("Read a Hadith");
+                                else if(hadithList.get(index).t.equals("q"))
+                                    headTxt.setText("Read a Āyah");
 
+                                if(preferences.getString("lang","bn").equals("bn"))
+                                {
+                                    narratorInfo.setText(hadithList.get(index).b);
+                                    hadithTxt.setText(hadithList.get(index).bn);
+                                    narratorInfo.setTypeface(getResources().getFont(R.font.paapri));
+                                    hadithTxt.setTypeface(getResources().getFont(R.font.paapri));
+                                    hadithTxt.setLineSpacing(0,1);
+                                    langBtn.setText("EN");
+                                }
+                                else
+                                {
+                                    narratorInfo.setText(hadithList.get(index).e);
+                                    hadithTxt.setText(hadithList.get(index).en);
+                                    narratorInfo.setTypeface(getResources().getFont(R.font.comfortaa));
+                                    hadithTxt.setTypeface(getResources().getFont(R.font.comfortaa));
+                                    hadithTxt.setLineSpacing(7,1);
+
+                                    langBtn.setText("BN");
+                                }
+                                ((TextView) view.findViewById(R.id.hadithInfo)).setText(hadithList.get(index).ref);
+
+                                final AlertDialog alertDialog = builder.create();
+                                langBtn.setOnClickListener(v ->
+                                {
+                                    if (!isMuted())
+                                    {
+                                        MediaPlayer mediaPlayer = MediaPlayer.create(StartActivity.this, R.raw.btn_click_ef);
+                                        mediaPlayer.start();
+                                        mediaPlayer.setOnCompletionListener(MediaPlayer::release);
+                                    }
+                                    if(langBtn.getText().equals("EN"))
+                                    {
+                                        narratorInfo.setText(hadithList.get(index).e);
+                                        hadithTxt.setText(hadithList.get(index).en);
+                                        narratorInfo.setTypeface(getResources().getFont(R.font.comfortaa));
+                                        hadithTxt.setTypeface(getResources().getFont(R.font.comfortaa));
+                                        hadithTxt.setLineSpacing(7,1);
+                                        preferencesEditor.putString("lang","en").apply();
+                                        langBtn.setText("BN");
+                                    }
+                                    else
+                                    {
+                                        narratorInfo.setText(hadithList.get(index).b);
+                                        hadithTxt.setText(hadithList.get(index).bn);
+                                        narratorInfo.setTypeface(getResources().getFont(R.font.paapri));
+                                        hadithTxt.setTypeface(getResources().getFont(R.font.paapri));
+                                        hadithTxt.setLineSpacing(0,1);
+                                        preferencesEditor.putString("lang","bn").apply();
+                                        langBtn.setText("EN");
+                                    }
+                                });
+                                view.findViewById(R.id.buttonDone).setOnClickListener(v ->
+                                {
+                                    if (!isMuted())
+                                    {
+                                        MediaPlayer mediaPlayer = MediaPlayer.create(StartActivity.this, R.raw.btn_click_ef);
+                                        mediaPlayer.start();
+                                        mediaPlayer.setOnCompletionListener(MediaPlayer::release);
+                                    }
+                                    alertDialog.dismiss();
+                                });
+                                view.findViewById(R.id.srcLink).setOnClickListener(v ->
+                                {
+                                    ((TextView)view.findViewById(R.id.srcLink)).setTextColor(getColor(R.color.teal_700));
+                                    if (!isMuted())
+                                    {
+                                        MediaPlayer mediaPlayer = MediaPlayer.create(StartActivity.this, R.raw.btn_click_ef);
+                                        mediaPlayer.start();
+                                        mediaPlayer.setOnCompletionListener(MediaPlayer::release);
+                                    }
+                                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(hadithList.get(index).src)));
+                                });
+
+
+                                if (alertDialog.getWindow() != null) {
+                                    alertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(0));
+                                }
+                                try {alertDialog.show();}
+                                catch (Exception ex) {ex.printStackTrace();}
+                            }
+                        }
+                        else {
+                            //Log.d(TAG, "Error getting documents: ", task.getException());
+                        }
+                    }
+                });
+    }
     public void isUpdateAvailable()
     {
         Context context=this;
@@ -314,7 +541,7 @@ public class StartActivity extends AppCompatActivity
                 onlineVersionName = dataSnapshot.getValue(String.class);
                 if(!localVersionName.equals(onlineVersionName))
                 {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(StartActivity.this);
+                    AlertDialog.Builder builder = new AlertDialog.Builder(context);
                     View view = LayoutInflater.from(StartActivity.this).inflate(
                             R.layout.dialog_layout_update, findViewById(R.id.updateLayoutDialog)
                     );
@@ -323,8 +550,12 @@ public class StartActivity extends AppCompatActivity
                     final AlertDialog alertDialog = builder.create();
                     view.findViewById(R.id.buttonUpdate).setOnClickListener(view1 ->
                     {
-                        if(!isMuted())
-                            MediaPlayer.create(context, R.raw.btn_click_ef).start();
+                        if (!isMuted())
+                        {
+                            MediaPlayer mediaPlayer = MediaPlayer.create(StartActivity.this, R.raw.btn_click_ef);
+                            mediaPlayer.start();
+                            mediaPlayer.setOnCompletionListener(MediaPlayer::release);
+                        }
                         final String appPackageName = getPackageName(); // getPackageName() from Context or Activity object
 //                        try {
 //                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + appPackageName)));
@@ -336,15 +567,16 @@ public class StartActivity extends AppCompatActivity
                     if (alertDialog.getWindow() != null) {
                         alertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(0));
                     }
-                    alertDialog.show();
+                    try {alertDialog.show();}
+                catch (Exception ex) {ex.printStackTrace();}
                 }
-                //Log.d(TAG, "Last Value is: " + bestScore);
+                ////Log.d(TAG, "Last Value is: " + bestScore);
 
             }
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 // Failed to read value
-                Log.w("TAG", "Failed to read value.", error.toException());
+                //Log.d("TAG", "Failed to read value.", error.toException());
             }
         });
 
@@ -367,19 +599,6 @@ public class StartActivity extends AppCompatActivity
         }
 
     }
-    public static boolean isFirstRunxx(Activity acc,SharedPreferences sharedPreferences)
-    {
-        SharedPreferences.Editor preferencesEditor = sharedPreferences.edit();
-        String forWhat="FirstRun";
-        if (sharedPreferences.getBoolean(forWhat, true))
-        {
-            preferencesEditor.putBoolean(forWhat, false).apply();
-            return true;
-        } else
-            return false;
-    }
-
-
 
     @SuppressLint("SetTextI18n")
     @Override
@@ -404,7 +623,11 @@ public class StartActivity extends AppCompatActivity
             view.findViewById(R.id.buttonYes).setOnClickListener(view1 ->
             {
                 if(!isMuted())
-                    MediaPlayer.create(this, R.raw.btn_click_ef).start();
+                {
+                    MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef);
+                    mediaPlayer.start();
+                    mediaPlayer.setOnCompletionListener(MediaPlayer::release);
+                }
                 alertDialog.dismiss();
                 super.onBackPressed();
                 //android.os.Process.killProcess(android.os.Process.myPid());
@@ -412,13 +635,18 @@ public class StartActivity extends AppCompatActivity
             view.findViewById(R.id.buttonNo).setOnClickListener(view2 ->
             {
                 if(!isMuted())
-                    MediaPlayer.create(this, R.raw.btn_click_ef).start();
+                {
+                    MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef);
+                    mediaPlayer.start();
+                    mediaPlayer.setOnCompletionListener(MediaPlayer::release);
+                }
                 alertDialog.dismiss();
             });
             if (alertDialog.getWindow() != null) {
                 alertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(0));
             }
-            alertDialog.show();
+            try {alertDialog.show();}
+                catch (Exception ex) {ex.printStackTrace();}
         }
     }
 
@@ -426,7 +654,11 @@ public class StartActivity extends AppCompatActivity
     {
 
         if(!isMuted())
-            MediaPlayer.create(this, R.raw.btn_click_ef).start();
+            {
+                MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef);
+                mediaPlayer.start();
+                mediaPlayer.setOnCompletionListener(MediaPlayer::release);
+            }
         scrBrdVisible =true;
         FragmentManager fm=getSupportFragmentManager();
         FragmentTransaction ft=fm.beginTransaction();
@@ -434,6 +666,7 @@ public class StartActivity extends AppCompatActivity
         ft.commit();
         findViewById(R.id.linearLayoutStart1).setVisibility(View.GONE);
         findViewById(R.id.linearLayoutStart2).setVisibility(View.GONE);
+        findViewById(R.id.motionLayout).setVisibility(View.GONE);
         findViewById(R.id.globalScoreFrag).setVisibility(View.VISIBLE);
 
     }
@@ -441,7 +674,11 @@ public class StartActivity extends AppCompatActivity
     public void goBack(View view)
     {
         if(!isMuted())
-            MediaPlayer.create(this, R.raw.btn_click_ef).start();
+            {
+                MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef);
+                mediaPlayer.start();
+                mediaPlayer.setOnCompletionListener(MediaPlayer::release);
+            }
         onGoBack();
     }
 
@@ -454,6 +691,7 @@ public class StartActivity extends AppCompatActivity
         ft.commit();
         findViewById(R.id.linearLayoutStart1).setVisibility(View.VISIBLE);
         findViewById(R.id.linearLayoutStart2).setVisibility(View.VISIBLE);
+        findViewById(R.id.motionLayout).setVisibility(View.VISIBLE);
         findViewById(R.id.globalScoreFrag).setVisibility(View.GONE);
     }
 
@@ -467,7 +705,11 @@ public class StartActivity extends AppCompatActivity
         }
         else
         {
-            MediaPlayer.create(this, R.raw.btn_click_ef).start();
+            {
+                MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef);
+                mediaPlayer.start();
+                mediaPlayer.setOnCompletionListener(MediaPlayer::release);
+            }
             findViewById(R.id.volBtn).setBackgroundResource(R.drawable.btn_ylw_bg);
             ((ImageButton)findViewById(R.id.volBtn)).setImageResource(R.drawable.icon_vol_unmute);
             preferencesEditor.putBoolean("muted", false).apply();
@@ -476,7 +718,11 @@ public class StartActivity extends AppCompatActivity
 
     public void ideaBtn(View view) {
         if(!isMuted())
-            MediaPlayer.create(this, R.raw.btn_click_ef).start();
+            {
+                MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef);
+                mediaPlayer.start();
+                mediaPlayer.setOnCompletionListener(MediaPlayer::release);
+            }
         infoShow();
 
     }
@@ -508,7 +754,11 @@ public class StartActivity extends AppCompatActivity
         view.findViewById(R.id.buttonPre).setOnClickListener(view1 ->
         {
             if(!isMuted())
-                MediaPlayer.create(this, R.raw.btn_click_ef).start();
+            {
+                MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef);
+                mediaPlayer.start();
+                mediaPlayer.setOnCompletionListener(MediaPlayer::release);
+            }
             if(i.get()!=0)
                 i.getAndDecrement();
             if(i.get()==0)
@@ -520,7 +770,11 @@ public class StartActivity extends AppCompatActivity
         view.findViewById(R.id.buttonNext).setOnClickListener(view2 ->
         {
             if(!isMuted())
-                MediaPlayer.create(this, R.raw.btn_click_ef).start();
+            {
+                MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef);
+                mediaPlayer.start();
+                mediaPlayer.setOnCompletionListener(MediaPlayer::release);
+            }
             i.getAndIncrement();
             if(!isFirstRun&&i.get()==4)
                 i.getAndIncrement();
@@ -537,18 +791,52 @@ public class StartActivity extends AppCompatActivity
         if (alertDialog.getWindow() != null) {
             alertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(0));
         }
-        alertDialog.show();
+        try {alertDialog.show();}
+                catch (Exception ex) {ex.printStackTrace();}
     }
 
     public void startBtn(View view)
     {
         if(!isMuted())
-            MediaPlayer.create(this, R.raw.btn_click_ef).start();
+            {
+                MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef);
+                mediaPlayer.start();
+                mediaPlayer.setOnCompletionListener(MediaPlayer::release);
+            }
         if(mode1.getVisibility()==View.INVISIBLE)
         {
-            Toast.makeText(this, "Multiplayer Beta", Toast.LENGTH_SHORT).show();
-            startActivity(new Intent(this, MultiplayerActivity.class).putExtra("playerId",playerId));
-            finish();
+            if(onlineStatus.equals("pass"))
+            {
+                startActivity(new Intent(this, MultiplayerActivity.class).putExtra("playerId",playerId));
+                finish();
+            }
+            else if(onlineStatus.equals("needReload"))
+            {
+                //updateUI();
+                AlertDialog.Builder builder = new AlertDialog.Builder(StartActivity.this);
+                View v = LayoutInflater.from(StartActivity.this).inflate(
+                        R.layout.dialog_layout_updateui, findViewById(R.id.updateLayoutDialogUI)
+                );
+                builder.setView(v);
+                builder.setCancelable(false);
+                ((TextView)v.findViewById(R.id.UpdateInfo)).setText("You must have INTERNET connection to play in ONLINE mode");
+                final AlertDialog alertDialog = builder.create();
+                v.findViewById(R.id.buttonUpdate).setOnClickListener(view1 ->
+                {
+                    if (!isMuted())
+                    {
+                        MediaPlayer mediaPlayer = MediaPlayer.create(StartActivity.this, R.raw.btn_click_ef);
+                        mediaPlayer.start();
+                        mediaPlayer.setOnCompletionListener(MediaPlayer::release);
+                    }
+                    recreate();
+                    alertDialog.dismiss();
+                });
+                if (alertDialog.getWindow() != null) {
+                    alertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(0));}
+                try {alertDialog.show();}
+                catch (Exception ex) {ex.printStackTrace();}
+            }
         }
         else if (mode3.getVisibility()==View.INVISIBLE)
         {
@@ -557,7 +845,8 @@ public class StartActivity extends AppCompatActivity
         }
         else
         {
-            Toast.makeText(this, "One day AI will come", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(this,GameActivity3.class));
+            finish();
         }
 
     }

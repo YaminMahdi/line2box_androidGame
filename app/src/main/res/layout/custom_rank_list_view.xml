@@ -75,6 +75,7 @@
                 android:layout_gravity="start"
                 android:fontFamily="@font/sortie"
                 android:text="1"
+                android:layout_marginTop="2sp"
                 android:textColor="#27E811"
                 android:textSize="18sp"
                 app:layout_constraintBottom_toBottomOf="@+id/textView4"

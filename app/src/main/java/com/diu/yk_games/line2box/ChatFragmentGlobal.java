@@ -2,11 +2,11 @@ package com.diu.yk_games.line2box;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,7 +30,6 @@ import java.util.ArrayList;
  */
 public class ChatFragmentGlobal extends Fragment {
 
-    private final String TAG="chat_frag";
     ArrayList<MsgStore> msList;
     FirebaseDatabase database = FirebaseDatabase.getInstance();
     DatabaseReference myRef = database.getReference("globalChat");
@@ -59,15 +58,11 @@ public class ChatFragmentGlobal extends Fragment {
 //        return fragment;
 //    }
 
-//    @Override
-//    public void onCreate(Bundle savedInstanceState) {
-//        super.onCreate(savedInstanceState);
-//        if (getArguments() != null) {
-//            mParam1 = getArguments().getString(ARG_PARAM1);
-//            mParam2 = getArguments().getString(ARG_PARAM2);
-//        }
-//
-//    }
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -88,29 +83,35 @@ public class ChatFragmentGlobal extends Fragment {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, String s)
             {
-                MsgStore ms = dataSnapshot.getValue(MsgStore.class);
-                assert ms != null;
-                msList.add(ms);
-                if(getActivity()!=null)
+                if(dataSnapshot.exists())
                 {
-                    MsgListAdapter adapter=new MsgListAdapter(getActivity(),msList);  //
-                    ListView list = v.findViewById(R.id.showMsgList);
-                    list.setAdapter(adapter);
+                    MsgStore ms = dataSnapshot.getValue(MsgStore.class);
+                    assert ms != null;
+                    msList.add(ms);
+                    try
+                    {
+                        MsgListAdapter adapter=new MsgListAdapter(getActivity(),msList);  //
+                        ListView list = v.findViewById(R.id.showMsgList);
+                        list.setAdapter(adapter);
+                    }
+                    catch (NullPointerException npe) {npe.printStackTrace();}
                 }
             }
             @Override public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {}
             @Override public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {}
             @Override public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {}
-            @Override public void onCancelled(@NonNull DatabaseError databaseError) {
-                Log.w(TAG, "Failed to read value.", databaseError.toException());}
+            @Override public void onCancelled(@NonNull DatabaseError databaseError) {}
         });
         ImageButton sendMsg=v.findViewById(R.id.msgSendBtn);
         sendMsg.setOnClickListener(v1->
         {
+            MediaPlayer mp = MediaPlayer.create(requireContext(), R.raw.pop);
+            mp.start();
+            mp.setOnCompletionListener(MediaPlayer::release);
             GameProfile gp=new GameProfile();
             MsgStore ms =new MsgStore();
             ms.nmData= gp.nm;
-            ms.lvlData= gp.lvl.toString();
+            ms.lvlData= gp.getLvlByCal().toString();
             DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd MMM, hh:mm a");
             LocalDateTime now = LocalDateTime.now();
             ms.timeData = dtf.format(now);

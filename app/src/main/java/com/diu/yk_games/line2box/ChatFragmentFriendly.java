@@ -13,7 +13,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 
 import android.os.Handler;
-import android.util.Log;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,13 +31,12 @@ import com.google.firebase.database.ValueEventListener;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Objects;
+
 
 import pl.droidsonroids.gif.GifImageView;
 
 
 public class ChatFragmentFriendly extends Fragment {
-    private final String TAG="chat_frag_Friendly";
     ArrayList<MsgStore> msList;
     FirebaseDatabase database = FirebaseDatabase.getInstance();
     DatabaseReference myRef;
@@ -87,7 +86,8 @@ public class ChatFragmentFriendly extends Fragment {
         GameProfile.setPreferences(sharedPref);
 
         msList = new ArrayList<>();
-        MediaPlayer mp=MediaPlayer.create(context, R.raw.pop);
+
+        MediaPlayer mp = MediaPlayer.create(context, R.raw.pop);
         DrawerLayout mDrawerLayout = activity.findViewById(R.id.drawer_layout);
 
         myRef.addChildEventListener(new ChildEventListener()
@@ -95,29 +95,36 @@ public class ChatFragmentFriendly extends Fragment {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, String s)
             {
-                MsgStore ms = dataSnapshot.getValue(MsgStore.class);
-                assert ms != null;
-                msList.add(ms);
-                lastMsg=ms.msgData;
-                if(getActivity()!=null)
+                if(dataSnapshot.exists())
                 {
-                    MsgListAdapter adapter=new MsgListAdapter(getActivity(),msList);  //
-                    ListView list = v.findViewById(R.id.showMsgList);
-                    list.setAdapter(adapter);
-                    getActivity().findViewById(R.id.newMsgBoltu).setVisibility(View.VISIBLE);
+                    MsgStore ms = dataSnapshot.getValue(MsgStore.class);
+                    assert ms != null;
+                    msList.add(ms);
+                    lastMsg=ms.msgData;
+                    if(getActivity()!=null)
+                    {
+                        try{
+                            MsgListAdapter adapter=new MsgListAdapter(getActivity(),msList);  //
+                            ListView list = v.findViewById(R.id.showMsgList);
+                            list.setAdapter(adapter);
+                            getActivity().findViewById(R.id.newMsgBoltu).setVisibility(View.VISIBLE);
+                        }
+                        catch (NullPointerException npe) {npe.printStackTrace();}
 
+
+                    }
                 }
+
             }
             @Override public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {}
             @Override public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {}
             @Override public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {}
-            @Override public void onCancelled(@NonNull DatabaseError databaseError) {
-                Log.w(TAG, "Failed to read value.", databaseError.toException());}
+            @Override public void onCancelled(@NonNull DatabaseError databaseError) {}
         });
         myRef.addValueEventListener(new ValueEventListener(){
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if(!sharedPref.getBoolean("muted", false))
+                if(snapshot.exists()&&!sharedPref.getBoolean("muted", false))
                 {
                     if(lastMsg.equals("🤣"))
                         emojiRunner(R.drawable.emoji_haha,R.raw.haha,v);
@@ -130,14 +137,21 @@ public class ChatFragmentFriendly extends Fragment {
                     else if(lastMsg.equals("🥱"))
                         emojiRunner(R.drawable.emoji_yawn,R.raw.yawn,v);
                     else if(lastMsg.equals(tempMsg))
-                        MediaPlayer.create(context, R.raw.pop).start();
+                    {
+                        MediaPlayer mediaPlayer = MediaPlayer.create(context, R.raw.pop);
+                        mediaPlayer.start();
+                        mediaPlayer.setOnCompletionListener(MediaPlayer::release);
+                    }
                     else if(!mDrawerLayout.isDrawerOpen(GravityCompat.START))
+                    {
                         mp.start();
+                        //mp.setOnCompletionListener(MediaPlayer::release);
+                    }
+
                     tempMsg=" # # 69";
                 }
             }
-            @Override public void onCancelled(@NonNull DatabaseError error) {
-                Log.w(TAG, "Failed to read value.", error.toException());}
+            @Override public void onCancelled(@NonNull DatabaseError error) {}
         });
         ImageButton sendMsg=v.findViewById(R.id.msgSendBtn);
         sendMsg.setOnClickListener(v1->
@@ -160,7 +174,9 @@ public class ChatFragmentFriendly extends Fragment {
         v.findViewById(R.id.sendKiss).setEnabled(false);
         v.findViewById(R.id.sendScream).setEnabled(false);
         v.findViewById(R.id.sendYawn).setEnabled(false);
-        MediaPlayer.create(context, sound).start();
+        MediaPlayer mediaPlayer = MediaPlayer.create(context, sound);
+        mediaPlayer.start();
+        mediaPlayer.setOnCompletionListener(MediaPlayer::release);
         ((GifImageView)activity.findViewById(R.id.emojiPlay)).setImageResource(gif);
         activity.findViewById(R.id.emojiPlay).setVisibility(View.VISIBLE);
         ((DrawerLayout)activity.findViewById(R.id.drawer_layout)).closeDrawer(GravityCompat.START);
@@ -182,7 +198,7 @@ public class ChatFragmentFriendly extends Fragment {
         GameProfile gp=new GameProfile();
         MsgStore ms =new MsgStore();
         ms.nmData= gp.nm;
-        ms.lvlData= gp.lvl.toString();
+        ms.lvlData= gp.getLvlByCal().toString();
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd MMM, hh:mm a");
         LocalDateTime now = LocalDateTime.now();
         ms.timeData = dtf.format(now);

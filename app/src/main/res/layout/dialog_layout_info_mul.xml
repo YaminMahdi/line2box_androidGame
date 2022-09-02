@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/updateLayoutDialogUI"
+    android:id="@+id/infoMultiLayoutDialog"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginLeft="20dp"
@@ -19,28 +19,27 @@
         android:layout_margin="20dp"
         android:fontFamily="@font/sortie"
         android:gravity="center"
-        android:text="No Internet !"
-        android:textColor="@color/redY"
+        android:text="Info !"
+        android:textColor="@color/greenY"
         android:textSize="30sp" />
     <TextView
-        android:id="@+id/UpdateInfo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="You must have INTERNET connection for the first time to run the game"
         android:gravity="center"
-        android:textSize="18sp"
+        android:text="1. Click on CREATE button to START a new match.\n• Press on COPY button to copy the ID.\n• Now send the ID to your friend.\n2. Stay/click on the JOIN button to join a match.\n•Take a ID from your friend.\n• Press the PASTE button to join the match.\n• You can also type ID using keyboard.\n3. When you or your friend puts the correct ID,\n  the 'START MATCH' button will be enabled."
+        android:lineSpacingExtra="10sp"
         android:textColor="@color/whiteY"
         android:fontFamily="@font/sortie"
         android:layout_marginHorizontal="24dp"
         />
 
     <Button
-        android:id="@+id/buttonUpdate"
+        android:id="@+id/buttonOkey"
         android:layout_width="100dp"
         android:layout_height="40dp"
         android:layout_marginBottom="20dp"
         android:layout_marginTop="30dp"
-        android:text="Retry"
+        android:text="Okay"
         android:background="@drawable/btn_grn_bg"
         android:fontFamily="@font/sortie"
         android:textColor="@color/white"

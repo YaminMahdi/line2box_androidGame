@@ -67,14 +67,18 @@ public class LeaderBoardFragment extends Fragment {
                             {
                                 Log.d(TAG, document.getId() );
                                 GameProfile xx=document.toObject(GameProfile.class);
-                                xx.playerId=document.getId();
+                                //xx.playerId=document.getId();
                                 rankList.add(xx);
                             }
                             rankList.sort(Comparator.comparing(a -> a.coin));
                             Collections.reverse(rankList);
-                            RankListAdapter adapter=new RankListAdapter(getActivity(),rankList,playerId);  //
-                            ListView list = v.findViewById(R.id.showRankList);
-                            list.setAdapter(adapter);
+                            try {
+                                RankListAdapter adapter=new RankListAdapter(getContext(),rankList,playerId);
+                                ListView list = v.findViewById(R.id.showRankList);
+                                list.setAdapter(adapter);
+                                list.smoothScrollToPosition(RankListAdapter.myPosition);
+                            }
+                            catch (NullPointerException npe) {npe.printStackTrace();}
                         } else {
                             Log.d(TAG, "Error getting documents: ", task.getException());
                         }

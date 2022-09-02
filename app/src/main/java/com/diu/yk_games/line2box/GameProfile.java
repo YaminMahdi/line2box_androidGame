@@ -13,7 +13,7 @@ public class GameProfile
     public Integer matchPlayed=preferences.getInt("matchPlayed",0);
     public Integer matchWinMulti=preferences.getInt("matchWinMulti",0);
     public Integer coin=preferences.getInt("coins",100);
-    public Integer lvl=preferences.getInt("lvl",getLvl());
+    public Integer lvl=preferences.getInt("lvl",getLvlByCal());
 
     public String playerId;
     //preferences.getBoolean("needProfile",true)
@@ -35,7 +35,6 @@ public class GameProfile
     {
         preferencesEditor.putString("nm",this.nm).apply();
         preferencesEditor.putInt("coins",this.coin).apply();
-        preferencesEditor.putInt("lvl",this.lvl).apply();
         preferencesEditor.putInt("matchPlayed",this.matchPlayed).apply();
         preferencesEditor.putInt("matchWinMulti",this.matchWinMulti).apply();
 
@@ -49,7 +48,7 @@ public class GameProfile
         //preferencesEditor.putInt("coins",this.coin).apply();
     }
 
-    private Integer getLvl()
+    public Integer getLvlByCal()
     {
         int mul=matchWinMulti+1;
         int pld=matchPlayed+1;

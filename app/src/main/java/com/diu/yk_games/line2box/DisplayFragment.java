@@ -15,15 +15,25 @@ import android.view.ViewGroup;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.Source;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
 
 
 public class DisplayFragment extends Fragment
@@ -51,51 +61,82 @@ public class DisplayFragment extends Fragment
         View v=inflater.inflate(R.layout.fragment_display, container, false);
         TextView lbs= v.findViewById(R.id.lastBestScore);
         dsList = new ArrayList<>();
+
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference myRef = database.getReference("ScoreBoard");
 
-        myRef.child("Last Best Player").addValueEventListener(new ValueEventListener() {
-            @SuppressLint("SetTextI18n")
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot)
-            {
-                // This method is called once with the initial value and again
-                // whenever data at this location is updated.
-                bestScore = dataSnapshot.getValue(String.class);
-                lbs.setText("Last Best Score is from:     "+bestScore);
-                //Log.d(TAG, "Last Value is: " + bestScore);
+//        myRef.child("Last Best Player").addValueEventListener(new ValueEventListener() {
+//            @SuppressLint("SetTextI18n")
+//            @Override
+//            public void onDataChange(@NonNull DataSnapshot dataSnapshot)
+//            {
+//                if(dataSnapshot.exists())
+//                {
+//                    bestScore = dataSnapshot.getValue(String.class);
+//                    lbs.setText("Last Best Score is from:     "+bestScore);
+//                }
+//            }
+//            @Override public void onCancelled(@NonNull DatabaseError error) {
+//                Log.w(TAG, "Failed to read value.", error.toException());}
+//        });
+//        myRef.child("allScore").addChildEventListener(new ChildEventListener()
+//        {
+//            @Override
+//            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, String s)
+//            {
+//                if(dataSnapshot.exists())
+//                {
+//                    DataStore ds = dataSnapshot.getValue(DataStore.class);
+//                    assert ds != null;
+//                    dsList.add(0,ds);
+//                    MyListAdapter adapter=new MyListAdapter(getActivity(),dsList);  //
+//                    ListView list = v.findViewById(R.id.showScoreList);
+//                    list.setAdapter(adapter);
+//                }
+//
+//            }
+//            @Override public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {}
+//            @Override public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {}
+//            @Override public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {}
+//            @Override public void onCancelled(@NonNull DatabaseError databaseError) {
+//                Log.w(TAG, "Failed to read value.", databaseError.toException());}
+//
+//        });
 
-            }
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        //Source source = Source.CACHE;
+        db.collection("LastBestPlayer").document("LastBestPlayer")
+                .get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                // Failed to read value
-                Log.w(TAG, "Failed to read value.", error.toException());
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    DocumentSnapshot document = task.getResult();
+                    Log.d(TAG, "Cached document data: " + document.getData());
+                    bestScore= Objects.requireNonNull(Objects.requireNonNull(document.getData()).get("info")).toString();
+                    lbs.setText("Last Best Score is from:     "+bestScore);
+                } else {Log.d(TAG, "Cached get failed: ", task.getException());}
             }
         });
-        myRef.child("allScore").addChildEventListener(new ChildEventListener()
-        {
-            @Override
-            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, String s)
-            {
-                DataStore ds = dataSnapshot.getValue(DataStore.class);
-                assert ds != null;
-                //ds.timeData = dataSnapshot.getKey();
-                dsList.add(0,ds);
-                //Collections.reverse(dsList);
-                //Log.d(TAG, "Last Value is: " + bestScore);
-                MyListAdapter adapter=new MyListAdapter(getActivity(),dsList);  //
-                ListView list = v.findViewById(R.id.showScoreList);
-                list.setAdapter(adapter);
-                //Log.i(TAG,"key data = " + ds.timeData);
-
-            }
-            @Override public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {}
-            @Override public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {}
-            @Override public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {}
-            @Override public void onCancelled(@NonNull DatabaseError databaseError) {
-                Log.w(TAG, "Failed to read value.", databaseError.toException());}
-
-        });
+        db.collection("ScoreBoard")
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            for (QueryDocumentSnapshot document : task.getResult())
+                            {
+                                DataStore ds = document.toObject(DataStore.class);
+                                dsList.add(0,ds);
+                            }
+                            try {
+                                MyListAdapter adapter=new MyListAdapter(getContext(),dsList);  //
+                                ListView list = v.findViewById(R.id.showScoreList);
+                                list.setAdapter(adapter);
+                            }
+                            catch (NullPointerException npe) {npe.printStackTrace();}
+                        } else {Log.d(TAG, "Error getting documents: ", task.getException());}
+                    }
+                });
         return v;
     }
 

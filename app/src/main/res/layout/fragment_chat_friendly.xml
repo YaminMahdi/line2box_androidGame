@@ -104,6 +104,7 @@
             android:textColor="@color/cocZz"
             android:textColorHint="@color/cocZ"
             android:textSize="20sp"
+            android:lineSpacingExtra="5sp"
             android:focusable="true"
             android:focusableInTouchMode="true"
             />

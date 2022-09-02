@@ -44,6 +44,7 @@
             android:background="@drawable/box_chat"
             android:fontFamily="@font/sortie"
             android:hint="Type Here..."
+            android:lineSpacingExtra="5sp"
             android:paddingHorizontal="20dp"
             android:textColor="@color/cocZz"
             android:textColorHint="@color/cocZ"

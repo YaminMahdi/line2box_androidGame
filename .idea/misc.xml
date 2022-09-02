@@ -7,35 +7,69 @@
         <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/drawable/box_chat.xml" value="0.1695" />
         <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/drawable/box_chat_fill.xml" value="0.1695" />
         <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/drawable/box_mode_ai.xml" value="0.176" />
+        <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/drawable/btn_box_chat.xml" value="0.121" />
+        <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/drawable/btn_box_pressed_chat.xml" value="0.121" />
         <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/drawable/btn_chat_bg.xml" value="0.1835" />
         <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/drawable/btn_red_bg.xml" value="0.1655" />
         <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/drawable/btn_redx_bg.xml" value="0.1655" />
         <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/drawable/circle.xml" value="0.113" />
         <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/drawable/custom_line.xml" value="0.1835" />
+        <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/drawable/ic_launcher_foreground.xml" value="0.121" />
+        <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/drawable/ic_menu_camera.xml" value="0.121" />
+        <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/drawable/ic_menu_gallery.xml" value="0.121" />
+        <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/drawable/icon_add.xml" value="0.121" />
         <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/drawable/icon_ai.xml" value="0.1835" />
+        <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/drawable/icon_arrow_right.xml" value="0.121" />
+        <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/drawable/icon_forward.xml" value="0.121" />
         <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/drawable/icon_globe.xml" value="0.12" />
+        <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/drawable/icon_i.xml" value="0.121" />
+        <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/drawable/icon_setting.xml" value="0.121" />
         <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/drawable/lightening_vs.xml" value="0.136" />
-        <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/layout/activity_game1.xml" value="0.264" />
+        <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/drawable/logo.xml" value="0.121" />
+        <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/drawable/logo2.xml" value="0.121" />
+        <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/drawable/radio_btn_selector.xml" value="0.121" />
+        <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/layout/activity_game1.xml" value="0.4" />
         <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/layout/activity_game2.xml" value="0.18125" />
+        <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/layout/activity_game3.xml" value="0.2" />
         <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/layout/activity_game_multi.xml" value="0.16" />
         <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/layout/activity_start.xml" value="0.2" />
-        <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/layout/content_game2.xml" value="0.12" />
-        <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/layout/content_multiplayer.xml" value="0.2" />
+        <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/layout/content_game2.xml" value="0.176" />
+        <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/layout/content_multiplayer.xml" value="1.0" />
         <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/layout/custom_list_view.xml" value="0.4" />
         <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/layout/custom_msg_list_view.xml" value="0.15108759553204" />
-        <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/layout/custom_rank_list_view.xml" value="0.4" />
+        <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/layout/custom_rank_list_view.xml" value="0.264" />
         <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/layout/dialog_layout_alert.xml" value="0.16510416666666666" />
         <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/layout/dialog_layout_game_over.xml" value="0.4" />
+        <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/layout/dialog_layout_info.xml" value="0.1546875" />
         <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/layout/dialog_layout_loading.xml" value="0.15885416666666666" />
-        <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/layout/dialog_layout_profile.xml" value="0.176" />
-        <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/layout/dialog_layout_update.xml" value="0.264" />
+        <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/layout/dialog_layout_profile.xml" value="0.136" />
+        <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/layout/dialog_layout_show_hadith.xml" value="0.264" />
+        <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/layout/dialog_layout_update.xml" value="0.4" />
         <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/layout/dialog_layout_updateui.xml" value="0.4" />
         <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/layout/fragment_chat_friendly.xml" value="0.2" />
         <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/layout/fragment_display.xml" value="0.18802083333333333" />
         <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/layout/fragment_leader_board.xml" value="0.144" />
+        <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/layout/fragment_nminfo.xml" value="0.4" />
         <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/layout/rank_list_view.xml" value="0.4" />
         <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/layout/spinner_list.xml" value="0.1484375" />
+        <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/menu/chat_list_menu.xml" value="0.2" />
         <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/xml/activity_start_scene.xml" value="0.25" />
+        <entry key="app/src/main/res/layout/activity_game1.xml" value="0.26464300983326206" />
+        <entry key="app/src/main/res/layout/content_multiplayer.xml" value="0.26464300983326206" />
+        <entry key="app/src/main/res/layout/custom_msg_list_view.xml" value="0.2214621633176571" />
+        <entry key="app/src/main/res/layout/dialog_layout_alert.xml" value="0.26464300983326206" />
+        <entry key="app/src/main/res/layout/dialog_layout_game_over.xml" value="0.536" />
+        <entry key="app/src/main/res/layout/dialog_layout_info.xml" value="0.26464300983326206" />
+        <entry key="app/src/main/res/layout/dialog_layout_info_mul.xml" value="0.264" />
+        <entry key="app/src/main/res/layout/dialog_layout_loading.xml" value="0.26464300983326206" />
+        <entry key="app/src/main/res/layout/dialog_layout_profile.xml" value="0.26464300983326206" />
+        <entry key="app/src/main/res/layout/dialog_layout_show_hadith.xml" value="0.4" />
+        <entry key="app/src/main/res/layout/dialog_layout_update.xml" value="0.26464300983326206" />
+        <entry key="app/src/main/res/layout/dialog_layout_updateui.xml" value="0.26464300983326206" />
+        <entry key="app/src/main/res/layout/fragment_blank.xml" value="0.26464300983326206" />
+        <entry key="app/src/main/res/layout/fragment_blank_chat.xml" value="0.264" />
+        <entry key="app/src/main/res/layout/fragment_chat_friendly.xml" value="0.26464300983326206" />
+        <entry key="app/src/main/res/layout/fragment_chat_global.xml" value="0.2214621633176571" />
       </map>
     </option>
   </component>
