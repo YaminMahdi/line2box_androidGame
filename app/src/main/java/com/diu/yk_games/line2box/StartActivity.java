@@ -49,14 +49,13 @@ import com.google.firebase.firestore.QuerySnapshot;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import kotlin.reflect.KVisibility;
 import pl.droidsonroids.gif.GifImageView;
 
 public class StartActivity extends AppCompatActivity
 {
     private static final String TAG = "TAG: StartActivity";
     public static boolean scrBrdVisible =false, isFirstRun;
+    static int errorCnt=0;
     SharedPreferences preferences;
     SharedPreferences.Editor preferencesEditor;
     String onlineVersionName=null;
@@ -365,6 +364,38 @@ public class StartActivity extends AppCompatActivity
             builder.setView(view);
             builder.setCancelable(false);
             final AlertDialog alertDialog = builder.create();
+            view.findViewById(R.id.googlePlayWarning).setVisibility(View.GONE);
+            errorCnt++;
+            if(errorCnt>2)
+            {
+                view.findViewById(R.id.googlePlayWarning).setVisibility(View.VISIBLE);
+                ((TextView)view.findViewById(R.id.warningMessage)).setText("Warning !");
+                ((TextView)view.findViewById(R.id.UpdateInfo)).setText("You may need to UPDATE those two apps. (Link Below)");
+
+                view.findViewById(R.id.playSvLink).setOnClickListener(v ->
+                {
+                    ((TextView)view.findViewById(R.id.playSvLink)).setTextColor(getColor(R.color.teal_700));
+                    if (!isMuted())
+                    {
+                        MediaPlayer mediaPlayer = MediaPlayer.create(StartActivity.this, R.raw.btn_click_ef);
+                        mediaPlayer.start();
+                        mediaPlayer.setOnCompletionListener(MediaPlayer::release);
+                    }
+                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=com.google.android.gms")));
+                });
+                view.findViewById(R.id.playGmLink).setOnClickListener(v ->
+                {
+                    ((TextView)view.findViewById(R.id.playGmLink)).setTextColor(getColor(R.color.teal_700));
+                    if (!isMuted())
+                    {
+                        MediaPlayer mediaPlayer = MediaPlayer.create(StartActivity.this, R.raw.btn_click_ef);
+                        mediaPlayer.start();
+                        mediaPlayer.setOnCompletionListener(MediaPlayer::release);
+                    }
+                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=com.google.android.play.games")));
+                });
+            }
+
             if(isFirstRun)
             {
                 view.findViewById(R.id.buttonUpdate).setOnClickListener(view1 ->
@@ -382,7 +413,8 @@ public class StartActivity extends AppCompatActivity
             else
             {
                 //findViewById(R.id.scrBrdBtn).setEnabled(false);
-                ((TextView)view.findViewById(R.id.UpdateInfo)).setText("Some functionalities are disabled.");
+                if(errorCnt<3)
+                    ((TextView)view.findViewById(R.id.UpdateInfo)).setText("Some functionalities are disabled.");
                 ((Button)view.findViewById(R.id.buttonUpdate)).setText("Continue");
                 view.findViewById(R.id.buttonUpdate).setOnClickListener(view1 ->
                 {
@@ -402,11 +434,18 @@ public class StartActivity extends AppCompatActivity
                 catch (Exception ex) {ex.printStackTrace();}
         }
     }
-
+    public void AddSomeBlankHadith(FirebaseFirestore db, int x)
+    {
+        for(int i=x;i<=x+10;i++)
+        {
+            db.collection("dailyHadith").document(i+"").set(new HadithStore());
+        }
+    }
     public void showAHadith()
     {
         ArrayList<HadithStore> hadithList = new ArrayList<>();
         FirebaseFirestore db = FirebaseFirestore.getInstance();
+
         db.collection("dailyHadith")
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
@@ -418,10 +457,14 @@ public class StartActivity extends AppCompatActivity
                             for (QueryDocumentSnapshot document : task.getResult())
                             {
                                 HadithStore h=document.toObject(HadithStore.class);
-                                hadithList.add(h);
+//                                if(h.b.equals(""))
+//                                    db.collection("dailyHadith").document(document.getId()).delete();
+//                                else
+                                    hadithList.add(h);
                             }
                             if(hadithList.size()>0)
                             {
+                                //AddSomeBlankHadith(db, hadithList.size());
                                 int index= new Random().nextInt(hadithList.size());
                                 AlertDialog.Builder builder = new AlertDialog.Builder(StartActivity.this);
                                 View view = LayoutInflater.from(StartActivity.this).inflate(
@@ -454,7 +497,6 @@ public class StartActivity extends AppCompatActivity
                                     narratorInfo.setTypeface(getResources().getFont(R.font.comfortaa));
                                     hadithTxt.setTypeface(getResources().getFont(R.font.comfortaa));
                                     hadithTxt.setLineSpacing(7,1);
-
                                     langBtn.setText("BN");
                                 }
                                 ((TextView) view.findViewById(R.id.hadithInfo)).setText(hadithList.get(index).ref);
@@ -803,7 +845,7 @@ public class StartActivity extends AppCompatActivity
                 mediaPlayer.start();
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release);
             }
-        if(mode1.getVisibility()==View.INVISIBLE)
+        if(mode1.getAlpha()<.5)
         {
             if(onlineStatus.equals("pass"))
             {
@@ -819,6 +861,7 @@ public class StartActivity extends AppCompatActivity
                 );
                 builder.setView(v);
                 builder.setCancelable(false);
+                v.findViewById(R.id.googlePlayWarning).setVisibility(View.GONE);
                 ((TextView)v.findViewById(R.id.UpdateInfo)).setText("You must have INTERNET connection to play in ONLINE mode");
                 final AlertDialog alertDialog = builder.create();
                 v.findViewById(R.id.buttonUpdate).setOnClickListener(view1 ->
@@ -838,7 +881,7 @@ public class StartActivity extends AppCompatActivity
                 catch (Exception ex) {ex.printStackTrace();}
             }
         }
-        else if (mode3.getVisibility()==View.INVISIBLE)
+        else if (mode3.getAlpha()<.5)//(mode3.getVisibility()==View.INVISIBLE)
         {
             startActivity(new Intent(this,GameActivity1.class));
             finish();

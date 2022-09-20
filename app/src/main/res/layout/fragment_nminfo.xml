@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -8,11 +9,13 @@
     android:orientation="vertical"
     tools:context=".NameInfoFragment">
 
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="20dp"
         android:orientation="vertical">
+
 
         <TextView
             android:layout_width="match_parent"
@@ -41,14 +44,25 @@
             android:fontFamily="@font/sortie"
             android:hint="RED"
             android:inputType="text"
+            android:maxLength="8"
             android:textColor="@color/white"
             android:textColorHint="#CCE8E8E8" />
+
+        <ImageButton
+            android:id="@+id/nmSwanBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_gravity="center"
+            android:background="@drawable/btn_special_bg"
+            android:padding="8dp"
+            android:src="@drawable/icon_swap" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="4dp"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="-15dp"
             android:fontFamily="@font/sortie"
             android:text="2nd Player Name: "
             android:textColor="@color/white" />
@@ -61,9 +75,23 @@
             android:fontFamily="@font/sortie"
             android:hint="BLUE"
             android:inputType="text"
+            android:maxLength="8"
             android:textColor="@color/white"
             android:textColorHint="#CCE8E8E8" />
 
+        <CheckBox
+            android:id="@+id/nmSaveBox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="-20dp"
+            android:layout_marginTop="12dp"
+            android:buttonTint="@color/pinkY"
+            android:fontFamily="@font/sortie"
+            android:scaleX="0.80"
+            android:scaleY="0.80"
+            android:text="Remember players name"
+            android:textColor="@color/whiteY"
+            android:textSize="17sp" />
 
         <Button
             android:id="@+id/playBtn"
@@ -73,7 +101,7 @@
             android:layout_marginTop="20dp"
             android:layout_marginEnd="40dp"
             android:layout_marginBottom="10dp"
-            android:background="@drawable/radio_btn_selector"
+            android:background="@drawable/btn_pink_bg"
             android:fontFamily="@font/sortie"
             android:text="Play"
             android:textColor="@color/white"

@@ -105,7 +105,8 @@ public class MultiplayerActivity extends AppCompatActivity{
         findViewById(R.id.globalScoreFrag).setVisibility(View.GONE);
         findViewById(R.id.newMsgBoltu).setVisibility(View.GONE);
         findViewById(R.id.emojiPlay).setVisibility(View.GONE);
-        if(sharedPref.getBoolean("needName", true))
+        String tmpNm=new GameProfile().nm;
+        if(sharedPref.getBoolean("needName", true)||tmpNm.contains("Noob"))
             changeNameNeeded();
 
 
@@ -829,9 +830,16 @@ public class MultiplayerActivity extends AppCompatActivity{
         });
         v.findViewById(R.id.nmEditBtn).setOnClickListener(view1 ->
         {
+            if(!isMuted())
+            {
+                MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef);
+                mediaPlayer.start();
+                mediaPlayer.setOnCompletionListener(MediaPlayer::release);
+            }
             if(!editing)
             {
                 nmEditText.setEnabled(true);
+                nmEditText.setSelection(nmEditText.getText().length());
                 ((ImageButton) v.findViewById(R.id.nmEditBtn)).setImageResource(R.drawable.icon_save);
                 if(nmEditText.requestFocus()) {
                     InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -874,10 +882,34 @@ public class MultiplayerActivity extends AppCompatActivity{
             {
                 MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef);
                 mediaPlayer.start();
-                mediaPlayer.setOnCompletionListener(MediaPlayer::release);}
-            alertDialog.dismiss();
+                mediaPlayer.setOnCompletionListener(MediaPlayer::release);
+            }
             closeKeyboard();
-            editor.putBoolean("needName",false).apply();
+            String newNm=nmEditText.getText().toString();
+            if(newNm.equals(""))
+            {
+                Toast.makeText(this, "Can't be empty.", Toast.LENGTH_SHORT).show();
+                nmEditText.setText(""+oldName);
+            }
+            else if(newNm.length()==1)
+            {
+                Toast.makeText(this, "Can't be single character.", Toast.LENGTH_SHORT).show();
+                nmEditText.setText(""+oldName);
+            }
+            else
+            {
+                GameProfile z= new GameProfile();
+                z.setNm(newNm);
+                z.apply();
+                Log.d("TAG", "profileBtn: "+playerId);
+                if(playerId!=null)
+                    db.collection("gamerProfile").document(playerId).update("nm" ,""+newNm);
+                nmEditText.setEnabled(false);
+                ((ImageButton) v.findViewById(R.id.nmEditBtn)).setImageResource(R.drawable.icon_edit);
+                editing=false;
+                editor.putBoolean("needName",false).apply();
+                alertDialog.dismiss();
+            }
         });
 
 

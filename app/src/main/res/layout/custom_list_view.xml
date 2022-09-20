@@ -13,11 +13,10 @@
         android:layout_marginVertical="7dp"
         android:layout_marginStart="5dp"
         android:layout_marginEnd="5dp"
-        android:background="@drawable/btn_grn_bg"
+        android:background="@drawable/btn_grnx_bg"
         android:orientation="vertical"
-        android:paddingHorizontal="15dp"
-        android:paddingBottom="15dp"
-
+        android:paddingHorizontal="8dp"
+        android:paddingBottom="12dp"
         tools:ignore="UselessParent">
 
         <androidx.constraintlayout.widget.ConstraintLayout
@@ -44,8 +43,8 @@
 
             <ImageView
                 android:id="@+id/playFromImg"
-                android:layout_width="15sp"
-                android:layout_height="15sp"
+                android:layout_width="14sp"
+                android:layout_height="14sp"
                 android:src="@drawable/icon_globe"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -62,37 +61,36 @@
             <TextView
                 android:id="@+id/redShow"
                 android:layout_width="0dp"
-                android:layout_height="24sp"
+                android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:fontFamily="@font/sortie"
-                android:text="Red"
+                android:text="HHHHHHHH: 33"
                 android:textColor="@color/white"
-                android:textSize="24sp"
+                android:textSize="22sp"
                 tools:ignore="HardcodedText" />
 
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="15sp"
                 android:layout_gravity="center"
-                android:gravity="center"
-                android:layout_weight=".25"
+                android:layout_weight=".18"
                 android:fontFamily="@font/brad"
+                android:gravity="center"
                 android:text="vs"
                 android:textColor="@color/white"
-                android:textSize="15sp"
-
+                android:textSize="11sp"
                 tools:ignore="HardcodedText" />
 
             <TextView
                 android:id="@+id/blueShow"
                 android:layout_width="0dp"
-                android:layout_height="24sp"
+                android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:fontFamily="@font/sortie"
                 android:gravity="end"
-                android:text="Blue"
+                android:text="gggggggg: 43"
                 android:textColor="@color/white"
-                android:textSize="24sp"
+                android:textSize="22sp"
 
                 tools:ignore="HardcodedText" />
         </LinearLayout>

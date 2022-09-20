@@ -65,7 +65,7 @@ public class GameActivity2 extends AppCompatActivity {
     public static String idNm, fst = "r1c1", top, left, circle, nm1="Red", nm2="Blue";
     public static String PACKAGE_NAME;
     TextView scoreRedView, scoreBlueView, redTxt, blueTxt, nm1Txt, nm2Txt;
-    public static boolean one = true, flag = true;
+    public static boolean one = true;
     //MediaPlayer lineClick, boxPlus, winSoundEf, btnClick;
     SharedPreferences sharedPref;
     SharedPreferences.Editor editor;
@@ -138,7 +138,7 @@ public class GameActivity2 extends AppCompatActivity {
         nm1Txt.setText("("+nm1+")");
         nm2Txt.setText("("+nm2+")");
         clickCount = 0; scoreRed = 0; scoreBlue = 0; bestScore=9999;
-        one = true; flag = true;
+        one = true;
         findViewById(R.id.newMsgBoltu).setVisibility(View.GONE);
         findViewById(R.id.emojiPlay).setVisibility(View.GONE);
         mDrawerLayout = findViewById(R.id.drawer_layout);
@@ -908,10 +908,6 @@ public class GameActivity2 extends AppCompatActivity {
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release);
             }
             alertDialog.dismiss();
-            scoreRed=0;
-            scoreBlue=0;
-            clickCount = 0;
-            flag=true;
             database.getReference("MultiPlayer").child(key).removeValue();
             super.onBackPressed();
             startActivity(new Intent(this,MultiplayerActivity.class).putExtra("playerId",playerId));
@@ -948,13 +944,7 @@ public class GameActivity2 extends AppCompatActivity {
 
         if(plyr1)
             saveToFirebase();
-        else
-        {
-            scoreRed=0;
-            scoreBlue=0;
-            clickCount = 0;
-            flag=true;
-        }
+
 
         ((TextView) view.findViewById(R.id.textMessage)).setText("" + winMsg);
         ((TextView) view.findViewById(R.id.coinWin)).setText("" + winCoin);
@@ -1002,7 +992,6 @@ public class GameActivity2 extends AppCompatActivity {
             //database.getReference("MultiPlayer").child(key).child("playerCount").setValue("1");
             startActivity(new Intent(this,MultiplayerActivity.class).putExtra("playerId",playerId));
             finish();
-            flag=true;
             //android.os.Process.killProcess(android.os.Process.myPid());
         });
         if (alertDialog.getWindow() != null) {
@@ -1072,9 +1061,9 @@ public class GameActivity2 extends AppCompatActivity {
                             String bestScoreData= Objects.requireNonNull(Objects.requireNonNull(document.getData()).get("info")).toString();
                             String[] arrOfStr =bestScoreData.split(" ");
                             bestScore= Integer.parseInt(arrOfStr[arrOfStr.length-1]);
-                            if(bestScore < scoreRed)
+                            if(bestScore <= scoreRed)
                                 db.collection("LastBestPlayer").document("LastBestPlayer").update("info",redData);
-                            else if(bestScore < scoreBlue)
+                            else if(bestScore <= scoreBlue)
                                 db.collection("LastBestPlayer").document("LastBestPlayer").update("info",blueData);
                         } //else {//Log.d("TAG", "Cached get failed: ", task.getException());}
                     }
@@ -1085,11 +1074,6 @@ public class GameActivity2 extends AppCompatActivity {
         String key = myRef.push().getKey();
         assert key != null;
         db.collection("ScoreBoard").document(key).set(ds);
-        scoreRed=0;
-        scoreBlue=0;
-        clickCount = 0;
-        flag=true;
-
     }
 
     public void volButton(View view)

@@ -31,9 +31,8 @@
         android:id="@+id/shape_layout"
         android:layout_width="102dp"
         android:layout_height="102dp"
-        android:background="@drawable/circle"
         android:layout_gravity="center"
-        >
+        android:background="@drawable/circle">
 
         <androidx.cardview.widget.CardView
             android:id="@+id/myCardView"
@@ -49,14 +48,14 @@
                 android:scaleType="centerCrop" />
         </androidx.cardview.widget.CardView>
     </RelativeLayout>
-<!--    <de.hdodenhof.circleimageview.CircleImageView-->
-<!--        android:id="@+id/profile_image"-->
-<!--        android:layout_width="96dp"-->
-<!--        android:layout_height="96dp"-->
-<!--        android:layout_gravity="center"-->
-<!--        android:src="@drawable/ic_launcher_foreground"-->
-<!--        app:civ_border_color="@color/cocZz"-->
-<!--        app:civ_border_width="5dp" />-->
+    <!--    <de.hdodenhof.circleimageview.CircleImageView-->
+    <!--        android:id="@+id/profile_image"-->
+    <!--        android:layout_width="96dp"-->
+    <!--        android:layout_height="96dp"-->
+    <!--        android:layout_gravity="center"-->
+    <!--        android:src="@drawable/ic_launcher_foreground"-->
+    <!--        app:civ_border_color="@color/cocZz"-->
+    <!--        app:civ_border_width="5dp" />-->
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -70,16 +69,14 @@
             android:id="@+id/nmTxt"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="5dp"
             android:enabled="false"
             android:fontFamily="@font/sortie"
-            android:text="Noob"
+            android:gravity="center"
             android:hint="Name"
             android:maxLength="8"
-            android:padding="10dp"
+            android:text="Noob"
             android:textColor="@color/white"
             android:textColorHint="@color/whiteY"
-            android:gravity="center"
             android:textSize="24sp" />
 
         <ImageButton
@@ -88,6 +85,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:background="@drawable/btn_special_bg"
+            android:padding="10dp"
             android:src="@drawable/icon_edit"
 
             />
@@ -179,10 +177,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="@font/sortie"
+            android:maxLength="8"
             android:text="1"
             android:textColor="@color/white"
             android:textSize="20sp"
-            android:maxLength="8"
 
             />
 

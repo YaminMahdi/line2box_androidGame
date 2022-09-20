@@ -6,9 +6,9 @@ public class HadithStore
     public String en="";
     public String b="";
     public String bn="";
-    public String ref="";
+    public String ref="Surah ";
     public String src="";
-    public String t="";
+    public String t="q";
     public HadithStore(){}
 
     public HadithStore(String e, String en, String b, String bn, String ref, String src, String t) {

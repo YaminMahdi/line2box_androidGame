@@ -57,7 +57,7 @@
         android:layout_marginHorizontal="24dp"
         android:fontFamily="@font/paapri"
         android:paddingVertical="5dp"
-        android:text="আবদুল্লাহ ইবনু ’আমর (রাঃ) থেকে বর্ণিত,1"
+        android:text="لَخَلْقُ ٱلسَّمَـٰوَٰتِ وَٱلْأَرْضِ أَكْبَرُ مِنْ خَلْقِ ٱلنَّاسِ وَلَـٰكِنَّ أَكْثَرَ ٱلنَّاسِ لَا يَعْلَمُونَ ٥٧"
         android:textColor="@color/blueZ"
         android:textSize="16sp" />
 
@@ -68,8 +68,7 @@
         android:layout_marginHorizontal="24dp"
         android:fontFamily="@font/comfortaa"
         android:justificationMode="inter_word"
-        android:text="A person asked Allah's Messenger (ﷺ), 'What (sort of) deeds in or (what qualities of) Islam are good?' He replied, 'To feed (the poor) and greet those whom you know and those whom you don't know.'"
-        android:textColor="@color/white"
+        android:text="রাসূলুল্লাহ সাল্লাল্লাহু আলাইহি ওয়াসাল্লাম যখন সালাত (নামায/নামাজ) শুরু করতেন, তখন উভয় হাত তাঁর কাঁধ বরাবর উঠাতেন। আর রুকুতে যাওয়ার জন্য তাকবীর বলতেন এবং যখন রুকু থেকে মাথা উঠাতেন তখনও অনুরূপভাবে দু’হাত উঠাতেন এবং سَمِعَ اللَّهُ لِمَنْ حَمِدَهُ ও رَبَّنَا وَلَكَ الْحَمْدُ বলতেন। কিন্তু সিজদার সময় এরূপ করতেন না।"         android:textColor="@color/white"
         android:textSize="19sp" />
 
     <TextView
@@ -79,7 +78,7 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="24dp"
         android:fontFamily="@font/sortie"
-        android:text="Sahih al-Bukhari, 28"
+        android:text="Surah An-Nahl (16:79)"
         android:textColor="@color/blueZ"
         android:textSize="22sp"
         />

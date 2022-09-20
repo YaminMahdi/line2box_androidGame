@@ -5,6 +5,12 @@ plugins {
 
 android {
     signingConfigs {
+        debug {
+            storeFile file('D/:/linux/line2box_key.jks')
+            storePassword 's2451998'
+            keyPassword 's2451998'
+            keyAlias 'key0'
+        }
         release {
             storeFile file('D/://linux/line2box_key.jks')
             keyAlias 'key0'
@@ -18,8 +24,8 @@ android {
         applicationId "com.diu.yk_games.line2box"
         minSdk 27
         targetSdk 32
-        versionCode 6
-        versionName '0.6'
+        versionCode 7
+        versionName '0.6.9'
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 

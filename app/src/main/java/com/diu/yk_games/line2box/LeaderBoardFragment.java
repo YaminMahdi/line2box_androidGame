@@ -76,7 +76,10 @@ public class LeaderBoardFragment extends Fragment {
                                 RankListAdapter adapter=new RankListAdapter(getContext(),rankList,playerId);
                                 ListView list = v.findViewById(R.id.showRankList);
                                 list.setAdapter(adapter);
-                                list.smoothScrollToPosition(RankListAdapter.myPosition);
+                                //list.smoothScrollToPosition(RankListAdapter.myPosition);
+                                int pos=RankListAdapter.myPosition;
+                                if(pos>5)
+                                    list.post(() -> list.smoothScrollToPosition(pos-2));
                             }
                             catch (NullPointerException npe) {npe.printStackTrace();}
                         } else {

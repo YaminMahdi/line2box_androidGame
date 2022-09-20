@@ -2,37 +2,21 @@ package com.diu.yk_games.line2box;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
-
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-
-import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
 import android.widget.TextView;
-
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.database.ChildEventListener;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
-import com.google.firebase.firestore.Source;
-
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
 import java.util.Objects;
 
 
@@ -62,8 +46,8 @@ public class DisplayFragment extends Fragment
         TextView lbs= v.findViewById(R.id.lastBestScore);
         dsList = new ArrayList<>();
 
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference myRef = database.getReference("ScoreBoard");
+        //FirebaseDatabase database = FirebaseDatabase.getInstance();
+        //DatabaseReference myRef = database.getReference("ScoreBoard");
 
 //        myRef.child("Last Best Player").addValueEventListener(new ValueEventListener() {
 //            @SuppressLint("SetTextI18n")
@@ -113,7 +97,7 @@ public class DisplayFragment extends Fragment
                     DocumentSnapshot document = task.getResult();
                     Log.d(TAG, "Cached document data: " + document.getData());
                     bestScore= Objects.requireNonNull(Objects.requireNonNull(document.getData()).get("info")).toString();
-                    lbs.setText("Last Best Score is from:     "+bestScore);
+                    lbs.setText("\uD83D\uDC51 "+bestScore);
                 } else {Log.d(TAG, "Cached get failed: ", task.getException());}
             }
         });

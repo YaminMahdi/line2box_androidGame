@@ -1,6 +1,4 @@
 package com.diu.yk_games.line2box;
-
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
@@ -26,8 +24,6 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -37,6 +33,7 @@ import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import pl.droidsonroids.gif.GifImageView;
@@ -109,7 +106,7 @@ public class GameActivity1 extends AppCompatActivity
         blueTxt = findViewById(R.id.blue);
         nm1Txt= findViewById(R.id.nm1Id);
         nm2Txt= findViewById(R.id.nm2Id);
-        clickCount = 0; scoreRed = 0; scoreBlue = 0; bestScore=9999;
+        clickCount = 0; scoreRed = 0; scoreBlue = 0; bestScore=9999; one = true;
 
         sharedPref = this.getSharedPreferences(
                 getString(R.string.preference_file_key), Context.MODE_PRIVATE);
@@ -272,10 +269,10 @@ public class GameActivity1 extends AppCompatActivity
             clickCount++;
             if (clickCount % 2 == 1)
             {
-                bg.setColor(ContextCompat.getColor(getApplicationContext(), R.color.redX));
+                bg.setColor(red);
             } else
             {
-                bg.setColor(ContextCompat.getColor(getApplicationContext(), R.color.blueX));
+                bg.setColor(blue);
             }
             if ((Character.getNumericValue(idNm.charAt(1)) > 1 && idNm.charAt(4) == 'T') || (Character.getNumericValue(idNm.charAt(3)) > 1 && idNm.charAt(4) == 'L'))
             {
@@ -711,9 +708,6 @@ public class GameActivity1 extends AppCompatActivity
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release);
             }
             alertDialog.dismiss();
-            scoreRed=0;
-            scoreBlue=0;
-            clickCount = 0;
             flag=true;
             super.onBackPressed();
             startActivity(new Intent(this,StartActivity.class));
@@ -747,7 +741,8 @@ public class GameActivity1 extends AppCompatActivity
         builder.setView(view);
         //builder.setCancelable(false);
 
-        saveToFirebase();
+        if(saveToFirebase())
+            Toast.makeText(this, "Score Saved to Online Score Board", Toast.LENGTH_SHORT).show();
         ((TextView) view.findViewById(R.id.textMessage)).setText("" + winMsg);
         ((Button) view.findViewById(R.id.buttonNo)).setText("Exit");
         ((Button) view.findViewById(R.id.buttonYes)).setText("Retry!");
@@ -762,12 +757,7 @@ public class GameActivity1 extends AppCompatActivity
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release);
             }
             alertDialog.dismiss();
-            startActivity(new Intent(GameActivity1.this, GameActivity1.class));
-
-            finish();
-            Toast.makeText(this, "Score Saved to Online Score Board", Toast.LENGTH_SHORT).show();
-
-            //recreate();
+            recreate();
 
         });
         view.findViewById(R.id.buttonNo).setOnClickListener(view2 ->
@@ -779,8 +769,7 @@ public class GameActivity1 extends AppCompatActivity
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release);
             }
             alertDialog.dismiss();
-            startActivity(new Intent(this,StartActivity.class));
-            finish();
+            recreate();
             flag=true;
             Toast.makeText(this, "Score Saved to Online Score Board", Toast.LENGTH_SHORT).show();
             //android.os.Process.killProcess(android.os.Process.myPid());
@@ -792,10 +781,10 @@ public class GameActivity1 extends AppCompatActivity
                 catch (NullPointerException npe) {npe.printStackTrace();}
     }
 
-    public static void saveToFirebase()
+    public static boolean saveToFirebase()
     {
         String redData, blueData, starData, timeData;
-
+        AtomicBoolean success= new AtomicBoolean(false);
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd MMM, hh:mm a");
         LocalDateTime now = LocalDateTime.now();
         timeData = dtf.format(now);
@@ -847,33 +836,27 @@ public class GameActivity1 extends AppCompatActivity
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         //Source source = Source.CACHE;
         db.collection("LastBestPlayer").document("LastBestPlayer")
-                .get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                        if (task.isSuccessful()) {
-                            DocumentSnapshot document = task.getResult();
-                            //Log.d("TAG", "Cached document data: " + document.getData());
-                            String bestScoreData= Objects.requireNonNull(Objects.requireNonNull(document.getData()).get("info")).toString();
-                            String[] arrOfStr =bestScoreData.split(" ");
-                            bestScore= Integer.parseInt(arrOfStr[arrOfStr.length-1]);
-                            if(bestScore < scoreRed)
-                                db.collection("LastBestPlayer").document("LastBestPlayer").update("info",redData);
-                            else if(bestScore < scoreBlue)
-                                db.collection("LastBestPlayer").document("LastBestPlayer").update("info",blueData);
-                        }
+                .get().addOnCompleteListener(task -> {
+                    if (task.isSuccessful())
+                    {
+                        DocumentSnapshot document = task.getResult();
+                        //Log.d("TAG", "Cached document data: " + document.getData());
+                        String bestScoreData= Objects.requireNonNull(Objects.requireNonNull(document.getData()).get("info")).toString();
+                        String[] arrOfStr =bestScoreData.split(" ");
+                        bestScore= Integer.parseInt(arrOfStr[arrOfStr.length-1]);
+                        if(bestScore <= scoreRed)
+                            db.collection("LastBestPlayer").document("LastBestPlayer").update("info",redData);
+                        else if(bestScore <= scoreBlue)
+                            db.collection("LastBestPlayer").document("LastBestPlayer").update("info",blueData);
                     }
                 });
         //multiple
         DatabaseReference myRef = FirebaseDatabase.getInstance().getReference("ScoreBoard").child("allScore");   //he he
         String key = myRef.push().getKey();
         assert key != null;
-        db.collection("ScoreBoard").document(key).set(ds);
-        scoreRed=0;
-        scoreBlue=0;
-        clickCount = 0;
-        flag=true;
+        db.collection("ScoreBoard").document(key).set(ds).addOnCompleteListener(x -> success.set(true));
 
-
+        return success.get();
     }
 
     public void volButton(View view)

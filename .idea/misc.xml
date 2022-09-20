@@ -54,22 +54,31 @@
         <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/layout/spinner_list.xml" value="0.1484375" />
         <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/menu/chat_list_menu.xml" value="0.2" />
         <entry key="..\:/AndroidStudioProjects/Line2Box/app/src/main/res/xml/activity_start_scene.xml" value="0.25" />
+        <entry key="app/src/main/res/drawable/box.xml" value="0.1945" />
+        <entry key="app/src/main/res/drawable/btn_grn_bg.xml" value="0.1945" />
+        <entry key="app/src/main/res/drawable/btn_grnx_bg.xml" value="0.1945" />
+        <entry key="app/src/main/res/drawable/btn_redx_bg.xml" value="0.1945" />
+        <entry key="app/src/main/res/drawable/btn_redy_bg.xml" value="0.1945" />
         <entry key="app/src/main/res/layout/activity_game1.xml" value="0.26464300983326206" />
+        <entry key="app/src/main/res/layout/activity_start.xml" value="0.14279606669516887" />
         <entry key="app/src/main/res/layout/content_multiplayer.xml" value="0.26464300983326206" />
+        <entry key="app/src/main/res/layout/custom_list_view.xml" value="0.536" />
         <entry key="app/src/main/res/layout/custom_msg_list_view.xml" value="0.2214621633176571" />
         <entry key="app/src/main/res/layout/dialog_layout_alert.xml" value="0.26464300983326206" />
         <entry key="app/src/main/res/layout/dialog_layout_game_over.xml" value="0.536" />
         <entry key="app/src/main/res/layout/dialog_layout_info.xml" value="0.26464300983326206" />
         <entry key="app/src/main/res/layout/dialog_layout_info_mul.xml" value="0.264" />
         <entry key="app/src/main/res/layout/dialog_layout_loading.xml" value="0.26464300983326206" />
-        <entry key="app/src/main/res/layout/dialog_layout_profile.xml" value="0.26464300983326206" />
+        <entry key="app/src/main/res/layout/dialog_layout_profile.xml" value="0.264" />
         <entry key="app/src/main/res/layout/dialog_layout_show_hadith.xml" value="0.4" />
         <entry key="app/src/main/res/layout/dialog_layout_update.xml" value="0.26464300983326206" />
-        <entry key="app/src/main/res/layout/dialog_layout_updateui.xml" value="0.26464300983326206" />
+        <entry key="app/src/main/res/layout/dialog_layout_updateui.xml" value="0.4" />
         <entry key="app/src/main/res/layout/fragment_blank.xml" value="0.26464300983326206" />
         <entry key="app/src/main/res/layout/fragment_blank_chat.xml" value="0.264" />
         <entry key="app/src/main/res/layout/fragment_chat_friendly.xml" value="0.26464300983326206" />
         <entry key="app/src/main/res/layout/fragment_chat_global.xml" value="0.2214621633176571" />
+        <entry key="app/src/main/res/layout/fragment_display.xml" value="0.536" />
+        <entry key="app/src/main/res/layout/fragment_nminfo.xml" value="0.4" />
       </map>
     </option>
   </component>
