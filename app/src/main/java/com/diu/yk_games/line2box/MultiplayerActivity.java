@@ -136,6 +136,7 @@ public class MultiplayerActivity extends AppCompatActivity{
         copyPastBtn=findViewById(R.id.copyPastBtn);
         startMatchBtn=findViewById(R.id.startMatchBtnId);
         playerId=getIntent().getExtras().getString("playerId");
+        ChatFragmentGlobal.newInstance(playerId);
         lvlUpgrade();
         mBundle.putString("playerId",playerId);
         copyPastBtn.setImageResource(R.drawable.icon_paste);
@@ -195,6 +196,7 @@ public class MultiplayerActivity extends AppCompatActivity{
                                     myRef.child(getKey()).child("playerInfo").child("lvl2").setValue(new GameProfile().getLvlByCal());
 
                                     MsgStore ms =new MsgStore();
+                                    ms.playerId=playerId;
                                     ms.nmData= nm2;
                                     ms.lvlData= lvl2.toString();
                                     DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd MMM, hh:mm a");
@@ -209,7 +211,7 @@ public class MultiplayerActivity extends AppCompatActivity{
                                     bubbleTabBar.setSelected(1,true);
                                     FragmentManager fm=getSupportFragmentManager();
                                     FragmentTransaction ft=fm.beginTransaction();
-                                    ft.replace(R.id.chatFragment,ChatFragmentFriendly.newInstance(getKey()));
+                                    ft.replace(R.id.chatFragment,ChatFragmentFriendly.newInstance(getKey(),playerId));
                                     ft.commit();
 
                                     myRef.child(getKey()).child("playerInfo").addValueEventListener(new ValueEventListener() {
@@ -269,7 +271,7 @@ public class MultiplayerActivity extends AppCompatActivity{
                 bubbleTabBar.setSelected(0,true);
                 FragmentManager fm=getSupportFragmentManager();
                 FragmentTransaction ft=fm.beginTransaction();
-                ft.replace(R.id.chatFragment,new ChatFragmentGlobal());
+                ft.replace(R.id.chatFragment,ChatFragmentGlobal.newInstance(playerId));
                 ft.commit();
                 findViewById(R.id.newMsgBoltu).setVisibility(View.GONE);
 
@@ -311,6 +313,7 @@ public class MultiplayerActivity extends AppCompatActivity{
                 myRef.child(key).child("playerInfo").child("lvl2").setValue(0);
 
                 MsgStore ms =new MsgStore();
+                ms.playerId=playerId;
                 ms.nmData= nm1;
                 ms.lvlData= lvl1.toString();
                 DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd MMM, hh:mm a");
@@ -325,7 +328,7 @@ public class MultiplayerActivity extends AppCompatActivity{
                 bubbleTabBar.setSelected(1,true);
                 FragmentManager fm=getSupportFragmentManager();
                 FragmentTransaction ft=fm.beginTransaction();
-                ft.replace(R.id.chatFragment,ChatFragmentFriendly.newInstance(key));
+                ft.replace(R.id.chatFragment,ChatFragmentFriendly.newInstance(key,playerId));
                 ft.commit();
 
 
@@ -460,12 +463,12 @@ public class MultiplayerActivity extends AppCompatActivity{
             FragmentTransaction ft=fm.beginTransaction();
             if(id==R.id.globalChat)
             {
-                ft.replace(R.id.chatFragment,new ChatFragmentGlobal());
+                ft.replace(R.id.chatFragment,ChatFragmentGlobal.newInstance(playerId));
             }
             else
             {
                 if(key!=null)
-                    ft.replace(R.id.chatFragment,ChatFragmentFriendly.newInstance(key));
+                    ft.replace(R.id.chatFragment,ChatFragmentFriendly.newInstance(key,playerId));
                 else
                     ft.replace(R.id.chatFragment,new BlankChatFragment());
 
@@ -633,6 +636,7 @@ public class MultiplayerActivity extends AppCompatActivity{
                 MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef);
                 mediaPlayer.start();
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release);}
+
                 alertDialog.dismiss();
                 super.onBackPressed();
                 startActivity(new Intent(this,StartActivity.class));
@@ -769,9 +773,10 @@ public class MultiplayerActivity extends AppCompatActivity{
     {
         if(!isMuted())
         {
-                MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef);
-                mediaPlayer.start();
-                mediaPlayer.setOnCompletionListener(MediaPlayer::release);}
+            MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef);
+            mediaPlayer.start();
+            mediaPlayer.setOnCompletionListener(MediaPlayer::release);
+        }
 
         AlertDialog.Builder builder = new AlertDialog.Builder(MultiplayerActivity.this);
         v = LayoutInflater.from(MultiplayerActivity.this).inflate(
@@ -780,9 +785,14 @@ public class MultiplayerActivity extends AppCompatActivity{
         builder.setView(v);
         //builder.setCancelable(false);
         GameProfile.setPreferences(sharedPref);
-        ((TextView) v.findViewById(R.id.lvlTxt)).setText(""+new GameProfile().getLvlByCal());
-        ((TextView) v.findViewById(R.id.matchPlayedTxt)).setText(""+new GameProfile().matchPlayed);
-        ((TextView) v.findViewById(R.id.matchWonTxt)).setText(""+new GameProfile().matchWinMulti);
+        GameProfile x=new GameProfile();
+        x.countryEmoji=sharedPref.getString("countryEmoji","");
+        x.countryNm=sharedPref.getString("countryNm","");
+        ((TextView) v.findViewById(R.id.countryTxt)).setText(x.countryNm+" "+x.countryEmoji);
+        ((TextView) v.findViewById(R.id.lvlTxt)).setText(""+x.getLvlByCal());
+        ((TextView) v.findViewById(R.id.matchPlayedTxt)).setText(""+x.matchPlayed);
+        ((TextView) v.findViewById(R.id.matchWonTxt)).setText(""+x.matchWinMulti);
+        v.findViewById(R.id.coinShow).setVisibility(View.GONE);
         EditText nmEditText = v.findViewById(R.id.nmTxt);
         //CircleImageView civ= v.findViewById(R.id.profile_image);
         ImageView civ= v.findViewById(R.id.profile_image);

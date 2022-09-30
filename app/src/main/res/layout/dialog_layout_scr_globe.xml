@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/scoreDetailsLayoutDialog"
+
+    >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="25dp"
+        android:background="@drawable/box_chat"
+        android:backgroundTint="@color/cocX"
+        android:backgroundTintMode="add"
+        android:orientation="vertical"
+        android:paddingHorizontal="8dp"
+        android:paddingBottom="12dp"
+        tools:ignore="UselessParent"
+        android:layout_gravity="center"
+        >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="15dp"
+            android:gravity="center"
+
+            >
+
+            <TextView
+                android:id="@+id/titleMchInfo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/sortie"
+                android:text="Match Info !"
+                android:textColor="@color/white"
+                android:textSize="22sp"
+                tools:ignore="HardcodedText"
+
+                />
+        </LinearLayout>
+
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingHorizontal="10dp">
+
+            <LinearLayout
+                android:id="@+id/linLayoutPlr1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:background="@drawable/btn_rank_bg"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:paddingVertical="20dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <TextView
+                    android:id="@+id/plr1Flag"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="5sp"
+                    android:fontFamily="@font/sortie"
+                    android:text="🏴‍☠"
+                    android:textColor="@color/white"
+                    android:textSize="22sp"
+                    tools:ignore="HardcodedText" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="20dp"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:paddingBottom="2sp">
+
+                    <TextView
+                        android:id="@+id/plr1Nm"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/sortie"
+                        android:text="XXXXX"
+                        android:textColor="@color/cocZz"
+                        android:textSize="18sp"
+                        tools:ignore="HardcodedText" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="start"
+                        android:fontFamily="@font/sortie"
+                        android:paddingStart="2sp"
+                        android:paddingTop="1sp"
+                        android:paddingEnd="0dp"
+                        android:text="lvl."
+                        android:textColor="@color/white"
+                        android:textSize="12sp"
+                        tools:ignore="HardcodedText" />
+
+                    <TextView
+                        android:id="@+id/plr1Lvl"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="start"
+                        android:fontFamily="@font/sortie"
+                        android:text="1"
+                        android:textColor="@color/greenY"
+                        android:textSize="13sp"
+                        tools:ignore="HardcodedText" />
+
+                </LinearLayout>
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/textView"
+                android:layout_width="22sp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:fontFamily="@font/brad"
+                android:gravity="center"
+                android:text="vs"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                app:layout_constraintBottom_toBottomOf="@+id/linLayoutPlr1"
+                app:layout_constraintEnd_toStartOf="@+id/linLayoutPlr2"
+                app:layout_constraintStart_toEndOf="@+id/linLayoutPlr1"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:ignore="HardcodedText" />
+
+            <LinearLayout
+                android:id="@+id/linLayoutPlr2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="10dp"
+                android:background="@drawable/btn_rank_bg"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:paddingVertical="20dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <TextView
+                    android:id="@+id/plr2Flag"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="5sp"
+                    android:fontFamily="@font/sortie"
+                    android:text="🏴‍☠"
+                    android:textColor="@color/white"
+                    android:textSize="22sp"
+                    tools:ignore="HardcodedText" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:layout_marginHorizontal="20dp"
+                    android:paddingBottom="2sp">
+
+                    <TextView
+                        android:id="@+id/plr2Nm"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/sortie"
+                        android:text="YYYYY"
+                        android:textColor="@color/cocZz"
+                        android:textSize="18sp"
+                        tools:ignore="HardcodedText" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="start"
+                        android:fontFamily="@font/sortie"
+                        android:paddingStart="2sp"
+                        android:paddingTop="1sp"
+                        android:paddingEnd="0dp"
+                        android:text="lvl."
+                        android:textColor="@color/white"
+                        android:textSize="12sp"
+                        tools:ignore="HardcodedText" />
+
+                    <TextView
+                        android:id="@+id/plr2Lvl"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="start"
+                        android:fontFamily="@font/sortie"
+                        android:text="1"
+                        android:textColor="@color/greenY"
+                        android:textSize="13sp"
+                        tools:ignore="HardcodedText" />
+
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="@+id/linLayoutPlr1"
+                app:layout_constraintStart_toStartOf="@+id/linLayoutPlr1"
+                app:layout_constraintTop_toBottomOf="@+id/linLayoutPlr1"
+                android:orientation="vertical"
+                android:layout_marginVertical="20dp"
+
+                >
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+
+                    >
+
+                    <TextView
+                        android:id="@+id/plr1Cup"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8sp"
+                        android:fontFamily="@font/sortie"
+                        android:text="+60"
+                        android:textColor="@color/cocZz"
+                        android:textSize="22sp" />
+
+                    <ImageView
+                        android:layout_width="20sp"
+                        android:layout_height="20sp"
+                        android:src="@drawable/icon_trophy" />
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="5sp"
+
+
+                    >
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/sortie"
+                        android:text="Score: "
+                        android:textColor="@color/whiteY"
+                        android:textSize="20sp"
+
+                        />
+
+                    <TextView
+                        android:id="@+id/plr1Score"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/sortie"
+                        android:text="00"
+                        android:textColor="@color/whiteY"
+                        android:textSize="20sp"
+
+                        />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="20dp"
+                android:orientation="vertical"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="@+id/linLayoutPlr2"
+                app:layout_constraintStart_toStartOf="@+id/linLayoutPlr2">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+
+                    >
+
+                    <TextView
+                        android:id="@+id/plr2Cup"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8sp"
+                        android:fontFamily="@font/sortie"
+                        android:text="+30"
+                        android:textColor="@color/cocZz"
+                        android:textSize="22sp" />
+
+                    <ImageView
+                        android:layout_width="20sp"
+                        android:layout_height="20sp"
+                        android:src="@drawable/icon_trophy" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="5sp"
+
+
+                    >
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/sortie"
+                        android:text="Score: "
+                        android:textColor="@color/whiteY"
+                        android:textSize="20sp"
+
+                        />
+
+                    <TextView
+                        android:id="@+id/plr2Score"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/sortie"
+                        android:text="00"
+                        android:textColor="@color/whiteY"
+                        android:textSize="20sp"
+
+                        />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </LinearLayout>
+
+</LinearLayout>

@@ -1,23 +1,39 @@
 package com.diu.yk_games.line2box;
 
+import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.drawable.ColorDrawable;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -34,14 +50,19 @@ public class ChatFragmentGlobal extends Fragment {
     FirebaseDatabase database = FirebaseDatabase.getInstance();
     DatabaseReference myRef = database.getReference("globalChat");
     EditText chatBoxGlobal;
+    String playerId;
+    Context context;
+    Activity activity;
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
 
-    // TODO: Rename and change types of parameters
-//    private String nmData;
-//    private String lvlData;
-
+    public static ChatFragmentGlobal newInstance(String playerId)
+    {
+        ChatFragmentGlobal fragment = new ChatFragmentGlobal();
+        Bundle args = new Bundle();
+        args.putString("playerId", playerId);
+        fragment.setArguments(args);
+        return fragment;
+    }
 
 
     public ChatFragmentGlobal() {
@@ -49,18 +70,14 @@ public class ChatFragmentGlobal extends Fragment {
     }
 
 
-//    public static ChatFragmentGlobal newInstance(String nmData, String lvlData) {
-//        ChatFragmentGlobal fragment = new ChatFragmentGlobal();
-//        Bundle args = new Bundle();
-//        args.putString("nmData", nmData);
-//        args.putString("lvlData", lvlData);
-//        fragment.setArguments(args);
-//        return fragment;
-//    }
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (getArguments() != null) {
+            playerId = getArguments().getString("playerId");
+        }
+        context=getContext();
+        activity=getActivity();
 
     }
 
@@ -93,6 +110,87 @@ public class ChatFragmentGlobal extends Fragment {
                         MsgListAdapter adapter=new MsgListAdapter(getActivity(),msList);  //
                         ListView list = v.findViewById(R.id.showMsgList);
                         list.setAdapter(adapter);
+                        list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                            @Override
+                            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                                MsgStore msgData = (MsgStore) list.getItemAtPosition(position);
+                                //prestationEco str = (prestationEco)o; //As you are using Default String Adapter
+
+                                if(!sharedPref.getBoolean("muted", false))
+                                {
+                                    MediaPlayer mediaPlayer = MediaPlayer.create(context, R.raw.btn_click_ef);
+                                    mediaPlayer.start();
+                                    mediaPlayer.setOnCompletionListener(MediaPlayer::release);
+                                }
+                                if(!msgData.playerId.equals(""))
+                                {
+                                    Toast.makeText(context,"Long Press To Copy Text/ID",Toast.LENGTH_SHORT).show();
+                                    FirebaseFirestore db = FirebaseFirestore.getInstance();
+                                    db.collection("gamerProfile").document(msgData.playerId)
+                                            .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                                                @SuppressLint("SetTextI18n")
+                                                @Override
+                                                public void onSuccess(DocumentSnapshot documentSnapshot) {
+                                                    if(documentSnapshot.exists())
+                                                    {
+                                                        GameProfile server2device = documentSnapshot.toObject(GameProfile.class);
+                                                        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                                                        View v = LayoutInflater.from(context).inflate(
+                                                                R.layout.dialog_layout_profile, parent.findViewById(R.id.profileLayoutDialog)
+                                                        );
+                                                        builder.setView(v);
+                                                        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                                                                LinearLayout.LayoutParams.WRAP_CONTENT,
+                                                                LinearLayout.LayoutParams.WRAP_CONTENT
+                                                        );
+                                                        params.setMargins(60, 150, 60, 0);
+                                                        v.findViewById(R.id.linearLayoutFrame).setLayoutParams(params);
+                                                        //v.findViewById(R.id.linearLayoutFrame).setPadding(20,0,20,0);
+                                                        assert server2device != null;
+                                                        ((TextView) v.findViewById(R.id.countryTxt)).setText(server2device.countryNm+" "+server2device.countryEmoji);
+                                                        ((TextView) v.findViewById(R.id.lvlTxt)).setText(""+server2device.lvl);
+                                                        ((TextView) v.findViewById(R.id.coinHave)).setText(""+server2device.coin);
+                                                        ((TextView) v.findViewById(R.id.matchPlayedTxt)).setText(""+server2device.matchPlayed);
+                                                        ((TextView) v.findViewById(R.id.matchWonTxt)).setText(""+server2device.matchWinMulti);
+                                                        EditText nmEditText = v.findViewById(R.id.nmTxt);
+                                                        nmEditText.setEnabled(false);
+                                                        nmEditText.setText(server2device.nm);
+                                                        //nmEditText.setVisibility(View.GONE);
+                                                        ((TextView) v.findViewById(R.id.profileTitle)).setTextSize(28);
+
+                                                        v.findViewById(R.id.profileShapeLayout).setVisibility(View.GONE);
+                                                        v.findViewById(R.id.nmEditBtn).setVisibility(View.GONE);
+                                                        v.findViewById(R.id.nmLTxt).setVisibility(View.GONE);
+                                                        v.findViewById(R.id.themeBox).setVisibility(View.GONE);
+                                                        v.findViewById(R.id.countryLTxt).setVisibility(View.GONE);
+                                                        v.findViewById(R.id.buttonSaveInfo).setVisibility(View.GONE);
+                                                        final AlertDialog alertDialog = builder.create();
+
+                                                        if (alertDialog.getWindow() != null) {
+                                                            alertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(0));
+                                                        }
+                                                        try {alertDialog.show();}
+                                                        catch (NullPointerException npe) {npe.printStackTrace();}
+                                                    }
+                                                }
+                                            });
+                                }
+                                else
+                                    Toast.makeText(context,"Older messages don't have profile info.",Toast.LENGTH_SHORT).show();
+
+                            }
+                        });
+                        list.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+                            @Override
+                            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id)
+                            {
+                                Toast.makeText(context, "Text/ID copied", Toast.LENGTH_SHORT).show();
+                                ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
+                                ClipData clip = ClipData.newPlainText("msgData", ms.msgData);
+                                clipboard.setPrimaryClip(clip);
+                                return true;
+                            }
+                        });
                     }
                     catch (NullPointerException npe) {npe.printStackTrace();}
                 }
@@ -110,6 +208,7 @@ public class ChatFragmentGlobal extends Fragment {
             mp.setOnCompletionListener(MediaPlayer::release);
             GameProfile gp=new GameProfile();
             MsgStore ms =new MsgStore();
+            ms.playerId=playerId;
             ms.nmData= gp.nm;
             ms.lvlData= gp.getLvlByCal().toString();
             DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd MMM, hh:mm a");

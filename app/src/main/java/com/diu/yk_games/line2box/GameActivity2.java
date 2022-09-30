@@ -42,7 +42,6 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
@@ -69,7 +68,7 @@ public class GameActivity2 extends AppCompatActivity {
     //MediaPlayer lineClick, boxPlus, winSoundEf, btnClick;
     SharedPreferences sharedPref;
     SharedPreferences.Editor editor;
-    static boolean isFirstRun=false, plyr1, plyrTurn;
+    static boolean isFirstRun, plyr1, plyrTurn;
     DrawerLayout mDrawerLayout;
     Integer lvl1,lvl2;
     String key, playerId;
@@ -110,14 +109,20 @@ public class GameActivity2 extends AppCompatActivity {
         sharedPref = this.getSharedPreferences(
                 getString(R.string.preference_file_key), Context.MODE_PRIVATE);
         editor = sharedPref.edit();
+        ifMuted();
+        isFirstRun = sharedPref.getBoolean("firstRun", true);
         GameProfile.setPreferences(sharedPref);
 //        DrawerLayout drawer = binding.drawerLayout;
 //        NavigationView navigationView = binding.navView;
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
-        isFirstRun=StartActivity.isFirstRun;
+        Handler handler = new Handler();
+        handler.postDelayed(() ->
+        {
+            if(isFirstRun)
+                infoShow();
+        }, 200);
         PACKAGE_NAME = getApplicationContext().getPackageName();
-        ifMuted();
         bundleInfo= getIntent().getBundleExtra("bundleInfo");
         key= bundleInfo.getString("gameKey");
         nm1 = bundleInfo.getString("nm1");
@@ -165,7 +170,7 @@ public class GameActivity2 extends AppCompatActivity {
         bubbleTabBar.setSelected(1,true);
         FragmentManager fm=getSupportFragmentManager();
         FragmentTransaction ft=fm.beginTransaction();
-        ft.replace(R.id.chatFragment,ChatFragmentFriendly.newInstance(key));
+        ft.replace(R.id.chatFragment,ChatFragmentFriendly.newInstance(key,playerId));
         ft.commit();
         bubbleTabBar.addBubbleListener(id ->
         {
@@ -173,12 +178,12 @@ public class GameActivity2 extends AppCompatActivity {
             FragmentTransaction ft2=fm2.beginTransaction();
             if(id==R.id.globalChat)
             {
-                ft2.replace(R.id.chatFragment,new ChatFragmentGlobal());
+                ft2.replace(R.id.chatFragment,ChatFragmentGlobal.newInstance(playerId));
             }
             else
             {
                 if(key!=null)
-                    ft2.replace(R.id.chatFragment,ChatFragmentFriendly.newInstance(key));
+                    ft2.replace(R.id.chatFragment,ChatFragmentFriendly.newInstance(key,playerId));
                 else
                     ft2.replace(R.id.chatFragment,new BlankChatFragment());
             }
@@ -219,9 +224,9 @@ public class GameActivity2 extends AppCompatActivity {
             {
                 if(dataSnapshot.exists()&&plyr1)
                 {
-                    int viewFromServer = Objects.requireNonNull(dataSnapshot.getValue(Integer.class));
+                    String viewIdFromServer = Objects.requireNonNull(dataSnapshot.getValue(String.class));
                     plyrTurn=true;
-                    lineClick(findViewById(viewFromServer));
+                    lineClick(findViewById(getResources().getIdentifier(viewIdFromServer, "id", getPackageName())));
                     //Log.d(TAG, "onChildAdded (view): "+getResources().getResourceEntryName(viewFromServer)+" "+plyrTurn);
                 }
             }
@@ -239,9 +244,9 @@ public class GameActivity2 extends AppCompatActivity {
             {
                 if(dataSnapshot.exists()&&!plyr1)
                 {
-                    int viewFromServer = Objects.requireNonNull(dataSnapshot.getValue(Integer.class));
+                    String viewIdFromServer = Objects.requireNonNull(dataSnapshot.getValue(String.class));
                     plyrTurn=true;
-                    lineClick(findViewById(viewFromServer));
+                    lineClick(findViewById(getResources().getIdentifier(viewIdFromServer, "id", getPackageName())));
                     //Log.d(TAG, "onChildAdded (view): "+getResources().getResourceEntryName(viewFromServer)+" "+plyrTurn);
                 }
             }
@@ -392,13 +397,13 @@ public class GameActivity2 extends AppCompatActivity {
             {
                 String key = myRef.child("plyr1").push().getKey();
                 assert key != null;
-                myRef.child("plyr1").child(key).setValue(view.getId());
+                myRef.child("plyr1").child(key).setValue(view.getResources().getResourceEntryName(view.getId()));
             }
             else if(!plyr1&&clickCount % 2 == 0)
             {
                 String key = myRef.child("plyr2").push().getKey();
                 assert key != null;
-                myRef.child("plyr2").child(key).setValue(view.getId());
+                myRef.child("plyr2").child(key).setValue(view.getResources().getResourceEntryName(view.getId()));
             }
             if (clickCount % 2 == 1)
             {
@@ -644,7 +649,7 @@ public class GameActivity2 extends AppCompatActivity {
                 redTxt.setTextColor(getResources().getColor(R.color.white, getTheme()));
                 blueTxt.setTextSize(30);
                 blueTxt.setTextColor(getResources().getColor(R.color.white, getTheme()));
-                String winTxt, wCoin;
+                String winTxt, wCoin, plr1Cup="", plr2Cup="";
                 if (scoreRed > scoreBlue)
                 {
                     if(plyr1)
@@ -656,6 +661,19 @@ public class GameActivity2 extends AppCompatActivity {
                         doc.update("coin" , updatePro.coin);
                         winTxt= "You won the match.";
                         wCoin="+"+winCoin;
+                        plr1Cup=wCoin;
+                        MsgStore ms =new MsgStore();
+                        ms.playerId=playerId;
+                        ms.nmData= nm2;
+                        ms.lvlData= lvl2.toString();
+                        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd MMM, hh:mm a");
+                        LocalDateTime now = LocalDateTime.now();
+                        ms.timeData = dtf.format(now);
+                        ms.msgData="Won the match.";
+
+                        String key2 = myRef.child(key).child("friendlyChat").push().getKey();
+                        assert key2 != null;
+                        myRef.child(key).child("friendlyChat").child(key2).setValue(ms);
                     }
                     else
                     {
@@ -664,6 +682,7 @@ public class GameActivity2 extends AppCompatActivity {
                         doc.update("coin" , updatePro.coin);
                         winTxt= "You lost the match.";
                         wCoin="-"+lostCoin;
+                        plr2Cup=wCoin;
                     }
 
                 }
@@ -678,6 +697,19 @@ public class GameActivity2 extends AppCompatActivity {
                         doc.update("coin" , updatePro.coin);
                         winTxt= "You won the match.";
                         wCoin="+"+winCoin;
+                        plr2Cup=wCoin;
+                        MsgStore ms =new MsgStore();
+                        ms.playerId=playerId;
+                        ms.nmData= nm2;
+                        ms.lvlData= lvl2.toString();
+                        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd MMM, hh:mm a");
+                        LocalDateTime now = LocalDateTime.now();
+                        ms.timeData = dtf.format(now);
+                        ms.msgData="Won the match.";
+
+                        String key2 = myRef.child(key).child("friendlyChat").push().getKey();
+                        assert key2 != null;
+                        myRef.child(key).child("friendlyChat").child(key2).setValue(ms);
                     }
                     else
                     {
@@ -686,6 +718,7 @@ public class GameActivity2 extends AppCompatActivity {
                         doc.update("coin" , updatePro.coin);
                         winTxt= "You lost the match.";
                         wCoin="-"+lostCoin;
+                        plr1Cup=wCoin;
                     }
                 }
                 else
@@ -699,6 +732,7 @@ public class GameActivity2 extends AppCompatActivity {
                 doc.update("lvl" , updatePro.getLvlByCal());
                 handler.postDelayed(() -> onGameOver(winTxt,wCoin), 1200);
 
+                saveToFirebase(plr1Cup,plr2Cup);
             }
         }
     }
@@ -907,6 +941,18 @@ public class GameActivity2 extends AppCompatActivity {
                 mediaPlayer.start();
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release);
             }
+            MsgStore ms =new MsgStore();
+            ms.playerId=playerId;
+            ms.nmData= nm2;
+            ms.lvlData= lvl2.toString();
+            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd MMM, hh:mm a");
+            LocalDateTime now = LocalDateTime.now();
+            ms.timeData = dtf.format(now);
+            ms.msgData="Left the match.";
+
+            String key2 = myRef.child(key).child("friendlyChat").push().getKey();
+            assert key2 != null;
+            myRef.child(key).child("friendlyChat").child(key2).setValue(ms);
             alertDialog.dismiss();
             database.getReference("MultiPlayer").child(key).removeValue();
             super.onBackPressed();
@@ -942,14 +988,12 @@ public class GameActivity2 extends AppCompatActivity {
         builder.setView(view);
         builder.setCancelable(false);
 
-        if(plyr1)
-            saveToFirebase();
 
 
         ((TextView) view.findViewById(R.id.textMessage)).setText("" + winMsg);
         ((TextView) view.findViewById(R.id.coinWin)).setText("" + winCoin);
         ((Button) view.findViewById(R.id.buttonNo)).setText("Exit");
-        ((Button) view.findViewById(R.id.buttonYes)).setText("Retry!");
+        ((Button) view.findViewById(R.id.buttonYes)).setText("Chat");
 
         final AlertDialog alertDialog = builder.create();
         view.findViewById(R.id.buttonYes).setOnClickListener(view1 ->
@@ -960,23 +1004,25 @@ public class GameActivity2 extends AppCompatActivity {
                 mediaPlayer.start();
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release);
             }
-            database.getReference("MultiPlayer").child(key).child("playerCount").addValueEventListener(new ValueEventListener() {
-                @Override public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    if(dataSnapshot.exists())
-                    {
-                        alertDialog.dismiss();
-                        myRef.child("plyr2").removeValue();
-                        myRef.child("plyr1").removeValue();
-                        startActivity(new Intent(GameActivity2.this, GameActivity2.class).putExtra("bundleInfo",bundleInfo));
-                        finish();
-                    }
-                    else
-                        Toast.makeText(GameActivity2.this, "Your Friend Left.", Toast.LENGTH_SHORT).show();
-                }
-                @Override public void onCancelled(@NonNull DatabaseError error) {}
-            });
+//            database.getReference("MultiPlayer").child(key).addValueEventListener(new ValueEventListener() {
+//                @Override public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+//                    if(dataSnapshot.exists())
+//                    {
+//                        alertDialog.dismiss();
+//                        myRef.child("plyr2").removeValue();
+//                        myRef.child("plyr1").removeValue();
+//                        startActivity(new Intent(GameActivity2.this, GameActivity2.class).putExtra("bundleInfo",bundleInfo));
+//                        finish();
+//                    }
+//                    else
+//                        Toast.makeText(GameActivity2.this, "Your Friend Left.", Toast.LENGTH_SHORT).show();
+//                }
+//                @Override public void onCancelled(@NonNull DatabaseError error) {}
+//            });
 
             //recreate();
+            alertDialog.dismiss();
+            mDrawerLayout.openDrawer(GravityCompat.START);
 
         });
         view.findViewById(R.id.buttonNo).setOnClickListener(view2 ->
@@ -984,7 +1030,7 @@ public class GameActivity2 extends AppCompatActivity {
             if(!isMuted())
                 {
                 MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef);
-                mediaPlayer.start();
+                mediaPlayer.start();    
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release);
             }
             alertDialog.dismiss();
@@ -1001,7 +1047,7 @@ public class GameActivity2 extends AppCompatActivity {
                 catch (NullPointerException npe) {npe.printStackTrace();}
     }
 
-    public static void saveToFirebase()
+    public void saveToFirebase(String plr1Cup,String plr2Cup)
     {
         String redData, blueData, starData, timeData;
 
@@ -1013,8 +1059,6 @@ public class GameActivity2 extends AppCompatActivity {
 
         redData= nm1+": "+scoreRed;
         blueData= nm2+": "+scoreBlue;
-
-        DataStore ds = new DataStore(timeData,redData,blueData,starData);
 //        FirebaseDatabase database = FirebaseDatabase.getInstance();
 //        DatabaseReference myRef = database.getReference("ScoreBoard");
 //        //single
@@ -1049,6 +1093,7 @@ public class GameActivity2 extends AppCompatActivity {
 //        assert key != null;
 //        myRef.child(key).setValue(ds);
 
+        DataStore ds = new DataStore(timeData,redData,blueData,starData,playerId,"",plr1Cup,"");
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         //Source source = Source.CACHE;
         db.collection("LastBestPlayer").document("LastBestPlayer")
@@ -1069,11 +1114,45 @@ public class GameActivity2 extends AppCompatActivity {
                     }
                 });
         //multiple
-
+        DatabaseReference plrInfo = FirebaseDatabase.getInstance().getReference("MultiPlayer").child(key).child("playerInfo");   //he he
         DatabaseReference myRef = FirebaseDatabase.getInstance().getReference("ScoreBoard").child("allScore");   //he he
-        String key = myRef.push().getKey();
-        assert key != null;
-        db.collection("ScoreBoard").document(key).set(ds);
+        String key2 = Objects.requireNonNull(myRef.push().getKey());
+        if(plyr1)
+        {
+            int[] c = {0};
+            plrInfo.addChildEventListener(new ChildEventListener() {
+                @Override
+                public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                    if(snapshot.exists())
+                    {
+                        if(Objects.equals(snapshot.getKey(), "plr2Id"))
+                        {
+                            ds.plr2Id=Objects.requireNonNull(snapshot.getValue(String.class));
+                            c[0]++;
+                        }
+                        else if(Objects.equals(snapshot.getKey(), "plr2Cup"))
+                        {
+                            ds.plr2Cup=Objects.requireNonNull(snapshot.getValue(String.class));
+                            c[0]++;
+                        }
+                        if(c[0] == 2)
+                            db.collection("ScoreBoard").document(key2).set(ds);
+
+                    }
+                }
+                @Override public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {}
+                @Override public void onChildRemoved(@NonNull DataSnapshot snapshot) {}
+                @Override public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {}
+                @Override public void onCancelled(@NonNull DatabaseError error) {}
+            });
+        }
+        else
+        {
+            plrInfo.child("plr2Id").setValue(playerId);
+            plrInfo.child("plr2Cup").setValue(plr2Cup);
+            //db.collection("ScoreBoard").document(key).update("plr2Id",playerId);
+            //db.collection("ScoreBoard").document(key).update("plr2Cup",plr2Cup);
+        }
     }
 
     public void volButton(View view)
@@ -1109,6 +1188,8 @@ public class GameActivity2 extends AppCompatActivity {
     }
 
     public void infoShow() {
+        if(isFirstRun)
+            editor.putBoolean("firstRun", false).apply();
         AtomicInteger i= new AtomicInteger();
         int[] gifs={R.drawable.g0,
                 R.drawable.g1,

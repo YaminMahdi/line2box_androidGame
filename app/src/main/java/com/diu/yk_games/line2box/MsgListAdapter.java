@@ -32,7 +32,8 @@ public class MsgListAdapter extends ArrayAdapter<MsgStore> {
             convertView = LayoutInflater.from(context).inflate(R.layout.custom_msg_list_view, parent, false);
         }
 
-        TextView timeData = convertView.findViewById(R.id.timeshowId);
+
+        TextView timeData = convertView.findViewById(R.id.timeShowId);
         TextView nmData = convertView.findViewById(R.id.nmId);
         TextView msgData = convertView.findViewById(R.id.msgId);
         TextView lvlData = convertView.findViewById(R.id.lvlId);
@@ -41,7 +42,7 @@ public class MsgListAdapter extends ArrayAdapter<MsgStore> {
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd MMM");
         LocalDateTime now = LocalDateTime.now();
         String timeNow = dtf.format(now);
-        if(timeNow.equals(timeServer[0]))
+        if(timeNow.contains(timeServer[0])||timeServer[0].contains(timeNow))
             timeData.setText(timeServer[1]);
         else
             timeData.setText(ms.get(position).timeData);
@@ -50,8 +51,10 @@ public class MsgListAdapter extends ArrayAdapter<MsgStore> {
         lvlData.setText(ms.get(position).lvlData);
         String data=ms.get(position).msgData;
         msgData.setText(data);
-        if(data.equals("Created the match.")||data.equals("Joined the match."))
+        if(data.equals("Created the match.")||data.equals("Joined the match.")||data.equals("Won the match."))
             msgData.setTextColor(0xFF60c235);
+        else if(data.equals("Left the match."))
+            msgData.setTextColor(0xFFDE2D45);
         else
             msgData.setTextColor(0xFFD9D9D9);
         return convertView;

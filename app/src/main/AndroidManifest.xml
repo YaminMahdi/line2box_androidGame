@@ -4,6 +4,7 @@
     package="com.diu.yk_games.line2box">
 
     <uses-feature android:name="android.hardware.screen.portrait" />
+
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
@@ -18,6 +19,7 @@
         android:screenOrientation="sensorPortrait"
         android:supportsRtl="true"
         android:theme="@style/Theme.Line2Box"
+        android:usesCleartextTraffic="true"
         tools:targetApi="31">
         <activity
             android:name=".GameActivity3"

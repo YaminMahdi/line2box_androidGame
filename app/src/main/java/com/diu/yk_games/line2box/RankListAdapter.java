@@ -48,7 +48,7 @@ public class RankListAdapter extends ArrayAdapter<GameProfile>
         }
         else
         {
-            convertView.findViewById(R.id.rankListItemBg).setBackgroundResource(R.drawable.box_chat);
+            convertView.findViewById(R.id.rankListItemBg).setBackgroundResource(R.drawable.btn_rank_bg);
 
         }
 

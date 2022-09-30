@@ -1,21 +1,24 @@
 package com.diu.yk_games.line2box;
 
-import android.content.Context;
 import android.content.SharedPreferences;
 
-import java.util.Random;
 
 public class GameProfile
 {
     public static SharedPreferences preferences;
     public static SharedPreferences.Editor preferencesEditor;
     public String nm=preferences.getString("nm", "Noob"+(int)Math.floor(Math.random()*(900)+100));
+
+    public String cityNm=preferences.getString("cityNm","");
+    public String query=preferences.getString("query","");
     public Integer matchPlayed=preferences.getInt("matchPlayed",0);
     public Integer matchWinMulti=preferences.getInt("matchWinMulti",0);
     public Integer coin=preferences.getInt("coins",100);
     public Integer lvl=preferences.getInt("lvl",getLvlByCal());
 
-    public String playerId;
+    public String playerId="";
+    public String countryEmoji="";
+    public String countryNm="";
     //preferences.getBoolean("needProfile",true)
     public static void setPreferences(SharedPreferences x)
     {
@@ -25,20 +28,18 @@ public class GameProfile
 
     public GameProfile() {}
 
-    public GameProfile(String nm, Integer coin, Integer matchPlayed, Integer matchWinMulti) {
-        this.nm = nm;
-        this.coin = coin;
-        this.matchPlayed = matchPlayed;
-        this.matchWinMulti = matchWinMulti;
-    }
     public void apply()
     {
         preferencesEditor.putString("nm",this.nm).apply();
+        preferencesEditor.putString("cityNm",this.cityNm).apply();
+        preferencesEditor.putString("query",this.query).apply();
         preferencesEditor.putInt("coins",this.coin).apply();
         preferencesEditor.putInt("matchPlayed",this.matchPlayed).apply();
         preferencesEditor.putInt("matchWinMulti",this.matchWinMulti).apply();
 
     }
+
+
     public void setNm(String nm) {
         this.nm = nm;
         //preferencesEditor.putString("nm",this.nm).apply();

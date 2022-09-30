@@ -10,7 +10,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="2dp"
-        android:background="@color/cocXx"
+        android:background="@drawable/custom_msg_hover"
+        android:hapticFeedbackEnabled="true"
         android:orientation="vertical"
         android:paddingHorizontal="1dp"
         android:paddingVertical="5dp"
@@ -55,17 +56,22 @@
                 android:textSize="12sp"
                 tools:ignore="HardcodedText" />
 
-            <TextView
-                android:id="@+id/timeshowId"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="start"
-                android:fontFamily="@font/sortie"
-                android:gravity="end"
-                android:text="24 July, 4:24 PM"
-                android:textColor="@color/cocZ"
-                android:textSize="11sp"
-                tools:ignore="HardcodedText" />
+                android:gravity="right"
+                >
+                <TextView
+                    android:id="@+id/timeShowId"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/sortie"
+                    android:text="24 July, 4:24 PM"
+                    android:textColor="@color/cocZ"
+                    android:textSize="11sp"
+                    tools:ignore="HardcodedText" />
+
+            </LinearLayout>
         </LinearLayout>
         <TextView
             android:id="@+id/msgId"

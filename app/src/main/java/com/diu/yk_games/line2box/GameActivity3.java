@@ -42,13 +42,12 @@ public class GameActivity3 extends AppCompatActivity {
             Arrays.asList("r1c1T", "r1c1L", "r1c2T", "r1c2L", "r1c3T", "r1c3L", "r1c4T", "r1c4L", "r1c5T", "r1c5L", "r1c6T", "r1c6L", "r1c7L", "r2c1T", "r2c1L", "r2c2T", "r2c2L", "r2c3T", "r2c3L", "r2c4T", "r2c4L", "r2c5T", "r2c5L", "r2c6T", "r2c6L", "r2c7L", "r3c1T", "r3c1L", "r3c2T", "r3c2L", "r3c3T", "r3c3L", "r3c4T", "r3c4L", "r3c5T", "r3c5L", "r3c6T", "r3c6L", "r3c7L", "r4c1T", "r4c1L", "r4c2T", "r4c2L", "r4c3T", "r4c3L", "r4c4T", "r4c4L", "r4c5T", "r4c5L", "r4c6T", "r4c6L", "r4c7L", "r5c1T", "r5c1L", "r5c2T", "r5c2L", "r5c3T", "r5c3L", "r5c4T", "r5c4L", "r5c5T", "r5c5L", "r5c6T", "r5c6L", "r5c7L", "r7c1T", "r6c1T", "r6c1L", "r7c6T", "r6c2T", "r6c2L", "r7c2T", "r6c3T", "r6c3L", "r7c3T", "r6c4T", "r6c4L", "r7c4T", "r6c5T", "r6c5L", "r7c5T", "r6c6T", "r6c6L", "r6c7L"));
     Random random = new Random();
 
-    public static String PACKAGE_NAME;
     TextView scoreRedView, scoreBlueView,redTxt, blueTxt;
     public static boolean one = true, flag = true;
     //MediaPlayer lineClick, boxPlus, winSoundEf, btnClick;
     SharedPreferences sharedPref;
     SharedPreferences.Editor editor;
-    boolean isFirstRun = false, recursion =false, clickEnabled=false;
+    boolean isFirstRun, recursion =false, clickEnabled=false;
     int tmpLineId;
 
 
@@ -72,8 +71,7 @@ public class GameActivity3 extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_game3);
-        isFirstRun = StartActivity.isFirstRun;
-        PACKAGE_NAME = getApplicationContext().getPackageName();
+
         scoreRedView = findViewById(R.id.scoreRed);
         scoreBlueView = findViewById(R.id.scoreBlue);
         redTxt = findViewById(R.id.red);
@@ -86,6 +84,7 @@ public class GameActivity3 extends AppCompatActivity {
                 getString(R.string.preference_file_key), Context.MODE_PRIVATE);
         editor = sharedPref.edit();
         ifMuted();
+        isFirstRun = sharedPref.getBoolean("firstRun", true);
 
         StringBuilder index = new StringBuilder();
         for (int i = 1; i <= 6; i++) {
@@ -190,8 +189,12 @@ public class GameActivity3 extends AppCompatActivity {
 
         int indx = random.nextInt(84);
         int randLineId=this.getResources().getIdentifier(lineIDs.get(indx), "id", this.getPackageName());
-        Handler handler = new Handler();
-        handler.postDelayed(() ->
+        new Handler().postDelayed(() ->
+        {
+            if(isFirstRun)
+                infoShow();
+        }, 200);
+        new Handler().postDelayed(() ->
         {
             clickEnabled=true;
             lineClick(findViewById(randLineId));
@@ -911,6 +914,8 @@ public class GameActivity3 extends AppCompatActivity {
     }
 
     public void infoShow() {
+        if(isFirstRun)
+            editor.putBoolean("firstRun", false).apply();
         AtomicInteger i = new AtomicInteger();
         int[] gifs = {R.drawable.g0,
                 R.drawable.g1,

@@ -1,4 +1,6 @@
 package com.diu.yk_games.line2box;
+
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentManager;
@@ -13,8 +15,8 @@ import android.media.MediaPlayer;
 import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Bundle;
-
 import android.os.Handler;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
@@ -23,7 +25,6 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.google.android.gms.games.GamesSignInClient;
 import com.google.android.gms.games.PlayGames;
 import com.google.android.gms.games.PlayGamesSdk;
@@ -45,20 +46,34 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import pl.droidsonroids.gif.GifImageView;
 
-public class StartActivity extends AppCompatActivity
-{
+public class StartActivity extends AppCompatActivity {
     private static final String TAG = "TAG: StartActivity";
-    public static boolean scrBrdVisible =false, isFirstRun;
-    static int errorCnt=0;
+    boolean scrBrdVisible = false, isFirstRun=false;
+    static int errorCnt = 0;
     SharedPreferences preferences;
     SharedPreferences.Editor preferencesEditor;
-    String onlineVersionName=null;
+    //String onlineVersionCode = null;
+    ArrayList<String> countryEmojis = new ArrayList<>(
+            Arrays.asList("🇦🇫", "🇦🇱", "🇩🇿", "🇦🇩", "🇦🇴", "🇦🇬", "🇦🇷", "🇦🇲", "🇦🇺", "🇦🇹", "🇦🇿", "🇧🇸", "🇧🇭", "🇧🇩", "🇧🇧", "🇧🇾", "🇧🇪", "🇧🇿", "🇧🇯", "🇧🇹", "🇧🇴", "🇧🇦", "🇧🇼", "🇧🇷", "🇧🇳", "🇧🇬", "🇧🇫", "🇧🇮", "🇨🇻", "🇰🇭", "🇨🇲", "🇨🇦", "🇨🇫", "🇹🇩", "🇨🇱", "🇨🇳", "🇨🇴", "🇰🇲", "🇨🇩", "🇨🇷", "🇭🇷", "🇨🇺", "🇨🇾", "🇨🇿", "🇨🇮", "🇩🇰", "🇩🇯", "🇩🇲", "🇩🇴", "🇨🇩", "🇪🇨", "🇪🇬", "🇸🇻", "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "🇬🇶", "🇪🇷", "🇪🇪", "🇸🇿", "🇪🇹", "🇫🇯", "🇫🇮", "🇫🇷", "🇬🇦", "🇬🇲", "🇬🇪", "🇩🇪", "🇬🇭", "🇬🇷", "🇬🇩", "🇬🇹", "🇬🇳", "🇬🇼", "🇬🇾", "🇭🇹", "🇭🇳", "🇭🇰", "🇭🇺", "🇮🇸", "🇮🇳", "🇮🇩", "🇮🇷", "🇮🇶", "🇮🇪", "🇮🇱", "🇮🇹", "🇯🇲", "🇯🇵", "🇯🇴", "🇰🇿", "🇰🇪", "🇰🇮", "🇰🇼", "🇰🇬", "🇱🇦", "🇱🇻", "🇱🇧", "🇱🇸", "🇱🇷", "🇱🇾", "🇱🇮", "🇱🇹", "🇱🇺", "🇲🇬", "🇲🇼", "🇲🇾", "🇲🇻", "🇲🇱", "🇲🇹", "🇲🇭", "🇲🇶", "🇲🇺", "🇲🇽", "🇫🇲", "🇲🇩", "🇲🇨", "🇲🇳", "🇲🇪", "🇲🇦", "🇲🇿", "🇲🇲", "🇳🇦", "🇳🇷", "🇳🇵", "🇳🇱", "🇳🇿", "🇳🇮", "🇳🇪", "🇳🇬", "🇰🇵", "🇲🇰", "🇳🇴", "🇴🇲", "🇵🇰", "🇵🇼", "🇵🇸", "🇵🇦", "🇵🇬", "🇵🇾", "🇵🇪", "🇵🇭", "🇵🇱", "🇵🇹", "🇶🇦", "🇷🇴", "🇷🇺", "🇷🇼", "🇰🇳", "🇱🇨", "🇻🇨", "🇼🇸", "🇸🇲", "🇸🇹", "🇸🇦", "🏴󠁧󠁢󠁳󠁣󠁴󠁿", "🇸🇳", "🇷🇸", "🇸🇨", "🇸🇱", "🇸🇬", "🇸🇰", "🇸🇮", "🇸🇧", "🇸🇴", "🇿🇦", "🇰🇷", "🇸🇸", "🇪🇸", "🇱🇰", "🇸🇩", "🇸🇷", "🇸🇪", "🇨🇭", "🇸🇾", "🇹🇼", "🇹🇯", "🇹🇿", "🇹🇭", "🇹🇱", "🇹🇬", "🇹🇴", "🇹🇹", "🇹🇳", "🇹🇷", "🇹🇲", "🇹🇻", "🇺🇬", "🇺🇦", "🇦🇪", "🇬🇧", "🇺🇸", "🇺🇾", "🇺🇿", "🇻🇺", "🇻🇪", "🇻🇳", "🇾🇪", "🇿🇲", "🇿🇼"));
+    ArrayList<String> countryNm = new ArrayList<>(
+            Arrays.asList("Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso", "Burundi", "Cabo Verde", "Cambodia", "Cameroon", "Canada", "Central African Republic", "Chad", "Chile", "China", "Colombia", "Comoros", "Congo", "Costa Rica", "Croatia", "Cuba", "Cyprus", "Czechia", "Côte d'Ivoire", "Denmark", "Djibouti", "Dominica", "Dominican Republic", "DR Congo", "Ecuador", "Egypt", "El Salvador", "England", "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini (Swaziland)", "Ethiopia", "Fiji", "Finland", "France", "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana", "Haiti", "Honduras", "Hong Kong", "Hungary", "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy", "Jamaica", "Japan", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Kuwait", "Kyrgyzstan", "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein", "Lithuania", "Luxembourg", "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands", "Martinique", "Mauritius", "Mexico", "Micronesia", "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar", "Namibia", "Nauru", "Nepal", "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", "North Korea", "North Macedonia", "Norway", "Oman", "Pakistan", "Palau", "Palestine", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Poland", "Portugal", "Qatar", "Romania", "Russia", "Rwanda", "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent", "Samoa", "San Marino", "São Tomé and Príncipe", "Saudi Arabia", "Scotland", "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia", "Slovenia", "Solomon Islands", "Somalia", "South Africa", "South Korea", "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", "Switzerland", "Syria", "Taiwan", "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo", "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan", "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "United States", "Uruguay", "Uzbekistan", "Vanuatu", "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"));
+
     FirebaseAuth mAuth;
     Context context;
     public static String playerId;
@@ -78,17 +93,16 @@ public class StartActivity extends AppCompatActivity
 //    }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState)
-    {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mAuth = FirebaseAuth.getInstance();
         PlayGamesSdk.initialize(this);
-        context=this;
+        context = this;
         setContentView(R.layout.activity_start);
-        mode1=findViewById(R.id.mode1);
-        mode2=findViewById(R.id.mode2);
-        mode3=findViewById(R.id.mode3);
-        loadingUI= new LoadingUI();
+        mode1 = findViewById(R.id.mode1);
+        mode2 = findViewById(R.id.mode2);
+        mode3 = findViewById(R.id.mode3);
+        loadingUI = new LoadingUI();
         loadingUI.start();
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         preferences = this.getSharedPreferences(
@@ -96,7 +110,10 @@ public class StartActivity extends AppCompatActivity
         //SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(ApplicationConstants.PREFERENCES, Context.MODE_PRIVATE);
         preferencesEditor = preferences.edit();
         GameProfile.setPreferences(preferences);
-        isFirstRun= preferences.getBoolean("firstRun", true);
+        //if (!isFirstRun)
+            isFirstRun = preferences.getBoolean("firstRun", true);
+
+
         //if(isFirstRun)
 
 //        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_GAMES_SIGN_IN)
@@ -105,10 +122,9 @@ public class StartActivity extends AppCompatActivity
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         findViewById(R.id.globalScoreFrag).setVisibility(View.GONE);
 
-        if(showHadith&&!isFirstRun)
-        {
+        if (showHadith && !isFirstRun) {
             showAHadith();
-            showHadith=false;
+            showHadith = false;
         }
 
 
@@ -120,9 +136,8 @@ public class StartActivity extends AppCompatActivity
                     isAuthenticatedTask.getResult().isAuthenticated());
             gamesSignInClient.requestServerSideAccess(getString(R.string.default_web_client_id),
                             /*forceRefreshToken=*/ false)
-                    .addOnCompleteListener( task -> {
-                        if (task.isSuccessful())
-                        {
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
                             isUpdateAvailable();
 
                             String serverAuthToken = task.getResult();
@@ -133,26 +148,22 @@ public class StartActivity extends AppCompatActivity
                                     .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                                         @Override
                                         public void onComplete(@NonNull Task<AuthResult> task) {
-                                            if (task.isSuccessful())
-                                            {
+                                            if (task.isSuccessful()) {
                                                 // Sign in success, update UI with the signed-in user's information
 
                                                 //Log.d(TAG, "signInWithCredential: success");
-                                                if(showHadith&&isFirstRun)
-                                                {
+                                                if (showHadith && isFirstRun) {
                                                     showAHadith();
-                                                    showHadith=false;
+                                                    showHadith = false;
                                                 }
                                                 FirebaseUser user = auth.getCurrentUser();
-                                                if (isAuthenticated)
-                                                {
+                                                if (isAuthenticated) {
                                                     PlayGames.getPlayersClient(StartActivity.this).getCurrentPlayer().addOnCompleteListener(mTask ->
                                                             {
-                                                                GameProfile gameProfile=new GameProfile();
-                                                                playerId= mTask.getResult().getPlayerId();
+                                                                playerId = mTask.getResult().getPlayerId();
                                                                 //Toast.makeText(StartActivity.this, "id: "+mTask.getResult().getPlayerId() , Toast.LENGTH_SHORT).show();
-                                                                if(preferences.getBoolean("needProfile",true))
-                                                                {
+                                                                if (preferences.getBoolean("needProfile", true)) {
+                                                                    GameProfile gameProfile = new GameProfile();
                                                                     db.collection("gamerProfile").document(playerId)
                                                                             .get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                                                                                 @Override
@@ -161,11 +172,11 @@ public class StartActivity extends AppCompatActivity
                                                                                         DocumentSnapshot document = task.getResult();
                                                                                         if (document.exists()) {
                                                                                             preferencesEditor.putBoolean("needProfile", false).apply();
-                                                                                            preferencesEditor.putBoolean("firstRun", false).apply();
+
                                                                                             loadProfileFromServer(db);
-                                                                                            if(loadingUI.visibility)
-                                                                                            {
-                                                                                                onlineStatus="pass";
+
+                                                                                            if (loadingUI.visibility) {
+                                                                                                onlineStatus = "pass";
                                                                                                 loadingUI.stop();
                                                                                             }
                                                                                             //Log.d(TAG, "Profile exists!");
@@ -173,17 +184,16 @@ public class StartActivity extends AppCompatActivity
                                                                                         } else {
                                                                                             //Log.d(TAG, "Profile does not exist!");
                                                                                             //Toast.makeText(StartActivity.this, "Profile does not exist!", Toast.LENGTH_SHORT).show();
-                                                                                            gameProfile.playerId=playerId;
-                                                                                            db.collection("gamerProfile").document(mTask.getResult().getPlayerId())
+                                                                                            gameProfile.playerId = playerId;
+                                                                                            db.collection("gamerProfile").document(playerId)
                                                                                                     .set(gameProfile)
                                                                                                     .addOnSuccessListener(new OnSuccessListener<Void>() {
                                                                                                         @Override
                                                                                                         public void onSuccess(Void unused) {
                                                                                                             preferencesEditor.putBoolean("needProfile", false).apply();
                                                                                                             gameProfile.apply();
-                                                                                                            if(loadingUI.visibility)
-                                                                                                            {
-                                                                                                                onlineStatus="pass";
+                                                                                                            if (loadingUI.visibility) {
+                                                                                                                onlineStatus = "pass";
                                                                                                                 loadingUI.stop();
                                                                                                             }
                                                                                                             //Log.d(TAG, "onSuccess: Profile Created");
@@ -194,34 +204,30 @@ public class StartActivity extends AppCompatActivity
                                                                                                         public void onFailure(@NonNull Exception e) {
                                                                                                             //Log.d("TAG", "onSuccess: Profile Creation Failed");
                                                                                                             //Toast.makeText(StartActivity.this, "onSuccess: Profile Creation Failed", Toast.LENGTH_SHORT).show();
-                                                                                                            if(loadingUI.visibility)
-                                                                                                            {
-                                                                                                                onlineStatus="needReload";
+                                                                                                            if (loadingUI.visibility) {
+                                                                                                                onlineStatus = "needReload";
                                                                                                                 loadingUI.stop();
                                                                                                             }
 
                                                                                                         }
                                                                                                     });
+                                                                                            getLocation(db);
+
                                                                                         }
                                                                                     } else {
                                                                                         //Log.d(TAG, "Failed with: ", task.getException());
-                                                                                        if(loadingUI.visibility)
-                                                                                        {
-                                                                                            onlineStatus="needReload";
+                                                                                        if (loadingUI.visibility) {
+                                                                                            onlineStatus = "needReload";
                                                                                             loadingUI.stop();
                                                                                         }
                                                                                     }
                                                                                 }
                                                                             });
-                                                                }
-                                                                else
-                                                                {
+                                                                } else {
                                                                     loadProfileFromServer(db);
-                                                                    if(loadingUI.visibility)
-                                                                    {
-                                                                        onlineStatus="pass";
-                                                                        loadingUI.stop();
-                                                                    }
+
+                                                                    onlineStatus = "pass";
+                                                                    loadingUI.stop();
                                                                 }
                                                             }
 
@@ -229,18 +235,15 @@ public class StartActivity extends AppCompatActivity
 
                                                     // Continue with Play Games Services
 
-                                                }
-                                                else
-                                                {
+                                                } else {
                                                     //Toast.makeText(StartActivity.this, "Failed", Toast.LENGTH_SHORT).show();
 
                                                     // Disable your integration with Play Games Services or show a
                                                     // login button to ask  players to sign-in. Clicking it should
                                                     // call GamesSignInClient.signIn();
                                                     updateUI(null);
-                                                    if(loadingUI.visibility)
-                                                    {
-                                                        onlineStatus="needReload";
+                                                    if (loadingUI.visibility) {
+                                                        onlineStatus = "needReload";
                                                         loadingUI.stop();
                                                     }
                                                 }
@@ -250,9 +253,8 @@ public class StartActivity extends AppCompatActivity
                                                 //Log.d(TAG, "signInWithCredential: failure", task.getException());
                                                 //Toast.makeText(StartActivity.this, "Authentication failed.",Toast.LENGTH_SHORT).show();
                                                 updateUI(null);
-                                                if(loadingUI.visibility)
-                                                {
-                                                    onlineStatus="needReload";
+                                                if (loadingUI.visibility) {
+                                                    onlineStatus = "needReload";
                                                     loadingUI.stop();
                                                 }
                                             }
@@ -264,8 +266,7 @@ public class StartActivity extends AppCompatActivity
                             // Failed to retrieve authentication code.
                             //Log.d(TAG, "signInWithCredential:failure", task.getException());
                             //Toast.makeText(StartActivity.this, "No Internet.",Toast.LENGTH_SHORT).show();
-                            if (isAuthenticated)
-                            {
+                            if (isAuthenticated) {
                                 PlayGames.getPlayersClient(StartActivity.this).getCurrentPlayer().addOnCompleteListener(mTask ->
                                 {
                                     GameProfile gameProfile = new GameProfile();
@@ -273,9 +274,8 @@ public class StartActivity extends AppCompatActivity
                                 });
                             }
                             updateUI(null);
-                            if(loadingUI.visibility)
-                            {
-                                onlineStatus="needReload";
+                            if (loadingUI.visibility) {
+                                onlineStatus = "needReload";
                                 loadingUI.stop();
                             }
                         }
@@ -289,18 +289,82 @@ public class StartActivity extends AppCompatActivity
         ifMuted();
 
     }
-    public void loadProfileFromServer(FirebaseFirestore db)
-    {
+
+    public void loadProfileFromServer(FirebaseFirestore db) {
         db.collection("gamerProfile").document(playerId)
-                .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>(){
+                .get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
                     @Override
                     public void onSuccess(DocumentSnapshot documentSnapshot) {
-                        GameProfile server2device =documentSnapshot.toObject(GameProfile.class);
-                        assert server2device != null;
-                        server2device.apply();
+                        if(documentSnapshot.exists())
+                        {
+                            GameProfile server2device = documentSnapshot.toObject(GameProfile.class);
+                            assert server2device != null;
+                            server2device.apply();
+                            //remove some day
+                            getLocation(db);
+                        }
+
                     }
                 });
     }
+
+    public void getLocation(FirebaseFirestore db)
+    {
+        new Thread(() ->
+        {
+            String bodyTxt;
+            try {
+                Log.d(TAG, "getLocation: Success");
+                String url="http://ip-api.com/json/?fields=country,city,query";
+                Document doc = Jsoup.connect(url).ignoreContentType(true).get();
+                Element body = doc.body();
+                bodyTxt=body.text();//.replace("\"","\\\"");
+                Log.d(TAG, "getLocation: "+bodyTxt);
+                //runOnUiThread(() -> {
+                    //result.setText(builder.toString());
+                    //JsonElement jelem = gson.fromJson(json, JsonElement.class);
+                    Gson g = new GsonBuilder().serializeNulls().create();
+                    JsonElement je = g.fromJson(bodyTxt, JsonElement.class);
+                    JsonObject jd = je.getAsJsonObject();
+                    Log.d(TAG, "JsonData.class ip: "+jd.toString());
+                    preferencesEditor.putString("cityNm",jd.get("city").getAsString()).apply();
+                    preferencesEditor.putString("query",jd.get("query").getAsString()).apply();
+                    String country =jd.get("country").getAsString();
+                    int tmp=0;
+                    if(country.equals("Israel"))
+                    {
+                        country="Palestine";
+                        tmp=1;
+                    }
+                    int index = countryNm.indexOf(jd.get("country").getAsString());
+                    Log.d(TAG, "onCreate: index " + index);
+                    if (index != -1)
+                        preferencesEditor.putString("countryEmoji", countryEmojis.get(index)).apply();
+                    if(tmp==1)
+                        country="Palestina";
+                    preferencesEditor.putString("countryNm",country).apply();
+                    Log.d(TAG, "onCreate: emo " + preferences.getString("countryEmoji", ""));
+                    GameProfile upLoc=new GameProfile();
+                    upLoc.playerId=playerId;
+                    upLoc.countryEmoji=preferences.getString("countryEmoji","");
+                    upLoc.countryNm=preferences.getString("countryNm","");
+                    //if(!upLoc.countryNm.equals(""))
+
+                    db.collection("gamerProfile").document(playerId).set(upLoc);
+                //});
+
+
+            } catch (Exception e) {
+                //builder.append("Error : ").append(e.getMessage()).append("\n");
+                e.printStackTrace();
+            }
+
+        }).start();
+
+    }
+
+
+
     private boolean isNetworkConnected() {
         ConnectivityManager cm = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
         return cm.getActiveNetworkInfo() != null;
@@ -479,7 +543,7 @@ public class StartActivity extends AppCompatActivity
                                 if(hadithList.get(index).t.equals("h"))
                                     headTxt.setText("Read a Hadith");
                                 else if(hadithList.get(index).t.equals("q"))
-                                    headTxt.setText("Read a Āyah");
+                                    headTxt.setText("Read from Quran");
 
                                 if(preferences.getString("lang","bn").equals("bn"))
                                 {
@@ -550,7 +614,10 @@ public class StartActivity extends AppCompatActivity
                                         mediaPlayer.start();
                                         mediaPlayer.setOnCompletionListener(MediaPlayer::release);
                                     }
-                                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(hadithList.get(index).src)));
+                                    String uri=hadithList.get(index).src;
+                                    if(hadithList.get(index).t.equals("q")&&langBtn.getText().equals("BN"))
+                                        uri=uri.replace("bn","en");
+                                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(uri)));
                                 });
 
 
@@ -570,9 +637,9 @@ public class StartActivity extends AppCompatActivity
     public void isUpdateAvailable()
     {
         Context context=this;
-        String localVersionName = BuildConfig.VERSION_NAME;
+        Integer localVersionCode = BuildConfig.VERSION_CODE;
         FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference myRef = database.getReference("version");
+        DatabaseReference myRef = database.getReference("versionCode");
         myRef.addValueEventListener(new ValueEventListener() {
             @SuppressLint("SetTextI18n")
             @Override
@@ -580,8 +647,9 @@ public class StartActivity extends AppCompatActivity
             {
                 // This method is called once with the initial value and again
                 // whenever data at this location is updated.
-                onlineVersionName = dataSnapshot.getValue(String.class);
-                if(!localVersionName.equals(onlineVersionName))
+                Integer onlineVersionCode = dataSnapshot.getValue(Integer.class);
+                assert onlineVersionCode != null;
+                if(localVersionCode< Objects.requireNonNull(onlineVersionCode))
                 {
                     AlertDialog.Builder builder = new AlertDialog.Builder(context);
                     View view = LayoutInflater.from(StartActivity.this).inflate(

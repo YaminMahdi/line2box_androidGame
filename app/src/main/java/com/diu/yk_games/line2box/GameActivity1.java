@@ -49,7 +49,7 @@ public class GameActivity1 extends AppCompatActivity
     //MediaPlayer lineClick, boxPlus, winSoundEf, btnClick;
     SharedPreferences sharedPref;
     SharedPreferences.Editor editor;
-    boolean isFirstRun=false;
+    boolean isFirstRun;
 
     @SuppressLint("SetTextI18n")
     public void onStopFragment()
@@ -98,7 +98,7 @@ public class GameActivity1 extends AppCompatActivity
         super.onCreate(savedInstanceState);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_game1);
-        isFirstRun=StartActivity.isFirstRun;
+
         PACKAGE_NAME = getApplicationContext().getPackageName();
         scoreRedView = findViewById(R.id.scoreRed);
         scoreBlueView = findViewById(R.id.scoreBlue);
@@ -112,6 +112,7 @@ public class GameActivity1 extends AppCompatActivity
                 getString(R.string.preference_file_key), Context.MODE_PRIVATE);
         editor = sharedPref.edit();
         ifMuted();
+        isFirstRun = sharedPref.getBoolean("firstRun", true);
         if(flag)
         {
             FragmentManager fm=getSupportFragmentManager();
@@ -794,7 +795,7 @@ public class GameActivity1 extends AppCompatActivity
         redData= nm1+": "+scoreRed;
         blueData= nm2+": "+scoreBlue;
 
-        DataStore ds = new DataStore(timeData,redData,blueData,starData);
+        DataStore ds = new DataStore(timeData,redData,blueData,starData,"offline","","","");
 
 //        FirebaseDatabase database = FirebaseDatabase.getInstance();
 //        DatabaseReference myRef = database.getReference("ScoreBoard");
@@ -892,6 +893,8 @@ public class GameActivity1 extends AppCompatActivity
     }
 
     public void infoShow() {
+        if(isFirstRun)
+            editor.putBoolean("firstRun", false).apply();
         AtomicInteger i= new AtomicInteger();
         int[] gifs={R.drawable.g0,
                 R.drawable.g1,
