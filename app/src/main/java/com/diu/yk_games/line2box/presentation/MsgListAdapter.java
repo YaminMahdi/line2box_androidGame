@@ -1,4 +1,4 @@
-package com.diu.yk_games.line2box;
+package com.diu.yk_games.line2box.presentation;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -7,6 +7,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
+
+import com.diu.yk_games.line2box.R;
+import com.diu.yk_games.line2box.model.MsgStore;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;

@@ -1,10 +1,12 @@
-package com.diu.yk_games.line2box;
+package com.diu.yk_games.line2box.presentation;
 
 import android.os.Bundle;
 import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import com.diu.yk_games.line2box.R;
 
 
 public class BlankFragment extends Fragment {

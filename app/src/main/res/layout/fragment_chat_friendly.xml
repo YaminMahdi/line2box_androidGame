@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ChatFragmentFriendly"
+    tools:context=".presentation.online.ChatFragmentFriendly"
     android:id="@+id/ChatFragmentFriendly"
     android:background="@color/cocX"
     android:weightSum="2"

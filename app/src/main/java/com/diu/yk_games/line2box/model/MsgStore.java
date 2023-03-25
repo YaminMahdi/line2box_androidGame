@@ -1,4 +1,4 @@
-package com.diu.yk_games.line2box;
+package com.diu.yk_games.line2box.model;
 
 public class MsgStore
 {

@@ -7,7 +7,7 @@
     android:layout_margin="30dp"
     android:background="@drawable/box"
     android:orientation="vertical"
-    tools:context=".NameInfoFragment">
+    tools:context=".presentation.offline.NameInfoFragment">
 
 
     <LinearLayout

@@ -6,7 +6,7 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     app:defaultNavHost="true"
-    tools:context=".GameActivity2">
+    tools:context=".presentation.online.GameActivity2">
 
 
 
@@ -240,7 +240,7 @@
 
         <androidx.fragment.app.FragmentContainerView
             android:id="@+id/nmFragment"
-            android:name="com.diu.yk_games.line2box.BlankFragment"
+            android:name="com.diu.yk_games.line2box.presentation.BlankFragment"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 

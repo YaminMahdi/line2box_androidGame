@@ -1,4 +1,4 @@
-package com.diu.yk_games.line2box;
+package com.diu.yk_games.line2box.model;
 
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;

@@ -7,7 +7,7 @@
     android:layout_marginHorizontal="20dp"
     android:layout_marginTop="50dp"
     android:layout_marginBottom="20dp"
-    tools:context=".DisplayFragment"
+    tools:context=".presentation.main.DisplayFragment"
     android:padding="20dp"
     android:orientation="vertical">
 

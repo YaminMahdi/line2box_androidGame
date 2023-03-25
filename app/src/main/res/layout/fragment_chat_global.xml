@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ChatFragmentGlobal"
+    tools:context=".presentation.online.ChatFragmentGlobal"
     android:id="@+id/ChatFragmentGlobal"
     android:background="@color/cocX"
     android:weightSum="2"

@@ -1,4 +1,4 @@
-package com.diu.yk_games.line2box;
+package com.diu.yk_games.line2box.presentation.offline;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -14,7 +14,8 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 
-import java.util.Objects;
+import com.diu.yk_games.line2box.R;
+import com.diu.yk_games.line2box.model.GameProfile;
 
 /**
  * A simple {@link Fragment} subclass.

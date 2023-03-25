@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    tools:context=".MultiplayerActivity">
+    tools:context=".presentation.online.MultiplayerActivity">
 
 
     <ImageView
@@ -73,7 +73,7 @@
 
         <androidx.fragment.app.FragmentContainerView
             android:id="@+id/disFragment"
-            android:name="com.diu.yk_games.line2box.BlankFragment"
+            android:name="com.diu.yk_games.line2box.presentation.BlankFragment"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="8"

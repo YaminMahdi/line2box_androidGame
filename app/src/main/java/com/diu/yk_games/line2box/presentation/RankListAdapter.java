@@ -1,9 +1,6 @@
-package com.diu.yk_games.line2box;
-
-import static androidx.constraintlayout.widget.ConstraintLayout.*;
+package com.diu.yk_games.line2box.presentation;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,7 +8,8 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
-import androidx.constraintlayout.widget.ConstraintLayout;
+import com.diu.yk_games.line2box.R;
+import com.diu.yk_games.line2box.model.GameProfile;
 
 import java.util.ArrayList;
 

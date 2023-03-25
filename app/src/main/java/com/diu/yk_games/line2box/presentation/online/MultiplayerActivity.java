@@ -1,4 +1,4 @@
-package com.diu.yk_games.line2box;
+package com.diu.yk_games.line2box.presentation.online;
 
 import static java.util.Objects.requireNonNull;
 
@@ -41,7 +41,13 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
+import com.diu.yk_games.line2box.presentation.BlankFragment;
+import com.diu.yk_games.line2box.presentation.main.DisplayFragment;
+import com.diu.yk_games.line2box.R;
+import com.diu.yk_games.line2box.presentation.main.StartActivity;
 import com.diu.yk_games.line2box.databinding.ActivityGameMultiBinding;
+import com.diu.yk_games.line2box.model.GameProfile;
+import com.diu.yk_games.line2box.model.MsgStore;
 import com.google.android.gms.common.images.ImageManager;
 import com.google.android.gms.games.PlayGames;
 
@@ -639,7 +645,7 @@ public class MultiplayerActivity extends AppCompatActivity{
 
                 alertDialog.dismiss();
                 super.onBackPressed();
-                startActivity(new Intent(this,StartActivity.class));
+                startActivity(new Intent(this, StartActivity.class));
                 finish();
                 //android.os.Process.killProcess(android.os.Process.myPid());
             });

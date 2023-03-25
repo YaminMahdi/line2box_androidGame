@@ -151,7 +151,7 @@
 
                 <androidx.fragment.app.FragmentContainerView
                     android:id="@+id/chatFragment"
-                    android:name="com.diu.yk_games.line2box.ChatFragmentGlobal"
+                    android:name="com.diu.yk_games.line2box.presentation.online.ChatFragmentGlobal"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:fitsSystemWindows="true"

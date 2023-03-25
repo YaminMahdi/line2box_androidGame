@@ -1,4 +1,4 @@
-package com.diu.yk_games.line2box;
+package com.diu.yk_games.line2box.presentation.online;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
@@ -21,6 +21,9 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.diu.yk_games.line2box.R;
+import com.diu.yk_games.line2box.presentation.RankListAdapter;
+import com.diu.yk_games.line2box.model.GameProfile;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;

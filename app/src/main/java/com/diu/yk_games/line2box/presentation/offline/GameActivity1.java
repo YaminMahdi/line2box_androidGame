@@ -1,4 +1,4 @@
-package com.diu.yk_games.line2box;
+package com.diu.yk_games.line2box.presentation.offline;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
@@ -24,6 +24,9 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.diu.yk_games.line2box.R;
+import com.diu.yk_games.line2box.presentation.main.StartActivity;
+import com.diu.yk_games.line2box.model.DataStore;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -711,7 +714,7 @@ public class GameActivity1 extends AppCompatActivity
             alertDialog.dismiss();
             flag=true;
             super.onBackPressed();
-            startActivity(new Intent(this,StartActivity.class));
+            startActivity(new Intent(this, StartActivity.class));
             finish();
             //android.os.Process.killProcess(android.os.Process.myPid());
         });
