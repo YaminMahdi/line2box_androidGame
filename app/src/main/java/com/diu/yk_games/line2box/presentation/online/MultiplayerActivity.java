@@ -880,7 +880,7 @@ public class MultiplayerActivity extends AppCompatActivity{
                 else
                 {
                     GameProfile z= new GameProfile();
-                    z.setNm(newNm);
+                    z.nm = newNm;
                     z.apply();
                     Log.d("TAG", "profileBtn: "+playerId);
                     if(playerId!=null)
@@ -915,7 +915,7 @@ public class MultiplayerActivity extends AppCompatActivity{
             else
             {
                 GameProfile z= new GameProfile();
-                z.setNm(newNm);
+                z.nm = newNm;
                 z.apply();
                 Log.d("TAG", "profileBtn: "+playerId);
                 if(playerId!=null)

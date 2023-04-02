@@ -78,7 +78,7 @@
             android:layout_height="0dp"
             android:layout_weight="8"
 
-            />
+            tools:layout="@layout/fragment_blank" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -93,7 +93,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="end"
-                android:background="@drawable/btn_grn_bg"
+                android:background="@drawable/btn_grnx_bg"
                 android:drawableStart="@drawable/icon_back"
                 android:fontFamily="@font/sortie"
                 android:onClick="goBack"

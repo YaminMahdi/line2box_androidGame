@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:fbutton="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -43,7 +44,7 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="8"
-
+            tools:layout="@layout/fragment_blank"
             />
 
         <LinearLayout
@@ -56,13 +57,13 @@
 
 
             <Button
+                android:id="@+id/goBackBtn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="end"
-                android:background="@drawable/btn_grn_bg"
+                android:background="@drawable/btn_grnx_bg"
                 android:drawableStart="@drawable/icon_back"
                 android:fontFamily="@font/sortie"
-                android:onClick="goBack"
                 android:padding="20dp"
                 android:text="  Go Back "
                 android:textColor="@color/white"
@@ -109,7 +110,6 @@
                         android:layout_gravity="end"
                         android:background="@drawable/btn_grn_bg"
                         android:fontFamily="@font/sortie"
-                        android:onClick="scoreBoard"
                         android:paddingVertical="10dp"
                         android:src="@drawable/icon_globe"
                         android:textColor="@color/white"
@@ -132,7 +132,6 @@
                         android:layout_marginEnd="10dp"
                         android:background="@drawable/btn_ylw_bg"
                         android:fontFamily="@font/sortie"
-                        android:onClick="volButton"
                         android:paddingVertical="10dp"
                         android:src="@drawable/icon_vol_unmute"
                         android:textColor="@color/white"
@@ -140,12 +139,12 @@
                         tools:ignore="HardcodedText,SmallSp" />
 
                     <ImageButton
+                        android:id="@+id/ideaBtn"
                         android:layout_width="45dp"
                         android:layout_height="45dp"
                         android:layout_gravity="end"
                         android:background="@drawable/btn_gry_bg"
                         android:fontFamily="@font/sortie"
-                        android:onClick="ideaBtn"
                         android:paddingVertical="10dp"
                         android:src="@drawable/icon_i"
                         android:textColor="@color/white"
@@ -157,6 +156,7 @@
 
 
             <ImageView
+                android:id="@+id/logo"
                 android:layout_width="275dp"
                 android:layout_height="275dp"
                 android:layout_gravity="center"
@@ -185,12 +185,14 @@
                 android:layout_marginBottom="80dp"
                 android:background="@drawable/btn_redx_bg"
                 android:fontFamily="@font/sortie"
-                android:onClick="startBtn"
                 android:paddingHorizontal="30dp"
                 android:paddingVertical="15dp"
                 android:text="@string/start"
                 android:textColor="@color/white"
-                android:textSize="40sp" />
+                android:textSize="40sp"
+                />
+            <!--android:onClick="startBtn"-->
+
         </LinearLayout>
 
         <androidx.constraintlayout.motion.widget.MotionLayout
@@ -199,6 +201,8 @@
             android:layout_height="wrap_content"
             app:layoutDescription="@xml/activity_start_scene"
             app:layout_constraintBottom_toTopOf="@+id/linearLayoutStart2"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/linearLayoutStart1">
 
             <ImageView
@@ -212,6 +216,13 @@
                 app:layout_constraintEnd_toStartOf="@+id/mode2"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
+            <View
+                android:id="@+id/modeX"
+                android:layout_width="70dp"
+                android:layout_height="100dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
             <ImageView
                 android:id="@+id/mode3"
@@ -223,6 +234,14 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@+id/mode2"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <View
+                android:id="@+id/modeY"
+                android:layout_width="70dp"
+                android:layout_height="100dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <ImageView

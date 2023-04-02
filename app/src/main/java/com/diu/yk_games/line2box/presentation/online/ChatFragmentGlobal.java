@@ -99,7 +99,7 @@ public class ChatFragmentGlobal extends Fragment {
         GameProfile.setPreferences(sharedPref);
 
         msList = new ArrayList<>();
-        myRef.addChildEventListener(new ChildEventListener()
+        myRef.limitToLast(100).addChildEventListener(new ChildEventListener()
         {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, String s)
@@ -190,7 +190,7 @@ public class ChatFragmentGlobal extends Fragment {
                             {
                                 Toast.makeText(context, "Text/ID copied", Toast.LENGTH_SHORT).show();
                                 ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
-                                ClipData clip = ClipData.newPlainText("msgData", ms.msgData);
+                                ClipData clip = ClipData.newPlainText("msgData", msList.get(position).msgData);
                                 clipboard.setPrimaryClip(clip);
                                 return true;
                             }
@@ -214,16 +214,19 @@ public class ChatFragmentGlobal extends Fragment {
             MsgStore ms =new MsgStore();
             ms.playerId=playerId;
             ms.nmData= gp.nm;
-            ms.lvlData= gp.getLvlByCal().toString();
+            ms.lvlData= Integer.toString(gp.getLvlByCal());
             DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd MMM, hh:mm a");
             LocalDateTime now = LocalDateTime.now();
             ms.timeData = dtf.format(now);
             ms.msgData=chatBoxGlobal.getText().toString();
-
-            String key = myRef.push().getKey();
-            assert key != null;
-            myRef.child(key).setValue(ms);
-            chatBoxGlobal.setText("");
+            if(!ms.msgData.isEmpty()) {
+                String key = myRef.push().getKey();
+                assert key != null;
+                myRef.child(key).setValue(ms);
+                chatBoxGlobal.setText("");
+            }else{
+                Toast.makeText(context,"Write Something",Toast.LENGTH_SHORT).show();
+            }
         });
         return v;
     }

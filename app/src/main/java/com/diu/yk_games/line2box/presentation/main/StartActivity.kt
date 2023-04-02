@@ -9,6 +9,7 @@ import android.graphics.drawable.ColorDrawable
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Bundle
+import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -19,12 +20,16 @@ import androidx.appcompat.app.AppCompatActivity
 import com.diu.yk_games.line2box.BuildConfig
 import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.ActivityStartBinding
+import com.diu.yk_games.line2box.databinding.DialogLayoutAlertBinding
+import com.diu.yk_games.line2box.databinding.DialogLayoutInfoBinding
+import com.diu.yk_games.line2box.databinding.DialogLayoutShowHadithBinding
 import com.diu.yk_games.line2box.model.GameProfile
 import com.diu.yk_games.line2box.model.HadithStore
 import com.diu.yk_games.line2box.presentation.BlankFragment
 import com.diu.yk_games.line2box.presentation.bot.GameActivity3
 import com.diu.yk_games.line2box.presentation.offline.GameActivity1
 import com.diu.yk_games.line2box.presentation.online.MultiplayerActivity
+import com.diu.yk_games.line2box.util.setBounceClickListener
 import com.google.android.gms.games.*
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseAuth
@@ -35,16 +40,13 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import com.google.firebase.firestore.AggregateSource
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonElement
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import org.jsoup.Jsoup
-import pl.droidsonroids.gif.GifImageView
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -54,6 +56,13 @@ class StartActivity : AppCompatActivity() {
     private var isFirstRun: Boolean = false
     private lateinit var preferences: SharedPreferences
     private lateinit var preferencesEditor: SharedPreferences.Editor
+
+    companion object {
+        private const val TAG = "TAG: StartActivity"
+        var errorCnt = 0
+        lateinit var playerId: String
+        private var showHadith = true
+    }
 
     //String onlineVersionCode = null;
     private var countryEmojis = ArrayList(
@@ -74,10 +83,14 @@ class StartActivity : AppCompatActivity() {
     )
     private var countryNm = ArrayList(
         listOf(
-            "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso", "Burundi", "Cabo Verde", "Cambodia", "Cameroon", "Canada", "Central African Republic", "Chad", "Chile", "China", "Colombia", "Comoros", "Congo", "Costa Rica", "Croatia", "Cuba", "Cyprus", "Czechia", "Côte d'Ivoire", "Denmark", "Djibouti", "Dominica", "Dominican Republic", "DR Congo",
-            "Ecuador", "Egypt", "El Salvador", "England", "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini (Swaziland)", "Ethiopia", "Fiji", "Finland", "France", "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana", "Haiti", "Honduras", "Hong Kong", "Hungary", "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy", "Jamaica", "Japan", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Kuwait", "Kyrgyzstan", "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein", "Lithuania", "Luxembourg",
-            "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands", "Martinique", "Mauritius", "Mexico", "Micronesia", "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar", "Namibia", "Nauru", "Nepal", "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", "North Korea", "North Macedonia", "Norway", "Oman", "Pakistan", "Palau", "Palestine", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Poland", "Portugal", "Qatar", "Romania", "Russia", "Rwanda", "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent", "Samoa", "San Marino", "São Tomé and Príncipe",
-            "Saudi Arabia", "Scotland", "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia", "Slovenia", "Solomon Islands", "Somalia", "South Africa", "South Korea", "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", "Switzerland", "Syria", "Taiwan", "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo", "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan", "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "United States", "Uruguay", "Uzbekistan", "Vanuatu", "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"
+            "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei",
+            "Bulgaria", "Burkina Faso", "Burundi", "Cabo Verde", "Cambodia", "Cameroon", "Canada", "Central African Republic", "Chad", "Chile", "China", "Colombia", "Comoros", "Congo", "Costa Rica", "Croatia", "Cuba", "Cyprus", "Czechia", "Côte d'Ivoire", "Denmark", "Djibouti", "Dominica", "Dominican Republic", "DR Congo",
+            "Ecuador", "Egypt", "El Salvador", "England", "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini (Swaziland)", "Ethiopia", "Fiji", "Finland", "France", "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana", "Haiti", "Honduras", "Hong Kong", "Hungary",
+            "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy", "Jamaica", "Japan", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Kuwait", "Kyrgyzstan", "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein", "Lithuania", "Luxembourg", "Madagascar", "Malawi", "Malaysia", "Maldives",
+            "Mali", "Malta", "Marshall Islands", "Martinique", "Mauritius", "Mexico", "Micronesia", "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar", "Namibia", "Nauru", "Nepal", "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", "North Korea", "North Macedonia", "Norway", "Oman",
+            "Pakistan", "Palau", "Palestine", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Poland", "Portugal", "Qatar", "Romania", "Russia", "Rwanda", "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent", "Samoa", "San Marino", "São Tomé and Príncipe", "Saudi Arabia", "Scotland", "Senegal", "Serbia",
+            "Seychelles", "Sierra Leone", "Singapore", "Slovakia", "Slovenia", "Solomon Islands", "Somalia", "South Africa", "South Korea", "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", "Switzerland", "Syria", "Taiwan", "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo", "Tonga",
+            "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan", "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "United States", "Uruguay", "Uzbekistan", "Vanuatu", "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"
         )
     )
     private lateinit var mAuth: FirebaseAuth
@@ -131,7 +144,24 @@ class StartActivity : AppCompatActivity() {
             WindowManager.LayoutParams.FLAG_FULLSCREEN,
             WindowManager.LayoutParams.FLAG_FULLSCREEN
         )
-        findViewById<View>(R.id.globalScoreFrag).visibility = View.GONE
+        binding.globalScoreFrag.visibility = View.GONE
+        binding.startBtnId.setBounceClickListener {
+            startBtn(it)
+        }
+        binding.volBtn.setBounceClickListener {
+            volButton(it)
+        }
+        binding.ideaBtn.setBounceClickListener {
+            ideaBtn(it)
+        }
+        binding.scrBrdBtn.setBounceClickListener {
+            scoreBoard(it)
+        }
+        binding.goBackBtn.setBounceClickListener {
+            goBack(it)
+        }
+        binding.logo.setBounceClickListener()
+
         if (showHadith && !isFirstRun) {
             showAHadith()
             showHadith = false
@@ -168,7 +198,7 @@ class StartActivity : AppCompatActivity() {
                                             if (preferences.getBoolean("needProfile", true)) {
                                                 val gameProfile = GameProfile()
                                                 db.collection("gamerProfile")
-                                                    .document(playerId!!)
+                                                    .document(playerId)
                                                     .get().addOnCompleteListener { task ->
                                                         if (task.isSuccessful) {
                                                             val document = task.result
@@ -191,10 +221,9 @@ class StartActivity : AppCompatActivity() {
                                                             } else {
                                                                 //Log.d(TAG, "Profile does not exist!");
                                                                 //Toast.makeText(StartActivity.this, "Profile does not exist!", Toast.LENGTH_SHORT).show();
-                                                                gameProfile.playerId =
-                                                                    playerId
+                                                                gameProfile.playerId = playerId
                                                                 db.collection("gamerProfile")
-                                                                    .document(playerId!!)
+                                                                    .document(playerId)
                                                                     .set(gameProfile)
                                                                     .addOnSuccessListener {
                                                                         preferencesEditor.putBoolean(
@@ -292,53 +321,46 @@ class StartActivity : AppCompatActivity() {
                     onGoBack()
                 } else
                 {
-                    val builder = AlertDialog.Builder(this@StartActivity)
-                    val view = LayoutInflater.from(this@StartActivity).inflate(
-                        R.layout.dialog_layout_alert, findViewById(R.id.layoutDialog)
-                    )
-                    builder.setView(view)
-                    (view.findViewById<View>(R.id.textMessage) as TextView).text =
-                        "Do you really want to exit?"
-                    (view.findViewById<View>(R.id.buttonYes) as Button).text = "YES"
-                    (view.findViewById<View>(R.id.buttonNo) as Button).text = "NO"
+                    val builder= AlertDialog.Builder(this@StartActivity)
+                    val dialogBinding = DialogLayoutAlertBinding.inflate(LayoutInflater.from(this@StartActivity))
+                    builder.setView(dialogBinding.root)
                     val alertDialog = builder.create()
-                    view.findViewById<View>(R.id.buttonYes).setOnClickListener {
+
+                    dialogBinding.textMessage.text ="Do you really want to exit?"
+                    dialogBinding.buttonYes.text = "YES"
+                    dialogBinding.buttonNo.text = "NO"
+                    alertDialog.window?.setBackgroundDrawable(ColorDrawable(0))
+                    dialogBinding.buttonYes.setBounceClickListener {
                         if (!isMuted) {
                             val mediaPlayer = MediaPlayer.create(this@StartActivity, R.raw.btn_click_ef)
                             mediaPlayer.start()
-                            mediaPlayer.setOnCompletionListener { obj: MediaPlayer -> obj.release() }
+                            mediaPlayer.setOnCompletionListener(MediaPlayer::release)
                         }
                         alertDialog.dismiss()
                         finish()
                     }
-                    view.findViewById<View>(R.id.buttonNo).setOnClickListener {
+                    dialogBinding.buttonNo.setBounceClickListener {
                         if (!isMuted) {
                             val mediaPlayer = MediaPlayer.create(this@StartActivity, R.raw.btn_click_ef)
                             mediaPlayer.start()
-                            mediaPlayer.setOnCompletionListener { obj: MediaPlayer -> obj.release() }
+                            mediaPlayer.setOnCompletionListener(MediaPlayer::release)
                         }
                         alertDialog.dismiss()
                     }
-                    if (alertDialog.window != null) {
-                        alertDialog.window!!.setBackgroundDrawable(ColorDrawable(0))
-                    }
-                    try {
-                        alertDialog.show()
-                    } catch (ex: Exception) {
-                        ex.printStackTrace()
-                    }
+                    try { alertDialog.show() }
+                    catch (npe: NullPointerException) { npe.printStackTrace() }
                 }
             }
         })
     }
 
     private fun loadProfileFromServer(db: FirebaseFirestore) {
-        db.collection("gamerProfile").document(playerId!!)
-            .get().addOnSuccessListener { documentSnapshot ->
+        db.collection("gamerProfile")
+//            .whereEqualTo("playerId",playerId)
+            .document(playerId).get()
+            .addOnSuccessListener { documentSnapshot ->
                 if (documentSnapshot.exists()) {
-                    val server2device = documentSnapshot.toObject(
-                        GameProfile::class.java
-                    )!!
+                    val server2device = documentSnapshot.toObject(GameProfile::class.java)!!
                     server2device.apply()
                     //remove some day
                     getLocation(db)
@@ -346,8 +368,9 @@ class StartActivity : AppCompatActivity() {
             }
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     private fun getLocation(db: FirebaseFirestore) {
-        Thread {
+        GlobalScope.launch(Dispatchers.IO) {
             val bodyTxt: String
             try {
                 Log.d(TAG, "getLocation: Success")
@@ -373,23 +396,24 @@ class StartActivity : AppCompatActivity() {
                 }
                 val index = countryNm.indexOf(jd["country"].asString)
                 Log.d(TAG, "onCreate: index $index")
-                if (index != -1) preferencesEditor.putString("countryEmoji", countryEmojis[index])
-                    .apply()
-                if (tmp == 1) country = "Palestina"
+                if (index != -1)
+                    preferencesEditor.putString("countryEmoji", countryEmojis[index]).apply()
+                if (tmp == 1)
+                    country = "Palestina"
                 preferencesEditor.putString("countryNm", country).apply()
                 Log.d(TAG, "onCreate: emo " + preferences.getString("countryEmoji", ""))
                 val upLoc = GameProfile()
                 upLoc.playerId = playerId
-                upLoc.countryEmoji = preferences.getString("countryEmoji", "")
-                upLoc.countryNm = preferences.getString("countryNm", "")
+                upLoc.countryEmoji = preferences.getString("countryEmoji", "")!!
+                upLoc.countryNm = preferences.getString("countryNm", "")!!
                 //if(!upLoc.countryNm.equals(""))
-                db.collection("gamerProfile").document(playerId!!).set(upLoc)
+                db.collection("gamerProfile").document(playerId).set(upLoc)
                 //});
             } catch (e: Exception) {
                 //builder.append("Error : ").append(e.getMessage()).append("\n");
                 e.printStackTrace()
             }
-        }.start()
+        }
     }
 
 //    private val isNetworkConnected: Boolean
@@ -432,7 +456,9 @@ class StartActivity : AppCompatActivity() {
                 if (visibility) {
                     onlineStatus = "needReload"
                     stop()
+                    Looper.prepare()
                     updateUI(null)
+                    Looper.loop()
                 }
             }
         }
@@ -460,12 +486,12 @@ class StartActivity : AppCompatActivity() {
                 (view.findViewById<View>(R.id.warningMessage) as TextView).text = "Warning !"
                 (view.findViewById<View>(R.id.UpdateInfo) as TextView).text =
                     "You may need to UPDATE those two apps. (Link Below)"
-                view.findViewById<View>(R.id.playSvLink).setOnClickListener {
+                view.findViewById<View>(R.id.playSvLink).setBounceClickListener {
                     (view.findViewById<View>(R.id.playSvLink) as TextView).setTextColor(getColor(R.color.teal_700))
                     if (!isMuted) {
                         val mediaPlayer = MediaPlayer.create(this@StartActivity, R.raw.btn_click_ef)
                         mediaPlayer.start()
-                        mediaPlayer.setOnCompletionListener { obj: MediaPlayer -> obj.release() }
+                        mediaPlayer.setOnCompletionListener(MediaPlayer::release)
                     }
                     startActivity(
                         Intent(
@@ -474,12 +500,12 @@ class StartActivity : AppCompatActivity() {
                         )
                     )
                 }
-                view.findViewById<View>(R.id.playGmLink).setOnClickListener {
+                view.findViewById<View>(R.id.playGmLink).setBounceClickListener {
                     (view.findViewById<View>(R.id.playGmLink) as TextView).setTextColor(getColor(R.color.teal_700))
                     if (!isMuted) {
                         val mediaPlayer = MediaPlayer.create(this@StartActivity, R.raw.btn_click_ef)
                         mediaPlayer.start()
-                        mediaPlayer.setOnCompletionListener { obj: MediaPlayer -> obj.release() }
+                        mediaPlayer.setOnCompletionListener(MediaPlayer::release)
                     }
                     startActivity(
                         Intent(
@@ -490,11 +516,11 @@ class StartActivity : AppCompatActivity() {
                 }
             }
             if (isFirstRun) {
-                view.findViewById<View>(R.id.buttonUpdate).setOnClickListener {
+                view.findViewById<View>(R.id.buttonUpdate).setBounceClickListener {
                     if (!isMuted) {
                         val mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
                         mediaPlayer.start()
-                        mediaPlayer.setOnCompletionListener { obj: MediaPlayer -> obj.release() }
+                        mediaPlayer.setOnCompletionListener(MediaPlayer::release)
                     }
                     recreate()
                     alertDialog.dismiss()
@@ -504,11 +530,11 @@ class StartActivity : AppCompatActivity() {
                 if (errorCnt < 3) (view.findViewById<View>(R.id.UpdateInfo) as TextView).text =
                     "Some functionalities are disabled."
                 (view.findViewById<View>(R.id.buttonUpdate) as Button).text = "Continue"
-                view.findViewById<View>(R.id.buttonUpdate).setOnClickListener {
+                view.findViewById<View>(R.id.buttonUpdate).setBounceClickListener {
                     if (!isMuted) {
                         val mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
                         mediaPlayer.start()
-                        mediaPlayer.setOnCompletionListener { obj: MediaPlayer -> obj.release() }
+                        mediaPlayer.setOnCompletionListener(MediaPlayer::release)
                     }
                     alertDialog.dismiss()
                 }
@@ -532,72 +558,65 @@ class StartActivity : AppCompatActivity() {
 
     @SuppressLint("SetTextI18n")
     private fun showAHadith() {
-        val hadithList = ArrayList<HadithStore>()
+//        val hadithList = ArrayList<HadithStore>()
         val db = FirebaseFirestore.getInstance()
         db.collection("dailyHadith")
-            .get()
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    for (document in task.result) {
-                        val h = document.toObject(HadithStore::class.java)
-                        //                                if(h.b.equals(""))
-                        //                                    db.collection("dailyHadith").document(document.getId()).delete();
-                        //                                else
-                        hadithList.add(h)
-                    }
-                    if (hadithList.size > 0) {
-                        //AddSomeBlankHadith(db, hadithList.size());
-                        val index = Random().nextInt(hadithList.size)
+            .count().get(AggregateSource.SERVER)
+            .addOnSuccessListener {
+                val totalHadith = it.count + 1
+                val randDocId = Random().nextInt(totalHadith.toInt()).toString()
+                Log.d(TAG, "showAHadith: $randDocId")
+                db.collection("dailyHadith").document(randDocId)
+                    .get()
+                    .addOnSuccessListener { doc ->
+                        val hadith = doc.toObject(HadithStore::class.java)!!
                         val builder = AlertDialog.Builder(this@StartActivity)
-                        val view = LayoutInflater.from(this@StartActivity).inflate(
-                            R.layout.dialog_layout_show_hadith,
-                            findViewById(R.id.hadithLayoutDialog)
-                        )
-                        builder.setView(view)
+                        val dialogBinding =
+                            DialogLayoutShowHadithBinding.inflate(LayoutInflater.from(this@StartActivity))
+                        builder.setView(dialogBinding.root)
                         builder.setCancelable(false)
-                        val langBtn = view.findViewById<Button>(R.id.langBtn)
-                        val narratorInfo = view.findViewById<TextView>(R.id.narratorInfo)
-                        val hadithTxt = view.findViewById<TextView>(R.id.hadithTxt)
-                        val headTxt = view.findViewById<TextView>(R.id.warningMessage)
-                        if (hadithList[index].t == "h") headTxt.text =
-                            "Read a Hadith" else if (hadithList[index].t == "q") headTxt.text =
+                        val langBtn = dialogBinding.langBtn
+                        val narratorInfo = dialogBinding.narratorInfo
+                        val hadithTxt = dialogBinding.hadithTxt
+                        val headTxt = dialogBinding.warningMessage
+                        if (hadith.t == "h") headTxt.text =
+                            "Read a Hadith" else if (hadith.t == "q") headTxt.text =
                             "Read from Quran"
                         if (preferences.getString("lang", "bn") == "bn") {
-                            narratorInfo.text = hadithList[index].b
-                            hadithTxt.text = hadithList[index].bn
+                            narratorInfo.text = hadith.b
+                            hadithTxt.text = hadith.bn
                             narratorInfo.typeface = resources.getFont(R.font.paapri)
                             hadithTxt.typeface = resources.getFont(R.font.paapri)
                             hadithTxt.setLineSpacing(0f, 1f)
                             langBtn.text = "EN"
                         } else {
-                            narratorInfo.text = hadithList[index].e
-                            hadithTxt.text = hadithList[index].en
+                            narratorInfo.text = hadith.e
+                            hadithTxt.text = hadith.en
                             narratorInfo.typeface = resources.getFont(R.font.comfortaa)
                             hadithTxt.typeface = resources.getFont(R.font.comfortaa)
                             hadithTxt.setLineSpacing(7f, 1f)
                             langBtn.text = "BN"
                         }
-                        (view.findViewById<View>(R.id.hadithInfo) as TextView).text =
-                            hadithList[index].ref
+                        dialogBinding.hadithInfo.text = hadith.ref
                         val alertDialog = builder.create()
-                        langBtn.setOnClickListener {
+                        langBtn.setBounceClickListener {
                             if (!isMuted) {
                                 val mediaPlayer =
                                     MediaPlayer.create(this@StartActivity, R.raw.btn_click_ef)
                                 mediaPlayer.start()
-                                mediaPlayer.setOnCompletionListener { obj: MediaPlayer -> obj.release() }
+                                mediaPlayer.setOnCompletionListener(MediaPlayer::release)
                             }
                             if (langBtn.text == "EN") {
-                                narratorInfo.text = hadithList[index].e
-                                hadithTxt.text = hadithList[index].en
+                                narratorInfo.text = hadith.e
+                                hadithTxt.text = hadith.en
                                 narratorInfo.typeface = resources.getFont(R.font.comfortaa)
                                 hadithTxt.typeface = resources.getFont(R.font.comfortaa)
                                 hadithTxt.setLineSpacing(7f, 1f)
                                 preferencesEditor.putString("lang", "en").apply()
                                 langBtn.text = "BN"
                             } else {
-                                narratorInfo.text = hadithList[index].b
-                                hadithTxt.text = hadithList[index].bn
+                                narratorInfo.text = hadith.b
+                                hadithTxt.text = hadith.bn
                                 narratorInfo.typeface = resources.getFont(R.font.paapri)
                                 hadithTxt.typeface = resources.getFont(R.font.paapri)
                                 hadithTxt.setLineSpacing(0f, 1f)
@@ -605,57 +624,39 @@ class StartActivity : AppCompatActivity() {
                                 langBtn.text = "EN"
                             }
                         }
-                        view.findViewById<View>(R.id.buttonDone)
-                            .setOnClickListener {
-                                if (!isMuted) {
-                                    val mediaPlayer = MediaPlayer.create(
-                                        this@StartActivity,
-                                        R.raw.btn_click_ef
-                                    )
-                                    mediaPlayer.start()
-                                    mediaPlayer.setOnCompletionListener { obj: MediaPlayer -> obj.release() }
-                                }
-                                alertDialog.dismiss()
+                        dialogBinding.buttonDone.setBounceClickListener {
+                            if (!isMuted) {
+                                val mediaPlayer = MediaPlayer.create(
+                                    this@StartActivity,
+                                    R.raw.btn_click_ef
+                                )
+                                mediaPlayer.start()
+                                mediaPlayer.setOnCompletionListener(MediaPlayer::release)
                             }
-                        view.findViewById<View>(R.id.srcLink).setOnClickListener {
-                            (view.findViewById<View>(R.id.srcLink) as TextView).setTextColor(
-                                getColor(R.color.teal_700)
-                            )
+                            alertDialog.dismiss()
+                        }
+                        dialogBinding.srcLink.setBounceClickListener {
+                            dialogBinding.srcLink.setTextColor(getColor(R.color.teal_700))
                             if (!isMuted) {
                                 val mediaPlayer =
                                     MediaPlayer.create(this@StartActivity, R.raw.btn_click_ef)
                                 mediaPlayer.start()
-                                mediaPlayer.setOnCompletionListener { obj: MediaPlayer -> obj.release() }
+                                mediaPlayer.setOnCompletionListener(MediaPlayer::release)
                             }
-                            var uri = hadithList[index].src
-                            if (hadithList[index].t == "q" && langBtn.text == "BN") uri =
+                            var uri = hadith.src
+                            if (hadith.t == "q" && langBtn.text == "BN") uri =
                                 uri.replace("bn", "en")
                             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(uri)))
                         }
-                        if (alertDialog.window != null) {
-                            alertDialog.window!!.setBackgroundDrawable(ColorDrawable(0))
-                        }
+                        alertDialog.window?.setBackgroundDrawable(ColorDrawable(0))
                         try {
                             alertDialog.show()
                         } catch (ex: Exception) {
                             ex.printStackTrace()
                         }
                     }
-                } else {
-                    //Log.d(TAG, "Error getting documents: ", task.getException());
-                }
             }
-    }// Failed to read value
-
-    //Log.d("TAG", "Failed to read value.", error.toException());
-// getPackageName() from Context or Activity object
-    //                        try {
-//                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + appPackageName)));
-//                        } catch (android.content.ActivityNotFoundException ante) {
-    //}
-    ////Log.d(TAG, "Last Value is: " + bestScore);
-    // This method is called once with the initial value and again
-    // whenever data at this location is updated.
+    }
     private val isUpdateAvailable: Unit
         get() {
             val context: Context = this
@@ -676,12 +677,12 @@ class StartActivity : AppCompatActivity() {
                         builder.setView(view)
                         val alertDialog = builder.create()
                         view.findViewById<View>(R.id.buttonUpdate)
-                            .setOnClickListener {
+                            .setBounceClickListener {
                                 if (!isMuted) {
                                     val mediaPlayer =
                                         MediaPlayer.create(this@StartActivity, R.raw.btn_click_ef)
                                     mediaPlayer.start()
-                                    mediaPlayer.setOnCompletionListener { obj: MediaPlayer -> obj.release() }
+                                    mediaPlayer.setOnCompletionListener(MediaPlayer::release)
                                 }
                                 val appPackageName =
                                     packageName // getPackageName() from Context or Activity object
@@ -733,7 +734,7 @@ class StartActivity : AppCompatActivity() {
         if (!isMuted) {
             val mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
             mediaPlayer.start()
-            mediaPlayer.setOnCompletionListener { obj: MediaPlayer -> obj.release() }
+            mediaPlayer.setOnCompletionListener(MediaPlayer::release)
         }
         scrBrdVisible = true
         val fm = supportFragmentManager
@@ -750,7 +751,7 @@ class StartActivity : AppCompatActivity() {
         if (!isMuted) {
             val mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
             mediaPlayer.start()
-            mediaPlayer.setOnCompletionListener { obj: MediaPlayer -> obj.release() }
+            mediaPlayer.setOnCompletionListener(MediaPlayer::release)
         }
         onGoBack()
     }
@@ -776,7 +777,7 @@ class StartActivity : AppCompatActivity() {
             run {
                 val mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
                 mediaPlayer.start()
-                mediaPlayer.setOnCompletionListener { obj: MediaPlayer -> obj.release() }
+                mediaPlayer.setOnCompletionListener(MediaPlayer::release)
             }
             findViewById<View>(R.id.volBtn).setBackgroundResource(R.drawable.btn_ylw_bg)
             (findViewById<View>(R.id.volBtn) as ImageButton).setImageResource(R.drawable.icon_vol_unmute)
@@ -788,7 +789,7 @@ class StartActivity : AppCompatActivity() {
         if (!isMuted) {
             val mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
             mediaPlayer.start()
-            mediaPlayer.setOnCompletionListener { obj: MediaPlayer -> obj.release() }
+            mediaPlayer.setOnCompletionListener(MediaPlayer::release)
         }
         infoShow()
     }
@@ -810,50 +811,42 @@ class StartActivity : AppCompatActivity() {
             "Click on this button anytime to see the rules again."
         )
         val builder = AlertDialog.Builder(this@StartActivity)
-        val view = LayoutInflater.from(this@StartActivity).inflate(
-            R.layout.dialog_layout_info, findViewById(R.id.layoutInfo)
-        )
-        builder.setView(view)
+        val dialogBinding = DialogLayoutInfoBinding.inflate(LayoutInflater.from(this@StartActivity))
+        builder.setView(dialogBinding.root)
         builder.setCancelable(false)
-        (view.findViewById<View>(R.id.textMessage) as TextView).text = msg[0]
-        (view.findViewById<View>(R.id.playGif) as GifImageView).setImageResource(gifs[0])
-        view.findViewById<View>(R.id.buttonPre).visibility = View.INVISIBLE
+
+        dialogBinding.textMessage.text = msg[0]
+        dialogBinding.playGif.setImageResource(gifs[0])
+        dialogBinding.buttonPre.visibility = View.INVISIBLE
         val alertDialog = builder.create()
-        view.findViewById<View>(R.id.buttonPre).setOnClickListener {
+        dialogBinding.buttonPre.setBounceClickListener {
             if (!isMuted) {
                 val mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
                 mediaPlayer.start()
-                mediaPlayer.setOnCompletionListener { obj: MediaPlayer -> obj.release() }
+                mediaPlayer.setOnCompletionListener(MediaPlayer::release)
             }
             if (i.get() != 0) i.getAndDecrement()
-            if (i.get() == 0) view.findViewById<View>(R.id.buttonPre).visibility = View.INVISIBLE
-            (view.findViewById<View>(R.id.textMessage) as TextView).text = msg[i.get()]
-            (view.findViewById<View>(R.id.playGif) as GifImageView).setImageResource(gifs[i.get()])
+            if (i.get() == 0) dialogBinding.buttonPre.visibility = View.INVISIBLE
+            dialogBinding.textMessage.text = msg[i.get()]
+            dialogBinding.playGif.setImageResource(gifs[i.get()])
         }
-        view.findViewById<View>(R.id.buttonNext).setOnClickListener {
+        dialogBinding.buttonNext.setBounceClickListener {
             if (!isMuted) {
                 val mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
                 mediaPlayer.start()
-                mediaPlayer.setOnCompletionListener { obj: MediaPlayer -> obj.release() }
+                mediaPlayer.setOnCompletionListener(MediaPlayer::release)
             }
             i.getAndIncrement()
             if (!isFirstRun && i.get() == 4) i.getAndIncrement()
-            if (i.get() == 1) view.findViewById<View>(R.id.buttonPre).visibility = View.VISIBLE
+            if (i.get() == 1) dialogBinding.buttonPre.visibility = View.VISIBLE
             if (i.get() == 5) alertDialog.dismiss() else {
-                (view.findViewById<View>(R.id.textMessage) as TextView).text = msg[i.get()]
-                (view.findViewById<View>(R.id.playGif) as GifImageView).setImageResource(
-                    gifs[i.get()]
-                )
+                dialogBinding.textMessage.text = msg[i.get()]
+                dialogBinding.playGif.setImageResource(gifs[i.get()])
             }
         }
-        if (alertDialog.window != null) {
-            alertDialog.window!!.setBackgroundDrawable(ColorDrawable(0))
-        }
-        try {
-            alertDialog.show()
-        } catch (ex: Exception) {
-            ex.printStackTrace()
-        }
+        alertDialog.window?.setBackgroundDrawable(ColorDrawable(0))
+        try { alertDialog.show() }
+        catch (npe: NullPointerException) { npe.printStackTrace() }
     }
 
     @SuppressLint("SetTextI18n")
@@ -861,7 +854,7 @@ class StartActivity : AppCompatActivity() {
         if (!isMuted) {
             val mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
             mediaPlayer.start()
-            mediaPlayer.setOnCompletionListener { obj: MediaPlayer -> obj.release() }
+            mediaPlayer.setOnCompletionListener(MediaPlayer::release)
         }
         if (binding.mode1.alpha < .5) {
             if (onlineStatus == "pass") {
@@ -882,11 +875,11 @@ class StartActivity : AppCompatActivity() {
                 (v.findViewById<View>(R.id.UpdateInfo) as TextView).text =
                     "You must have INTERNET connection to play in ONLINE mode"
                 val alertDialog = builder.create()
-                v.findViewById<View>(R.id.buttonUpdate).setOnClickListener {
+                v.findViewById<View>(R.id.buttonUpdate).setBounceClickListener {
                     if (!isMuted) {
                         val mediaPlayer = MediaPlayer.create(this@StartActivity, R.raw.btn_click_ef)
                         mediaPlayer.start()
-                        mediaPlayer.setOnCompletionListener { obj: MediaPlayer -> obj.release() }
+                        mediaPlayer.setOnCompletionListener(MediaPlayer::release)
                     }
                     recreate()
                     alertDialog.dismiss()
@@ -910,10 +903,5 @@ class StartActivity : AppCompatActivity() {
         }
     }
 
-    companion object {
-        private const val TAG = "TAG: StartActivity"
-        var errorCnt = 0
-        var playerId: String? = null
-        private var showHadith = true
-    }
+
 }

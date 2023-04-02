@@ -660,7 +660,7 @@ public class GameActivity2 extends AppCompatActivity {
                     {
                         doc.update("matchWinMulti" , FieldValue.increment(1));
                         updatePro.setMatchWinMulti();
-                        updatePro.setCoin(updatePro.coin+winCoin);
+                        updatePro.coin = updatePro.coin+winCoin;
                         updatePro.apply();
                         doc.update("coin" , updatePro.coin);
                         winTxt= "You won the match.";
@@ -681,7 +681,7 @@ public class GameActivity2 extends AppCompatActivity {
                     }
                     else
                     {
-                        updatePro.setCoin(updatePro.coin-lostCoin);
+                        updatePro.coin = updatePro.coin-lostCoin;
                         updatePro.apply();
                         doc.update("coin" , updatePro.coin);
                         winTxt= "You lost the match.";
@@ -696,7 +696,7 @@ public class GameActivity2 extends AppCompatActivity {
                     {
                         doc.update("matchWinMulti" , FieldValue.increment(1));
                         updatePro.setMatchWinMulti();
-                        updatePro.setCoin(updatePro.coin+winCoin);
+                        updatePro.coin = updatePro.coin+winCoin;
                         updatePro.apply();
                         doc.update("coin" , updatePro.coin);
                         winTxt= "You won the match.";
@@ -717,7 +717,7 @@ public class GameActivity2 extends AppCompatActivity {
                     }
                     else
                     {
-                        updatePro.setCoin(updatePro.coin-lostCoin);
+                        updatePro.coin = updatePro.coin-lostCoin;
                         updatePro.apply();
                         doc.update("coin" , updatePro.coin);
                         winTxt= "You lost the match.";
@@ -727,7 +727,7 @@ public class GameActivity2 extends AppCompatActivity {
                 }
                 else
                 {
-                    updatePro.setCoin(50);
+                    updatePro.coin = 50;
                     updatePro.apply();
                     doc.update("coin" , updatePro.coin);
                     winTxt= "Match Draw.";
@@ -1097,7 +1097,7 @@ public class GameActivity2 extends AppCompatActivity {
 //        assert key != null;
 //        myRef.child(key).setValue(ds);
 
-        DataStore ds = new DataStore(timeData,redData,blueData,starData,playerId,"",plr1Cup,"");
+        DataStore ds = new DataStore(System.currentTimeMillis(),timeData,redData,blueData,starData,playerId,"",plr1Cup,"");
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         //Source source = Source.CACHE;
         db.collection("LastBestPlayer").document("LastBestPlayer")

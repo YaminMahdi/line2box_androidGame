@@ -1,67 +1,52 @@
-package com.diu.yk_games.line2box.model;
+package com.diu.yk_games.line2box.model
 
-import android.content.SharedPreferences;
+import android.content.SharedPreferences
+import kotlin.math.floor
+import kotlin.math.sqrt
 
+class GameProfile {
+    @JvmField var nm = sharedPreferences.getString("nm", "Noob" + floor(Math.random() * 900 + 100).toInt())!!
+    @JvmField var cityNm = sharedPreferences.getString("cityNm", "")!!
+    @JvmField var query = sharedPreferences.getString("query", "")!!
+    @JvmField var matchPlayed = sharedPreferences.getInt("matchPlayed", 0)
+    @JvmField var matchWinMulti = sharedPreferences.getInt("matchWinMulti", 0)
+    @JvmField var coin = sharedPreferences.getInt("coins", 100)
+    @JvmField var lvl = sharedPreferences.getInt("lvl", lvlByCal)
+    @JvmField var playerId = ""
+    @JvmField var countryEmoji = ""
+    @JvmField var countryNm = ""
 
-public class GameProfile
-{
-    public static SharedPreferences preferences;
-    public static SharedPreferences.Editor preferencesEditor;
-    public String nm=preferences.getString("nm", "Noob"+(int)Math.floor(Math.random()*(900)+100));
-
-    public String cityNm=preferences.getString("cityNm","");
-    public String query=preferences.getString("query","");
-    public Integer matchPlayed=preferences.getInt("matchPlayed",0);
-    public Integer matchWinMulti=preferences.getInt("matchWinMulti",0);
-    public Integer coin=preferences.getInt("coins",100);
-    public Integer lvl=preferences.getInt("lvl",getLvlByCal());
-
-    public String playerId="";
-    public String countryEmoji="";
-    public String countryNm="";
-    //preferences.getBoolean("needProfile",true)
-    public static void setPreferences(SharedPreferences x)
-    {
-        preferences=x;
-        preferencesEditor = preferences.edit();
+    fun apply() {
+        preferencesEditor.putString("nm", nm).apply()
+        preferencesEditor.putString("cityNm", cityNm).apply()
+        preferencesEditor.putString("query", query).apply()
+        preferencesEditor.putInt("coins", coin).apply()
+        preferencesEditor.putInt("matchPlayed", matchPlayed).apply()
+        preferencesEditor.putInt("matchWinMulti", matchWinMulti).apply()
     }
 
-    public GameProfile() {}
+    val lvlByCal: Int
+        get() {
+            val mul = matchWinMulti + 1
+            val pld = matchPlayed + 1
+            return sqrt(mul * (mul / 7.0) + pld * 2).toInt()
+        }
 
-    public void apply()
-    {
-        preferencesEditor.putString("nm",this.nm).apply();
-        preferencesEditor.putString("cityNm",this.cityNm).apply();
-        preferencesEditor.putString("query",this.query).apply();
-        preferencesEditor.putInt("coins",this.coin).apply();
-        preferencesEditor.putInt("matchPlayed",this.matchPlayed).apply();
-        preferencesEditor.putInt("matchWinMulti",this.matchWinMulti).apply();
-
+    fun setMatchPlayed() {
+        matchPlayed++
     }
 
-
-    public void setNm(String nm) {
-        this.nm = nm;
-        //preferencesEditor.putString("nm",this.nm).apply();
-    }
-    public void setCoin(Integer coins) {
-        this.coin = coins;
-        //preferencesEditor.putInt("coins",this.coin).apply();
+    fun setMatchWinMulti() {
+        matchWinMulti++
     }
 
-    public Integer getLvlByCal()
-    {
-        int mul=matchWinMulti+1;
-        int pld=matchPlayed+1;
-        int lv= (int) Math.sqrt(mul*(mul/7.0)+pld*2);
-        return lv;
-    }
-    public void setMatchPlayed() {
-        this.matchPlayed++;
-        //preferencesEditor.putInt("matchPlayed",this.matchPlayed).apply();
-    }
-    public void setMatchWinMulti() {
-        this.matchWinMulti++;
-        //preferencesEditor.putInt("matchWinMulti",this.matchWinMulti).apply();
+    companion object {
+        lateinit var sharedPreferences: SharedPreferences
+        lateinit var preferencesEditor: SharedPreferences.Editor
+
+        @JvmStatic fun setPreferences(x: SharedPreferences) {
+            sharedPreferences = x
+            preferencesEditor = sharedPreferences.edit()
+        }
     }
 }

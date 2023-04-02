@@ -303,7 +303,7 @@ public class ChatFragmentFriendly extends Fragment {
         MsgStore ms =new MsgStore();
         ms.playerId=playerId;
         ms.nmData= gp.nm;
-        ms.lvlData= gp.getLvlByCal().toString();
+        ms.lvlData= Integer.toString(gp.getLvlByCal());
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd MMM, hh:mm a");
         LocalDateTime now = LocalDateTime.now();
         ms.timeData = dtf.format(now);

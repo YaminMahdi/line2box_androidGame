@@ -29,6 +29,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import java.util.ArrayList;
@@ -80,6 +81,8 @@ public class LeaderBoardFragment extends Fragment {
         rankList = new ArrayList<>();
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         db.collection("gamerProfile")
+                .whereNotEqualTo("coin", 100)
+                .orderBy("coin", Query.Direction.DESCENDING)
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                     @Override
@@ -91,8 +94,8 @@ public class LeaderBoardFragment extends Fragment {
                                 GameProfile xx=document.toObject(GameProfile.class);
                                 rankList.add(xx);
                             }
-                            rankList.sort(Comparator.comparing(a -> a.coin));
-                            Collections.reverse(rankList);
+                            //rankList.sort(Comparator.comparing(a -> a.coin));
+                            //Collections.reverse(rankList);
                             int pos=findIndex(rankList,playerId);
                             try {
                                 RankListAdapter adapter=new RankListAdapter(getContext(),rankList,playerId);

@@ -798,7 +798,7 @@ public class GameActivity1 extends AppCompatActivity
         redData= nm1+": "+scoreRed;
         blueData= nm2+": "+scoreBlue;
 
-        DataStore ds = new DataStore(timeData,redData,blueData,starData,"offline","","","");
+        DataStore ds = new DataStore(System.currentTimeMillis(),timeData,redData,blueData,starData,"offline","","","");
 
 //        FirebaseDatabase database = FirebaseDatabase.getInstance();
 //        DatabaseReference myRef = database.getReference("ScoreBoard");
