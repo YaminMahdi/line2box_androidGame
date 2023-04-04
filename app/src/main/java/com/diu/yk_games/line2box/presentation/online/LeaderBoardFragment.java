@@ -83,6 +83,7 @@ public class LeaderBoardFragment extends Fragment {
         db.collection("gamerProfile")
                 .whereNotEqualTo("coin", 100)
                 .orderBy("coin", Query.Direction.DESCENDING)
+                .limit(100)
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                     @Override

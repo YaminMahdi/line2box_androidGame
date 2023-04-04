@@ -3,8 +3,13 @@ package com.diu.yk_games.line2box.util
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.view.MotionEvent
 import android.view.View
+import android.view.Window
+import android.view.WindowManager
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import kotlinx.coroutines.*
 import java.text.SimpleDateFormat
 import java.util.*
@@ -18,6 +23,17 @@ fun Long.toDateTime(): String{
     return date.toString()
 }
 
+@Suppress("DEPRECATION")
+fun Window.hideSystemBars() {
+//    WindowInsetsControllerCompat(window, window.decorView).let { controller ->
+//        controller.hide(WindowInsetsCompat.Type.systemBars())
+//        controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+//    }
+    setFlags(
+        WindowManager.LayoutParams.FLAG_FULLSCREEN,
+        WindowManager.LayoutParams.FLAG_FULLSCREEN
+    )
+}
 @SuppressLint("ClickableViewAccessibility")
 fun View.setBounceClickListener(onClick: ((View) -> Unit)? = null){
     this.setOnTouchListener { v, event ->

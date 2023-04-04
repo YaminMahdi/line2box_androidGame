@@ -8,27 +8,31 @@ import android.content.SharedPreferences
 import android.graphics.drawable.ColorDrawable
 import android.media.MediaPlayer
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
-import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
-import android.view.WindowManager
 import android.widget.*
 import androidx.activity.OnBackPressedCallback
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.diu.yk_games.line2box.BuildConfig
 import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.ActivityStartBinding
 import com.diu.yk_games.line2box.databinding.DialogLayoutAlertBinding
 import com.diu.yk_games.line2box.databinding.DialogLayoutInfoBinding
+import com.diu.yk_games.line2box.databinding.DialogLayoutLoadingBinding
 import com.diu.yk_games.line2box.databinding.DialogLayoutShowHadithBinding
+import com.diu.yk_games.line2box.databinding.DialogLayoutUpdateBinding
+import com.diu.yk_games.line2box.databinding.DialogLayoutUpdateuiBinding
 import com.diu.yk_games.line2box.model.GameProfile
 import com.diu.yk_games.line2box.model.HadithStore
 import com.diu.yk_games.line2box.presentation.BlankFragment
 import com.diu.yk_games.line2box.presentation.bot.GameActivity3
 import com.diu.yk_games.line2box.presentation.offline.GameActivity1
 import com.diu.yk_games.line2box.presentation.online.MultiplayerActivity
+import com.diu.yk_games.line2box.util.hideSystemBars
 import com.diu.yk_games.line2box.util.setBounceClickListener
 import com.google.android.gms.games.*
 import com.google.android.gms.tasks.Task
@@ -58,8 +62,8 @@ class StartActivity : AppCompatActivity() {
     private lateinit var preferencesEditor: SharedPreferences.Editor
 
     companion object {
+        private var errorCnt = 0
         private const val TAG = "TAG: StartActivity"
-        var errorCnt = 0
         lateinit var playerId: String
         private var showHadith = true
     }
@@ -99,7 +103,7 @@ class StartActivity : AppCompatActivity() {
 //    private var mode2: ImageView? = null
 //    private var mode3: ImageView? = null
     private lateinit var loadingUI: LoadingUI
-    lateinit var onlineStatus: String
+    private lateinit var onlineStatus: String
 
     // ...
     // Initialize Firebase Auth
@@ -109,6 +113,7 @@ class StartActivity : AppCompatActivity() {
     //        super.onStart();
     //
     //    }
+    @RequiresApi(Build.VERSION_CODES.R)
     @SuppressLint("VisibleForTests")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -132,6 +137,7 @@ class StartActivity : AppCompatActivity() {
         //if (!isFirstRun)
         isFirstRun = preferences.getBoolean("firstRun", true)
 
+        window.hideSystemBars()
 
         //if(isFirstRun)
 
@@ -139,11 +145,21 @@ class StartActivity : AppCompatActivity() {
 //                .requestServerAuthCode(getString(R.string.default_web_client_id))
 //                .build();
         //window.insetsController?.hide(WindowInsets.Type.statusBars())
-        @Suppress("DEPRECATION")
-        window.setFlags(
-            WindowManager.LayoutParams.FLAG_FULLSCREEN,
-            WindowManager.LayoutParams.FLAG_FULLSCREEN
-        )
+//        WindowInsetsControllerCompat(window, binding.root).let { controller ->
+//            controller.hide(WindowInsetsCompat.Type.systemBars())
+//            controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+//        }
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+//            window.setDecorFitsSystemWindows(false)
+//        } else {
+//            window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN
+//        }
+
+        //window.decorView.windowInsetsController.hide(WindowInsets.Type.statusBars())
+//        window.insetsController?.hide(WindowInsets.Type.statusBars())
+//        window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN
+//        window.setDecorFitsSystemWindows(false)
+
         binding.globalScoreFrag.visibility = View.GONE
         binding.startBtnId.setBounceClickListener {
             startBtn(it)
@@ -161,6 +177,44 @@ class StartActivity : AppCompatActivity() {
             goBack(it)
         }
         binding.logo.setBounceClickListener()
+        onBackPressedDispatcher.addCallback(this, object: OnBackPressedCallback(true) {
+            @SuppressLint("SetTextI18n")
+            override fun handleOnBackPressed() {
+                if (scrBrdVisible) {
+                    onGoBack()
+                } else
+                {
+                    val builder= AlertDialog.Builder(this@StartActivity)
+                    val dialogBinding = DialogLayoutAlertBinding.inflate(LayoutInflater.from(this@StartActivity))
+                    builder.setView(dialogBinding.root)
+                    val alertDialog = builder.create()
+
+                    dialogBinding.textMessage.text ="Do you really want to exit?"
+                    dialogBinding.buttonYes.text = "YES"
+                    dialogBinding.buttonNo.text = "NO"
+                    alertDialog.window?.setBackgroundDrawable(ColorDrawable(0))
+                    dialogBinding.buttonYes.setBounceClickListener {
+                        if (!isMuted) {
+                            val mediaPlayer = MediaPlayer.create(this@StartActivity, R.raw.btn_click_ef)
+                            mediaPlayer.start()
+                            mediaPlayer.setOnCompletionListener(MediaPlayer::release)
+                        }
+                        alertDialog.dismiss()
+                        finish()
+                    }
+                    dialogBinding.buttonNo.setBounceClickListener {
+                        if (!isMuted) {
+                            val mediaPlayer = MediaPlayer.create(this@StartActivity, R.raw.btn_click_ef)
+                            mediaPlayer.start()
+                            mediaPlayer.setOnCompletionListener(MediaPlayer::release)
+                        }
+                        alertDialog.dismiss()
+                    }
+                    try { alertDialog.show() }
+                    catch (npe: NullPointerException) { npe.printStackTrace() }
+                }
+            }
+        })
 
         if (showHadith && !isFirstRun) {
             showAHadith()
@@ -314,44 +368,6 @@ class StartActivity : AppCompatActivity() {
         //vsRadioGrp=findViewById(R.id.vsRadioGrp);
         ifMuted()
 
-        onBackPressedDispatcher.addCallback(this, object: OnBackPressedCallback(true) {
-            @SuppressLint("SetTextI18n")
-            override fun handleOnBackPressed() {
-                if (scrBrdVisible) {
-                    onGoBack()
-                } else
-                {
-                    val builder= AlertDialog.Builder(this@StartActivity)
-                    val dialogBinding = DialogLayoutAlertBinding.inflate(LayoutInflater.from(this@StartActivity))
-                    builder.setView(dialogBinding.root)
-                    val alertDialog = builder.create()
-
-                    dialogBinding.textMessage.text ="Do you really want to exit?"
-                    dialogBinding.buttonYes.text = "YES"
-                    dialogBinding.buttonNo.text = "NO"
-                    alertDialog.window?.setBackgroundDrawable(ColorDrawable(0))
-                    dialogBinding.buttonYes.setBounceClickListener {
-                        if (!isMuted) {
-                            val mediaPlayer = MediaPlayer.create(this@StartActivity, R.raw.btn_click_ef)
-                            mediaPlayer.start()
-                            mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-                        }
-                        alertDialog.dismiss()
-                        finish()
-                    }
-                    dialogBinding.buttonNo.setBounceClickListener {
-                        if (!isMuted) {
-                            val mediaPlayer = MediaPlayer.create(this@StartActivity, R.raw.btn_click_ef)
-                            mediaPlayer.start()
-                            mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-                        }
-                        alertDialog.dismiss()
-                    }
-                    try { alertDialog.show() }
-                    catch (npe: NullPointerException) { npe.printStackTrace() }
-                }
-            }
-        })
     }
 
     private fun loadProfileFromServer(db: FirebaseFirestore) {
@@ -433,32 +449,33 @@ class StartActivity : AppCompatActivity() {
 
     inner class LoadingUI {
         private var builder = AlertDialog.Builder(this@StartActivity)
-        val view = LayoutInflater.from(this@StartActivity).inflate(
-            R.layout.dialog_layout_loading, findViewById(R.id.updateLayoutLoadingUI)
-        )!!
+        private val dialogBinding = DialogLayoutLoadingBinding.inflate(LayoutInflater.from(this@StartActivity))
+
+//        val view = LayoutInflater.from(this@StartActivity).inflate(
+//            R.layout.dialog_layout_loading, findViewById(R.id.updateLayoutLoadingUI)
+//        )!!
         private lateinit var alertDialog: AlertDialog
         var visibility = false
         @OptIn(DelicateCoroutinesApi::class)
         fun start() {
-            builder.setView(view)
+            builder.setView(dialogBinding.root)
             builder.setCancelable(false)
             alertDialog = builder.create()
-            if (alertDialog.window != null) alertDialog.window!!
-                .setBackgroundDrawable(ColorDrawable(0))
+            alertDialog.window?.setBackgroundDrawable(ColorDrawable(0))
             try {
                 alertDialog.show()
                 visibility = true
             } catch (ex: Exception) {
                 ex.printStackTrace()
             }
-            GlobalScope.launch {
+            GlobalScope.launch(Dispatchers.Main) {
                 delay(15000)
                 if (visibility) {
                     onlineStatus = "needReload"
                     stop()
-                    Looper.prepare()
+//                    Looper.prepare()
                     updateUI(null)
-                    Looper.loop()
+//                    Looper.loop()
                 }
             }
         }
@@ -473,21 +490,18 @@ class StartActivity : AppCompatActivity() {
     fun updateUI(currentUser: FirebaseUser?) {
         if (currentUser == null) {
             val builder = AlertDialog.Builder(this@StartActivity)
-            val view = LayoutInflater.from(this@StartActivity).inflate(
-                R.layout.dialog_layout_updateui, findViewById(R.id.updateLayoutDialogUI)
-            )
-            builder.setView(view)
+            val dialogBinding = DialogLayoutUpdateuiBinding.inflate(LayoutInflater.from(this@StartActivity))
+            builder.setView(dialogBinding.root)
             builder.setCancelable(false)
             val alertDialog = builder.create()
-            view.findViewById<View>(R.id.googlePlayWarning).visibility = View.GONE
+            dialogBinding.googlePlayWarning.visibility = View.GONE
             errorCnt++
-            if (errorCnt > 2) {
-                view.findViewById<View>(R.id.googlePlayWarning).visibility = View.VISIBLE
-                (view.findViewById<View>(R.id.warningMessage) as TextView).text = "Warning !"
-                (view.findViewById<View>(R.id.UpdateInfo) as TextView).text =
-                    "You may need to UPDATE those two apps. (Link Below)"
-                view.findViewById<View>(R.id.playSvLink).setBounceClickListener {
-                    (view.findViewById<View>(R.id.playSvLink) as TextView).setTextColor(getColor(R.color.teal_700))
+            if (errorCnt > 2 && preferences.getBoolean("needProfile", true)) {
+                dialogBinding.googlePlayWarning.visibility = View.VISIBLE
+                dialogBinding.warningMessage.text = "Warning !"
+                dialogBinding.UpdateInfo.text = "You may need to UPDATE those two apps. (Link Below)"
+                dialogBinding.playSvLink.setBounceClickListener {
+                    dialogBinding.playSvLink.setTextColor(getColor(R.color.teal_700))
                     if (!isMuted) {
                         val mediaPlayer = MediaPlayer.create(this@StartActivity, R.raw.btn_click_ef)
                         mediaPlayer.start()
@@ -500,8 +514,8 @@ class StartActivity : AppCompatActivity() {
                         )
                     )
                 }
-                view.findViewById<View>(R.id.playGmLink).setBounceClickListener {
-                    (view.findViewById<View>(R.id.playGmLink) as TextView).setTextColor(getColor(R.color.teal_700))
+                dialogBinding.playGmLink.setBounceClickListener {
+                    dialogBinding.playGmLink.setTextColor(getColor(R.color.teal_700))
                     if (!isMuted) {
                         val mediaPlayer = MediaPlayer.create(this@StartActivity, R.raw.btn_click_ef)
                         mediaPlayer.start()
@@ -516,7 +530,7 @@ class StartActivity : AppCompatActivity() {
                 }
             }
             if (isFirstRun) {
-                view.findViewById<View>(R.id.buttonUpdate).setBounceClickListener {
+                dialogBinding.buttonUpdate.setBounceClickListener {
                     if (!isMuted) {
                         val mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
                         mediaPlayer.start()
@@ -527,10 +541,10 @@ class StartActivity : AppCompatActivity() {
                 }
             } else {
                 //findViewById(R.id.scrBrdBtn).setEnabled(false);
-                if (errorCnt < 3) (view.findViewById<View>(R.id.UpdateInfo) as TextView).text =
-                    "Some functionalities are disabled."
-                (view.findViewById<View>(R.id.buttonUpdate) as Button).text = "Continue"
-                view.findViewById<View>(R.id.buttonUpdate).setBounceClickListener {
+                if (errorCnt < 3 || !preferences.getBoolean("needProfile", true))
+                    dialogBinding.UpdateInfo.text = "Some functionalities are disabled."
+                dialogBinding.buttonUpdate.text = "Continue"
+                dialogBinding.buttonUpdate.setBounceClickListener {
                     if (!isMuted) {
                         val mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
                         mediaPlayer.start()
@@ -539,14 +553,9 @@ class StartActivity : AppCompatActivity() {
                     alertDialog.dismiss()
                 }
             }
-            if (alertDialog.window != null) {
-                alertDialog.window!!.setBackgroundDrawable(ColorDrawable(0))
-            }
-            try {
-                alertDialog.show()
-            } catch (ex: Exception) {
-                ex.printStackTrace()
-            }
+            alertDialog.window?.setBackgroundDrawable(ColorDrawable(0))
+            try { alertDialog.show() }
+            catch (ex: Exception) { ex.printStackTrace() }
         }
     }
 
@@ -571,8 +580,7 @@ class StartActivity : AppCompatActivity() {
                     .addOnSuccessListener { doc ->
                         val hadith = doc.toObject(HadithStore::class.java)!!
                         val builder = AlertDialog.Builder(this@StartActivity)
-                        val dialogBinding =
-                            DialogLayoutShowHadithBinding.inflate(LayoutInflater.from(this@StartActivity))
+                        val dialogBinding = DialogLayoutShowHadithBinding.inflate(LayoutInflater.from(this@StartActivity))
                         builder.setView(dialogBinding.root)
                         builder.setCancelable(false)
                         val langBtn = dialogBinding.langBtn
@@ -671,41 +679,34 @@ class StartActivity : AppCompatActivity() {
                     val onlineVersionCode = dataSnapshot.getValue(Int::class.java)!!
                     if (localVersionCode < Objects.requireNonNull(onlineVersionCode)) {
                         val builder = AlertDialog.Builder(context)
-                        val view = LayoutInflater.from(this@StartActivity).inflate(
-                            R.layout.dialog_layout_update, findViewById(R.id.updateLayoutDialog)
-                        )
-                        builder.setView(view)
+                        val dialogBinding = DialogLayoutUpdateBinding.inflate(LayoutInflater.from(this@StartActivity))
+
+                        builder.setView(dialogBinding.root)
                         val alertDialog = builder.create()
-                        view.findViewById<View>(R.id.buttonUpdate)
-                            .setBounceClickListener {
-                                if (!isMuted) {
-                                    val mediaPlayer =
-                                        MediaPlayer.create(this@StartActivity, R.raw.btn_click_ef)
-                                    mediaPlayer.start()
-                                    mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-                                }
-                                val appPackageName =
-                                    packageName // getPackageName() from Context or Activity object
+                        dialogBinding.buttonUpdate.setBounceClickListener {
+                            if (!isMuted) {
+                                val mediaPlayer =
+                                    MediaPlayer.create(this@StartActivity, R.raw.btn_click_ef)
+                                mediaPlayer.start()
+                                mediaPlayer.setOnCompletionListener(MediaPlayer::release)
+                            }
+                            val appPackageName =
+                                packageName // getPackageName() from Context or Activity object
                                 //                        try {
 //                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + appPackageName)));
 //                        } catch (android.content.ActivityNotFoundException ante) {
-                                startActivity(
-                                    Intent(
-                                        Intent.ACTION_VIEW,
-                                        Uri.parse("https://play.google.com/store/apps/details?id=$appPackageName")
-                                    )
+                            startActivity(
+                                Intent(
+                                    Intent.ACTION_VIEW,
+                                    Uri.parse("https://play.google.com/store/apps/details?id=$appPackageName")
                                 )
+                            )
                                 //}
-                                alertDialog.dismiss()
-                            }
-                        if (alertDialog.window != null) {
-                            alertDialog.window!!.setBackgroundDrawable(ColorDrawable(0))
+                            alertDialog.dismiss()
                         }
-                        try {
-                            alertDialog.show()
-                        } catch (ex: Exception) {
-                            ex.printStackTrace()
-                        }
+                        alertDialog.window?.setBackgroundDrawable(ColorDrawable(0))
+                        try { alertDialog.show() }
+                        catch (ex: Exception) { ex.printStackTrace() }
                     }
                     ////Log.d(TAG, "Last Value is: " + bestScore);
                 }
@@ -858,24 +859,19 @@ class StartActivity : AppCompatActivity() {
         }
         if (binding.mode1.alpha < .5) {
             if (onlineStatus == "pass") {
-                startActivity(
-                    Intent(this, MultiplayerActivity::class.java)
-                        .putExtra("playerId", playerId)
-                )
-                finish()
+                startActivity(Intent(this, MultiplayerActivity::class.java).putExtra("playerId", playerId))
+                //finish()
             } else if (onlineStatus == "needReload") {
-                //updateUI();
+                //updateUI()
                 val builder = AlertDialog.Builder(this@StartActivity)
-                val v = LayoutInflater.from(this@StartActivity).inflate(
-                    R.layout.dialog_layout_updateui, findViewById(R.id.updateLayoutDialogUI)
-                )
-                builder.setView(v)
+                val dialogBinding = DialogLayoutUpdateuiBinding.inflate(LayoutInflater.from(this@StartActivity))
+
+                builder.setView(dialogBinding.root)
                 builder.setCancelable(false)
-                v.findViewById<View>(R.id.googlePlayWarning).visibility = View.GONE
-                (v.findViewById<View>(R.id.UpdateInfo) as TextView).text =
-                    "You must have INTERNET connection to play in ONLINE mode"
+                dialogBinding.googlePlayWarning.visibility = View.GONE
+                dialogBinding.UpdateInfo.text = "You must have INTERNET connection to play in ONLINE mode"
                 val alertDialog = builder.create()
-                v.findViewById<View>(R.id.buttonUpdate).setBounceClickListener {
+                dialogBinding.buttonUpdate.setBounceClickListener {
                     if (!isMuted) {
                         val mediaPlayer = MediaPlayer.create(this@StartActivity, R.raw.btn_click_ef)
                         mediaPlayer.start()
@@ -884,22 +880,17 @@ class StartActivity : AppCompatActivity() {
                     recreate()
                     alertDialog.dismiss()
                 }
-                if (alertDialog.window != null) {
-                    alertDialog.window!!.setBackgroundDrawable(ColorDrawable(0))
-                }
-                try {
-                    alertDialog.show()
-                } catch (ex: Exception) {
-                    ex.printStackTrace()
-                }
+                alertDialog.window?.setBackgroundDrawable(ColorDrawable(0))
+                try { alertDialog.show() }
+                catch (ex: Exception) { ex.printStackTrace() }
             }
         } else if (binding.mode3.alpha < .5) //(mode3.getVisibility()==View.INVISIBLE)
         {
             startActivity(Intent(this, GameActivity1::class.java))
-            finish()
+            //finish()
         } else {
             startActivity(Intent(this, GameActivity3::class.java))
-            finish()
+            //finish()
         }
     }
 

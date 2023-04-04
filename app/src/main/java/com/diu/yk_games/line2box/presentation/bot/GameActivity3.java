@@ -1,6 +1,7 @@
 package com.diu.yk_games.line2box.presentation.bot;
 
 
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
@@ -35,9 +36,9 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import pl.droidsonroids.gif.GifImageView;
 
+@SuppressLint("DiscouragedApi")
 public class GameActivity3 extends AppCompatActivity {
     public static int clickCount = 0, scoreRed = 0, scoreBlue = 0, bestScore = 9999;
     public static String idNm, fst = "r1c1", top, left, circle, nm1="AI", nm2="Blue";
@@ -190,8 +191,8 @@ public class GameActivity3 extends AppCompatActivity {
             }
         }
 
-        int indx = random.nextInt(84);
-        int randLineId=this.getResources().getIdentifier(lineIDs.get(indx), "id", this.getPackageName());
+        int ind = random.nextInt(84);
+        int randLineId=this.getResources().getIdentifier(lineIDs.get(ind), "id", this.getPackageName());
         new Handler().postDelayed(() ->
         {
             if(isFirstRun)
@@ -512,12 +513,12 @@ public class GameActivity3 extends AppCompatActivity {
                 {
                     //Log.d("TAG", "lineClick: AI in random");
                     //recursion=false;
-                    int indx, countColoredUp=0, countColoredDn=0;
+                    int ind, countColoredUp=0, countColoredDn=0;
                     String randLineIdNm;
-                    ArrayList<String> lineIDtemp=new ArrayList<>(lineIDs);
+                    ArrayList<String> lineIdTemp=new ArrayList<>(lineIDs);
 
-                    indx= random.nextInt(lineIDs.size());
-                    randLineIdNm=lineIDs.get(indx);
+                    ind= random.nextInt(lineIDs.size());
+                    randLineIdNm=lineIDs.get(ind);
                     while(true)
                     {
                         //Log.d("TAG", "lineClick: AI in random loop");
@@ -559,21 +560,21 @@ public class GameActivity3 extends AppCompatActivity {
                         if((countColoredUp>1||countColoredDn>1)&&!(countColoredUp==3||countColoredDn==3))
                         {
                             //Log.d("TAG", "lineClick: AI in random countColored u d. clk cnt: "+clickCount);
-                            if(lineIDtemp.size()==1)
+                            if(lineIdTemp.size()==1)
                             {
-                                randLineIdNm=lineIDtemp.get(0);
+                                randLineIdNm=lineIdTemp.get(0);
                                 break;
                             }
-                            lineIDtemp.remove(indx);
-                            indx= random.nextInt(lineIDtemp.size());
-                            randLineIdNm=lineIDtemp.get(indx);
+                            lineIdTemp.remove(ind);
+                            ind= random.nextInt(lineIdTemp.size());
+                            randLineIdNm=lineIdTemp.get(ind);
                             countColoredUp=0; countColoredDn=0;
                         }
                         else
                             break;
                     }
 
-                    //Log.d("TAG", "AIlineClick: "+randLineIdNm+" Up- "+countColoredUp+" Dn- "+countColoredDn);
+                    //Log.d("TAG", "AiLineClick: "+randLineIdNm+" Up- "+countColoredUp+" Dn- "+countColoredDn);
                     int lineId= this.getResources().getIdentifier(randLineIdNm, "id", this.getPackageName());
                     Handler handler = new Handler();
                     handler.postDelayed(() ->
@@ -814,8 +815,8 @@ public class GameActivity3 extends AppCompatActivity {
             clickCount = 0;
             flag = true;
             super.onBackPressed();
-            startActivity(new Intent(this, StartActivity.class));
-            finish();
+//            startActivity(new Intent(this, StartActivity.class));
+//            finish();
             //android.os.Process.killProcess(android.os.Process.myPid());
         });
         view.findViewById(R.id.buttonNo).setOnClickListener(view2 ->
@@ -832,7 +833,7 @@ public class GameActivity3 extends AppCompatActivity {
             alertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(0));
         }
         try {alertDialog.show();}
-                catch (NullPointerException npe) {npe.printStackTrace();}
+        catch (NullPointerException npe) {npe.printStackTrace();}
     }
 
     @SuppressLint("SetTextI18n")
@@ -883,7 +884,7 @@ public class GameActivity3 extends AppCompatActivity {
             alertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(0));
         }
         try {alertDialog.show();}
-                catch (NullPointerException npe) {npe.printStackTrace();}
+        catch (NullPointerException npe) {npe.printStackTrace();}
     }
 
 
@@ -982,7 +983,7 @@ public class GameActivity3 extends AppCompatActivity {
             alertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(0));
         }
         try {alertDialog.show();}
-                catch (NullPointerException npe) {npe.printStackTrace();}
+        catch (NullPointerException npe) {npe.printStackTrace();}
     }
 
     public void backBtn(View view) {
