@@ -142,7 +142,12 @@ public class MultiplayerActivity extends AppCompatActivity{
         copyPastBtn=findViewById(R.id.copyPastBtn);
         startMatchBtn=findViewById(R.id.startMatchBtnId);
         playerId=getIntent().getExtras().getString("playerId");
-        ChatFragmentGlobal.newInstance(playerId);
+        //chat bug fix
+        FragmentManager fm=getSupportFragmentManager();
+        FragmentTransaction ft=fm.beginTransaction();
+        ft.replace(R.id.chatFragment,ChatFragmentGlobal.newInstance(playerId));
+        ft.commit();
+
         lvlUpgrade();
         mBundle.putString("playerId",playerId);
         copyPastBtn.setImageResource(R.drawable.icon_paste);
@@ -274,9 +279,6 @@ public class MultiplayerActivity extends AppCompatActivity{
                 mBundle.putString("nm2", nm2);
                 mBundle.putInt("lvl2", lvl2);
 
-                bubbleTabBar.setSelected(0,true);
-                FragmentManager fm=getSupportFragmentManager();
-                FragmentTransaction ft=fm.beginTransaction();
                 ft.replace(R.id.chatFragment,ChatFragmentGlobal.newInstance(playerId));
                 ft.commit();
                 findViewById(R.id.newMsgBoltu).setVisibility(View.GONE);
@@ -332,8 +334,7 @@ public class MultiplayerActivity extends AppCompatActivity{
                 myRef.child(key).child("friendlyChat").child(key2).setValue(ms);
 
                 bubbleTabBar.setSelected(1,true);
-                FragmentManager fm=getSupportFragmentManager();
-                FragmentTransaction ft=fm.beginTransaction();
+
                 ft.replace(R.id.chatFragment,ChatFragmentFriendly.newInstance(key,playerId));
                 ft.commit();
 
@@ -465,8 +466,6 @@ public class MultiplayerActivity extends AppCompatActivity{
         });
         bubbleTabBar.addBubbleListener(id ->
         {
-            FragmentManager fm=getSupportFragmentManager();
-            FragmentTransaction ft=fm.beginTransaction();
             if(id==R.id.globalChat)
             {
                 ft.replace(R.id.chatFragment,ChatFragmentGlobal.newInstance(playerId));

@@ -31,12 +31,12 @@
             >
 
             <ImageButton
+                android:id="@+id/backBtn"
                 android:layout_width="45dp"
                 android:layout_height="45dp"
                 android:layout_gravity="end"
                 android:background="@drawable/btn_grn_bg"
                 android:fontFamily="@font/sortie"
-                android:onClick="backBtn"
                 android:paddingVertical="10dp"
                 android:src="@drawable/icon_home"
                 android:textColor="@color/white"
@@ -59,7 +59,6 @@
                 android:layout_marginEnd="10dp"
                 android:background="@drawable/btn_ylw_bg"
                 android:fontFamily="@font/sortie"
-                android:onClick="volButton"
                 android:paddingVertical="10dp"
                 android:src="@drawable/icon_vol_unmute"
                 android:textColor="@color/white"
@@ -67,12 +66,12 @@
                 tools:ignore="HardcodedText,SmallSp" />
 
             <ImageButton
+                android:id="@+id/ideaBtn"
                 android:layout_width="45dp"
                 android:layout_height="45dp"
                 android:layout_gravity="end"
                 android:background="@drawable/btn_gry_bg"
                 android:fontFamily="@font/sortie"
-                android:onClick="ideaBtn"
                 android:paddingVertical="10dp"
                 android:src="@drawable/icon_i"
                 android:textColor="@color/white"
