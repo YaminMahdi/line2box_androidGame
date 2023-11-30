@@ -13,8 +13,13 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.*
+import android.widget.AdapterView
 import android.widget.AdapterView.OnItemClickListener
+import android.widget.EditText
+import android.widget.LinearLayout
+import android.widget.ListView
+import android.widget.TextView
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.diu.yk_games.line2box.R
@@ -22,12 +27,8 @@ import com.diu.yk_games.line2box.model.DataStore
 import com.diu.yk_games.line2box.model.GameProfile
 import com.diu.yk_games.line2box.presentation.MyListAdapter
 import com.diu.yk_games.line2box.util.setBounceClickListener
-import com.diu.yk_games.line2box.util.toDateTime
-import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.Query
-import com.google.firebase.firestore.QueryDocumentSnapshot
-import java.util.*
+import java.util.Objects
 
 class DisplayFragment : Fragment() {
     private val TAG = "Dis_frag"
@@ -76,11 +77,11 @@ class DisplayFragment : Fragment() {
             .addOnSuccessListener { task ->
                 task.documents.forEach {
                     val ds = it.toObject(DataStore::class.java)!!
-                    dsList.add(0, ds.copy(timeData = ds.time.toDateTime()))
+                    dsList.add(0, ds)
                 }
                 Log.d(TAG, "isSuccessful: ${dsList.size}")
                 try {
-                    val adapter = MyListAdapter(context, dsList) //
+                    val adapter = MyListAdapter(requireContext(), dsList) //
                     val list = v.findViewById<ListView>(R.id.showScoreList)
                     list.adapter = adapter
                     list.onItemClickListener =

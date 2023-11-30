@@ -13,6 +13,7 @@ import androidx.fragment.app.Fragment
 import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.model.GameProfile
 import com.diu.yk_games.line2box.model.GameProfile.Companion.setPreferences
+import com.diu.yk_games.line2box.util.setBounceClickListener
 
 class NameInfoFragment : Fragment() {
     private lateinit var nm1EditText: EditText
@@ -55,7 +56,7 @@ class NameInfoFragment : Fragment() {
 
         //new ArrayAdapter<String>()
         val btn = view.findViewById<Button>(R.id.playBtn)
-        btn.setOnClickListener {
+        btn.setBounceClickListener {
             if (!sharedPref.getBoolean("muted", false)) {
                 val mediaPlayer = MediaPlayer.create(context, R.raw.btn_click_ef)
                 mediaPlayer.start()

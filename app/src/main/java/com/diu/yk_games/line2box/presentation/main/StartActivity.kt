@@ -15,8 +15,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.widget.*
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.diu.yk_games.line2box.BuildConfig
 import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.ActivityStartBinding
@@ -36,16 +38,23 @@ import com.diu.yk_games.line2box.util.hideSystemBars
 import com.diu.yk_games.line2box.util.setBounceClickListener
 import com.google.android.gms.games.*
 import com.google.android.gms.tasks.Task
+import com.google.android.play.core.appupdate.AppUpdateManager
+import com.google.android.play.core.appupdate.AppUpdateManagerFactory
+import com.google.android.play.core.appupdate.AppUpdateOptions
+import com.google.android.play.core.install.model.AppUpdateType
+import com.google.android.play.core.install.model.InstallStatus
+import com.google.android.play.core.install.model.UpdateAvailability
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.PlayGamesAuthProvider
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.ktx.database
 import com.google.firebase.firestore.AggregateSource
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonElement
@@ -60,7 +69,6 @@ class StartActivity : AppCompatActivity() {
     private var isFirstRun: Boolean = false
     private lateinit var preferences: SharedPreferences
     private lateinit var preferencesEditor: SharedPreferences.Editor
-
     companion object {
         private var errorCnt = 0
         private const val TAG = "TAG: StartActivity"
@@ -117,27 +125,26 @@ class StartActivity : AppCompatActivity() {
     @SuppressLint("VisibleForTests")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        window.hideSystemBars()
         mAuth = Firebase.auth
         PlayGamesSdk.initialize(this)
         context = this
         binding = ActivityStartBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        checkUpdate()
 //        mode1 = findViewById(R.id.mode1)
 //        mode2 = findViewById(R.id.mode2)
 //        mode3 = findViewById(R.id.mode3)
         loadingUI = LoadingUI()
         loadingUI.start()
         val db = FirebaseFirestore.getInstance()
-        preferences = getSharedPreferences(
-            getString(R.string.preference_file_key), MODE_PRIVATE
-        )
+        preferences = getSharedPreferences(getString(R.string.preference_file_key), MODE_PRIVATE)
         //SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(ApplicationConstants.PREFERENCES, Context.MODE_PRIVATE);
         preferencesEditor = preferences.edit()
         GameProfile.setPreferences(preferences)
         //if (!isFirstRun)
         isFirstRun = preferences.getBoolean("firstRun", true)
 
-        window.hideSystemBars()
 
         //if(isFirstRun)
 
@@ -200,7 +207,9 @@ class StartActivity : AppCompatActivity() {
                             mediaPlayer.setOnCompletionListener(MediaPlayer::release)
                         }
                         alertDialog.dismiss()
-                        finish()
+                        isEnabled = false
+                        onBackPressedDispatcher.onBackPressed()
+                        isEnabled = true
                     }
                     dialogBinding.buttonNo.setBounceClickListener {
                         if (!isMuted) {
@@ -225,10 +234,9 @@ class StartActivity : AppCompatActivity() {
         gamesSignInClient.isAuthenticated.addOnCompleteListener { isAuthenticatedTask ->
             val isAuthenticated = isAuthenticatedTask.isSuccessful &&
                     isAuthenticatedTask.result.isAuthenticated
-            gamesSignInClient.requestServerSideAccess(getString(R.string.default_web_client_id),  /*forceRefreshToken=*/false)
+            gamesSignInClient.requestServerSideAccess(getString(R.string.default_web_client_id),  false /*forceRefreshToken=*/ )
                 .addOnCompleteListener { task: Task<String?> ->
                     if (task.isSuccessful) {
-                        isUpdateAvailable
                         val serverAuthToken = task.result!!
                         //Toast.makeText(this, "serverAuthToken- "+serverAuthToken, Toast.LENGTH_SHORT).show();
                         val credential = PlayGamesAuthProvider.getCredential(serverAuthToken)
@@ -246,8 +254,8 @@ class StartActivity : AppCompatActivity() {
                                     }
                                     val user = auth.currentUser
                                     if (isAuthenticated) {
-                                        PlayGames.getPlayersClient(this@StartActivity).currentPlayer.addOnCompleteListener { mTask ->
-                                            playerId = mTask.result.playerId
+                                        PlayGames.getPlayersClient(this@StartActivity).currentPlayer.addOnSuccessListener { player ->
+                                            playerId = player.playerId
                                             //Toast.makeText(StartActivity.this, "id: "+mTask.getResult().getPlayerId() , Toast.LENGTH_SHORT).show();
                                             if (preferences.getBoolean("needProfile", true)) {
                                                 val gameProfile = GameProfile()
@@ -262,10 +270,8 @@ class StartActivity : AppCompatActivity() {
                                                                     false
                                                                 ).apply()
                                                                 loadProfileFromServer(db)
-                                                                if (loadingUI.visibility) {
-                                                                    onlineStatus = "pass"
-                                                                    loadingUI.stop()
-                                                                }
+                                                                onlineStatus = "pass"
+                                                                loadingUI.stop()
                                                                 //Log.d(TAG, "Profile exists!");
                                                                 Toast.makeText(
                                                                     this@StartActivity,
@@ -285,29 +291,22 @@ class StartActivity : AppCompatActivity() {
                                                                             false
                                                                         ).apply()
                                                                         gameProfile.apply()
-                                                                        if (loadingUI.visibility) {
-                                                                            onlineStatus = "pass"
-                                                                            loadingUI.stop()
-                                                                        }
+                                                                        onlineStatus = "pass"
+                                                                        loadingUI.stop()
                                                                         //Log.d(TAG, "onSuccess: Profile Created");
                                                                         //Toast.makeText(StartActivity.this, "onSuccess: Profile Created", Toast.LENGTH_SHORT).show();
                                                                     }
                                                                     .addOnFailureListener { //Log.d("TAG", "onSuccess: Profile Creation Failed");
                                                                         //Toast.makeText(StartActivity.this, "onSuccess: Profile Creation Failed", Toast.LENGTH_SHORT).show();
-                                                                        if (loadingUI.visibility) {
-                                                                            onlineStatus =
-                                                                                "needReload"
-                                                                            loadingUI.stop()
-                                                                        }
+                                                                        onlineStatus = "needReload"
+                                                                        loadingUI.stop()
                                                                     }
                                                                 getLocation(db)
                                                             }
                                                         } else {
                                                             //Log.d(TAG, "Failed with: ", task.getException());
-                                                            if (loadingUI.visibility) {
-                                                                onlineStatus = "needReload"
-                                                                loadingUI.stop()
-                                                            }
+                                                            onlineStatus = "needReload"
+                                                            loadingUI.stop()
                                                         }
                                                     }
                                             } else {
@@ -325,10 +324,8 @@ class StartActivity : AppCompatActivity() {
                                         // login button to ask  players to sign-in. Clicking it should
                                         // call GamesSignInClient.signIn();
                                         updateUI(null)
-                                        if (loadingUI.visibility) {
-                                            onlineStatus = "needReload"
-                                            loadingUI.stop()
-                                        }
+                                        onlineStatus = "needReload"
+                                        loadingUI.stop()
                                     }
                                     updateUI(user)
                                 } else {
@@ -336,10 +333,8 @@ class StartActivity : AppCompatActivity() {
                                     //Log.d(TAG, "signInWithCredential: failure", task.getException());
                                     //Toast.makeText(StartActivity.this, "Authentication failed.",Toast.LENGTH_SHORT).show();
                                     updateUI(null)
-                                    if (loadingUI.visibility) {
-                                        onlineStatus = "needReload"
-                                        loadingUI.stop()
-                                    }
+                                    onlineStatus = "needReload"
+                                    loadingUI.stop()
                                 }
 
                                 // ...
@@ -355,10 +350,8 @@ class StartActivity : AppCompatActivity() {
                             }
                         }
                         updateUI(null)
-                        if (loadingUI.visibility) {
-                            onlineStatus = "needReload"
-                            loadingUI.stop()
-                        }
+                        onlineStatus = "needReload"
+                        loadingUI.stop()
                     }
                 }
         }
@@ -367,6 +360,7 @@ class StartActivity : AppCompatActivity() {
         //gamesSignInClient.signIn();
         //vsRadioGrp=findViewById(R.id.vsRadioGrp);
         ifMuted()
+//        throw RuntimeException("Test Crash") // Force a crash
 
     }
 
@@ -384,9 +378,8 @@ class StartActivity : AppCompatActivity() {
             }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     private fun getLocation(db: FirebaseFirestore) {
-        GlobalScope.launch(Dispatchers.IO) {
+        lifecycleScope.launch(Dispatchers.IO) {
             val bodyTxt: String
             try {
                 Log.d(TAG, "getLocation: Success")
@@ -455,8 +448,7 @@ class StartActivity : AppCompatActivity() {
 //            R.layout.dialog_layout_loading, findViewById(R.id.updateLayoutLoadingUI)
 //        )!!
         private lateinit var alertDialog: AlertDialog
-        var visibility = false
-        @OptIn(DelicateCoroutinesApi::class)
+        private var isVisibile = false
         fun start() {
             builder.setView(dialogBinding.root)
             builder.setCancelable(false)
@@ -464,13 +456,13 @@ class StartActivity : AppCompatActivity() {
             alertDialog.window?.setBackgroundDrawable(ColorDrawable(0))
             try {
                 alertDialog.show()
-                visibility = true
+                isVisibile = true
             } catch (ex: Exception) {
                 ex.printStackTrace()
             }
-            GlobalScope.launch(Dispatchers.Main) {
+            lifecycleScope.launch {
                 delay(15000)
-                if (visibility) {
+                if (isVisibile) {
                     onlineStatus = "needReload"
                     stop()
 //                    Looper.prepare()
@@ -481,8 +473,14 @@ class StartActivity : AppCompatActivity() {
         }
 
         fun stop() {
-            alertDialog.dismiss()
-            visibility = false
+            if(isVisibile && dialogBinding.root.isAttachedToWindow && alertDialog.isShowing ) {
+                try {
+                    alertDialog.dismiss()
+                    isVisibile = false
+                } catch (ex: Exception) {
+                    ex.printStackTrace()
+                }
+            }
         }
     }
 
@@ -568,17 +566,17 @@ class StartActivity : AppCompatActivity() {
     @SuppressLint("SetTextI18n")
     private fun showAHadith() {
 //        val hadithList = ArrayList<HadithStore>()
-        val db = FirebaseFirestore.getInstance()
+        val db = Firebase.firestore
         db.collection("dailyHadith")
             .count().get(AggregateSource.SERVER)
             .addOnSuccessListener {
-                val totalHadith = it.count + 1
+                val totalHadith = it.count
                 val randDocId = Random().nextInt(totalHadith.toInt()).toString()
                 Log.d(TAG, "showAHadith: $randDocId")
                 db.collection("dailyHadith").document(randDocId)
                     .get()
                     .addOnSuccessListener { doc ->
-                        val hadith = doc.toObject(HadithStore::class.java)!!
+                        val hadith = doc.toObject(HadithStore::class.java) ?: HadithStore()
                         val builder = AlertDialog.Builder(this@StartActivity)
                         val dialogBinding = DialogLayoutShowHadithBinding.inflate(LayoutInflater.from(this@StartActivity))
                         builder.setView(dialogBinding.root)
@@ -669,15 +667,13 @@ class StartActivity : AppCompatActivity() {
         get() {
             val context: Context = this
             val localVersionCode = BuildConfig.VERSION_CODE
-            val database = FirebaseDatabase.getInstance()
+            val database = Firebase.database
             val myRef = database.getReference("versionCode")
             myRef.addValueEventListener(object : ValueEventListener {
                 @SuppressLint("SetTextI18n")
                 override fun onDataChange(dataSnapshot: DataSnapshot) {
-                    // This method is called once with the initial value and again
-                    // whenever data at this location is updated.
                     val onlineVersionCode = dataSnapshot.getValue(Int::class.java)!!
-                    if (localVersionCode < Objects.requireNonNull(onlineVersionCode)) {
+                    if (localVersionCode < onlineVersionCode) {
                         val builder = AlertDialog.Builder(context)
                         val dialogBinding = DialogLayoutUpdateBinding.inflate(LayoutInflater.from(this@StartActivity))
 
@@ -685,22 +681,15 @@ class StartActivity : AppCompatActivity() {
                         val alertDialog = builder.create()
                         dialogBinding.buttonUpdate.setBounceClickListener {
                             if (!isMuted) {
-                                val mediaPlayer =
-                                    MediaPlayer.create(this@StartActivity, R.raw.btn_click_ef)
+                                val mediaPlayer = MediaPlayer.create(this@StartActivity, R.raw.btn_click_ef)
                                 mediaPlayer.start()
                                 mediaPlayer.setOnCompletionListener(MediaPlayer::release)
                             }
-                            val appPackageName =
-                                packageName // getPackageName() from Context or Activity object
+                            val appPackageName = packageName // getPackageName() from Context or Activity object
                                 //                        try {
 //                            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + appPackageName)));
 //                        } catch (android.content.ActivityNotFoundException ante) {
-                            startActivity(
-                                Intent(
-                                    Intent.ACTION_VIEW,
-                                    Uri.parse("https://play.google.com/store/apps/details?id=$appPackageName")
-                                )
-                            )
+                            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$appPackageName")))
                                 //}
                             alertDialog.dismiss()
                         }
@@ -708,15 +697,63 @@ class StartActivity : AppCompatActivity() {
                         try { alertDialog.show() }
                         catch (ex: Exception) { ex.printStackTrace() }
                     }
-                    ////Log.d(TAG, "Last Value is: " + bestScore);
                 }
-
-                override fun onCancelled(error: DatabaseError) {
-                    // Failed to read value
-                    //Log.d("TAG", "Failed to read value.", error.toException());
-                }
+                override fun onCancelled(error: DatabaseError) {}
             })
         }
+
+    private val updateFlowResultLauncher =
+        registerForActivityResult(
+            ActivityResultContracts.StartIntentSenderForResult(),
+        ) { result ->
+            if (result.resultCode == RESULT_OK) {
+                // Handle successful app update
+                Log.d(TAG, "Update Successful: ")
+                preferencesEditor.putBoolean("forceUpdate", false).apply()
+            }
+            if (result.resultCode == RESULT_CANCELED && preferences.getBoolean("forceUpdate", false)) {
+                showImmediateUpdate()
+            }
+        }
+
+    private fun checkUpdate(){
+        AppUpdateManagerFactory
+            .create(this)
+            .appUpdateInfo
+            .addOnSuccessListener { appUpdateInfo->
+            if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE ||
+                appUpdateInfo.updateAvailability() == UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS ||
+                appUpdateInfo.installStatus() == InstallStatus.DOWNLOADED
+            ) {
+                showImmediateUpdate()
+                val database = Firebase.database
+                val myRef = database.getReference("forceUpdate")
+                myRef.addValueEventListener(object : ValueEventListener {
+                    override fun onDataChange(snapshot: DataSnapshot) {
+                        if(snapshot.exists()) {
+                            val forceUpdateNeeded = snapshot.getValue(Boolean::class.java) ?: false
+                            preferencesEditor.putBoolean("forceUpdate", forceUpdateNeeded).apply()
+                        }
+                    }
+                    override fun onCancelled(error: DatabaseError) {}
+                })
+            }
+        }
+    }
+    private fun showImmediateUpdate() {
+        val appUpdateManager: AppUpdateManager = AppUpdateManagerFactory.create(this)
+        val appUpdateInfoTask = appUpdateManager.appUpdateInfo
+        appUpdateInfoTask.addOnSuccessListener { appUpdateInfo->
+            appUpdateManager.startUpdateFlowForResult(
+                appUpdateInfo, updateFlowResultLauncher,
+                AppUpdateOptions
+                    .newBuilder(AppUpdateType.IMMEDIATE)
+                    .setAllowAssetPackDeletion(true)
+                    .build()
+            )
+        }
+    }
+
     val isMuted: Boolean
         get() = preferences.getBoolean("muted", false)
 
@@ -731,7 +768,7 @@ class StartActivity : AppCompatActivity() {
     }
 
 
-    fun scoreBoard(view: View) {
+    private fun scoreBoard(view: View) {
         if (!isMuted) {
             val mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
             mediaPlayer.start()
@@ -748,7 +785,7 @@ class StartActivity : AppCompatActivity() {
         findViewById<View>(R.id.globalScoreFrag).visibility = View.VISIBLE
     }
 
-    fun goBack(view: View) {
+    private fun goBack(view: View) {
         if (!isMuted) {
             val mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
             mediaPlayer.start()
@@ -769,7 +806,7 @@ class StartActivity : AppCompatActivity() {
         findViewById<View>(R.id.globalScoreFrag).visibility = View.GONE
     }
 
-    fun volButton(view: View) {
+    private fun volButton(view: View) {
         if (!isMuted) {
             findViewById<View>(R.id.volBtn).setBackgroundResource(R.drawable.btn_gry_bg)
             (findViewById<View>(R.id.volBtn) as ImageButton).setImageResource(R.drawable.icon_vol_mute)

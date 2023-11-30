@@ -22,53 +22,49 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
-        android:orientation="vertical"
-
-
-        >
+        android:orientation="vertical">
 
         <ImageButton
+            android:id="@+id/openNavBtn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="-30dp"
-            android:layout_marginTop="2dp"
-            android:layout_marginBottom="20dp"
+            android:layout_marginTop="@dimen/_2sdp"
+            android:layout_marginBottom="@dimen/_16sdp"
             android:background="@drawable/btn_chat_bg"
-            android:onClick="openNavBtn"
-            android:paddingVertical="40dp"
-            android:paddingStart="35dp"
-            android:paddingEnd="10dp"
+            android:paddingVertical="@dimen/_30sdp"
+            android:paddingStart="30dp"
+            android:paddingEnd="8dp"
             android:src="@drawable/icon_forward"
             app:tint="@color/cocZz" />
 
         <com.mikhaellopez.circularimageview.CircularImageView
             android:id="@+id/newMsgBoltu"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:layout_marginStart="22dp"
+            android:layout_width="14dp"
+            android:layout_height="14dp"
+            android:layout_marginStart="15dp"
             android:src="@drawable/icon_home"
             app:civ_border_color="@color/redY"
-            app:civ_border_width="20dp" />
+            app:civ_border_width="7dp" />
     </RelativeLayout>
 
     <LinearLayout
         android:id="@+id/globalScoreFrag"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="50dp"
-        android:orientation="vertical"
-        android:weightSum="10">
+        android:layout_marginTop="@dimen/_35sdp"
+        android:orientation="vertical">
 
         <TextView
             android:id="@+id/FragLabel"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight=".5"
+            android:layout_height="wrap_content"
             android:fontFamily="@font/sortie"
             android:gravity="center"
+            android:maxLines="1"
             android:text="Global Score Board"
             android:textColor="@color/white"
-            android:textSize="40sp"
+            android:textSize="@dimen/_28ssp"
             tools:ignore="HardcodedText" />
 
         <androidx.fragment.app.FragmentContainerView
@@ -76,34 +72,24 @@
             android:name="com.diu.yk_games.line2box.presentation.BlankFragment"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="8"
-
+            android:layout_weight="1"
             tools:layout="@layout/fragment_blank" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_marginHorizontal="40dp"
-            android:layout_weight="1.5"
-            android:gravity="center"
-            android:orientation="vertical">
+        <Button
+            android:id="@+id/goBackBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="45dp"
+            android:layout_gravity="end"
+            android:layout_margin="@dimen/_25sdp"
+            android:background="@drawable/btn_grnx_bg"
+            android:drawableStart="@drawable/icon_back"
+            android:fontFamily="@font/sortie"
+            android:paddingHorizontal="14dp"
+            android:text="  Go Back "
+            android:textColor="@color/white"
+            android:textSize="14sp"
+            tools:ignore="HardcodedText" />
 
-
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="end"
-                android:background="@drawable/btn_grnx_bg"
-                android:drawableStart="@drawable/icon_back"
-                android:fontFamily="@font/sortie"
-                android:onClick="goBack"
-                android:padding="20dp"
-                android:text="  Go Back "
-                android:textColor="@color/white"
-                android:textSize="19sp"
-                tools:ignore="HardcodedText" />
-
-        </LinearLayout>
 
     </LinearLayout>
 
@@ -111,23 +97,23 @@
         android:id="@+id/multiConstraintLyt"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="40dp"
-        android:orientation="vertical"
-
-        >
+        android:layout_marginTop="@dimen/_25sdp"
+        android:orientation="vertical">
 
         <LinearLayout
             android:id="@+id/linearLayoutStart1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="20dp"
+                android:layout_marginHorizontal="@dimen/_16sdp"
                 android:baselineAligned="false">
 
                 <LinearLayout
@@ -139,35 +125,27 @@
                     >
 
                     <ImageButton
-                        android:layout_width="45dp"
-                        android:layout_height="45dp"
+                        android:id="@+id/backBtn"
+                        android:layout_width="@dimen/_36sdp"
+                        android:layout_height="@dimen/_36sdp"
                         android:layout_gravity="end"
-                        android:layout_marginEnd="10dp"
+                        android:layout_marginEnd="@dimen/_8sdp"
                         android:background="@drawable/btn_grn_bg"
                         android:fontFamily="@font/sortie"
-                        android:onClick="backBtn"
-                        android:paddingVertical="10dp"
-                        android:src="@drawable/icon_home"
-                        android:textColor="@color/white"
-                        android:textSize="9sp"
-                        tools:ignore="HardcodedText,SmallSp" />
+                        android:src="@drawable/icon_home" />
 
                     <ImageButton
-                        android:layout_width="45dp"
-                        android:layout_height="45dp"
+                        android:id="@+id/scoreBoardBtn"
+                        android:layout_width="@dimen/_36sdp"
+                        android:layout_height="@dimen/_36sdp"
                         android:layout_gravity="end"
                         android:background="@drawable/btn_grn_bg"
                         android:fontFamily="@font/sortie"
-                        android:onClick="scoreBoard"
-                        android:paddingVertical="10dp"
-                        android:src="@drawable/icon_globe"
-                        android:textColor="@color/white"
-                        android:textSize="9sp"
-                        tools:ignore="HardcodedText,SmallSp" />
+                        android:src="@drawable/icon_globe" />
                 </LinearLayout>
 
                 <LinearLayout
-                    android:layout_width="100dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="end"
 
@@ -175,99 +153,59 @@
 
                     <ImageButton
                         android:id="@+id/volBtn"
-                        android:layout_width="45dp"
-                        android:layout_height="45dp"
+                        android:layout_width="@dimen/_36sdp"
+                        android:layout_height="@dimen/_36sdp"
                         android:layout_gravity="end"
-                        android:layout_marginEnd="10dp"
+                        android:layout_marginEnd="@dimen/_8sdp"
                         android:background="@drawable/btn_ylw_bg"
                         android:fontFamily="@font/sortie"
-                        android:onClick="volButton"
-                        android:paddingVertical="10dp"
-                        android:src="@drawable/icon_vol_unmute"
-                        android:textColor="@color/white"
-                        android:textSize="9sp"
-                        tools:ignore="HardcodedText,SmallSp" />
+                        android:src="@drawable/icon_vol_unmute" />
 
                     <ImageButton
-                        android:layout_width="45dp"
-                        android:layout_height="45dp"
+                        android:id="@+id/ideaBtn"
+                        android:layout_width="@dimen/_36sdp"
+                        android:layout_height="@dimen/_36sdp"
                         android:layout_gravity="end"
                         android:background="@drawable/btn_gry_bg"
                         android:fontFamily="@font/sortie"
-                        android:onClick="ideaBtn"
-                        android:paddingVertical="10dp"
-                        android:src="@drawable/icon_i"
-                        android:textColor="@color/white"
-                        android:textSize="9sp"
-                        tools:ignore="HardcodedText,SmallSp" />
+                        android:src="@drawable/icon_i" />
                 </LinearLayout>
 
             </LinearLayout>
 
-            <LinearLayout
+            <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="20dp"
-                android:layout_marginTop="10dp"
-                android:baselineAligned="false">
+                android:layout_marginHorizontal="@dimen/_16sdp"
+                android:layout_marginTop="@dimen/_8sdp">
 
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="horizontal"
+                <ImageButton
+                    android:id="@+id/leaderBoardBtn"
+                    android:layout_width="@dimen/_36sdp"
+                    android:layout_height="@dimen/_36sdp"
+                    android:background="@drawable/btn_grn_bg"
+                    android:fontFamily="@font/sortie"
+                    android:onClick="leaderBoard"
+                    android:src="@drawable/icon_leaderboard" />
 
-                    >
-
-                    <ImageButton
-                        android:layout_width="45dp"
-                        android:layout_height="45dp"
-                        android:layout_gravity="end"
-                        android:background="@drawable/btn_grn_bg"
-                        android:fontFamily="@font/sortie"
-                        android:onClick="leaderBoard"
-                        android:paddingVertical="10dp"
-                        android:src="@drawable/icon_leaderboard"
-                        android:textColor="@color/white"
-                        android:textSize="9sp"
-                        tools:ignore="HardcodedText,SmallSp" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                <ImageButton
+                    android:id="@+id/profileBtn"
+                    android:layout_width="@dimen/_36sdp"
+                    android:layout_height="@dimen/_36sdp"
                     android:layout_gravity="end"
-
-                    >
-
-
-                    <ImageButton
-                        android:id="@+id/profileBtn"
-                        android:layout_width="45dp"
-                        android:layout_height="45dp"
-                        android:layout_gravity="end"
-                        android:background="@drawable/btn_box_chat"
-                        android:fontFamily="@font/sortie"
-                        android:onClick="profileBtn"
-                        android:paddingVertical="10dp"
-                        android:src="@drawable/icon_human"
-                        android:textColor="@color/white"
-                        android:textSize="9sp"
-                        tools:ignore="HardcodedText,SmallSp" />
-                </LinearLayout>
+                    android:background="@drawable/btn_box_chat"
+                    android:fontFamily="@font/sortie"
+                    android:src="@drawable/icon_human" />
 
 
-            </LinearLayout>
+            </FrameLayout>
 
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="end"
-                android:layout_marginEnd="15dp"
-                android:layout_marginBottom="20dp"
-                android:paddingTop="20dp"
-
-                >
+                android:layout_marginTop="@dimen/_12sdp"
+                android:layout_marginEnd="@dimen/_12sdp">
 
                 <TextView
                     android:id="@+id/trophyTextId"
@@ -275,84 +213,90 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:fontFamily="@font/sortie"
-                    android:text="100"
+                    android:text="@string/_0"
                     android:textColor="@color/white"
-                    android:textSize="30sp"
+                    android:textSize="@dimen/_22ssp"
 
 
                     />
 
                 <ImageView
-                    android:layout_width="55dp"
-                    android:layout_height="55dp"
+                    android:layout_width="@dimen/_42sdp"
+                    android:layout_height="@dimen/_42sdp"
                     android:layout_gravity="end"
                     android:fontFamily="@font/sortie"
-                    android:paddingVertical="5dp"
-                    android:src="@drawable/icon_trophy"
-                    tools:ignore="HardcodedText,SmallSp" />
+                    android:paddingVertical="@dimen/_4sdp"
+                    android:src="@drawable/icon_trophy" />
             </LinearLayout>
 
         </LinearLayout>
 
         <RelativeLayout
+            android:id="@+id/relativeLayout2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/box"
-            android:paddingHorizontal="75dp"
-            android:paddingTop="45dp"
-            app:layout_constraintBottom_toTopOf="@+id/linearLayoutStart2"
+            android:paddingHorizontal="@dimen/_55sdp"
+            android:paddingTop="@dimen/_30sdp"
+            app:layout_constraintBottom_toTopOf="@+id/startMatchBtn"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/linearLayoutStart1">
 
             <io.ghyeok.stickyswitch.widget.StickySwitch
                 android:id="@+id/sticky_switch"
-                android:layout_width="190dp"
+                android:layout_width="@dimen/_145sdp"
                 android:layout_height="wrap_content"
                 android:layout_centerHorizontal="true"
                 app:ss_animationDuration="800"
                 app:ss_animationType="curved"
-                app:ss_iconPadding="15dp"
-                app:ss_iconSize="40dp"
+                app:ss_iconPadding="@dimen/_12sdp"
+                app:ss_iconSize="@dimen/_30sdp"
                 app:ss_leftIcon="@drawable/icon_arrow_right"
                 app:ss_leftText="Join"
                 app:ss_rightIcon="@drawable/icon_add"
                 app:ss_rightText="Create"
-                app:ss_selectedTextSize="14sp"
+                app:ss_selectedTextSize="@dimen/_11ssp"
                 app:ss_sliderBackgroundColor="#80252525"
-                app:ss_textSize="12sp" />
+                app:ss_textSize="@dimen/_10ssp" />
 
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerHorizontal="true"
-                android:layout_marginTop="120dp"
-                android:layout_marginBottom="20sp"
+                android:layout_marginTop="@dimen/_90sdp"
+                android:layout_marginBottom="@dimen/_14sdp"
                 android:gravity="center"
                 android:orientation="horizontal">
 
-                <EditText
-                    android:id="@+id/joinInputId"
-                    android:layout_width="150sp"
+                <FrameLayout
+                    android:layout_width="@dimen/_80ssp"
                     android:layout_height="wrap_content"
-                    android:background="#0000"
-                    android:fontFamily="@font/sortie"
-                    android:gravity="center"
-                    android:hint="Input ID"
-                    android:inputType="textCapCharacters|textAutoCorrect"
-                    android:maxLength="4"
-                    android:paddingVertical="20dp"
-                    android:textColor="@color/white"
-                    android:textColorHint="@color/whiteY"
-                    android:textSize="30sp" />
+                    >
+                    <EditText
+                        android:id="@+id/joinInputId"
+                        android:layout_gravity="center"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="#0000"
+                        android:fontFamily="@font/sortie"
+                        android:hint="@string/game_id"
+                        android:inputType="textCapCharacters|textAutoCorrect"
+                        android:maxLength="4"
+                        android:paddingVertical="@dimen/_14sdp"
+                        android:textColor="@color/white"
+                        android:textColorHint="@color/whiteY"
+                        android:textSize="@dimen/_22ssp" />
+
+                </FrameLayout>
+
 
                 <ImageButton
                     android:id="@+id/copyPastBtn"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:background="@drawable/btn_special_bg"
-                    android:padding="10dp"
-
+                    android:padding="@dimen/_8sdp"
                     android:src="@drawable/icon_paste" />
 
             </LinearLayout>
@@ -360,47 +304,33 @@
 
         </RelativeLayout>
 
-        <LinearLayout
-            android:id="@+id/linearLayoutStart2"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:orientation="vertical"
-            app:layout_constraintBottom_toBottomOf="parent">
-
-
-            <Button
-                android:id="@+id/startMatchBtnId"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginTop="20dp"
-                android:layout_marginBottom="130dp"
-                android:background="@drawable/btn_redx_bg"
-                android:fontFamily="@font/sortie"
-                android:onClick="startBtn"
-                android:paddingHorizontal="25dp"
-                android:paddingVertical="20dp"
-                android:text="start match"
-                android:textColor="@color/white"
-                android:textSize="33sp" />
-        </LinearLayout>
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="80dp"
-        android:layout_gravity="bottom"
-        android:layout_marginBottom="20dp"
-        android:orientation="vertical">
-
-        <pl.droidsonroids.gif.GifImageView
-            android:id="@+id/emojiPlay"
+        <Button
+            android:id="@+id/startMatchBtn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="end"
-            android:src="@drawable/emoji_haha" />
-    </LinearLayout>
+            android:layout_gravity="center"
+            android:layout_marginBottom="@dimen/_80sdp"
+            android:background="@drawable/btn_grnx_bg"
+            android:fontFamily="@font/sortie"
+            android:paddingHorizontal="@dimen/_20sdp"
+            android:paddingVertical="@dimen/_16sdp"
+            android:text="@string/start_match"
+            android:textColor="@color/white"
+            android:textSize="@dimen/_20ssp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
 
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <pl.droidsonroids.gif.GifImageView
+        android:id="@+id/emojiPlay"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/_65sdp"
+        android:layout_gravity="end|bottom"
+        android:layout_marginBottom="@dimen/_10sdp"
+        android:src="@drawable/emoji_haha"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </FrameLayout>

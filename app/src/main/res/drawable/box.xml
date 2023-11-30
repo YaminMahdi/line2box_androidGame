@@ -106,7 +106,7 @@
 
             <stroke
                 android:width="3dp"
-                android:color="#80C55FD6" />
+                android:color="#C55FD6" />
 
         </shape>
     </item>
@@ -122,7 +122,7 @@
 
             <stroke
                 android:width="3dp"
-                android:color="#80C55FD6" />
+                android:color="#C55FD6" />
 
         </shape>
     </item>
@@ -138,7 +138,7 @@
 
             <stroke
                 android:width="3dp"
-                android:color="#80C55FD6" />
+                android:color="#C55FD6" />
 
         </shape>
     </item>
@@ -154,7 +154,7 @@
 
             <stroke
                 android:width="3dp"
-                android:color="#80C55FD6" />
+                android:color="#50C55FD6" />
 
         </shape>
     </item>
@@ -170,7 +170,7 @@
             <!--                android:centerColor="#69B7AFAF"-->
             <!--                android:endColor="#804B6CD6"-->
             <!--                android:angle="0"/>-->
-            <solid android:color="#269C27B0" />
+            <solid android:color="#B32A053E" /> //269C27B0
         </shape>
     </item>
 

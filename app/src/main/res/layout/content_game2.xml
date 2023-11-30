@@ -1,14 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    app:defaultNavHost="true"
     tools:context=".presentation.online.GameActivity2">
-
-
 
     <ImageView
         android:id="@+id/background_image_view"
@@ -16,91 +13,86 @@
         android:layout_height="match_parent"
         android:contentDescription="@string/background"
         android:scaleType="centerCrop"
-        android:src="@drawable/bg1" />
-
-
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="20dp"
-        android:layout_marginTop="40dp"
-        android:baselineAligned="false">
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="horizontal"
-
-            >
-
-            <ImageButton
-                android:layout_width="45dp"
-                android:layout_height="45dp"
-                android:layout_gravity="end"
-                android:background="@drawable/btn_grn_bg"
-                android:fontFamily="@font/sortie"
-                android:onClick="backBtn"
-                android:paddingVertical="10dp"
-                android:src="@drawable/icon_home"
-                android:textColor="@color/white"
-                android:textSize="9sp"
-                tools:ignore="HardcodedText,SmallSp" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="100dp"
-            android:layout_height="wrap_content"
-            android:layout_gravity="end"
-
-            >
-
-            <ImageButton
-                android:id="@+id/volBtn"
-                android:layout_width="45dp"
-                android:layout_height="45dp"
-                android:layout_gravity="end"
-                android:layout_marginEnd="10dp"
-                android:background="@drawable/btn_ylw_bg"
-                android:fontFamily="@font/sortie"
-                android:onClick="volButton"
-                android:paddingVertical="10dp"
-                android:src="@drawable/icon_vol_unmute"
-                android:textColor="@color/white"
-                android:textSize="9sp"
-                tools:ignore="HardcodedText,SmallSp" />
-
-            <ImageButton
-                android:layout_width="45dp"
-                android:layout_height="45dp"
-                android:layout_gravity="end"
-                android:background="@drawable/btn_gry_bg"
-                android:fontFamily="@font/sortie"
-                android:onClick="ideaBtn"
-                android:paddingVertical="10dp"
-                android:src="@drawable/icon_i"
-                android:textColor="@color/white"
-                android:textSize="9sp"
-                tools:ignore="HardcodedText,SmallSp" />
-        </LinearLayout>
-
-    </LinearLayout>
-
+        android:src="@drawable/bg1"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <LinearLayout
+        android:id="@+id/linearLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="40dp"
+        android:layout_marginTop="@dimen/_25sdp"
         android:orientation="vertical"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
-        >
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/_16sdp"
+            android:baselineAligned="false">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="horizontal"
+
+                >
+
+                <ImageButton
+                    android:id="@+id/backBtn"
+                    android:layout_width="@dimen/_36sdp"
+                    android:layout_height="@dimen/_36sdp"
+                    android:layout_gravity="end"
+                    android:background="@drawable/btn_grn_bg"
+                    android:fontFamily="@font/sortie"
+                    android:paddingVertical="@dimen/_8sdp"
+                    android:src="@drawable/icon_home"
+                    tools:ignore="SmallSp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+
+                >
+
+                <ImageButton
+                    android:id="@+id/volBtn"
+                    android:layout_width="@dimen/_36sdp"
+                    android:layout_height="@dimen/_36sdp"
+                    android:layout_gravity="end"
+                    android:layout_marginEnd="10dp"
+                    android:background="@drawable/btn_ylw_bg"
+                    android:fontFamily="@font/sortie"
+                    android:paddingVertical="@dimen/_8sdp"
+                    android:src="@drawable/icon_vol_unmute"
+                    tools:ignore="SmallSp" />
+
+                <ImageButton
+                    android:id="@+id/ideaBtn"
+                    android:layout_width="@dimen/_36sdp"
+                    android:layout_height="@dimen/_36sdp"
+                    android:layout_gravity="end"
+                    android:background="@drawable/btn_gry_bg"
+                    android:fontFamily="@font/sortie"
+                    android:paddingVertical="@dimen/_8sdp"
+                    android:src="@drawable/icon_i"
+                    tools:ignore="SmallSp" />
+            </LinearLayout>
+
+        </LinearLayout>
 
         <LinearLayout
             android:id="@+id/nmLayout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginTop="50dp"
+            android:layout_marginTop="@dimen/_10sdp"
             android:baselineAligned="false"
             android:gravity="center"
             android:orientation="horizontal"
@@ -121,7 +113,7 @@
                     android:layout_height="wrap_content"
                     android:fontFamily="@font/brad"
                     android:gravity="center"
-                    android:padding="10dp"
+                    android:padding="@dimen/_8sdp"
                     android:shadowColor="#C62E2E"
                     android:shadowDx="0.0"
                     android:shadowDy="0.0"
@@ -136,10 +128,10 @@
                     android:layout_height="wrap_content"
                     android:fontFamily="@font/sortie"
                     android:gravity="center"
+                    android:maxLines="1"
                     android:text="(Player Name 1)"
                     android:textColor="@color/white"
-                    android:textSize="18sp"
-
+                    android:textSize="@dimen/_13ssp"
                     tools:ignore="HardcodedText" />
 
             </LinearLayout>
@@ -147,7 +139,7 @@
 
             <ImageView
                 android:layout_width="0dp"
-                android:layout_height="100dp"
+                android:layout_height="@dimen/_80sdp"
                 android:layout_weight=".6"
                 android:contentDescription="@string/vs"
                 android:src="@drawable/vs"
@@ -167,14 +159,14 @@
                     android:layout_height="wrap_content"
                     android:fontFamily="@font/brad"
                     android:gravity="center"
-                    android:padding="10dp"
+                    android:padding="@dimen/_8sdp"
                     android:shadowColor="#1988FF"
                     android:shadowDx="0.0"
                     android:shadowDy="0.0"
                     android:shadowRadius="20"
                     android:text="@string/blue"
                     android:textColor="@color/whiteT"
-                    android:textSize="30sp" />
+                    android:textSize="@dimen/_25ssp" />
 
                 <TextView
                     android:id="@+id/nm2Id"
@@ -182,9 +174,10 @@
                     android:layout_height="wrap_content"
                     android:fontFamily="@font/sortie"
                     android:gravity="center"
+                    android:maxLines="1"
                     android:text="(Player Name 1)"
                     android:textColor="@color/white"
-                    android:textSize="18sp"
+                    android:textSize="@dimen/_13ssp"
 
                     tools:ignore="HardcodedText" />
 
@@ -198,22 +191,23 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_marginBottom="70dp"
             android:background="@drawable/box"
             android:orientation="horizontal"
-            android:padding="20dp"
+            android:layout_marginTop="@dimen/_5sdp"
+            android:padding="@dimen/_16sdp"
             android:weightSum="3">
 
             <TextView
                 android:id="@+id/scoreRed"
-                android:layout_width="57dp"
+                android:layout_width="@dimen/_45ssp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1.2"
                 android:fontFamily="@font/retro"
                 android:gravity="center"
+                android:maxLines="1"
                 android:text="@string/scoreRed"
                 android:textColor="@color/white"
-                android:textSize="20sp" />
+                android:textSize="@dimen/_16ssp" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -223,19 +217,20 @@
                 android:gravity="center"
                 android:text=" : "
                 android:textColor="@color/white"
-                android:textSize="30sp"
+                android:textSize="@dimen/_24ssp"
                 tools:ignore="HardcodedText" />
 
             <TextView
                 android:id="@+id/scoreBlue"
-                android:layout_width="57dp"
+                android:layout_width="@dimen/_45ssp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1.2"
                 android:fontFamily="@font/retro"
                 android:gravity="center"
+                android:maxLines="1"
                 android:text="@string/scoreBlue"
                 android:textColor="@color/white"
-                android:textSize="20sp" />
+                android:textSize="@dimen/_16ssp" />
         </LinearLayout>
 
         <androidx.fragment.app.FragmentContainerView
@@ -244,1744 +239,1712 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
-        <RelativeLayout
-            android:id="@+id/relativeLayout"
+    </LinearLayout>
+
+    <RelativeLayout
+        android:id="@+id/relativeLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center"
+        android:background="@drawable/box"
+        android:clipChildren="false"
+        android:orientation="vertical"
+        android:padding="@dimen/_18sdp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout">
+
+
+        <!--            box text-->
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:background="@drawable/box"
-            android:clipChildren="false"
-            android:orientation="vertical"
-            android:paddingLeft="22dp"
-            android:paddingTop="30dp"
-            android:paddingRight="22dp"
-            android:paddingBottom="30dp">
-
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/r1c1Tx"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:layout_marginTop="10dp"
-                    android:background="#0000"
-                    android:gravity="center"
-                    android:textColor="@color/white"
-                    android:textSize="30sp" />
-
-                <TextView
-                    android:id="@+id/r1c2Tx"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:layout_marginTop="10dp"
-                    android:background="#0000"
-                    android:gravity="center"
-                    android:textColor="@color/white"
-                    android:textSize="30sp" />
-
-                <TextView
-                    android:id="@+id/r1c3Tx"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:layout_marginTop="10dp"
-                    android:background="#0000"
-                    android:gravity="center"
-                    android:textColor="@color/white"
-                    android:textSize="30sp" />
-
-                <TextView
-                    android:id="@+id/r1c4Tx"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:layout_marginTop="10dp"
-                    android:background="#0000"
-                    android:gravity="center"
-                    android:textColor="@color/white"
-                    android:textSize="30sp" />
-
-                <TextView
-                    android:id="@+id/r1c5Tx"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:layout_marginTop="10dp"
-                    android:background="#0000"
-                    android:gravity="center"
-                    android:textColor="@color/white"
-                    android:textSize="30sp" />
-
-                <TextView
-                    android:id="@+id/r1c6Tx"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:layout_marginTop="10dp"
-                    android:background="#0000"
-                    android:gravity="center"
-                    android:textColor="@color/white"
-                    android:textSize="30sp" />
-
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="50dp"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/r2c1Tx"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:layout_marginTop="10dp"
-                    android:background="#0000"
-                    android:gravity="center"
-                    android:textColor="@color/white"
-                    android:textSize="30sp" />
-
-                <TextView
-                    android:id="@+id/r2c2Tx"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:layout_marginTop="10dp"
-                    android:background="#0000"
-                    android:gravity="center"
-                    android:textColor="@color/white"
-                    android:textSize="30sp" />
-
-                <TextView
-                    android:id="@+id/r2c3Tx"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:layout_marginTop="10dp"
-                    android:background="#0000"
-                    android:gravity="center"
-                    android:textColor="@color/white"
-                    android:textSize="30sp" />
-
-                <TextView
-                    android:id="@+id/r2c4Tx"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:layout_marginTop="10dp"
-                    android:background="#0000"
-                    android:gravity="center"
-                    android:textColor="@color/white"
-                    android:textSize="30sp" />
-
-                <TextView
-                    android:id="@+id/r2c5Tx"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:layout_marginTop="10dp"
-                    android:background="#0000"
-                    android:gravity="center"
-                    android:textColor="@color/white"
-                    android:textSize="30sp" />
-
-                <TextView
-                    android:id="@+id/r2c6Tx"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:layout_marginTop="10dp"
-                    android:background="#0000"
-                    android:gravity="center"
-                    android:textColor="@color/white"
-                    android:textSize="30sp" />
-
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="100dp"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/r3c1Tx"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:layout_marginTop="10dp"
-                    android:background="#0000"
-                    android:gravity="center"
-                    android:textColor="@color/white"
-                    android:textSize="30sp" />
-
-                <TextView
-                    android:id="@+id/r3c2Tx"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:layout_marginTop="10dp"
-                    android:background="#0000"
-                    android:gravity="center"
-                    android:textColor="@color/white"
-                    android:textSize="30sp" />
-
-                <TextView
-                    android:id="@+id/r3c3Tx"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:layout_marginTop="10dp"
-                    android:background="#0000"
-                    android:gravity="center"
-                    android:textColor="@color/white"
-                    android:textSize="30sp" />
-
-                <TextView
-                    android:id="@+id/r3c4Tx"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:layout_marginTop="10dp"
-                    android:background="#0000"
-                    android:gravity="center"
-                    android:textColor="@color/white"
-                    android:textSize="30sp" />
-
-                <TextView
-                    android:id="@+id/r3c5Tx"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:layout_marginTop="10dp"
-                    android:background="#0000"
-                    android:gravity="center"
-                    android:textColor="@color/white"
-                    android:textSize="30sp" />
-
-                <TextView
-                    android:id="@+id/r3c6Tx"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:layout_marginTop="10dp"
-                    android:background="#0000"
-                    android:gravity="center"
-                    android:textColor="@color/white"
-                    android:textSize="30sp" />
-
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="150dp"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/r4c1Tx"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:layout_marginTop="10dp"
-                    android:background="#0000"
-                    android:gravity="center"
-                    android:textColor="@color/white"
-                    android:textSize="30sp" />
-
-                <TextView
-                    android:id="@+id/r4c2Tx"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:layout_marginTop="10dp"
-                    android:background="#0000"
-                    android:gravity="center"
-                    android:textColor="@color/white"
-                    android:textSize="30sp" />
-
-                <TextView
-                    android:id="@+id/r4c3Tx"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:layout_marginTop="10dp"
-                    android:background="#0000"
-                    android:gravity="center"
-                    android:textColor="@color/white"
-                    android:textSize="30sp" />
-
-                <TextView
-                    android:id="@+id/r4c4Tx"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:layout_marginTop="10dp"
-                    android:background="#0000"
-                    android:gravity="center"
-                    android:textColor="@color/white"
-                    android:textSize="30sp" />
-
-                <TextView
-                    android:id="@+id/r4c5Tx"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:layout_marginTop="10dp"
-                    android:background="#0000"
-                    android:gravity="center"
-                    android:textColor="@color/white"
-                    android:textSize="30sp" />
-
-                <TextView
-                    android:id="@+id/r4c6Tx"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:layout_marginTop="10dp"
-                    android:background="#0000"
-                    android:gravity="center"
-                    android:textColor="@color/white"
-                    android:textSize="30sp" />
-
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="200dp"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/r5c1Tx"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:layout_marginTop="10dp"
-                    android:background="#0000"
-                    android:gravity="center"
-                    android:textColor="@color/white"
-                    android:textSize="30sp" />
-
-                <TextView
-                    android:id="@+id/r5c2Tx"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:layout_marginTop="10dp"
-                    android:background="#0000"
-                    android:gravity="center"
-                    android:textColor="@color/white"
-                    android:textSize="30sp" />
-
-                <TextView
-                    android:id="@+id/r5c3Tx"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:layout_marginTop="10dp"
-                    android:background="#0000"
-                    android:gravity="center"
-                    android:textColor="@color/white"
-                    android:textSize="30sp" />
-
-                <TextView
-                    android:id="@+id/r5c4Tx"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:layout_marginTop="10dp"
-                    android:background="#0000"
-                    android:gravity="center"
-                    android:textColor="@color/white"
-                    android:textSize="30sp" />
-
-                <TextView
-                    android:id="@+id/r5c5Tx"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:layout_marginTop="10dp"
-                    android:background="#0000"
-                    android:gravity="center"
-                    android:textColor="@color/white"
-                    android:textSize="30sp" />
-
-                <TextView
-                    android:id="@+id/r5c6Tx"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:layout_marginTop="10dp"
-                    android:background="#0000"
-                    android:gravity="center"
-                    android:textColor="@color/white"
-                    android:textSize="30sp" />
-
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="250dp"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/r6c1Tx"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:layout_marginTop="10dp"
-                    android:background="#0000"
-                    android:gravity="center"
-                    android:textColor="@color/white"
-                    android:textSize="30sp" />
-
-                <TextView
-                    android:id="@+id/r6c2Tx"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:layout_marginTop="10dp"
-                    android:background="#0000"
-                    android:gravity="center"
-                    android:textColor="@color/white"
-                    android:textSize="30sp" />
-
-                <TextView
-                    android:id="@+id/r6c3Tx"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:layout_marginTop="10dp"
-                    android:background="#0000"
-                    android:gravity="center"
-                    android:textColor="@color/white"
-                    android:textSize="30sp" />
-
-                <TextView
-                    android:id="@+id/r6c4Tx"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:layout_marginTop="10dp"
-                    android:background="#0000"
-                    android:gravity="center"
-                    android:textColor="@color/white"
-                    android:textSize="30sp" />
-
-                <TextView
-                    android:id="@+id/r6c5Tx"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:layout_marginTop="10dp"
-                    android:background="#0000"
-                    android:gravity="center"
-                    android:textColor="@color/white"
-                    android:textSize="30sp" />
-
-                <TextView
-                    android:id="@+id/r6c6Tx"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:layout_marginTop="10dp"
-                    android:background="#0000"
-                    android:gravity="center"
-                    android:textColor="@color/white"
-                    android:textSize="30sp" />
-
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
-                android:orientation="horizontal"
-
-                >
-
-                <View
-                    android:id="@+id/r1c1T"
-                    android:layout_width="50dp"
-                    android:layout_height="20dp"
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r1c2T"
-                    android:layout_width="50dp"
-                    android:layout_height="20dp"
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r1c3T"
-                    android:layout_width="50dp"
-                    android:layout_height="20dp"
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r1c4T"
-                    android:layout_width="50dp"
-                    android:layout_height="20dp"
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r1c5T"
-                    android:layout_width="50dp"
-                    android:layout_height="20dp"
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r1c6T"
-                    android:layout_width="50dp"
-                    android:layout_height="20dp"
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="10dp"
-                android:orientation="horizontal"
-
-                >
-
-                <View
-                    android:id="@+id/r1c1L"
-                    android:layout_width="20dp"
-                    android:layout_height="50dp"
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick"
-                    android:padding="100dp" />
-
-                <View
-                    android:id="@+id/r1c2L"
-                    android:layout_width="20dp"
-                    android:layout_height="50dp"
-                    android:layout_marginStart="30dp"
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r1c3L"
-                    android:layout_width="20dp"
-                    android:layout_height="50dp"
-                    android:layout_marginStart="30dp"
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r1c4L"
-                    android:layout_width="20dp"
-                    android:layout_height="50dp"
-                    android:layout_marginStart="30dp"
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r1c5L"
-                    android:layout_width="20dp"
-                    android:layout_height="50dp"
-                    android:layout_marginStart="30dp"
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r1c6L"
-                    android:layout_width="20dp"
-                    android:layout_height="50dp"
-                    android:layout_marginStart="30dp"
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r1c7L"
-                    android:layout_width="20dp"
-                    android:layout_height="50dp"
-                    android:layout_marginStart="30dp"
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true">
-
-                <View
-                    android:id="@+id/r1cr1"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:background="@drawable/circle"
-
-                    />
-
-                <View
-                    android:id="@+id/r1cr2"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginStart="30dp"
-                    android:background="@drawable/circle" />
-
-                <View
-                    android:id="@+id/r1cr3"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginStart="30dp"
-                    android:background="@drawable/circle" />
-
-                <View
-                    android:id="@+id/r1cr4"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginStart="30dp"
-                    android:background="@drawable/circle" />
-
-                <View
-                    android:id="@+id/r1cr5"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginStart="30dp"
-                    android:background="@drawable/circle"
-                    tools:ignore="TooManyViews" />
-
-                <View
-                    android:id="@+id/r1cr6"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginStart="30dp"
-                    android:background="@drawable/circle" />
-
-                <View
-                    android:id="@+id/r1cr7"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginStart="30dp"
-                    android:background="@drawable/circle" />
-
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="50dp"
-                android:orientation="horizontal"
-
-                >
-
-                <View
-                    android:id="@+id/r2c1T"
-                    android:layout_width="50dp"
-                    android:layout_height="20dp"
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r2c2T"
-                    android:layout_width="50dp"
-                    android:layout_height="20dp"
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick"
-                    tools:ignore="TooManyViews" />
-
-                <View
-                    android:id="@+id/r2c3T"
-                    android:layout_width="50dp"
-                    android:layout_height="20dp"
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r2c4T"
-                    android:layout_width="50dp"
-                    android:layout_height="20dp"
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r2c5T"
-                    android:layout_width="50dp"
-                    android:layout_height="20dp"
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r2c6T"
-                    android:layout_width="50dp"
-                    android:layout_height="20dp"
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="60dp"
-                android:orientation="horizontal"
-
-                >
-
-                <View
-                    android:id="@+id/r2c1L"
-                    android:layout_width="20dp"
-                    android:layout_height="50dp"
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r2c2L"
-                    android:layout_width="20dp"
-                    android:layout_height="50dp"
-                    android:layout_marginStart="30dp"
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r2c3L"
-                    android:layout_width="20dp"
-                    android:layout_height="50dp"
-                    android:layout_marginStart="30dp"
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r2c4L"
-                    android:layout_width="20dp"
-                    android:layout_height="50dp"
-                    android:layout_marginStart="30dp"
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r2c5L"
-                    android:layout_width="20dp"
-                    android:layout_height="50dp"
-                    android:layout_marginStart="30dp"
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r2c6L"
-                    android:layout_width="20dp"
-                    android:layout_height="50dp"
-                    android:layout_marginStart="30dp"
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r2c7L"
-                    android:layout_width="20dp"
-                    android:layout_height="50dp"
-                    android:layout_marginStart="30dp"
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="50dp">
-
-                <View
-                    android:id="@+id/r2cr1"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:background="@drawable/circle" />
-
-                <View
-                    android:id="@+id/r2cr2"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginStart="30dp"
-                    android:background="@drawable/circle" />
-
-                <View
-                    android:id="@+id/r2cr3"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginStart="30dp"
-                    android:background="@drawable/circle" />
-
-                <View
-                    android:id="@+id/r2cr4"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginStart="30dp"
-                    android:background="@drawable/circle" />
-
-                <View
-                    android:id="@+id/r2cr5"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginStart="30dp"
-                    android:background="@drawable/circle" />
-
-                <View
-                    android:id="@+id/r2cr6"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginStart="30dp"
-                    android:background="@drawable/circle" />
-
-                <View
-                    android:id="@+id/r2cr7"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginStart="30dp"
-                    android:background="@drawable/circle" />
-
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="100dp"
-                android:orientation="horizontal"
-
-                >
-
-                <View
-                    android:id="@+id/r3c1T"
-                    android:layout_width="50dp"
-                    android:layout_height="20dp"
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r3c2T"
-                    android:layout_width="50dp"
-                    android:layout_height="20dp"
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r3c3T"
-                    android:layout_width="50dp"
-                    android:layout_height="20dp"
-
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r3c4T"
-                    android:layout_width="50dp"
-                    android:layout_height="20dp"
-
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r3c5T"
-                    android:layout_width="50dp"
-                    android:layout_height="20dp"
-
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r3c6T"
-                    android:layout_width="50dp"
-                    android:layout_height="20dp"
-
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="110dp"
-                android:orientation="horizontal">
-
-                <View
-                    android:id="@+id/r3c1L"
-                    android:layout_width="20dp"
-                    android:layout_height="50dp"
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r3c2L"
-                    android:layout_width="20dp"
-                    android:layout_height="50dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r3c3L"
-                    android:layout_width="20dp"
-                    android:layout_height="50dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r3c4L"
-                    android:layout_width="20dp"
-                    android:layout_height="50dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r3c5L"
-                    android:layout_width="20dp"
-                    android:layout_height="50dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r3c6L"
-                    android:layout_width="20dp"
-                    android:layout_height="50dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r3c7L"
-                    android:layout_width="20dp"
-                    android:layout_height="50dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="100dp">
-
-                <View
-                    android:id="@+id/r3cr1"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-
-                    android:background="@drawable/circle" />
-
-                <View
-                    android:id="@+id/r3cr2"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/circle" />
-
-                <View
-                    android:id="@+id/r3cr3"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/circle" />
-
-                <View
-                    android:id="@+id/r3cr4"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/circle" />
-
-                <View
-                    android:id="@+id/r3cr5"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/circle" />
-
-                <View
-                    android:id="@+id/r3cr6"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/circle" />
-
-                <View
-                    android:id="@+id/r3cr7"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/circle" />
-
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="150dp"
-                android:orientation="horizontal"
-
-                >
-
-                <View
-                    android:id="@+id/r4c1T"
-                    android:layout_width="50dp"
-                    android:layout_height="20dp"
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r4c2T"
-                    android:layout_width="50dp"
-                    android:layout_height="20dp"
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r4c3T"
-                    android:layout_width="50dp"
-                    android:layout_height="20dp"
-
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r4c4T"
-                    android:layout_width="50dp"
-                    android:layout_height="20dp"
-
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r4c5T"
-                    android:layout_width="50dp"
-                    android:layout_height="20dp"
-
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r4c6T"
-                    android:layout_width="50dp"
-                    android:layout_height="20dp"
-
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="160dp"
-                android:orientation="horizontal">
-
-                <View
-                    android:id="@+id/r4c1L"
-                    android:layout_width="20dp"
-                    android:layout_height="50dp"
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r4c2L"
-                    android:layout_width="20dp"
-                    android:layout_height="50dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r4c3L"
-                    android:layout_width="20dp"
-                    android:layout_height="50dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r4c4L"
-                    android:layout_width="20dp"
-                    android:layout_height="50dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r4c5L"
-                    android:layout_width="20dp"
-                    android:layout_height="50dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r4c6L"
-                    android:layout_width="20dp"
-                    android:layout_height="50dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r4c7L"
-                    android:layout_width="20dp"
-                    android:layout_height="50dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="150dp">
-
-                <View
-                    android:id="@+id/r4cr1"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-
-                    android:background="@drawable/circle" />
-
-                <View
-                    android:id="@+id/r4cr2"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/circle" />
-
-                <View
-                    android:id="@+id/r4cr3"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/circle" />
-
-                <View
-                    android:id="@+id/r4cr4"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/circle" />
-
-                <View
-                    android:id="@+id/r4cr5"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/circle" />
-
-                <View
-                    android:id="@+id/r4cr6"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/circle" />
-
-                <View
-                    android:id="@+id/r4cr7"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/circle" />
-
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="200dp"
-                android:orientation="horizontal"
-
-                >
-
-                <View
-                    android:id="@+id/r5c1T"
-                    android:layout_width="50dp"
-                    android:layout_height="20dp"
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r5c2T"
-                    android:layout_width="50dp"
-                    android:layout_height="20dp"
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r5c3T"
-                    android:layout_width="50dp"
-                    android:layout_height="20dp"
-
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r5c4T"
-                    android:layout_width="50dp"
-                    android:layout_height="20dp"
-
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r5c5T"
-                    android:layout_width="50dp"
-                    android:layout_height="20dp"
-
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r5c6T"
-                    android:layout_width="50dp"
-                    android:layout_height="20dp"
-
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="210dp"
-                android:orientation="horizontal">
-
-                <View
-                    android:id="@+id/r5c1L"
-                    android:layout_width="20dp"
-                    android:layout_height="50dp"
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r5c2L"
-                    android:layout_width="20dp"
-                    android:layout_height="50dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r5c3L"
-                    android:layout_width="20dp"
-                    android:layout_height="50dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r5c4L"
-                    android:layout_width="20dp"
-                    android:layout_height="50dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r5c5L"
-                    android:layout_width="20dp"
-                    android:layout_height="50dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r5c6L"
-                    android:layout_width="20dp"
-                    android:layout_height="50dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r5c7L"
-                    android:layout_width="20dp"
-                    android:layout_height="50dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="200dp">
-
-                <View
-                    android:id="@+id/r5cr1"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-
-                    android:background="@drawable/circle" />
-
-                <View
-                    android:id="@+id/r5cr2"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/circle" />
-
-                <View
-                    android:id="@+id/r5cr3"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/circle" />
-
-                <View
-                    android:id="@+id/r5cr4"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/circle" />
-
-                <View
-                    android:id="@+id/r5cr5"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/circle" />
-
-                <View
-                    android:id="@+id/r5cr6"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/circle" />
-
-                <View
-                    android:id="@+id/r5cr7"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/circle" />
-
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="250dp"
-                android:orientation="horizontal"
-
-                >
-
-                <View
-                    android:id="@+id/r6c1T"
-                    android:layout_width="50dp"
-                    android:layout_height="20dp"
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r6c2T"
-                    android:layout_width="50dp"
-                    android:layout_height="20dp"
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r6c3T"
-                    android:layout_width="50dp"
-                    android:layout_height="20dp"
-
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r6c4T"
-                    android:layout_width="50dp"
-                    android:layout_height="20dp"
-
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r6c5T"
-                    android:layout_width="50dp"
-                    android:layout_height="20dp"
-
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r6c6T"
-                    android:layout_width="50dp"
-                    android:layout_height="20dp"
-
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="260dp"
-                android:orientation="horizontal">
-
-                <View
-                    android:id="@+id/r6c1L"
-                    android:layout_width="20dp"
-                    android:layout_height="50dp"
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r6c2L"
-                    android:layout_width="20dp"
-                    android:layout_height="50dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r6c3L"
-                    android:layout_width="20dp"
-                    android:layout_height="50dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r6c4L"
-                    android:layout_width="20dp"
-                    android:layout_height="50dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r6c5L"
-                    android:layout_width="20dp"
-                    android:layout_height="50dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r6c6L"
-                    android:layout_width="20dp"
-                    android:layout_height="50dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r6c7L"
-                    android:layout_width="20dp"
-                    android:layout_height="50dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="250dp">
-
-                <View
-                    android:id="@+id/r6cr1"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-
-                    android:background="@drawable/circle" />
-
-                <View
-                    android:id="@+id/r6cr2"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/circle" />
-
-                <View
-                    android:id="@+id/r6cr3"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/circle" />
-
-                <View
-                    android:id="@+id/r6cr4"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/circle" />
-
-                <View
-                    android:id="@+id/r6cr5"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/circle" />
-
-                <View
-                    android:id="@+id/r6cr6"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/circle" />
-
-                <View
-                    android:id="@+id/r6cr7"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/circle" />
-
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="300dp"
-                android:orientation="horizontal"
-
-                >
-
-                <View
-                    android:id="@+id/r7c1T"
-                    android:layout_width="50dp"
-                    android:layout_height="20dp"
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r7c2T"
-                    android:layout_width="50dp"
-                    android:layout_height="20dp"
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r7c3T"
-                    android:layout_width="50dp"
-                    android:layout_height="20dp"
-
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r7c4T"
-                    android:layout_width="50dp"
-                    android:layout_height="20dp"
-
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r7c5T"
-                    android:layout_width="50dp"
-                    android:layout_height="20dp"
-
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-                <View
-                    android:id="@+id/r7c6T"
-                    android:layout_width="50dp"
-                    android:layout_height="20dp"
-
-                    android:background="@drawable/custom_line"
-                    android:onClick="lineClick" />
-
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="300dp">
-
-                <View
-                    android:id="@+id/r7cr1"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-
-                    android:background="@drawable/circle" />
-
-                <View
-                    android:id="@+id/r7cr2"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/circle" />
-
-                <View
-                    android:id="@+id/r7cr3"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/circle" />
-
-                <View
-                    android:id="@+id/r7cr4"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/circle" />
-
-                <View
-                    android:id="@+id/r7cr5"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/circle" />
-
-                <View
-                    android:id="@+id/r7cr6"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/circle" />
-
-                <View
-                    android:id="@+id/r7cr7"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginStart="30dp"
-
-                    android:background="@drawable/circle" />
-
-
-            </LinearLayout>
-        </RelativeLayout>
-
-
-    </LinearLayout>
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="@dimen/_8sdp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/r1c1Tx"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:background="#0000"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="@dimen/_25ssp" />
+
+            <TextView
+                android:id="@+id/r1c2Tx"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:background="#0000"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="@dimen/_25ssp" />
+
+            <TextView
+                android:id="@+id/r1c3Tx"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:background="#0000"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="@dimen/_25ssp" />
+
+            <TextView
+                android:id="@+id/r1c4Tx"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:background="#0000"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="@dimen/_25ssp" />
+
+            <TextView
+                android:id="@+id/r1c5Tx"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:background="#0000"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="@dimen/_25ssp" />
+
+            <TextView
+                android:id="@+id/r1c6Tx"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:background="#0000"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="@dimen/_25ssp" />
+
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="@dimen/_46sdp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/r2c1Tx"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:background="#0000"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="@dimen/_25ssp" />
+
+            <TextView
+                android:id="@+id/r2c2Tx"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:background="#0000"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="@dimen/_25ssp" />
+
+            <TextView
+                android:id="@+id/r2c3Tx"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:background="#0000"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="@dimen/_25ssp" />
+
+            <TextView
+                android:id="@+id/r2c4Tx"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:background="#0000"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="@dimen/_25ssp" />
+
+            <TextView
+                android:id="@+id/r2c5Tx"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:background="#0000"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="@dimen/_25ssp" />
+
+            <TextView
+                android:id="@+id/r2c6Tx"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:background="#0000"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="@dimen/_25ssp" />
+
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="@dimen/_84sdp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/r3c1Tx"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:background="#0000"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="@dimen/_25ssp" />
+
+            <TextView
+                android:id="@+id/r3c2Tx"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:background="#0000"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="@dimen/_25ssp" />
+
+            <TextView
+                android:id="@+id/r3c3Tx"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:background="#0000"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="@dimen/_25ssp" />
+
+            <TextView
+                android:id="@+id/r3c4Tx"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:background="#0000"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="@dimen/_25ssp" />
+
+            <TextView
+                android:id="@+id/r3c5Tx"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:background="#0000"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="@dimen/_25ssp" />
+
+            <TextView
+                android:id="@+id/r3c6Tx"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:background="#0000"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="@dimen/_25ssp" />
+
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="@dimen/_122sdp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/r4c1Tx"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:background="#0000"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="@dimen/_25ssp" />
+
+            <TextView
+                android:id="@+id/r4c2Tx"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:background="#0000"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="@dimen/_25ssp" />
+
+            <TextView
+                android:id="@+id/r4c3Tx"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:background="#0000"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="@dimen/_25ssp" />
+
+            <TextView
+                android:id="@+id/r4c4Tx"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:background="#0000"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="@dimen/_25ssp" />
+
+            <TextView
+                android:id="@+id/r4c5Tx"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:background="#0000"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="@dimen/_25ssp" />
+
+            <TextView
+                android:id="@+id/r4c6Tx"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:background="#0000"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="@dimen/_25ssp" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="@dimen/_160sdp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/r5c1Tx"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:background="#0000"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="@dimen/_25ssp" />
+
+            <TextView
+                android:id="@+id/r5c2Tx"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:background="#0000"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="@dimen/_25ssp" />
+
+            <TextView
+                android:id="@+id/r5c3Tx"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:background="#0000"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="@dimen/_25ssp" />
+
+            <TextView
+                android:id="@+id/r5c4Tx"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:background="#0000"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="@dimen/_25ssp" />
+
+            <TextView
+                android:id="@+id/r5c5Tx"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:background="#0000"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="@dimen/_25ssp" />
+
+            <TextView
+                android:id="@+id/r5c6Tx"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:background="#0000"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="@dimen/_25ssp" />
+
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="@dimen/_198sdp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/r6c1Tx"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:background="#0000"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="@dimen/_25ssp" />
+
+            <TextView
+                android:id="@+id/r6c2Tx"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:background="#0000"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="@dimen/_25ssp" />
+
+            <TextView
+                android:id="@+id/r6c3Tx"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:background="#0000"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="@dimen/_25ssp" />
+
+            <TextView
+                android:id="@+id/r6c4Tx"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:background="#0000"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="@dimen/_25ssp" />
+
+            <TextView
+                android:id="@+id/r6c5Tx"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:background="#0000"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="@dimen/_25ssp" />
+
+            <TextView
+                android:id="@+id/r6c6Tx"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:background="#0000"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:textSize="@dimen/_25ssp" />
+
+
+        </LinearLayout>
+
+        <!--            box line up, line left, circle   1-->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:orientation="horizontal"
+
+            >
+
+            <View
+                android:id="@+id/r1c1T"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r1c2T"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r1c3T"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r1c4T"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r1c5T"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r1c6T"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="@dimen/_8sdp"
+            android:orientation="horizontal"
+
+            >
+
+            <View
+                android:id="@+id/r1c1L"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick"
+                android:padding="100dp" />
+
+            <View
+                android:id="@+id/r1c2L"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r1c3L"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r1c4L"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r1c5L"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r1c6L"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r1c7L"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true">
+
+            <View
+                android:id="@+id/r1cr1"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:background="@drawable/circle"
+
+                />
+
+            <View
+                android:id="@+id/r1cr2"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+                android:background="@drawable/circle" />
+
+            <View
+                android:id="@+id/r1cr3"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+                android:background="@drawable/circle" />
+
+            <View
+                android:id="@+id/r1cr4"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+                android:background="@drawable/circle" />
+
+            <View
+                android:id="@+id/r1cr5"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+                android:background="@drawable/circle"
+                tools:ignore="TooManyViews" />
+
+            <View
+                android:id="@+id/r1cr6"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+                android:background="@drawable/circle" />
+
+            <View
+                android:id="@+id/r1cr7"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+                android:background="@drawable/circle" />
+
+
+        </LinearLayout>
+
+        <!--            box line up, line left, circle   2-->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="@dimen/_38sdp"
+            android:orientation="horizontal"
+
+            >
+
+            <View
+                android:id="@+id/r2c1T"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r2c2T"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick"
+                tools:ignore="TooManyViews" />
+
+            <View
+                android:id="@+id/r2c3T"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r2c4T"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r2c5T"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r2c6T"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="@dimen/_46sdp"
+            android:orientation="horizontal"
+
+            >
+
+            <View
+                android:id="@+id/r2c1L"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r2c2L"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r2c3L"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r2c4L"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r2c5L"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r2c6L"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r2c7L"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="@dimen/_38sdp">
+
+            <View
+                android:id="@+id/r2cr1"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:background="@drawable/circle" />
+
+            <View
+                android:id="@+id/r2cr2"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+                android:background="@drawable/circle" />
+
+            <View
+                android:id="@+id/r2cr3"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+                android:background="@drawable/circle" />
+
+            <View
+                android:id="@+id/r2cr4"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+                android:background="@drawable/circle" />
+
+            <View
+                android:id="@+id/r2cr5"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+                android:background="@drawable/circle" />
+
+            <View
+                android:id="@+id/r2cr6"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+                android:background="@drawable/circle" />
+
+            <View
+                android:id="@+id/r2cr7"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+                android:background="@drawable/circle" />
+
+
+        </LinearLayout>
+
+        <!--            box line up, line left, circle   3-->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="@dimen/_76sdp"
+            android:orientation="horizontal"
+
+            >
+
+            <View
+                android:id="@+id/r3c1T"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r3c2T"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r3c3T"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_16sdp"
+
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r3c4T"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_16sdp"
+
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r3c5T"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_16sdp"
+
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r3c6T"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_16sdp"
+
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="@dimen/_84sdp"
+            android:orientation="horizontal">
+
+            <View
+                android:id="@+id/r3c1L"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r3c2L"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r3c3L"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r3c4L"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r3c5L"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r3c6L"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r3c7L"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="@dimen/_76sdp">
+
+            <View
+                android:id="@+id/r3cr1"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_16sdp"
+
+                android:background="@drawable/circle" />
+
+            <View
+                android:id="@+id/r3cr2"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/circle" />
+
+            <View
+                android:id="@+id/r3cr3"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/circle" />
+
+            <View
+                android:id="@+id/r3cr4"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/circle" />
+
+            <View
+                android:id="@+id/r3cr5"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/circle" />
+
+            <View
+                android:id="@+id/r3cr6"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/circle" />
+
+            <View
+                android:id="@+id/r3cr7"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/circle" />
+
+
+        </LinearLayout>
+
+        <!--            box line up, line left, circle   4-->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="@dimen/_114sdp"
+            android:orientation="horizontal"
+
+            >
+
+            <View
+                android:id="@+id/r4c1T"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r4c2T"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r4c3T"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_16sdp"
+
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r4c4T"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_16sdp"
+
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r4c5T"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_16sdp"
+
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r4c6T"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_16sdp"
+
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="@dimen/_122sdp"
+            android:orientation="horizontal">
+
+            <View
+                android:id="@+id/r4c1L"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r4c2L"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r4c3L"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r4c4L"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r4c5L"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r4c6L"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r4c7L"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="@dimen/_114sdp">
+
+            <View
+                android:id="@+id/r4cr1"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_16sdp"
+
+                android:background="@drawable/circle" />
+
+            <View
+                android:id="@+id/r4cr2"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/circle" />
+
+            <View
+                android:id="@+id/r4cr3"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/circle" />
+
+            <View
+                android:id="@+id/r4cr4"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/circle" />
+
+            <View
+                android:id="@+id/r4cr5"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/circle" />
+
+            <View
+                android:id="@+id/r4cr6"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/circle" />
+
+            <View
+                android:id="@+id/r4cr7"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/circle" />
+
+
+        </LinearLayout>
+
+        <!--            box line up, line left, circle   5-->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="@dimen/_152sdp"
+            android:orientation="horizontal"
+
+            >
+
+            <View
+                android:id="@+id/r5c1T"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r5c2T"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r5c3T"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_16sdp"
+
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r5c4T"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_16sdp"
+
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r5c5T"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_16sdp"
+
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r5c6T"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_16sdp"
+
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="@dimen/_160sdp"
+            android:orientation="horizontal">
+
+            <View
+                android:id="@+id/r5c1L"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r5c2L"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r5c3L"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r5c4L"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r5c5L"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r5c6L"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r5c7L"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="@dimen/_152sdp">
+
+            <View
+                android:id="@+id/r5cr1"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_16sdp"
+
+                android:background="@drawable/circle" />
+
+            <View
+                android:id="@+id/r5cr2"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/circle" />
+
+            <View
+                android:id="@+id/r5cr3"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/circle" />
+
+            <View
+                android:id="@+id/r5cr4"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/circle" />
+
+            <View
+                android:id="@+id/r5cr5"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/circle" />
+
+            <View
+                android:id="@+id/r5cr6"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/circle" />
+
+            <View
+                android:id="@+id/r5cr7"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/circle" />
+
+
+        </LinearLayout>
+
+        <!--            box line up, line left, circle   6-->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="@dimen/_190sdp"
+            android:orientation="horizontal"
+
+            >
+
+            <View
+                android:id="@+id/r6c1T"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r6c2T"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r6c3T"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_16sdp"
+
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r6c4T"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_16sdp"
+
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r6c5T"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_16sdp"
+
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r6c6T"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_16sdp"
+
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="@dimen/_198sdp"
+            android:orientation="horizontal">
+
+            <View
+                android:id="@+id/r6c1L"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r6c2L"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r6c3L"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r6c4L"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r6c5L"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r6c6L"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r6c7L"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_38sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="@dimen/_190sdp">
+
+            <View
+                android:id="@+id/r6cr1"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_16sdp"
+
+                android:background="@drawable/circle" />
+
+            <View
+                android:id="@+id/r6cr2"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/circle" />
+
+            <View
+                android:id="@+id/r6cr3"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/circle" />
+
+            <View
+                android:id="@+id/r6cr4"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/circle" />
+
+            <View
+                android:id="@+id/r6cr5"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/circle" />
+
+            <View
+                android:id="@+id/r6cr6"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/circle" />
+
+            <View
+                android:id="@+id/r6cr7"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/circle" />
+
+
+        </LinearLayout>
+
+        <!--            box line up, circle   7-->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="@dimen/_228sdp"
+            android:orientation="horizontal"
+
+            >
+
+            <View
+                android:id="@+id/r7c1T"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r7c2T"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r7c3T"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_16sdp"
+
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r7c4T"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_16sdp"
+
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r7c5T"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_16sdp"
+
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+            <View
+                android:id="@+id/r7c6T"
+                android:layout_width="@dimen/_38sdp"
+                android:layout_height="@dimen/_16sdp"
+
+                android:background="@drawable/custom_line"
+                android:onClick="lineClick" />
+
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="@dimen/_228sdp">
+
+            <View
+                android:id="@+id/r7cr1"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_16sdp"
+
+                android:background="@drawable/circle" />
+
+            <View
+                android:id="@+id/r7cr2"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/circle" />
+
+            <View
+                android:id="@+id/r7cr3"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/circle" />
+
+            <View
+                android:id="@+id/r7cr4"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/circle" />
+
+            <View
+                android:id="@+id/r7cr5"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/circle" />
+
+            <View
+                android:id="@+id/r7cr6"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/circle" />
+
+            <View
+                android:id="@+id/r7cr7"
+                android:layout_width="@dimen/_16sdp"
+                android:layout_height="@dimen/_16sdp"
+                android:layout_marginStart="@dimen/_22sdp"
+
+                android:background="@drawable/circle" />
+
+
+        </LinearLayout>
+
+    </RelativeLayout>
+
+
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_marginTop="210dp"
-
-
-
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="@dimen/_150sdp"
         >
 
         <ImageButton
+            android:id="@+id/openNavBtn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="-30dp"
-            android:layout_marginBottom="20dp"
             android:layout_marginTop="2dp"
             android:background="@drawable/btn_chat_bg"
-            android:onClick="openNavBtn"
-            android:paddingVertical="40dp"
-            android:paddingStart="35dp"
-            android:paddingEnd="10dp"
+            android:paddingVertical="@dimen/_30sdp"
+            android:paddingStart="30dp"
+            android:paddingEnd="8dp"
             android:src="@drawable/icon_forward"
             app:tint="@color/cocZz" />
 
         <com.mikhaellopez.circularimageview.CircularImageView
             android:id="@+id/newMsgBoltu"
-            android:layout_marginStart="22dp"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
+            android:layout_width="14dp"
+            android:layout_height="14dp"
+            android:layout_marginStart="15dp"
             android:src="@drawable/icon_home"
             app:civ_border_color="@color/redY"
-            app:civ_border_width="20dp" />
+            app:civ_border_width="7dp"
+            />
     </RelativeLayout>
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="80dp"
-        android:layout_gravity="bottom"
-        android:orientation="vertical"
-        android:layout_marginBottom="20dp"
-        >
-        <pl.droidsonroids.gif.GifImageView
-            android:id="@+id/emojiPlay"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/emoji_haha"
-            android:layout_gravity="end"
-            />
-    </LinearLayout>
+    <pl.droidsonroids.gif.GifImageView
+        android:id="@+id/emojiPlay"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/_65sdp"
+        android:layout_gravity="end"
+        android:src="@drawable/emoji_haha"
+        android:layout_marginBottom="@dimen/_10sdp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-</FrameLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
 

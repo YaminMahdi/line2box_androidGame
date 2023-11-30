@@ -10,9 +10,8 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginVertical="7dp"
-        android:layout_marginStart="5dp"
-        android:layout_marginEnd="5dp"
+        android:layout_marginHorizontal="5dp"
+        android:layout_marginVertical="4dp"
         android:background="@drawable/btn_grnx_bg"
         android:orientation="vertical"
         android:paddingHorizontal="8dp"
@@ -22,10 +21,7 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingHorizontal="10dp"
-            android:paddingTop="10dp"
-            android:paddingBottom="6dp"
-
+            android:padding="10dp"
             >
 
             <TextView
@@ -64,9 +60,10 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:fontFamily="@font/sortie"
+                android:paddingVertical="2sp"
                 android:text="HHHHHHHH: 33"
                 android:textColor="@color/white"
-                android:textSize="22sp"
+                android:textSize="20sp"
                 tools:ignore="HardcodedText" />
 
             <TextView
@@ -88,9 +85,10 @@
                 android:layout_weight="1"
                 android:fontFamily="@font/sortie"
                 android:gravity="end"
-                android:text="gggggggg: 43"
+                android:paddingVertical="2sp"
+                android:text="GGGGGG: 43"
                 android:textColor="@color/white"
-                android:textSize="22sp"
+                android:textSize="20sp"
 
                 tools:ignore="HardcodedText" />
         </LinearLayout>

@@ -1,16 +1,12 @@
 package com.diu.yk_games.line2box.presentation.bot;
 
-
-
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
-
-
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Paint;
 import android.graphics.drawable.ColorDrawable;
@@ -28,18 +24,26 @@ import android.widget.Toast;
 
 
 import com.diu.yk_games.line2box.R;
-import com.diu.yk_games.line2box.presentation.main.StartActivity;
-
+import com.diu.yk_games.line2box.databinding.ActivityGame3Binding;
+import com.google.android.gms.tasks.Task;
+import com.google.android.play.core.review.ReviewInfo;
+import com.google.android.play.core.review.ReviewManager;
+import com.google.android.play.core.review.ReviewManagerFactory;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import kotlin.Suppress;
 import pl.droidsonroids.gif.GifImageView;
 
 @SuppressLint("DiscouragedApi")
 public class GameActivity3 extends AppCompatActivity {
+
+    private ActivityGame3Binding binding;
+
     public static int clickCount = 0, scoreRed = 0, scoreBlue = 0, bestScore = 9999;
     public static String idNm, fst = "r1c1", top, left, circle, nm1="AI", nm2="Blue";
     ArrayList<String> lineIDs = new ArrayList<>(
@@ -51,7 +55,7 @@ public class GameActivity3 extends AppCompatActivity {
     //MediaPlayer lineClick, boxPlus, winSoundEf, btnClick;
     SharedPreferences sharedPref;
     SharedPreferences.Editor editor;
-    boolean isFirstRun, recursion =false, clickEnabled=false;
+    boolean isFirstRun, recursion =false, clickEnabled=false, isGameOver = false;
     int tmpLineId;
 
 
@@ -61,21 +65,21 @@ public class GameActivity3 extends AppCompatActivity {
 
     public void ifMuted() {
         if (isMuted()) {
-            findViewById(R.id.volBtn).setBackgroundResource(R.drawable.btn_gry_bg);
-            ((ImageButton) findViewById(R.id.volBtn)).setImageResource(R.drawable.icon_vol_mute);
+            binding.volBtn.setBackgroundResource(R.drawable.btn_gry_bg);
+            binding.volBtn.setImageResource(R.drawable.icon_vol_mute);
         } else {
-            findViewById(R.id.volBtn).setBackgroundResource(R.drawable.btn_ylw_bg);
-            ((ImageButton) findViewById(R.id.volBtn)).setImageResource(R.drawable.icon_vol_unmute);
+            binding.volBtn.setBackgroundResource(R.drawable.btn_ylw_bg);
+            binding.volBtn.setImageResource(R.drawable.icon_vol_unmute);
         }
 
     }
-
+    @Suppress(names = "DEPRECATION")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        setContentView(R.layout.activity_game3);
-
+        binding = ActivityGame3Binding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
         scoreRedView = findViewById(R.id.scoreRed);
         scoreBlueView = findViewById(R.id.scoreBlue);
         redTxt = findViewById(R.id.red);
@@ -89,6 +93,64 @@ public class GameActivity3 extends AppCompatActivity {
         editor = sharedPref.edit();
         ifMuted();
         isFirstRun = sharedPref.getBoolean("firstRun", true);
+
+        binding.volBtn.setOnClickListener(this::volButton);
+        binding.ideaBtn.setOnClickListener(this::ideaBtn);
+        binding.homeBtn.setOnClickListener(this::backBtn);
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @SuppressLint("SetTextI18n")
+            @Override
+            public void handleOnBackPressed() {
+                AlertDialog.Builder builder = new AlertDialog.Builder(GameActivity3.this);
+                View view = LayoutInflater.from(GameActivity3.this).inflate(
+                        R.layout.dialog_layout_alert, findViewById(R.id.layoutDialog)
+                );
+                builder.setView(view);
+
+                ((TextView) view.findViewById(R.id.textMessage)).setText("Do you really want to QUIT the match?");
+                ((Button) view.findViewById(R.id.buttonYes)).setText("YES");
+                ((Button) view.findViewById(R.id.buttonNo)).setText("NO");
+                final AlertDialog alertDialog = builder.create();
+                view.findViewById(R.id.buttonYes).setOnClickListener(view1 ->
+                {
+                    if (!isMuted())
+                    {
+                        MediaPlayer mediaPlayer = MediaPlayer.create(view.getContext(), R.raw.btn_click_ef);
+                        mediaPlayer.start();
+                        mediaPlayer.setOnCompletionListener(MediaPlayer::release);
+                    }
+                    alertDialog.dismiss();
+                    scoreRed = 0;
+                    scoreBlue = 0;
+                    clickCount = 0;
+                    flag = true;
+                    this.setEnabled(false);
+                    getOnBackPressedDispatcher().onBackPressed();
+                    this.setEnabled(true);
+//                    finish();
+//                    isPressed.accept(true);
+//            super.onBackPressed();
+//            startActivity(new Intent(this, StartActivity.class));
+                    //android.os.Process.killProcess(android.os.Process.myPid());
+                });
+                view.findViewById(R.id.buttonNo).setOnClickListener(view2 ->
+                {
+                    if (!isMuted())
+                    {
+                        MediaPlayer mediaPlayer = MediaPlayer.create(view.getContext(), R.raw.btn_click_ef);
+                        mediaPlayer.start();
+                        mediaPlayer.setOnCompletionListener(MediaPlayer::release);
+                    }
+                    alertDialog.dismiss();
+                });
+                if (alertDialog.getWindow() != null) {
+                    alertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(0));
+                }
+                try {alertDialog.show();}
+                catch (NullPointerException npe) {npe.printStackTrace();}
+            }
+        });
+
 
         StringBuilder index = new StringBuilder();
         for (int i = 1; i <= 6; i++) {
@@ -512,7 +574,6 @@ public class GameActivity3 extends AppCompatActivity {
                 if(!extraTurn && !recursion)
                 {
                     //Log.d("TAG", "lineClick: AI in random");
-                    //recursion=false;
                     int ind, countColoredUp=0, countColoredDn=0;
                     String randLineIdNm;
                     ArrayList<String> lineIdTemp=new ArrayList<>(lineIDs);
@@ -589,10 +650,10 @@ public class GameActivity3 extends AppCompatActivity {
             Handler handler = new Handler();
             handler.postDelayed(() ->
             {
-                if (scoreRed + scoreBlue == 36)
+                if (scoreRed + scoreBlue == 36 && !isGameOver)
                 {
-                    if (!isMuted())
-                    {
+                    isGameOver = true;
+                    if (!isMuted()) {
                         MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.win_ef);
                         mediaPlayer.start();
                         mediaPlayer.setOnCompletionListener(MediaPlayer::release);
@@ -603,11 +664,14 @@ public class GameActivity3 extends AppCompatActivity {
                     blueTxt.setTextSize(30);
                     blueTxt.setTextColor(getResources().getColor(R.color.white, getTheme()));
                     if (scoreRed > scoreBlue)
-                        onGameOver("AI won the match.");
-                    else if (scoreRed < scoreBlue)
-                        onGameOver("You won the match.");
+                        onGameOver("AI won the match.", 0);
+                    else if (scoreRed < scoreBlue) {
+                        int winAI =sharedPref.getInt("winAI",0);
+                        editor.putInt("winAI", ++winAI).apply();
+                        onGameOver("You won the match.", winAI);
+                    }
                     else
-                        onGameOver("Match Draw.");
+                        onGameOver("Match Draw.", 0);
                 }
             }, 950);
 
@@ -788,56 +852,9 @@ public class GameActivity3 extends AppCompatActivity {
         return color;
     }
 
-    @SuppressLint("SetTextI18n")
-    @Override
-    public void onBackPressed() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(GameActivity3.this);
-        View view = LayoutInflater.from(GameActivity3.this).inflate(
-                R.layout.dialog_layout_alert, findViewById(R.id.layoutDialog)
-        );
-        builder.setView(view);
-
-        ((TextView) view.findViewById(R.id.textMessage)).setText("Do you really want to QUIT the match?");
-        ((Button) view.findViewById(R.id.buttonYes)).setText("YES");
-        ((Button) view.findViewById(R.id.buttonNo)).setText("NO");
-        final AlertDialog alertDialog = builder.create();
-        view.findViewById(R.id.buttonYes).setOnClickListener(view1 ->
-        {
-            if (!isMuted())
-            {
-                MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef);
-                mediaPlayer.start();
-                mediaPlayer.setOnCompletionListener(MediaPlayer::release);
-            }
-            alertDialog.dismiss();
-            scoreRed = 0;
-            scoreBlue = 0;
-            clickCount = 0;
-            flag = true;
-            super.onBackPressed();
-//            startActivity(new Intent(this, StartActivity.class));
-//            finish();
-            //android.os.Process.killProcess(android.os.Process.myPid());
-        });
-        view.findViewById(R.id.buttonNo).setOnClickListener(view2 ->
-        {
-            if (!isMuted())
-            {
-                MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef);
-                mediaPlayer.start();
-                mediaPlayer.setOnCompletionListener(MediaPlayer::release);
-            }
-            alertDialog.dismiss();
-        });
-        if (alertDialog.getWindow() != null) {
-            alertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(0));
-        }
-        try {alertDialog.show();}
-        catch (NullPointerException npe) {npe.printStackTrace();}
-    }
 
     @SuppressLint("SetTextI18n")
-    public void onGameOver(String winMsg) {
+    public void onGameOver(String winMsg, int winAI) {
         AlertDialog.Builder builder = new AlertDialog.Builder(GameActivity3.this);
         View view = LayoutInflater.from(GameActivity3.this).inflate(
                 R.layout.dialog_layout_alert, findViewById(R.id.layoutDialog)
@@ -858,13 +875,33 @@ public class GameActivity3 extends AppCompatActivity {
                 mediaPlayer.start();
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release);
             }
+            if(winAI > 5){
+                ReviewManager manager = ReviewManagerFactory.create(this);
+                Task<ReviewInfo> request = manager.requestReviewFlow();
+                request.addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        // We can get the ReviewInfo object
+                        ReviewInfo reviewInfo = task.getResult();
+                        Task<Void> flow = manager.launchReviewFlow(this, reviewInfo);
+                        flow.addOnCompleteListener(task2 -> {
+                            // The flow has finished. The API does not indicate whether the user
+                            // reviewed or not, or even whether the review dialog was shown. Thus, no
+                            // matter the result, we continue our app flow.
+                            recreate();
+                        });
+                    } else {
+                        recreate();
+                        // There was some problem, log or handle the error code.
+//                        @ReviewErrorCode int reviewErrorCode = ((ReviewException) task.getException()).getErrorCode();
+                    }
+                });
+            }
+            else {
+                recreate();
+            }
             alertDialog.dismiss();
-            startActivity(new Intent(GameActivity3.this, GameActivity3.class));
-            finish();
-
-
-            //recreate();
-
+//            startActivity(new Intent(GameActivity3.this, GameActivity3.class));
+//            finish();
         });
         view.findViewById(R.id.buttonNo).setOnClickListener(view2 ->
         {
@@ -875,7 +912,7 @@ public class GameActivity3 extends AppCompatActivity {
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release);
             }
             alertDialog.dismiss();
-            startActivity(new Intent(this, StartActivity.class));
+//            startActivity(new Intent(this, StartActivity.class));
             finish();
             flag = true;
             //android.os.Process.killProcess(android.os.Process.myPid());
@@ -993,6 +1030,6 @@ public class GameActivity3 extends AppCompatActivity {
             mediaPlayer.start();
             mediaPlayer.setOnCompletionListener(MediaPlayer::release);
         }
-        onBackPressed();
+        getOnBackPressedDispatcher().onBackPressed();
     }
 }

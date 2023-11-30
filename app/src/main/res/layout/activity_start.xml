@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:fbutton="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -23,19 +22,19 @@
         android:id="@+id/globalScoreFrag"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="50dp"
-        android:orientation="vertical"
-        android:weightSum="10">
+        android:layout_marginTop="@dimen/_35sdp"
+        android:orientation="vertical">
 
         <TextView
+            android:id="@+id/FragLabel"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight=".5"
+            android:layout_height="wrap_content"
             android:fontFamily="@font/sortie"
             android:gravity="center"
+            android:maxLines="1"
             android:text="Global Score Board"
             android:textColor="@color/white"
-            android:textSize="40sp"
+            android:textSize="@dimen/_28ssp"
             tools:ignore="HardcodedText" />
 
         <androidx.fragment.app.FragmentContainerView
@@ -43,40 +42,31 @@
             android:name="com.diu.yk_games.line2box.presentation.BlankFragment"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="8"
-            tools:layout="@layout/fragment_blank"
-            />
+            android:layout_weight="1"
+            tools:layout="@layout/fragment_blank" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_marginHorizontal="40dp"
-            android:layout_weight="1.5"
-            android:gravity="center"
-            android:orientation="vertical">
+        <Button
+            android:id="@+id/goBackBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="45dp"
+            android:layout_gravity="end"
+            android:layout_margin="@dimen/_25sdp"
+            android:background="@drawable/btn_grnx_bg"
+            android:drawableStart="@drawable/icon_backword"
+            android:fontFamily="@font/sortie"
+            android:paddingHorizontal="14dp"
+            android:text="  Go Back "
+            android:textColor="@color/white"
+            android:textSize="14sp"
+            tools:ignore="HardcodedText" />
 
-
-            <Button
-                android:id="@+id/goBackBtn"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="end"
-                android:background="@drawable/btn_grnx_bg"
-                android:drawableStart="@drawable/icon_back"
-                android:fontFamily="@font/sortie"
-                android:padding="20dp"
-                android:text="  Go Back "
-                android:textColor="@color/white"
-                android:textSize="19sp"
-                tools:ignore="HardcodedText" />
-
-        </LinearLayout>
 
     </LinearLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_marginTop="@dimen/_25sdp"
 
         >
 
@@ -85,14 +75,15 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:layout_marginTop="40dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="20dp"
+                android:layout_marginHorizontal="@dimen/_16sdp"
                 android:baselineAligned="false">
 
                 <LinearLayout
@@ -105,20 +96,16 @@
 
                     <ImageButton
                         android:id="@+id/scrBrdBtn"
-                        android:layout_width="45dp"
-                        android:layout_height="45dp"
+                        android:layout_width="@dimen/_36sdp"
+                        android:layout_height="@dimen/_36sdp"
                         android:layout_gravity="end"
                         android:background="@drawable/btn_grn_bg"
                         android:fontFamily="@font/sortie"
-                        android:paddingVertical="10dp"
-                        android:src="@drawable/icon_globe"
-                        android:textColor="@color/white"
-                        android:textSize="9sp"
-                        tools:ignore="HardcodedText,SmallSp" />
+                        android:src="@drawable/icon_globe" />
                 </LinearLayout>
 
                 <LinearLayout
-                    android:layout_width="100dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="end"
 
@@ -126,30 +113,23 @@
 
                     <ImageButton
                         android:id="@+id/volBtn"
-                        android:layout_width="45dp"
-                        android:layout_height="45dp"
+                        android:layout_width="@dimen/_36sdp"
+                        android:layout_height="@dimen/_36sdp"
                         android:layout_gravity="end"
-                        android:layout_marginEnd="10dp"
+                        android:layout_marginEnd="@dimen/_8sdp"
                         android:background="@drawable/btn_ylw_bg"
                         android:fontFamily="@font/sortie"
                         android:paddingVertical="10dp"
-                        android:src="@drawable/icon_vol_unmute"
-                        android:textColor="@color/white"
-                        android:textSize="9sp"
-                        tools:ignore="HardcodedText,SmallSp" />
+                        android:src="@drawable/icon_vol_unmute" />
 
                     <ImageButton
                         android:id="@+id/ideaBtn"
-                        android:layout_width="45dp"
-                        android:layout_height="45dp"
+                        android:layout_width="@dimen/_36sdp"
+                        android:layout_height="@dimen/_36sdp"
                         android:layout_gravity="end"
                         android:background="@drawable/btn_gry_bg"
                         android:fontFamily="@font/sortie"
-                        android:paddingVertical="10dp"
-                        android:src="@drawable/icon_i"
-                        android:textColor="@color/white"
-                        android:textSize="9sp"
-                        tools:ignore="HardcodedText,SmallSp" />
+                        android:src="@drawable/icon_i" />
                 </LinearLayout>
 
             </LinearLayout>
@@ -157,41 +137,14 @@
 
             <ImageView
                 android:id="@+id/logo"
-                android:layout_width="275dp"
-                android:layout_height="275dp"
+                android:layout_width="@dimen/_210sdp"
+                android:layout_height="@dimen/_210sdp"
                 android:layout_gravity="center"
-                android:layout_marginBottom="20dp"
+                android:layout_marginBottom="@dimen/_16sdp"
                 android:contentDescription="@string/background"
-                android:padding="10dp"
+                android:padding="@dimen/_8sdp"
                 android:src="@drawable/logo" />
 
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/linearLayoutStart2"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:orientation="vertical"
-            app:layout_constraintBottom_toBottomOf="parent">
-
-            <Button
-                android:id="@+id/startBtnId"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginTop="40dp"
-                android:layout_marginBottom="80dp"
-                android:background="@drawable/btn_redx_bg"
-                android:fontFamily="@font/sortie"
-                android:paddingHorizontal="30dp"
-                android:paddingVertical="15dp"
-                android:text="@string/start"
-                android:textColor="@color/white"
-                android:textSize="40sp"
-                />
-            <!--android:onClick="startBtn"-->
 
         </LinearLayout>
 
@@ -207,28 +160,29 @@
 
             <ImageView
                 android:id="@+id/mode1"
-                android:layout_width="100dp"
-                android:layout_height="100dp"
-                android:layout_marginStart="10dp"
+                android:layout_width="@dimen/_80sdp"
+                android:layout_height="@dimen/_80sdp"
+                android:layout_marginStart="@dimen/_5sdp"
                 android:background="@drawable/box"
                 android:src="@drawable/mode_box_offline"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/mode2"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
+
             <View
                 android:id="@+id/modeX"
-                android:layout_width="70dp"
-                android:layout_height="100dp"
+                android:layout_width="@dimen/_42sdp"
+                android:layout_height="@dimen/_80sdp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <ImageView
                 android:id="@+id/mode3"
-                android:layout_width="100dp"
-                android:layout_height="100dp"
-                android:layout_marginEnd="10dp"
+                android:layout_width="@dimen/_80sdp"
+                android:layout_height="@dimen/_80sdp"
+                android:layout_marginEnd="@dimen/_5sdp"
                 android:background="@drawable/box"
                 android:src="@drawable/mode_box_multi"
                 app:layout_constraintBottom_toBottomOf="parent"
@@ -238,16 +192,16 @@
 
             <View
                 android:id="@+id/modeY"
-                android:layout_width="70dp"
-                android:layout_height="100dp"
+                android:layout_width="@dimen/_80sdp"
+                android:layout_height="@dimen/_80sdp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <ImageView
                 android:id="@+id/mode2"
-                android:layout_width="200dp"
-                android:layout_height="200dp"
+                android:layout_width="@dimen/_140sdp"
+                android:layout_height="@dimen/_140sdp"
                 android:background="@drawable/box"
                 android:src="@drawable/mode_box_ai"
                 app:layout_constraintBottom_toBottomOf="parent"
@@ -257,6 +211,35 @@
 
 
         </androidx.constraintlayout.motion.widget.MotionLayout>
+
+        <LinearLayout
+            android:id="@+id/linearLayoutStart2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:orientation="vertical"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
+
+            <Button
+                android:id="@+id/startBtnId"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="@dimen/_25sdp"
+                android:layout_marginBottom="@dimen/_50sdp"
+                android:background="@drawable/btn_redx_bg"
+                android:fontFamily="@font/sortie"
+                android:paddingHorizontal="@dimen/_22sdp"
+                android:paddingVertical="@dimen/_10sdp"
+                android:text="@string/start"
+                android:textColor="@color/white"
+                android:textSize="@dimen/_26ssp" />
+            <!--android:onClick="startBtn"-->
+
+        </LinearLayout>
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </FrameLayout>

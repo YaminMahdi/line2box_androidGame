@@ -33,29 +33,30 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
-            android:layout_marginBottom="20dp"
+            android:layout_marginBottom="@dimen/_16sdp"
             android:orientation="vertical"
 
             >
 
             <ImageButton
+                android:id="@+id/closeNavBtn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="end"
                 android:background="@drawable/btn_chat_bg"
-                android:onClick="closeNavBtn"
-                android:paddingVertical="40dp"
+                android:paddingVertical="@dimen/_30sdp"
                 android:paddingStart="30dp"
-                android:paddingEnd="10dp"
+                android:paddingEnd="8dp"
                 android:src="@drawable/icon_backword"
-                app:tint="@color/cocZz" />
+                app:tint="@color/cocZz"
+                android:contentDescription="@string/logo" />
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginTop="-20dp"
-            android:layout_marginEnd="35dp"
+            android:layout_marginEnd="25dp"
             android:layout_marginBottom="-20dp"
             android:background="@drawable/btn_box_chat">
 
@@ -77,7 +78,6 @@
                 android:layout_height="match_parent"
                 android:gravity="top"
                 android:orientation="vertical"
-
                 >
 
                 <TextView
@@ -151,12 +151,12 @@
 
                 <androidx.fragment.app.FragmentContainerView
                     android:id="@+id/chatFragment"
-                    android:name="com.diu.yk_games.line2box.presentation.online.ChatFragmentGlobal"
+                    android:name="com.diu.yk_games.line2box.presentation.BlankFragment"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:fitsSystemWindows="true"
-
-                    tools:layout="@layout/fragment_chat_global" />
+                    tools:layout="@layout/fragment_blank"
+                    />
             </LinearLayout>
 
 

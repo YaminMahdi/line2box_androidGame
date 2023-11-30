@@ -3,13 +3,12 @@ package com.diu.yk_games.line2box.util
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
-import android.app.Activity
+import android.content.Context
+import android.content.res.Configuration
 import android.view.MotionEvent
 import android.view.View
 import android.view.Window
 import android.view.WindowManager
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import kotlinx.coroutines.*
 import java.text.SimpleDateFormat
 import java.util.*
@@ -29,10 +28,7 @@ fun Window.hideSystemBars() {
 //        controller.hide(WindowInsetsCompat.Type.systemBars())
 //        controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
 //    }
-    setFlags(
-        WindowManager.LayoutParams.FLAG_FULLSCREEN,
-        WindowManager.LayoutParams.FLAG_FULLSCREEN
-    )
+    setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN)
 }
 @SuppressLint("ClickableViewAccessibility")
 fun View.setBounceClickListener(onClick: ((View) -> Unit)? = null){
@@ -72,4 +68,23 @@ fun View.setBounceClickListener(onClick: ((View) -> Unit)? = null){
         false
     }
     this.setOnClickListener { onClick?.invoke(this) }
+}
+
+@SuppressLint("DiscouragedApi")
+fun Context.getNavigationBarHeight(): Int {
+    val resources = this.resources
+
+    val resName =
+        if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT)
+            "navigation_bar_height"
+        else
+        "navigation_bar_height_landscape"
+
+    val id: Int = resources.getIdentifier(resName, "dimen", "android")
+
+    return if (id > 0) {
+        resources.getDimensionPixelSize(id)
+    } else {
+        0
+    }
 }
