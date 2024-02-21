@@ -12,14 +12,11 @@ import android.graphics.drawable.ColorDrawable
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
-import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -28,6 +25,7 @@ import androidx.activity.addCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
+import androidx.core.widget.doAfterTextChanged
 import androidx.drawerlayout.widget.DrawerLayout.DrawerListener
 import androidx.fragment.app.FragmentTransaction
 import androidx.lifecycle.lifecycleScope
@@ -38,6 +36,8 @@ import com.diu.yk_games.line2box.model.GameProfile
 import com.diu.yk_games.line2box.model.MsgStore
 import com.diu.yk_games.line2box.presentation.BlankFragment
 import com.diu.yk_games.line2box.presentation.main.DisplayFragment
+import com.diu.yk_games.line2box.util.closeKeyboard
+import com.diu.yk_games.line2box.util.getClipBoardData
 import com.diu.yk_games.line2box.util.getNavigationBarHeight
 import com.diu.yk_games.line2box.util.hideSystemBars
 import com.diu.yk_games.line2box.util.setBounceClickListener
@@ -69,7 +69,6 @@ class MultiplayerActivity : AppCompatActivity() {
     lateinit var myRef: DatabaseReference
     var dsList = mutableListOf<String>()
     private lateinit var clipboard: ClipboardManager
-    private lateinit var clipData: ClipData
     lateinit var item: ClipData.Item
     var nm1: String =""
     var nm2: String =""
@@ -138,94 +137,96 @@ class MultiplayerActivity : AppCompatActivity() {
         binding.appBarGame2.startMatchBtn.isEnabled = false
         clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
         ifMuted()
-        dsList = ArrayList()
+        dsList = mutableListOf()
         database = Firebase.database
         myRef = database.getReference("MultiPlayer")
         myRef.child((sharedPref.getString("tmpKey", "69"))!!).removeValue()
         myRef.addChildEventListener(object : ChildEventListener {
             override fun onChildAdded(dataSnapshot: DataSnapshot, s: String?) {
                 Log.d("addList", "onChildAdded: " + dataSnapshot.key)
-                dsList.add(dataSnapshot.key!!)
+                dataSnapshot.key?.let { dsList.add(it) }
             }
-
             override fun onChildChanged(dataSnapshot: DataSnapshot, s: String?) {}
-            override fun onChildRemoved(dataSnapshot: DataSnapshot) {}
+            override fun onChildRemoved(dataSnapshot: DataSnapshot) {
+                dataSnapshot.key?.let { dsList.remove(it) }
+            }
             override fun onChildMoved(dataSnapshot: DataSnapshot, s: String?) {}
             override fun onCancelled(databaseError: DatabaseError) {
                 Log.w("TAG", "Failed to read value.", databaseError.toException())
             }
         })
-        binding.appBarGame2.joinInputId.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: Editable) {
-                Log.d("getKey", "afterTextChanged: " + validKey + " " + binding.appBarGame2.joinInputId.text.toString().length)
-                if (binding.appBarGame2.joinInputId.text.toString().length == 4) {
-                    closeKeyboard()
-                    val newKey = validKey
-                    if (!newKey.isNullOrEmpty()) {
-                        mBundle.putString("gameKey", newKey)
-                        myRef.child(newKey).child("playerCount")
-                            .addValueEventListener(object : ValueEventListener {
-                                @SuppressLint("SetTextI18n")
-                                override fun onDataChange(dataSnapshot: DataSnapshot) {
-                                    if (dataSnapshot.exists()) {
-                                        val playerCount = dataSnapshot.getValue(String::class.java)?.toInt()!!
-                                        if (playerCount == 1) {
-                                            myRef.child(newKey).child("playerCount")
-                                                .setValue("2")
-                                            //playerCountLocal=2;
-                                            binding.appBarGame2.startMatchBtn.isEnabled = true
-                                            tmpKey = newKey
-                                            editor.putString("tmpKey", newKey).apply()
-                                            myRef.child(newKey).child("playerInfo").child("nm2")
-                                                .setValue(GameProfile().nm)
-                                            myRef.child(newKey).child("playerInfo")
-                                                .child("lvl2").setValue(GameProfile().lvlByCal)
-                                            val ms = MsgStore()
-                                            ms.playerId = playerId
-                                            ms.nmData = nm2
-                                            ms.lvlData = lvl2.toString()
-                                            val dtf = DateTimeFormatter.ofPattern("dd MMM, hh:mm a")
-                                            val now = LocalDateTime.now()
-                                            ms.timeData = dtf.format(now)
-                                            ms.msgData = "Joined the match."
-                                            val key2 = myRef.child(newKey).child("friendlyChat")
-                                                .push().key!!
-                                            myRef.child(newKey).child("friendlyChat")
-                                                .child(key2).setValue(ms)
-                                            binding.bubbleTabBar.setSelected(1, true)
-                                            val ft2 = fm.beginTransaction()
-                                            ft2.replace(R.id.chatFragment, ChatFragmentFriendly.newInstance(tmpKey, playerId))
-                                            ft2.commit()
-                                            myRef.child(newKey).child("playerInfo")
-                                                .addValueEventListener(object : ValueEventListener {
-                                                    override fun onDataChange(dataSnapshot: DataSnapshot) {
-                                                        if (dataSnapshot.exists()) {
-                                                            nm1 = dataSnapshot.child("nm1").getValue(String::class.java)!!
-                                                            lvl1 = dataSnapshot.child("lvl1").getValue(Int::class.java)
-                                                            mBundle.putString("nm1", nm1)
-                                                            mBundle.putInt("lvl1", lvl1!!)
-                                                        }
+        binding.appBarGame2.joinInputId.doAfterTextChanged {txt->
+            Log.d("getKey", "afterTextChanged: " + validKey + " " + binding.appBarGame2.joinInputId.text.toString().length)
+            if (txt?.length == 4) {
+                closeKeyboard()
+                val newKey = validKey
+                if (!newKey.isNullOrEmpty()) {
+                    mBundle.putString("gameKey", newKey)
+                    myRef.child(newKey).child("playerCount")
+                        .addValueEventListener(object : ValueEventListener {
+                            @SuppressLint("SetTextI18n")
+                            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                                if (dataSnapshot.exists()) {
+                                    val playerCount = dataSnapshot.getValue(String::class.java)?.toInt()!!
+                                    if (playerCount == 1) {
+                                        myRef.child(newKey).child("playerCount")
+                                            .setValue("2")
+                                        //playerCountLocal=2;
+                                        binding.appBarGame2.startMatchBtn.isEnabled = true
+                                        tmpKey = newKey
+                                        editor.putString("tmpKey", newKey).apply()
+                                        myRef.child(newKey).child("playerInfo").child("nm2")
+                                            .setValue(GameProfile().nm)
+                                        myRef.child(newKey).child("playerInfo")
+                                            .child("lvl2").setValue(GameProfile().lvlByCal)
+                                        val ms = MsgStore()
+                                        ms.playerId = playerId
+                                        ms.nmData = nm2
+                                        ms.lvlData = lvl2.toString()
+                                        val dtf = DateTimeFormatter.ofPattern("dd MMM, hh:mm a")
+                                        val now = LocalDateTime.now()
+                                        ms.timeData = dtf.format(now)
+                                        ms.msgData = "Joined the match."
+                                        val key2 = myRef.child(newKey).child("friendlyChat")
+                                            .push().key!!
+                                        myRef.child(newKey).child("friendlyChat")
+                                            .child(key2).setValue(ms)
+                                        binding.bubbleTabBar.setSelected(1, true)
+                                        val ft2 = fm.beginTransaction()
+                                        ft2.replace(R.id.chatFragment, ChatFragmentFriendly.newInstance(tmpKey, playerId))
+                                        ft2.commit()
+                                        myRef.child(newKey).child("playerInfo")
+                                            .addValueEventListener(object : ValueEventListener {
+                                                override fun onDataChange(dataSnapshot: DataSnapshot) {
+                                                    if (dataSnapshot.exists()) {
+                                                        nm1 = dataSnapshot.child("nm1").getValue(String::class.java)!!
+                                                        lvl1 = dataSnapshot.child("lvl1").getValue(Int::class.java)
+                                                        mBundle.putString("nm1", nm1)
+                                                        mBundle.putInt("lvl1", lvl1!!)
                                                     }
-                                                    override fun onCancelled(error: DatabaseError) {}
-                                                })
-                                        }
-                                    } else{
+                                                }
+                                                override fun onCancelled(error: DatabaseError) {}
+                                            })
+                                    }else{
                                         binding.appBarGame2.startMatchBtn.isEnabled = false
+                                        Toast.makeText(this@MultiplayerActivity, "Match already started", Toast.LENGTH_SHORT).show()
                                     }
+                                } else{
+                                    binding.appBarGame2.startMatchBtn.isEnabled = false
+                                    Toast.makeText(this@MultiplayerActivity, "Invalid Key", Toast.LENGTH_SHORT).show()
                                 }
-                                override fun onCancelled(error: DatabaseError) {
-                                    Log.w("TAG", "Failed to read value.", error.toException())
-                                }
-                            })
-                    }
-                    else {
-                        Toast.makeText(this@MultiplayerActivity, "Invalid Key", Toast.LENGTH_SHORT).show()
-                    }
+                            }
+                            override fun onCancelled(error: DatabaseError) {
+                                Log.w("TAG", "Failed to read value.", error.toException())
+                                Toast.makeText(this@MultiplayerActivity, "Server Error", Toast.LENGTH_SHORT).show()
+                            }
+                        })
+                }
+                else {
+                    Toast.makeText(this@MultiplayerActivity, "Invalid Key", Toast.LENGTH_SHORT).show()
                 }
             }
-        })
+        }
         nm2 = GameProfile().nm
         lvl2 = GameProfile().lvlByCal
         Log.d("TAG left", "ver: $nm1 $lvl1")
@@ -236,115 +237,119 @@ class MultiplayerActivity : AppCompatActivity() {
         stickySwitch.onSelectedChangeListener =
             object : OnSelectedChangeListener {
                 override fun onSelectedChange(direction: StickySwitch.Direction, text: String) {
-                    if (stickySwitch.getDirection() == StickySwitch.Direction.LEFT) {
-                        binding.appBarGame2.joinInputId.isEnabled = true
-                        binding.appBarGame2.startMatchBtn.isEnabled = false
-                        binding.appBarGame2.joinInputId.hint = ""
-                        binding.appBarGame2.joinInputId.setText("")
-                        mBundle.putBoolean("plyr1", false)
-                        nm2 = GameProfile().nm
-                        lvl2 = GameProfile().lvlByCal
-                        Log.d("TAG left", "ver: $nm1 $lvl1")
-                        mBundle.putString("nm2", nm2)
-                        mBundle.putInt("lvl2", lvl2!!)
-                        val ft2: FragmentTransaction = fm.beginTransaction()
-                        ft2.replace(R.id.chatFragment, ChatFragmentGlobal.newInstance(playerId))
-                        ft2.commit()
-                        findViewById<View>(R.id.newMsgBoltu).visibility = View.GONE
-                        lifecycleScope.launch {
-                            delay(400)
-                            binding.appBarGame2.joinInputId.hint = "Game ID"
-                            binding.appBarGame2.copyPastBtn.setImageResource(R.drawable.icon_paste)
-                            binding.appBarGame2.copyPastBtn.tag = R.drawable.icon_paste
-                            stickySwitch.switchColor = -0xdc8e06
-                            if (key != null) {
-                                myRef.child(key!!).removeValue()
-                                key = null
+                    when (direction) {
+                        StickySwitch.Direction.LEFT -> {
+                            binding.appBarGame2.joinInputId.isEnabled = true
+                            binding.appBarGame2.startMatchBtn.isEnabled = false
+                            binding.appBarGame2.joinInputId.hint = ""
+                            binding.appBarGame2.joinInputId.setText("")
+                            mBundle.putBoolean("plyr1", false)
+                            nm2 = GameProfile().nm
+                            lvl2 = GameProfile().lvlByCal
+                            Log.d("TAG left", "ver: $nm1 $lvl1")
+                            mBundle.putString("nm2", nm2)
+                            mBundle.putInt("lvl2", lvl2!!)
+                            val ft2: FragmentTransaction = fm.beginTransaction()
+                            ft2.replace(R.id.chatFragment, ChatFragmentGlobal.newInstance(playerId))
+                            ft2.commit()
+                            findViewById<View>(R.id.newMsgBoltu).visibility = View.GONE
+                            lifecycleScope.launch {
+                                delay(400)
+                                binding.appBarGame2.joinInputId.hint = "Game ID"
+                                binding.appBarGame2.copyPastBtn.setImageResource(R.drawable.icon_paste)
+                                binding.appBarGame2.copyPastBtn.tag = R.drawable.icon_paste
+                                stickySwitch.switchColor = -0xdc8e06
+                                if (key != null) {
+                                    myRef.child(key!!).removeValue()
+                                    key = null
+                                }
                             }
                         }
-                    } else {
-                        binding.appBarGame2.joinInputId.isEnabled = false
-                        binding.appBarGame2.startMatchBtn.isEnabled = false
-                        binding.appBarGame2.joinInputId.hint = ""
-                        binding.appBarGame2.joinInputId.setText("")
-                        mBundle.putBoolean("plyr1", true)
-                        nm1 = GameProfile().nm
-                        lvl1 = GameProfile().lvlByCal
-                        Log.d("TAG", "ver: $nm1 $lvl1")
-                        mBundle.putString("nm1", nm1)
-                        mBundle.putInt("lvl1", lvl1!!)
-                        key = myRef.push().key
-                        editor.putString("tmpKey", key).apply()
-                        Log.d("TAG", "onCreate key: $key")
-                        mBundle.putString("gameKey", key)
-                        assert(key != null)
-                        myRef.child((key)!!).child("playerCount").setValue("1")
-                        myRef.child((key)!!).child("playerInfo").child("nm1")
-                            .setValue(GameProfile().nm)
-                        myRef.child((key)!!).child("playerInfo").child("lvl1")
-                            .setValue(GameProfile().lvlByCal)
-                        myRef.child((key)!!).child("playerInfo").child("nm2")
-                            .setValue("")
-                        myRef.child((key)!!).child("playerInfo").child("lvl2")
-                            .setValue(0)
-                        val ms = MsgStore()
-                        ms.playerId = (playerId)
-                        ms.nmData = nm1
-                        ms.lvlData = lvl1.toString()
-                        val dtf: DateTimeFormatter = DateTimeFormatter.ofPattern("dd MMM, hh:mm a")
-                        val now: LocalDateTime = LocalDateTime.now()
-                        ms.timeData = dtf.format(now)
-                        ms.msgData = "Created the match."
-                        val key2: String? = myRef.child((key)!!).child("friendlyChat").push().key!!
-                        myRef
-                            .child((key)!!)
-                            .child("friendlyChat")
-                            .child((key2)!!)
-                            .setValue(ms)
-                        binding.bubbleTabBar.setSelected(1, true)
-                        val ft2: FragmentTransaction = fm.beginTransaction()
-                        ft2.replace(R.id.chatFragment, ChatFragmentFriendly.newInstance(key, playerId))
-                        ft2.commit()
-                        myRef.child(key!!)
-                            .addValueEventListener(object : ValueEventListener {
-                                override fun onDataChange(dataSnapshot: DataSnapshot) {
-                                    if (dataSnapshot.exists()) {
-                                        Log.d("TAG -int key", "onDataChange: " + key + " " + validKey + " " + dataSnapshot.child("playerCount").getValue(String::class.java))
-                                        try {
-                                            val playerCount = dataSnapshot.child("playerCount").getValue(String::class.java)?.toInt()!!
-                                            nm2 = dataSnapshot.child("playerInfo").child("nm2").getValue(String::class.java)!!
-                                            lvl2 = dataSnapshot.child("playerInfo").child("lvl2").getValue(Int::class.java)
-                                            Log.d("TAG", "ver2: $nm2 $lvl2")
-                                            mBundle.putString("nm2", nm2)
-                                            mBundle.putInt("lvl2", (lvl2)!!)
-                                            if (playerCount == 2) {
-                                                binding.appBarGame2.startMatchBtn.isEnabled = true
-                                                //playerCountLocal=2;
+                        StickySwitch.Direction.RIGHT -> {
+                            binding.appBarGame2.joinInputId.isEnabled = false
+                            binding.appBarGame2.startMatchBtn.isEnabled = false
+                            binding.appBarGame2.joinInputId.hint = ""
+                            binding.appBarGame2.joinInputId.setText("")
+                            mBundle.putBoolean("plyr1", true)
+                            nm1 = GameProfile().nm
+                            lvl1 = GameProfile().lvlByCal
+                            Log.d("TAG", "ver: $nm1 $lvl1")
+                            mBundle.putString("nm1", nm1)
+                            mBundle.putInt("lvl1", lvl1!!)
+                            key = myRef.push().key
+                            editor.putString("tmpKey", key).apply()
+                            Log.d("TAG", "onCreate key: $key")
+                            mBundle.putString("gameKey", key)
+                            assert(key != null)
+                            myRef.child((key)!!).child("playerCount").setValue("1")
+                            myRef.child((key)!!).child("playerInfo").child("nm1")
+                                .setValue(GameProfile().nm)
+                            myRef.child((key)!!).child("playerInfo").child("lvl1")
+                                .setValue(GameProfile().lvlByCal)
+                            myRef.child((key)!!).child("playerInfo").child("nm2")
+                                .setValue("")
+                            myRef.child((key)!!).child("playerInfo").child("lvl2")
+                                .setValue(0)
+                            val ms = MsgStore()
+                            ms.playerId = (playerId)
+                            ms.nmData = nm1
+                            ms.lvlData = lvl1.toString()
+                            val dtf: DateTimeFormatter = DateTimeFormatter.ofPattern("dd MMM, hh:mm a")
+                            val now: LocalDateTime = LocalDateTime.now()
+                            ms.timeData = dtf.format(now)
+                            ms.msgData = "Created the match."
+                            val key2: String? = myRef.child((key)!!).child("friendlyChat").push().key!!
+                            myRef
+                                .child((key)!!)
+                                .child("friendlyChat")
+                                .child((key2)!!)
+                                .setValue(ms)
+                            binding.bubbleTabBar.setSelected(1, true)
+                            val ft2: FragmentTransaction = fm.beginTransaction()
+                            ft2.replace(R.id.chatFragment, ChatFragmentFriendly.newInstance(key, playerId))
+                            ft2.commit()
+                            myRef.child(key!!)
+                                .addValueEventListener(object : ValueEventListener {
+                                    override fun onDataChange(dataSnapshot: DataSnapshot) {
+                                        if (dataSnapshot.exists()) {
+                                            Log.d("TAG -int key", "onDataChange: " + key + " " + validKey + " " + dataSnapshot.child("playerCount").getValue(String::class.java))
+                                            try {
+                                                val playerCount = dataSnapshot.child("playerCount").getValue(String::class.java)?.toInt()!!
+                                                nm2 = dataSnapshot.child("playerInfo").child("nm2").getValue(String::class.java)!!
+                                                lvl2 = dataSnapshot.child("playerInfo").child("lvl2").getValue(Int::class.java)
+                                                Log.d("TAG", "ver2: $nm2 $lvl2")
+                                                mBundle.putString("nm2", nm2)
+                                                mBundle.putInt("lvl2", (lvl2)!!)
+                                                if (playerCount == 2) {
+                                                    binding.appBarGame2.startMatchBtn.isEnabled = true
+                                                    //playerCountLocal=2;
+                                                }
+                                            } catch (npe: NullPointerException) {
+                                                npe.printStackTrace()
                                             }
-                                        } catch (npe: NullPointerException) {
-                                            npe.printStackTrace()
-                                        }
-                                    } else binding.appBarGame2.startMatchBtn.isEnabled = false
-                                }
+                                        } else binding.appBarGame2.startMatchBtn.isEnabled = false
+                                    }
 
-                                override fun onCancelled(error: DatabaseError) {
-                                    // Failed to read value
-                                    Log.w("TAG", "Failed to read value.", error.toException())
+                                    override fun onCancelled(error: DatabaseError) {
+                                        // Failed to read value
+                                        Log.w("TAG", "Failed to read value.", error.toException())
+                                    }
+                                })
+                            lifecycleScope.launch{
+                                delay(400)
+                                binding.appBarGame2.joinInputId.hint = getKey4(key)
+                                binding.appBarGame2.copyPastBtn.setImageResource(R.drawable.icon_copy)
+                                binding.appBarGame2.copyPastBtn.tag = R.drawable.icon_copy
+                                stickySwitch.switchColor =
+                                    ContextCompat.getColor(applicationContext, R.color.greenY)
+                                if (tmpKey != null) {
+                                    myRef.child(tmpKey!!).removeValue()
+                                    tmpKey = null
                                 }
-                            })
-                        lifecycleScope.launch{
-                            delay(400)
-                            binding.appBarGame2.joinInputId.hint = getKey4(key)
-                            binding.appBarGame2.copyPastBtn.setImageResource(R.drawable.icon_copy)
-                            binding.appBarGame2.copyPastBtn.tag = R.drawable.icon_copy
-                            stickySwitch.switchColor =
-                                ContextCompat.getColor(applicationContext, R.color.greenY)
-                            if (tmpKey != null) {
-                                myRef.child(tmpKey!!).removeValue()
-                                tmpKey = null
                             }
                         }
                     }
+
                 }
             }
         binding.appBarGame2.copyPastBtn.setBounceClickListener {
@@ -353,15 +358,16 @@ class MultiplayerActivity : AppCompatActivity() {
                 mediaPlayer.start()
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release)
             }
-            val resource: Int = binding.appBarGame2.copyPastBtn.tag as Int
-            if (resource == R.drawable.icon_copy) {
-                Toast.makeText(this, "ID copied", Toast.LENGTH_SHORT).show()
-                val clip: ClipData = ClipData.newPlainText("key4", getKey4(key))
-                clipboard.setPrimaryClip(clip)
-            } else {
-                Toast.makeText(this, "ID pasted", Toast.LENGTH_SHORT).show()
-                // Access your context here using YourActivityName.this
-                binding.appBarGame2.joinInputId.setText(clipboardText)
+            when (stickySwitch.getDirection()) {
+                StickySwitch.Direction.RIGHT ->  {
+                    Toast.makeText(this, "ID copied", Toast.LENGTH_SHORT).show()
+                    val clip: ClipData = ClipData.newPlainText("key4", getKey4(key))
+                    clipboard.setPrimaryClip(clip)
+                }
+                StickySwitch.Direction.LEFT -> {
+                    // Access your context here using YourActivityName.this
+                    binding.appBarGame2.joinInputId.setText(getClipBoardData())
+                }
             }
         }
 
@@ -480,14 +486,16 @@ class MultiplayerActivity : AppCompatActivity() {
     }
 
     fun getKey4(key: String?): String {
-        val key4 = StringBuilder()
+        val key4 = StringBuilder("")
         var i = 4
         var j = 7
-        while (i <= j) {
-            if ((key!![i] == '0') || (key[i] == 'O') || (key[i] == 'o')) key4.append('M') else {
-                if (key[i] != '-' && key[i] != '_') key4.append(key[i]) else j++
+        key?.let {
+            while (i <= j) {
+                if ((key[i] == '0') || (key[i] == 'O') || (key[i] == 'o')) key4.append('M') else {
+                    if (key[i] != '-' && key[i] != '_') key4.append(key[i]) else j++
+                }
+                i++
             }
-            i++
         }
         return key4.toString().uppercase()
     }
@@ -565,27 +573,6 @@ class MultiplayerActivity : AppCompatActivity() {
                 }
             }
 
-        }
-    }
-
-    private val clipboardText: String
-        get() {
-            var txt = ""
-            clipData = clipboard.primaryClip!!
-            if (clipboard.hasPrimaryClip()) {
-                item = clipData.getItemAt(0)
-                txt = item.text.toString()
-            }
-            return txt
-        }
-
-    private fun closeKeyboard() {
-        val view = this.currentFocus
-        //if (view != null)
-        Log.d("TAG", "closeKeyboard: " + (view is EditText))
-        if (view is EditText) {
-            val manager = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-            manager.hideSoftInputFromWindow(view.getWindowToken(), 0)
         }
     }
 
@@ -836,6 +823,13 @@ class MultiplayerActivity : AppCompatActivity() {
 
     private fun openNavBtn(view: View?) {
         binding.root.openDrawer(GravityCompat.START)
+
+        when(binding.appBarGame2.stickySwitch.getDirection()){
+            StickySwitch.Direction.LEFT ->
+                binding.bubbleTabBar.setSelected(0,true)
+            StickySwitch.Direction.RIGHT ->
+                binding.bubbleTabBar.setSelected(1,true)
+        }
 
 //        FragmentManager fm=getSupportFragmentManager();
 //        FragmentTransaction ft=fm.beginTransaction();

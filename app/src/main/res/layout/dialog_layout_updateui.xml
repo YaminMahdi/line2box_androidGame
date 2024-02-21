@@ -21,14 +21,16 @@
         android:gravity="center"
         android:text="No Internet !"
         android:textColor="@color/redY"
-        android:textSize="30sp" />
+        android:textSize="@dimen/_24sdp"
+        />
     <TextView
         android:id="@+id/UpdateInfo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="You must have INTERNET connection for the first time to run the game"
         android:gravity="center"
-        android:textSize="18sp"
+        android:lineSpacingExtra="5sp"
+        android:textSize="@dimen/_14ssp"
         android:textColor="@color/whiteY"
         android:fontFamily="@font/sortie"
         android:layout_marginHorizontal="24dp"
@@ -55,7 +57,7 @@
             android:paddingEnd="12sp"
             android:text="@string/play_services"
             android:textColor="@color/blueZ"
-            android:textSize="14sp"
+            android:textSize="@dimen/_11ssp"
             android:textStyle="bold"
             android:background="@drawable/btn_special_bg"
             />
@@ -69,9 +71,9 @@
             android:paddingVertical="5sp"
             android:paddingStart="10dp"
             android:paddingEnd="12sp"
-            android:text="@string/play_game"
+            android:text="@string/reboot_device"
             android:textColor="@color/blueZ"
-            android:textSize="14sp"
+            android:textSize="@dimen/_11ssp"
             android:textStyle="bold"
             android:background="@drawable/btn_special_bg"
             />

@@ -14,7 +14,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
-import android.widget.AdapterView.OnItemClickListener
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.ListView
@@ -81,11 +80,12 @@ class DisplayFragment : Fragment() {
                 }
                 Log.d(TAG, "isSuccessful: ${dsList.size}")
                 try {
-                    val adapter = MyListAdapter(requireContext(), dsList) //
                     val list = v.findViewById<ListView>(R.id.showScoreList)
-                    list.adapter = adapter
-                    list.onItemClickListener =
-                        OnItemClickListener { parent: AdapterView<*>, view: View?, position: Int, id: Long ->
+                   if(isAdded){
+                       val adapter = MyListAdapter(requireContext(), dsList) //
+                       list.adapter = adapter
+                   }
+                    list.setOnItemClickListener { parent: AdapterView<*>, view: View?, position: Int, id: Long ->
                             val gamerPro = list.getItemAtPosition(position) as DataStore
                             if ((gamerPro.plr1Id == "offline"))
                                 Toast.makeText(context, "Offline match doesn't have Profile Info.", Toast.LENGTH_SHORT).show()
@@ -104,10 +104,7 @@ class DisplayFragment : Fragment() {
                                     parent.findViewById(R.id.scoreDetailsLayoutDialog)
                                 )
                                 builder.setView(v1)
-                                Log.d(
-                                    TAG,
-                                    position.toString() + "onItemClick: 1id " + gamerPro.plr1Id
-                                )
+                                Log.d(TAG, position.toString() + "onItemClick: 1id " + gamerPro.plr1Id)
                                 Log.d(TAG, "onItemClick: 2id " + gamerPro.plr2Id)
                                 db.collection("gamerProfile").document(gamerPro.plr1Id)
                                     .get()
@@ -192,6 +189,9 @@ class DisplayFragment : Fragment() {
                                         v2.findViewById<View>(R.id.buttonSaveInfo).visibility = View.GONE
                                         val alertDialog = builder2.create()
                                         alertDialog.window?.setBackgroundDrawable(ColorDrawable(0))
+                                        v2.setOnClickListener {
+                                            alertDialog.dismiss()
+                                        }
                                         try {
                                             alertDialog.show()
                                         } catch (e: Exception) {
@@ -252,13 +252,16 @@ class DisplayFragment : Fragment() {
                                         v2.findViewById<View>(R.id.buttonSaveInfo).visibility = View.GONE
                                         val alertDialog = builder2.create()
                                         alertDialog.window?.setBackgroundDrawable(ColorDrawable(0))
+                                        v2.setOnClickListener {
+                                            alertDialog.dismiss()
+                                        }
                                         try { alertDialog.show() }
                                         catch (e: Exception) { e.printStackTrace() }
                                     }
                             }
                         }
-                } catch (npe: NullPointerException) {
-                    npe.printStackTrace()
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
             }
         return v

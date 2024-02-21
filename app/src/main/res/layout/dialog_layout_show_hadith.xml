@@ -31,7 +31,8 @@
             android:gravity="center"
             android:text="Read a Hadith"
             android:textColor="@color/greenY"
-            android:textSize="30sp"
+            android:textSize="@dimen/_24sdp"
+            app:layout_constraintBottom_toBottomOf="@+id/langBtn"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />

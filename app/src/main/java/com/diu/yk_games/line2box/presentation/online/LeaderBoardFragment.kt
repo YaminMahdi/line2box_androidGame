@@ -10,7 +10,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.AdapterView.OnItemClickListener
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -68,10 +67,11 @@ class LeaderBoardFragment : Fragment() {
                     //Collections.reverse(rankList);
                     val pos = findIndex(rankList, playerId)
                     try {
-                        val adapter = RankListAdapter(requireContext(), rankList, playerId)
-                        binding.showRankList.adapter = adapter
-                        binding.showRankList.onItemClickListener =
-                            OnItemClickListener { parent, view, position, id ->
+                        if(isAdded){
+                            val adapter = RankListAdapter(requireContext(), rankList, playerId)
+                            binding.showRankList.adapter = adapter
+                        }
+                        binding.showRankList.setOnItemClickListener{ parent, view, position, id ->
                                 val gamerPro = binding.showRankList.getItemAtPosition(position) as GameProfile
                                 if (position != pos) {
                                     if (!sharedPref.getBoolean("muted", false)) {
@@ -123,6 +123,9 @@ class LeaderBoardFragment : Fragment() {
                                                     v.findViewById<View>(R.id.buttonSaveInfo).visibility = View.GONE
                                                     val alertDialog = builder.create()
                                                     alertDialog.window?.setBackgroundDrawable(ColorDrawable(0))
+                                                    v.setOnClickListener {
+                                                        alertDialog.dismiss()
+                                                    }
                                                     try {
                                                         alertDialog.show()
                                                     } catch (npe: NullPointerException) {
@@ -131,7 +134,7 @@ class LeaderBoardFragment : Fragment() {
                                                 }
                                             }
                                     } else
-                                        Toast.makeText(context, "Older messages don't have profile info.", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(context, "Older profile don't have profile info.", Toast.LENGTH_SHORT).show()
                                 }
                             }
 
@@ -139,8 +142,8 @@ class LeaderBoardFragment : Fragment() {
                         //Log.d(TAG, "onComplete(pos): "+pos+" ser- "+rankList.get(pos).playerId+" "+playerId);
                         if (pos > 5) binding.showRankList.setSelection(pos - 1)
                         //list.post(() -> list.smoothScrollToPosition(pos));
-                    } catch (npe: NullPointerException) {
-                        npe.printStackTrace()
+                    } catch (e: Exception) {
+                        e.printStackTrace()
                     }
                 } else {
                     Log.d(TAG, "Error getting documents: ", task.exception)

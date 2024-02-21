@@ -24,29 +24,28 @@
         android:fontFamily="@font/sortie"
         android:gravity="center"
         android:textColor="@color/white"
-        android:textSize="30sp" />
+        android:textSize="@dimen/_24ssp" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="20dp"
         android:gravity="center"
-
         >
         <TextView
             android:id="@+id/coinWin"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="+0"
-            android:textSize="30sp"
+            android:textSize="@dimen/_24ssp"
             android:textColor="@color/cocZz"
             android:layout_marginEnd="8sp"
             android:fontFamily="@font/sortie"
             />
         <ImageView
             android:id="@+id/imageView"
-            android:layout_width="30sp"
-            android:layout_height="30sp"
+            android:layout_width="@dimen/_24ssp"
+            android:layout_height="@dimen/_24ssp"
             android:src="@drawable/icon_trophy"
             />
     </LinearLayout>

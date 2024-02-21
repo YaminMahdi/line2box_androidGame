@@ -7,29 +7,26 @@
     android:layout_marginTop="150dp"
     android:background="@drawable/box"
     android:orientation="vertical"
-
     >
 
     <TextView
         android:id="@+id/textMessage"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="20sp"
+        android:layout_marginHorizontal="@dimen/_30sdp"
+        android:layout_marginTop="@dimen/_20sdp"
         android:lineSpacingExtra="6sp"
-        android:layout_marginEnd="20dp"
-        android:layout_marginBottom="40dp"
+        android:layout_marginBottom="@dimen/_30sdp"
         android:fontFamily="@font/sortie"
         android:gravity="center"
         android:textColor="@color/white"
-        android:textSize="30sp" />
+        android:textSize="@dimen/_22ssp" />
 
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:layout_marginTop="20dp"
-        android:layout_marginBottom="20dp"
+        android:layout_marginVertical="@dimen/_20sdp"
         android:orientation="horizontal">
 
         <Button

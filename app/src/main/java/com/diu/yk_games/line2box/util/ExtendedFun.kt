@@ -3,12 +3,17 @@ package com.diu.yk_games.line2box.util
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
+import android.app.Activity
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.res.Configuration
 import android.view.MotionEvent
 import android.view.View
 import android.view.Window
 import android.view.WindowManager
+import android.view.inputmethod.InputMethodManager
+import android.widget.EditText
+import androidx.appcompat.app.AppCompatActivity
 import kotlinx.coroutines.*
 import java.text.SimpleDateFormat
 import java.util.*
@@ -86,5 +91,27 @@ fun Context.getNavigationBarHeight(): Int {
         resources.getDimensionPixelSize(id)
     } else {
         0
+    }
+}
+
+fun Context.getClipBoardData() : String {
+    val clipBoardManager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+    var data=""
+    if(clipBoardManager.primaryClip?.description?.hasMimeType("text/*") == true) {
+        clipBoardManager.primaryClip?.itemCount?.let {
+            for (i in 0 until it) {
+                data += clipBoardManager.primaryClip?.getItemAt(i)?.text ?: ""
+            }
+        }
+    }
+    return data
+}
+
+fun Activity.closeKeyboard(nextFocus: View?= null) {
+    val view = this.currentFocus
+    if (view is EditText) {
+        val manager = this.getSystemService(AppCompatActivity.INPUT_METHOD_SERVICE) as InputMethodManager
+        manager.hideSoftInputFromWindow(view.getWindowToken(), 0)
+        nextFocus?.requestFocus()
     }
 }

@@ -37,7 +37,7 @@
                 android:fontFamily="@font/sortie"
                 android:text="Match Info !"
                 android:textColor="@color/white"
-                android:textSize="22sp"
+                android:textSize="@dimen/_18sdp"
                 tools:ignore="HardcodedText"
 
                 />
@@ -76,7 +76,7 @@
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginHorizontal="20dp"
+                    android:layout_marginHorizontal="@dimen/_14sdp"
                     android:gravity="center"
                     android:orientation="horizontal"
                     android:paddingBottom="2sp">
@@ -88,7 +88,7 @@
                         android:fontFamily="@font/sortie"
                         android:text="XXXXX"
                         android:textColor="@color/cocZz"
-                        android:textSize="18sp"
+                        android:textSize="@dimen/_14ssp"
                         tools:ignore="HardcodedText" />
 
                     <TextView
@@ -101,7 +101,7 @@
                         android:paddingEnd="0dp"
                         android:text="lvl."
                         android:textColor="@color/white"
-                        android:textSize="12sp"
+                        android:textSize="@dimen/_9ssp"
                         tools:ignore="HardcodedText" />
 
                     <TextView
@@ -112,7 +112,7 @@
                         android:fontFamily="@font/sortie"
                         android:text="1"
                         android:textColor="@color/greenY"
-                        android:textSize="13sp"
+                        android:textSize="@dimen/_10ssp"
                         tools:ignore="HardcodedText" />
 
                 </LinearLayout>
@@ -120,14 +120,14 @@
 
             <TextView
                 android:id="@+id/textView"
-                android:layout_width="22sp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:fontFamily="@font/brad"
                 android:gravity="center"
                 android:text="vs"
                 android:textColor="@color/white"
-                android:textSize="16sp"
+                android:textSize="@dimen/_12ssp"
                 app:layout_constraintBottom_toBottomOf="@+id/linLayoutPlr1"
                 app:layout_constraintEnd_toStartOf="@+id/linLayoutPlr2"
                 app:layout_constraintStart_toEndOf="@+id/linLayoutPlr1"
@@ -162,7 +162,7 @@
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:orientation="horizontal"
-                    android:layout_marginHorizontal="20dp"
+                    android:layout_marginHorizontal="@dimen/_14sdp"
                     android:paddingBottom="2sp">
 
                     <TextView
@@ -172,7 +172,7 @@
                         android:fontFamily="@font/sortie"
                         android:text="YYYYY"
                         android:textColor="@color/cocZz"
-                        android:textSize="18sp"
+                        android:textSize="@dimen/_14ssp"
                         tools:ignore="HardcodedText" />
 
                     <TextView
@@ -185,7 +185,7 @@
                         android:paddingEnd="0dp"
                         android:text="lvl."
                         android:textColor="@color/white"
-                        android:textSize="12sp"
+                        android:textSize="@dimen/_9ssp"
                         tools:ignore="HardcodedText" />
 
                     <TextView
@@ -196,7 +196,7 @@
                         android:fontFamily="@font/sortie"
                         android:text="1"
                         android:textColor="@color/greenY"
-                        android:textSize="13sp"
+                        android:textSize="@dimen/_10ssp"
                         tools:ignore="HardcodedText" />
 
                 </LinearLayout>
@@ -226,14 +226,15 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="8sp"
+                        android:layout_gravity="center"
                         android:fontFamily="@font/sortie"
                         android:text="+60"
                         android:textColor="@color/cocZz"
-                        android:textSize="22sp" />
+                        android:textSize="@dimen/_16ssp" />
 
                     <ImageView
-                        android:layout_width="20sp"
-                        android:layout_height="20sp"
+                        android:layout_width="@dimen/_18ssp"
+                        android:layout_height="@dimen/_18ssp"
                         android:src="@drawable/icon_trophy" />
                 </LinearLayout>
                 <LinearLayout
@@ -251,7 +252,7 @@
                         android:fontFamily="@font/sortie"
                         android:text="Score: "
                         android:textColor="@color/whiteY"
-                        android:textSize="20sp"
+                        android:textSize="@dimen/_16ssp"
 
                         />
 
@@ -262,7 +263,7 @@
                         android:fontFamily="@font/sortie"
                         android:text="00"
                         android:textColor="@color/whiteY"
-                        android:textSize="20sp"
+                        android:textSize="@dimen/_16ssp"
 
                         />
 
@@ -291,14 +292,15 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="8sp"
+                        android:layout_gravity="center"
                         android:fontFamily="@font/sortie"
                         android:text="+30"
                         android:textColor="@color/cocZz"
-                        android:textSize="22sp" />
+                        android:textSize="@dimen/_16ssp" />
 
                     <ImageView
-                        android:layout_width="20sp"
-                        android:layout_height="20sp"
+                        android:layout_width="@dimen/_18ssp"
+                        android:layout_height="@dimen/_18ssp"
                         android:src="@drawable/icon_trophy" />
                 </LinearLayout>
 
@@ -317,7 +319,7 @@
                         android:fontFamily="@font/sortie"
                         android:text="Score: "
                         android:textColor="@color/whiteY"
-                        android:textSize="20sp"
+                        android:textSize="@dimen/_16ssp"
 
                         />
 
@@ -328,7 +330,7 @@
                         android:fontFamily="@font/sortie"
                         android:text="00"
                         android:textColor="@color/whiteY"
-                        android:textSize="20sp"
+                        android:textSize="@dimen/_16ssp"
 
                         />
 

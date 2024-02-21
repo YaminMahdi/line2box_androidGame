@@ -18,6 +18,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.lifecycle.lifecycleScope
 import com.diu.yk_games.line2box.BuildConfig
 import com.diu.yk_games.line2box.R
@@ -111,7 +112,7 @@ class StartActivity : AppCompatActivity() {
 //    private var mode2: ImageView? = null
 //    private var mode3: ImageView? = null
     private lateinit var loadingUI: LoadingUI
-    private lateinit var onlineStatus: String
+    private var onlineStatus =""
 
     // ...
     // Initialize Firebase Auth
@@ -121,6 +122,12 @@ class StartActivity : AppCompatActivity() {
     //        super.onStart();
     //
     //    }
+
+    override fun onDestroy() {
+        loadingUI.stop()
+        super.onDestroy()
+    }
+
     @RequiresApi(Build.VERSION_CODES.R)
     @SuppressLint("VisibleForTests")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -273,11 +280,7 @@ class StartActivity : AppCompatActivity() {
                                                                 onlineStatus = "pass"
                                                                 loadingUI.stop()
                                                                 //Log.d(TAG, "Profile exists!");
-                                                                Toast.makeText(
-                                                                    this@StartActivity,
-                                                                    "Profile Exists and Loaded!",
-                                                                    Toast.LENGTH_SHORT
-                                                                ).show()
+                                                                Toast.makeText(this@StartActivity, "Profile Exists and Loaded!", Toast.LENGTH_SHORT).show()
                                                             } else {
                                                                 //Log.d(TAG, "Profile does not exist!");
                                                                 //Toast.makeText(StartActivity.this, "Profile does not exist!", Toast.LENGTH_SHORT).show();
@@ -343,12 +346,13 @@ class StartActivity : AppCompatActivity() {
                         // Failed to retrieve authentication code.
                         //Log.d(TAG, "signInWithCredential:failure", task.getException());
                         //Toast.makeText(StartActivity.this, "No Internet.",Toast.LENGTH_SHORT).show();
-                        if (isAuthenticated) {
-                            PlayGames.getPlayersClient(this@StartActivity).currentPlayer.addOnCompleteListener { mTask: Task<Player> ->
-                                GameProfile()
-                                playerId = mTask.result.playerId
-                            }
-                        }
+//                        if (isAuthenticated) {
+//                            PlayGames.getPlayersClient(this@StartActivity).currentPlayer
+//                                .addOnSuccessListener { player->
+//                                GameProfile()
+//                                playerId = player.playerId
+//                            }
+//                        }
                         updateUI(null)
                         onlineStatus = "needReload"
                         loadingUI.stop()
@@ -441,42 +445,35 @@ class StartActivity : AppCompatActivity() {
 //    }
 
     inner class LoadingUI {
-        private var builder = AlertDialog.Builder(this@StartActivity)
-        private val dialogBinding = DialogLayoutLoadingBinding.inflate(LayoutInflater.from(this@StartActivity))
-
-//        val view = LayoutInflater.from(this@StartActivity).inflate(
-//            R.layout.dialog_layout_loading, findViewById(R.id.updateLayoutLoadingUI)
-//        )!!
-        private lateinit var alertDialog: AlertDialog
-        private var isVisibile = false
-        fun start() {
-            builder.setView(dialogBinding.root)
-            builder.setCancelable(false)
-            alertDialog = builder.create()
+        private var alertDialog: AlertDialog
+        init {
+            val dialogBinding = DialogLayoutLoadingBinding.inflate(LayoutInflater.from(this@StartActivity))
+            alertDialog = AlertDialog
+                .Builder(this@StartActivity)
+                .setView(dialogBinding.root)
+                .setCancelable(false)
+                .create()
             alertDialog.window?.setBackgroundDrawable(ColorDrawable(0))
+        }
+        fun start() {
             try {
                 alertDialog.show()
-                isVisibile = true
             } catch (ex: Exception) {
                 ex.printStackTrace()
             }
             lifecycleScope.launch {
                 delay(15000)
-                if (isVisibile) {
+                if (alertDialog.isShowing) {
                     onlineStatus = "needReload"
                     stop()
-//                    Looper.prepare()
                     updateUI(null)
-//                    Looper.loop()
                 }
             }
         }
-
         fun stop() {
-            if(isVisibile && dialogBinding.root.isAttachedToWindow && alertDialog.isShowing ) {
+            if(alertDialog.isShowing) {
                 try {
                     alertDialog.dismiss()
-                    isVisibile = false
                 } catch (ex: Exception) {
                     ex.printStackTrace()
                 }
@@ -497,7 +494,7 @@ class StartActivity : AppCompatActivity() {
             if (errorCnt > 2 && preferences.getBoolean("needProfile", true)) {
                 dialogBinding.googlePlayWarning.visibility = View.VISIBLE
                 dialogBinding.warningMessage.text = "Warning !"
-                dialogBinding.UpdateInfo.text = "You may need to UPDATE those two apps. (Link Below)"
+                dialogBinding.UpdateInfo.text = "You may need to UPDATE an app.\n(Link Below)"
                 dialogBinding.playSvLink.setBounceClickListener {
                     dialogBinding.playSvLink.setTextColor(getColor(R.color.teal_700))
                     if (!isMuted) {
@@ -505,12 +502,18 @@ class StartActivity : AppCompatActivity() {
                         mediaPlayer.start()
                         mediaPlayer.setOnCompletionListener(MediaPlayer::release)
                     }
-                    startActivity(
-                        Intent(
-                            Intent.ACTION_VIEW,
-                            Uri.parse("https://play.google.com/store/apps/details?id=com.google.android.gms")
-                        )
-                    )
+                    val url = "https://play.google.com/store/apps/details?id=com.google.android.gms"
+                    CustomTabsIntent
+                        .Builder()
+                        .build()
+                        .launchUrl(this, Uri.parse(url))
+
+//                    startActivity(
+//                        Intent(
+//                            Intent.ACTION_VIEW,
+//                            Uri.parse("https://play.google.com/store/apps/details?id=com.google.android.gms")
+//                        )
+//                    )
                 }
                 dialogBinding.playGmLink.setBounceClickListener {
                     dialogBinding.playGmLink.setTextColor(getColor(R.color.teal_700))
@@ -519,12 +522,17 @@ class StartActivity : AppCompatActivity() {
                         mediaPlayer.start()
                         mediaPlayer.setOnCompletionListener(MediaPlayer::release)
                     }
-                    startActivity(
-                        Intent(
-                            Intent.ACTION_VIEW,
-                            Uri.parse("https://play.google.com/store/apps/details?id=com.google.android.play.games")
-                        )
-                    )
+                    val url = "https://youtu.be/sahkEmzLhHY"
+                    CustomTabsIntent
+                        .Builder()
+                        .build()
+                        .launchUrl(this, Uri.parse(url))
+//                    startActivity(
+//                        Intent(
+//                            Intent.ACTION_VIEW,
+//                            Uri.parse("https://play.google.com/store/apps/details?id=com.google.android.play.games")
+//                        )
+//                    )
                 }
             }
             if (isFirstRun) {
@@ -649,10 +657,13 @@ class StartActivity : AppCompatActivity() {
                                 mediaPlayer.start()
                                 mediaPlayer.setOnCompletionListener(MediaPlayer::release)
                             }
-                            var uri = hadith.src
-                            if (hadith.t == "q" && langBtn.text == "BN") uri =
-                                uri.replace("bn", "en")
-                            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(uri)))
+                            var url = hadith.src
+                            if (hadith.t == "q" && langBtn.text == "BN") url =
+                                url.replace("bn", "en")
+                            CustomTabsIntent
+                                .Builder()
+                                .build()
+                                .launchUrl(this, Uri.parse(url))
                         }
                         alertDialog.window?.setBackgroundDrawable(ColorDrawable(0))
                         try {
@@ -925,7 +936,7 @@ class StartActivity : AppCompatActivity() {
         {
             startActivity(Intent(this, GameActivity1::class.java))
             //finish()
-        } else {
+        } else{
             startActivity(Intent(this, GameActivity3::class.java))
             //finish()
         }

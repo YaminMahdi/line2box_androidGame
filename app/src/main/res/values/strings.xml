@@ -33,8 +33,9 @@
     <string name="preference_file_key">com.diu.yk_games.line2box.Mahdi\'sLab</string>
     <string name="ul_src"><u>(Open Source)</u></string>
     <string name="my_string_value">I am .</string>
+    <string name="play_services"><u>1. Update "'"Google Play Services"'"</u></string>
     <string name="play_game"><u>2. Google Play Game</u></string>
-    <string name="play_services"><u>1. Google Play Services</u></string>
+    <string name="reboot_device"><u>2. Restart your device</u></string>
     <string name="logo">logo</string>
     <string name="_0">0</string>
     <string name="total_player">Total Player -</string>

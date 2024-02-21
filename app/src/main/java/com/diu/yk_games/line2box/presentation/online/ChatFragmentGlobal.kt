@@ -78,8 +78,7 @@ class ChatFragmentGlobal : Fragment() {
             override fun onCancelled(databaseError: DatabaseError) {}
         })
 
-        binding.showMsgList.onItemClickListener =
-            OnItemClickListener { parent, view, position, id ->
+        binding.showMsgList.setOnItemClickListener{ parent, view, position, id ->
                 val (playerId1) = binding.showMsgList.getItemAtPosition(position) as MsgStore
                 //presentationEco str = (presentationEco)o; //As you are using Default String Adapter
                 if (!sharedPref.getBoolean("muted", false)) {
@@ -89,7 +88,6 @@ class ChatFragmentGlobal : Fragment() {
                     mediaPlayer.setOnCompletionListener (MediaPlayer::release)
                 }
                 if (playerId1 != "") {
-                    Toast.makeText(activity, "Long Press To Copy Text/ID", Toast.LENGTH_SHORT).show()
                     val db = FirebaseFirestore.getInstance()
                     db.collection("gamerProfile").document(playerId1)
                         .get().addOnSuccessListener { documentSnapshot ->

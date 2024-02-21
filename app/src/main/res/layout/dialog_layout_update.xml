@@ -21,15 +21,18 @@
         android:gravity="center"
         android:text="Update Available !"
         android:textColor="@color/greenY"
-        android:textSize="30sp" />
+        android:textSize="@dimen/_24sdp"
+        />
     <TextView
         android:id="@+id/UpdateInfo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Updating the game makes playing the game more fun."
         android:gravity="center"
+        android:lineSpacingExtra="5sp"
         android:textColor="@color/whiteY"
         android:fontFamily="@font/sortie"
+        android:textSize="@dimen/_14ssp"
         android:layout_marginHorizontal="24dp"
         />
 
