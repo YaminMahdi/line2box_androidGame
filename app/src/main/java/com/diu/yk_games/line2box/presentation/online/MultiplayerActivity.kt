@@ -169,6 +169,7 @@ class MultiplayerActivity : AppCompatActivity() {
                                 if (dataSnapshot.exists()) {
                                     val playerCount = dataSnapshot.getValue(String::class.java)?.toInt()!!
                                     if (playerCount == 1) {
+                                        amiThePayer = true
                                         myRef.child(newKey).child("playerCount")
                                             .setValue("2")
                                         //playerCountLocal=2;
@@ -207,7 +208,7 @@ class MultiplayerActivity : AppCompatActivity() {
                                                 }
                                                 override fun onCancelled(error: DatabaseError) {}
                                             })
-                                    }else{
+                                    }else if(!amiThePayer){
                                         binding.appBarGame2.startMatchBtn.isEnabled = false
                                         Toast.makeText(this@MultiplayerActivity, "Match already started", Toast.LENGTH_SHORT).show()
                                     }
@@ -885,5 +886,6 @@ class MultiplayerActivity : AppCompatActivity() {
     companion object {
         var scrBrdVisible = false
         var key: String? = null
+        var amiThePayer = false
     }
 }
