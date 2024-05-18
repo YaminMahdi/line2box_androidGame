@@ -41,6 +41,7 @@ import com.diu.yk_games.line2box.util.getClipBoardData
 import com.diu.yk_games.line2box.util.getNavigationBarHeight
 import com.diu.yk_games.line2box.util.hideSystemBars
 import com.diu.yk_games.line2box.util.setBounceClickListener
+import com.diu.yk_games.line2box.util.setNavStatusPadding
 import com.google.android.gms.common.images.ImageManager
 import com.google.android.gms.games.PlayGames
 import com.google.firebase.database.ChildEventListener
@@ -72,8 +73,8 @@ class MultiplayerActivity : AppCompatActivity() {
     lateinit var item: ClipData.Item
     var nm1: String =""
     var nm2: String =""
-    var lvl1: Int? = null
-    var lvl2: Int? = null
+    var lvl1: Int = 0
+    var lvl2: Int = 0
     private var editing = false
     var mBundle = Bundle()
     lateinit var playerId: String
@@ -91,6 +92,7 @@ class MultiplayerActivity : AppCompatActivity() {
         binding = ActivityGameMultiBinding.inflate(layoutInflater)
         //getWindow().addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
         setContentView(binding.root)
+        binding.root.setNavStatusPadding(binding.appBarGame2.multiConstraintLyt, binding.appBarGame2.globalScoreFrag)
 //        val drawer = binding.drawerLayout
 //        val navigationView = binding.navView
         sharedPref = getSharedPreferences(
@@ -167,7 +169,7 @@ class MultiplayerActivity : AppCompatActivity() {
                             @SuppressLint("SetTextI18n")
                             override fun onDataChange(dataSnapshot: DataSnapshot) {
                                 if (dataSnapshot.exists()) {
-                                    val playerCount = dataSnapshot.getValue(String::class.java)?.toInt()!!
+                                    val playerCount = dataSnapshot.getValue(String::class.java)?.toIntOrNull()
                                     if (playerCount == 1) {
                                         amiThePayer = true
                                         myRef.child(newKey).child("playerCount")
@@ -200,10 +202,10 @@ class MultiplayerActivity : AppCompatActivity() {
                                             .addValueEventListener(object : ValueEventListener {
                                                 override fun onDataChange(dataSnapshot: DataSnapshot) {
                                                     if (dataSnapshot.exists()) {
-                                                        nm1 = dataSnapshot.child("nm1").getValue(String::class.java)!!
-                                                        lvl1 = dataSnapshot.child("lvl1").getValue(Int::class.java)
+                                                        nm1 = dataSnapshot.child("nm1").getValue(String::class.java) ?: "No Name"
+                                                        lvl1 = dataSnapshot.child("lvl1").getValue(Int::class.java) ?: 0
                                                         mBundle.putString("nm1", nm1)
-                                                        mBundle.putInt("lvl1", lvl1!!)
+                                                        mBundle.putInt("lvl1", lvl1)
                                                     }
                                                 }
                                                 override fun onCancelled(error: DatabaseError) {}
@@ -232,12 +234,13 @@ class MultiplayerActivity : AppCompatActivity() {
         lvl2 = GameProfile().lvlByCal
         Log.d("TAG left", "ver: $nm1 $lvl1")
         mBundle.putString("nm2", nm2)
-        mBundle.putInt("lvl2", lvl2!!)
+        mBundle.putInt("lvl2", lvl2)
         mBundle.putBoolean("plyr1", false)
         val stickySwitch = findViewById<StickySwitch>(R.id.sticky_switch)
         stickySwitch.onSelectedChangeListener =
             object : OnSelectedChangeListener {
                 override fun onSelectedChange(direction: StickySwitch.Direction, text: String) {
+                    amiThePayer = false
                     when (direction) {
                         StickySwitch.Direction.LEFT -> {
                             binding.appBarGame2.joinInputId.isEnabled = true
@@ -249,7 +252,7 @@ class MultiplayerActivity : AppCompatActivity() {
                             lvl2 = GameProfile().lvlByCal
                             Log.d("TAG left", "ver: $nm1 $lvl1")
                             mBundle.putString("nm2", nm2)
-                            mBundle.putInt("lvl2", lvl2!!)
+                            mBundle.putInt("lvl2", lvl2)
                             val ft2: FragmentTransaction = fm.beginTransaction()
                             ft2.replace(R.id.chatFragment, ChatFragmentGlobal.newInstance(playerId))
                             ft2.commit()
@@ -276,7 +279,7 @@ class MultiplayerActivity : AppCompatActivity() {
                             lvl1 = GameProfile().lvlByCal
                             Log.d("TAG", "ver: $nm1 $lvl1")
                             mBundle.putString("nm1", nm1)
-                            mBundle.putInt("lvl1", lvl1!!)
+                            mBundle.putInt("lvl1", lvl1)
                             key = myRef.push().key
                             editor.putString("tmpKey", key).apply()
                             Log.d("TAG", "onCreate key: $key")
@@ -317,10 +320,10 @@ class MultiplayerActivity : AppCompatActivity() {
                                             try {
                                                 val playerCount = dataSnapshot.child("playerCount").getValue(String::class.java)?.toInt()!!
                                                 nm2 = dataSnapshot.child("playerInfo").child("nm2").getValue(String::class.java)!!
-                                                lvl2 = dataSnapshot.child("playerInfo").child("lvl2").getValue(Int::class.java)
+                                                lvl2 = dataSnapshot.child("playerInfo").child("lvl2").getValue(Int::class.java) ?: 0
                                                 Log.d("TAG", "ver2: $nm2 $lvl2")
                                                 mBundle.putString("nm2", nm2)
-                                                mBundle.putInt("lvl2", (lvl2)!!)
+                                                mBundle.putInt("lvl2", (lvl2))
                                                 if (playerCount == 2) {
                                                     binding.appBarGame2.startMatchBtn.isEnabled = true
                                                     //playerCountLocal=2;

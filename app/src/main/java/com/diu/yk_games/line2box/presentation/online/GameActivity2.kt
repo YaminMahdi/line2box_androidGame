@@ -2,7 +2,6 @@ package com.diu.yk_games.line2box.presentation.online
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
-import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.Paint
 import android.graphics.Rect
@@ -13,7 +12,6 @@ import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
-import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.EditText
@@ -37,6 +35,7 @@ import com.diu.yk_games.line2box.model.GameProfile
 import com.diu.yk_games.line2box.model.MsgStore
 import com.diu.yk_games.line2box.util.hideSystemBars
 import com.diu.yk_games.line2box.util.setBounceClickListener
+import com.diu.yk_games.line2box.util.setNavStatusPadding
 import com.google.android.gms.tasks.Task
 import com.google.android.play.core.review.ReviewInfo
 import com.google.android.play.core.review.ReviewManagerFactory
@@ -87,15 +86,15 @@ class GameActivity2 : AppCompatActivity() {
         }
     }
 
-    @Suppress("DEPRECATION")
     @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        window.hideSystemBars()
         bindingRoot = ActivityGame2Binding.inflate(layoutInflater)
         binding = bindingRoot.appBarGame2
-        window.hideSystemBars()
-        //getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
         setContentView(bindingRoot.root)
+        binding.root.setNavStatusPadding(binding.linearLayout)
+
         redX = ContextCompat.getColor(applicationContext, R.color.redX)
         redY = ContextCompat.getColor(applicationContext, R.color.redY)
         blueX = ContextCompat.getColor(applicationContext, R.color.blueX)
@@ -697,7 +696,7 @@ class GameActivity2 : AppCompatActivity() {
                     if (plyr1) {
                         doc.update("matchWinMulti", FieldValue.increment(1))
                         updatePro.setMatchWinMulti()
-                        updatePro.coin = updatePro.coin + winCoin
+                        updatePro.coin += winCoin
                         updatePro.apply()
                         doc.update("coin", updatePro.coin)
                         winTxt = "You won the match."
@@ -712,7 +711,7 @@ class GameActivity2 : AppCompatActivity() {
                         val key2 = myRef.child(key).child("friendlyChat").push().key!!
                         myRef.child(key).child("friendlyChat").child(key2).setValue(ms)
                     } else {
-                        updatePro.coin = updatePro.coin - lostCoin
+                        updatePro.coin -= lostCoin
                         updatePro.apply()
                         doc.update("coin", updatePro.coin)
                         winTxt = "You lost the match."
@@ -723,7 +722,7 @@ class GameActivity2 : AppCompatActivity() {
                     if (!plyr1) {
                         doc.update("matchWinMulti", FieldValue.increment(1))
                         updatePro.setMatchWinMulti()
-                        updatePro.coin = updatePro.coin + winCoin
+                        updatePro.coin += winCoin
                         updatePro.apply()
                         doc.update("coin", updatePro.coin)
                         winTxt = "You won the match."
@@ -738,7 +737,7 @@ class GameActivity2 : AppCompatActivity() {
                         val key2 = myRef.child(key).child("friendlyChat").push().key!!
                         myRef.child(key).child("friendlyChat").child(key2).setValue(ms)
                     } else {
-                        updatePro.coin = updatePro.coin - lostCoin
+                        updatePro.coin -= lostCoin
                         updatePro.apply()
                         doc.update("coin", updatePro.coin)
                         winTxt = "You lost the match."
@@ -773,7 +772,7 @@ class GameActivity2 : AppCompatActivity() {
         )
         builder.setView(view)
         builder.setCancelable(false)
-        (view.findViewById<View>(R.id.textMessage) as TextView).text = winMsg.toString()
+        (view.findViewById<View>(R.id.textMessage) as TextView).text = winMsg
         (view.findViewById<View>(R.id.buttonNo) as Button).text = "Exit"
         (view.findViewById<View>(R.id.buttonYes) as Button).text = "Chat"
         val alertDialog = builder.create()

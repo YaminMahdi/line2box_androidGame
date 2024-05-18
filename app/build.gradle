@@ -8,6 +8,14 @@ plugins {
 }
 
 android {
+    signingConfigs {
+//        debug {
+//            storeFile file('/home/yamin_khan/Documents/keys/debug.keystore')
+//            keyAlias 'androiddebugkey'
+//            storePassword 'android'
+//            keyPassword 'android'
+//        }
+    }
     namespace 'com.diu.yk_games.line2box'
     compileSdk 34
 
@@ -27,8 +35,10 @@ android {
 ////            shrinkResources true
 //            debuggable false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-
         }
+//        debug{
+//            signingConfig signingConfigs.debug
+//        }
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
@@ -36,6 +46,7 @@ android {
     }
     buildFeatures {
         viewBinding true
+        buildConfig true
     }
 }
 

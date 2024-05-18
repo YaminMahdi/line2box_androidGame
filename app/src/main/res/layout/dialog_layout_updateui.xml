@@ -17,11 +17,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="20dp"
+        android:paddingBottom="@dimen/_14sdp"
         android:fontFamily="@font/sortie"
         android:gravity="center"
         android:text="No Internet !"
         android:textColor="@color/redY"
-        android:textSize="@dimen/_24sdp"
+        android:textSize="@dimen/_22sdp"
         />
     <TextView
         android:id="@+id/UpdateInfo"
@@ -31,6 +32,7 @@
         android:gravity="center"
         android:lineSpacingExtra="5sp"
         android:textSize="@dimen/_14ssp"
+        android:paddingBottom="@dimen/_5sdp"
         android:textColor="@color/whiteY"
         android:fontFamily="@font/sortie"
         android:layout_marginHorizontal="24dp"

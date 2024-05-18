@@ -27,8 +27,9 @@ import com.diu.yk_games.line2box.databinding.DialogLayoutInfoBinding
 import com.diu.yk_games.line2box.presentation.main.StartActivity
 import com.diu.yk_games.line2box.util.hideSystemBars
 import com.diu.yk_games.line2box.util.setBounceClickListener
-import kotlinx.coroutines.*
-import java.util.*
+import kotlinx.coroutines.DelicateCoroutinesApi
+import java.util.Objects
+import java.util.Random
 import java.util.concurrent.atomic.AtomicInteger
 
 @OptIn(DelicateCoroutinesApi::class)

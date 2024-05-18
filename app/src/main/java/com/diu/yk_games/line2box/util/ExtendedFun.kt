@@ -7,14 +7,19 @@ import android.app.Activity
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.res.Configuration
+import android.os.Build
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewGroup
 import android.view.Window
+import android.view.WindowInsets
+import android.view.WindowInsetsController
 import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
-import kotlinx.coroutines.*
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -27,14 +32,20 @@ fun Long.toDateTime(): String{
     return date.toString()
 }
 
-@Suppress("DEPRECATION")
 fun Window.hideSystemBars() {
-//    WindowInsetsControllerCompat(window, window.decorView).let { controller ->
-//        controller.hide(WindowInsetsCompat.Type.systemBars())
-//        controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-//    }
-    setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN)
+//    decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        insetsController?.hide(WindowInsets.Type.statusBars())
+        insetsController?.hide(WindowInsets.Type.navigationBars())
+        insetsController?.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+    } else {
+        @Suppress("DEPRECATION")
+        setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN)
+    }
+//    @Suppress("DEPRECATION")
+//    setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN)
 }
+
 @SuppressLint("ClickableViewAccessibility")
 fun View.setBounceClickListener(onClick: ((View) -> Unit)? = null){
     this.setOnTouchListener { v, event ->
@@ -113,5 +124,21 @@ fun Activity.closeKeyboard(nextFocus: View?= null) {
         val manager = this.getSystemService(AppCompatActivity.INPUT_METHOD_SERVICE) as InputMethodManager
         manager.hideSoftInputFromWindow(view.getWindowToken(), 0)
         nextFocus?.requestFocus()
+    }
+}
+
+fun ViewGroup.setNavStatusPadding(vararg layout: ViewGroup, both: Int = 0){
+    ViewCompat.setOnApplyWindowInsetsListener(this) { _, insets ->
+        val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+        val bottomIme = insets.getInsets(WindowInsetsCompat.Type.ime()).bottom
+        val top = if(systemBars.top==0) 30 else systemBars.top
+        layout.forEach {
+            when (both) {
+                0 -> it.setPaddingRelative(0, top, 0, 0)
+                1 -> it.setPaddingRelative(0, top, 0, if(bottomIme==0) systemBars.bottom else bottomIme)
+                -1 -> it.setPadding(0, it.paddingTop, 0,  if(bottomIme==0) systemBars.bottom else bottomIme)
+            }
+        }
+        return@setOnApplyWindowInsetsListener insets
     }
 }

@@ -25,6 +25,7 @@ import com.diu.yk_games.line2box.databinding.ActivityGame1Binding
 import com.diu.yk_games.line2box.model.DataStore
 import com.diu.yk_games.line2box.util.hideSystemBars
 import com.diu.yk_games.line2box.util.setBounceClickListener
+import com.diu.yk_games.line2box.util.setNavStatusPadding
 import com.google.android.gms.tasks.Task
 import com.google.android.play.core.review.ReviewManagerFactory
 import com.google.firebase.database.ktx.database
@@ -90,9 +91,9 @@ class GameActivity1 : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.hideSystemBars()
-
         binding = ActivityGame1Binding.inflate(layoutInflater)
         setContentView(binding.root)
+        binding.root.setNavStatusPadding(binding.linearLayout)
         PACKAGE_NAME = applicationContext.packageName
         scoreRedView = binding.scoreRed
         scoreBlueView = binding.scoreBlue

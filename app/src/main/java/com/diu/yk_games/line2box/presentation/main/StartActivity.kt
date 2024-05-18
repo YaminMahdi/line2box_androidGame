@@ -13,7 +13,8 @@ import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
-import android.widget.*
+import android.widget.ImageButton
+import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
@@ -29,16 +30,20 @@ import com.diu.yk_games.line2box.databinding.DialogLayoutLoadingBinding
 import com.diu.yk_games.line2box.databinding.DialogLayoutShowHadithBinding
 import com.diu.yk_games.line2box.databinding.DialogLayoutUpdateBinding
 import com.diu.yk_games.line2box.databinding.DialogLayoutUpdateuiBinding
+import com.diu.yk_games.line2box.model.ErrorType
 import com.diu.yk_games.line2box.model.GameProfile
 import com.diu.yk_games.line2box.model.HadithStore
+import com.diu.yk_games.line2box.model.msg
 import com.diu.yk_games.line2box.presentation.BlankFragment
 import com.diu.yk_games.line2box.presentation.bot.GameActivity3
 import com.diu.yk_games.line2box.presentation.offline.GameActivity1
 import com.diu.yk_games.line2box.presentation.online.MultiplayerActivity
+import com.diu.yk_games.line2box.util.ConnectivityObserver
 import com.diu.yk_games.line2box.util.hideSystemBars
 import com.diu.yk_games.line2box.util.setBounceClickListener
-import com.google.android.gms.games.*
-import com.google.android.gms.tasks.Task
+import com.diu.yk_games.line2box.util.setNavStatusPadding
+import com.google.android.gms.games.PlayGames
+import com.google.android.gms.games.PlayGamesSdk
 import com.google.android.play.core.appupdate.AppUpdateManager
 import com.google.android.play.core.appupdate.AppUpdateManagerFactory
 import com.google.android.play.core.appupdate.AppUpdateOptions
@@ -46,7 +51,6 @@ import com.google.android.play.core.install.model.AppUpdateType
 import com.google.android.play.core.install.model.InstallStatus
 import com.google.android.play.core.install.model.UpdateAvailability
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.PlayGamesAuthProvider
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.DataSnapshot
@@ -59,9 +63,11 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonElement
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.jsoup.Jsoup
-import java.util.*
+import java.util.Random
 import java.util.concurrent.atomic.AtomicInteger
 
 class StartActivity : AppCompatActivity() {
@@ -71,7 +77,6 @@ class StartActivity : AppCompatActivity() {
     private lateinit var preferences: SharedPreferences
     private lateinit var preferencesEditor: SharedPreferences.Editor
     companion object {
-        private var errorCnt = 0
         private const val TAG = "TAG: StartActivity"
         lateinit var playerId: String
         private var showHadith = true
@@ -132,12 +137,15 @@ class StartActivity : AppCompatActivity() {
     @SuppressLint("VisibleForTests")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+//        enableEdgeToEdge()
         window.hideSystemBars()
         mAuth = Firebase.auth
         PlayGamesSdk.initialize(this)
+        ConnectivityObserver.initialize(this)
         context = this
         binding = ActivityStartBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        binding.root.setNavStatusPadding(binding.mainLayout, binding.globalScoreFrag)
         checkUpdate()
 //        mode1 = findViewById(R.id.mode1)
 //        mode2 = findViewById(R.id.mode2)
@@ -210,8 +218,8 @@ class StartActivity : AppCompatActivity() {
                     dialogBinding.buttonYes.setBounceClickListener {
                         if (!isMuted) {
                             val mediaPlayer = MediaPlayer.create(this@StartActivity, R.raw.btn_click_ef)
-                            mediaPlayer.start()
-                            mediaPlayer.setOnCompletionListener(MediaPlayer::release)
+                            mediaPlayer?.start()
+                            mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
                         }
                         alertDialog.dismiss()
                         isEnabled = false
@@ -221,8 +229,8 @@ class StartActivity : AppCompatActivity() {
                     dialogBinding.buttonNo.setBounceClickListener {
                         if (!isMuted) {
                             val mediaPlayer = MediaPlayer.create(this@StartActivity, R.raw.btn_click_ef)
-                            mediaPlayer.start()
-                            mediaPlayer.setOnCompletionListener(MediaPlayer::release)
+                            mediaPlayer?.start()
+                            mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
                         }
                         alertDialog.dismiss()
                     }
@@ -236,22 +244,19 @@ class StartActivity : AppCompatActivity() {
             showAHadith()
             showHadith = false
         }
-        val auth = Firebase.auth
+        val firebaseAuth = Firebase.auth
         val gamesSignInClient = PlayGames.getGamesSignInClient(this)
-        gamesSignInClient.isAuthenticated.addOnCompleteListener { isAuthenticatedTask ->
-            val isAuthenticated = isAuthenticatedTask.isSuccessful &&
-                    isAuthenticatedTask.result.isAuthenticated
-            gamesSignInClient.requestServerSideAccess(getString(R.string.default_web_client_id),  false /*forceRefreshToken=*/ )
-                .addOnCompleteListener { task: Task<String?> ->
-                    if (task.isSuccessful) {
-                        val serverAuthToken = task.result!!
-                        //Toast.makeText(this, "serverAuthToken- "+serverAuthToken, Toast.LENGTH_SHORT).show();
-                        val credential = PlayGamesAuthProvider.getCredential(serverAuthToken)
-                        //AuthCredential credential = PlayGamesAuthProvider.getCredential(PlayGamesAuthProvider.PLAY_GAMES_SIGN_IN_METHOD);
-                        auth.signInWithCredential(credential)
-                            .addOnCompleteListener(this
-                            ) { task1 ->
-                                if (task1.isSuccessful) {
+        gamesSignInClient.isAuthenticated
+            .addOnSuccessListener {authenticationResult->
+                val isAuthenticated = authenticationResult.isAuthenticated
+                if(ConnectivityObserver.isConnected){
+                    gamesSignInClient.requestServerSideAccess(getString(R.string.default_web_client_id),  false /*forceRefreshToken=*/ )
+                        .addOnSuccessListener{serverAuthToken->
+                            //Toast.makeText(this, "serverAuthToken- "+serverAuthToken, Toast.LENGTH_SHORT).show();
+                            val credential = PlayGamesAuthProvider.getCredential(serverAuthToken)
+                            //AuthCredential credential = PlayGamesAuthProvider.getCredential(PlayGamesAuthProvider.PLAY_GAMES_SIGN_IN_METHOD);
+                            firebaseAuth.signInWithCredential(credential)
+                                .addOnSuccessListener{
                                     // Sign in success, update UI with the signed-in user's information
 
                                     //Log.d(TAG, "signInWithCredential: success");
@@ -259,8 +264,8 @@ class StartActivity : AppCompatActivity() {
                                         showAHadith()
                                         showHadith = false
                                     }
-                                    val user = auth.currentUser
-                                    if (isAuthenticated) {
+                                    val user = firebaseAuth.currentUser
+                                    if (isAuthenticated && user != null) {
                                         PlayGames.getPlayersClient(this@StartActivity).currentPlayer.addOnSuccessListener { player ->
                                             playerId = player.playerId
                                             //Toast.makeText(StartActivity.this, "id: "+mTask.getResult().getPlayerId() , Toast.LENGTH_SHORT).show();
@@ -272,10 +277,7 @@ class StartActivity : AppCompatActivity() {
                                                         if (task.isSuccessful) {
                                                             val document = task.result
                                                             if (document.exists()) {
-                                                                preferencesEditor.putBoolean(
-                                                                    "needProfile",
-                                                                    false
-                                                                ).apply()
+                                                                preferencesEditor.putBoolean("needProfile", false).apply()
                                                                 loadProfileFromServer(db)
                                                                 onlineStatus = "pass"
                                                                 loadingUI.stop()
@@ -289,10 +291,7 @@ class StartActivity : AppCompatActivity() {
                                                                     .document(playerId)
                                                                     .set(gameProfile)
                                                                     .addOnSuccessListener {
-                                                                        preferencesEditor.putBoolean(
-                                                                            "needProfile",
-                                                                            false
-                                                                        ).apply()
+                                                                        preferencesEditor.putBoolean("needProfile", false).apply()
                                                                         gameProfile.apply()
                                                                         onlineStatus = "pass"
                                                                         loadingUI.stop()
@@ -322,49 +321,55 @@ class StartActivity : AppCompatActivity() {
                                         // Continue with Play Games Services
                                     } else {
                                         //Toast.makeText(StartActivity.this, "Failed", Toast.LENGTH_SHORT).show();
-
+                                        Log.d(TAG, "gamesSignInClient. isAuthenticated false: $it")
                                         // Disable your integration with Play Games Services or show a
                                         // login button to ask  players to sign-in. Clicking it should
                                         // call GamesSignInClient.signIn();
-                                        updateUI(null)
+                                        updateUI(ErrorType.AuthenticationFailure)
                                         onlineStatus = "needReload"
                                         loadingUI.stop()
                                     }
-                                    updateUI(user)
-                                } else {
+                                    updateUI(ErrorType.NoError)
+                                }
+                                .addOnFailureListener {
                                     // If sign in fails, display a message to the user.
-                                    //Log.d(TAG, "signInWithCredential: failure", task.getException());
+                                    Log.d(TAG, "firebaseAuth signInWithCredential: failure: $it")
                                     //Toast.makeText(StartActivity.this, "Authentication failed.",Toast.LENGTH_SHORT).show();
-                                    updateUI(null)
+                                    updateUI(ErrorType.AuthenticationFailure)
                                     onlineStatus = "needReload"
                                     loadingUI.stop()
                                 }
-
-                                // ...
-                            }
-                    } else {
-                        // Failed to retrieve authentication code.
-                        //Log.d(TAG, "signInWithCredential:failure", task.getException());
-                        //Toast.makeText(StartActivity.this, "No Internet.",Toast.LENGTH_SHORT).show();
-//                        if (isAuthenticated) {
-//                            PlayGames.getPlayersClient(this@StartActivity).currentPlayer
-//                                .addOnSuccessListener { player->
-//                                GameProfile()
-//                                playerId = player.playerId
-//                            }
-//                        }
-                        updateUI(null)
-                        onlineStatus = "needReload"
-                        loadingUI.stop()
-                    }
+                        }
+                        .addOnFailureListener {
+                            // Failed to retrieve authentication code.
+                            Log.d(TAG, "requestServerSideAccess:failure authentication code $it")
+                            //Toast.makeText(StartActivity.this, "No Internet.",Toast.LENGTH_SHORT).show();
+                            updateUI(ErrorType.PlayServiceNeeded)
+                            onlineStatus = "needReload"
+                            loadingUI.stop()
+                        }
+                }else{
+                    Log.d(TAG, "No Internet")
+                    updateUI(ErrorType.NoInternet)
+                    onlineStatus = "needReload"
+                    loadingUI.stop()
                 }
-        }
 
-
-        //gamesSignInClient.signIn();
-        //vsRadioGrp=findViewById(R.id.vsRadioGrp);
-        ifMuted()
-//        throw RuntimeException("Test Crash") // Force a crash
+            }
+            .addOnFailureListener {
+                //Toast.makeText(StartActivity.this, "Failed", Toast.LENGTH_SHORT).show();
+                // Disable your integration with Play Games Services or show a
+                // login button to ask  players to sign-in. Clicking it should
+                // call GamesSignInClient.signIn();
+                Log.d(TAG, "gamesSignInClient. isAuthenticated failure: $it")
+                updateUI(ErrorType.PlayServiceNeeded)
+                onlineStatus = "needReload"
+                loadingUI.stop()
+            }
+            //gamesSignInClient.signIn();
+            //vsRadioGrp=findViewById(R.id.vsRadioGrp);
+            ifMuted()
+            //throw RuntimeException("Test Crash") // Force a crash
 
     }
 
@@ -466,7 +471,7 @@ class StartActivity : AppCompatActivity() {
                 if (alertDialog.isShowing) {
                     onlineStatus = "needReload"
                     stop()
-                    updateUI(null)
+                    updateUI(ErrorType.ServerNotResponding)
                 }
             }
         }
@@ -482,82 +487,64 @@ class StartActivity : AppCompatActivity() {
     }
 
     @SuppressLint("SetTextI18n")
-    fun updateUI(currentUser: FirebaseUser?) {
-        if (currentUser == null) {
+    fun updateUI(errorType: ErrorType) {
+        if (errorType != ErrorType.NoError) {
             val builder = AlertDialog.Builder(this@StartActivity)
             val dialogBinding = DialogLayoutUpdateuiBinding.inflate(LayoutInflater.from(this@StartActivity))
             builder.setView(dialogBinding.root)
             builder.setCancelable(false)
             val alertDialog = builder.create()
             dialogBinding.googlePlayWarning.visibility = View.GONE
-            errorCnt++
-            if (errorCnt > 2 && preferences.getBoolean("needProfile", true)) {
-                dialogBinding.googlePlayWarning.visibility = View.VISIBLE
-                dialogBinding.warningMessage.text = "Warning !"
-                dialogBinding.UpdateInfo.text = "You may need to UPDATE an app.\n(Link Below)"
-                dialogBinding.playSvLink.setBounceClickListener {
-                    dialogBinding.playSvLink.setTextColor(getColor(R.color.teal_700))
-                    if (!isMuted) {
-                        val mediaPlayer = MediaPlayer.create(this@StartActivity, R.raw.btn_click_ef)
-                        mediaPlayer.start()
-                        mediaPlayer.setOnCompletionListener(MediaPlayer::release)
+            dialogBinding.warningMessage.text = errorType.msg
+            when(errorType){
+                ErrorType.NoInternet -> {
+                    if (!preferences.getBoolean("needProfile", true)) {
+                        dialogBinding.UpdateInfo.text = "Some functionalities are disabled."
+                        dialogBinding.buttonUpdate.text = "Continue"
                     }
-                    val url = "https://play.google.com/store/apps/details?id=com.google.android.gms"
-                    CustomTabsIntent
-                        .Builder()
-                        .build()
-                        .launchUrl(this, Uri.parse(url))
-
-//                    startActivity(
-//                        Intent(
-//                            Intent.ACTION_VIEW,
-//                            Uri.parse("https://play.google.com/store/apps/details?id=com.google.android.gms")
-//                        )
-//                    )
                 }
-                dialogBinding.playGmLink.setBounceClickListener {
-                    dialogBinding.playGmLink.setTextColor(getColor(R.color.teal_700))
-                    if (!isMuted) {
-                        val mediaPlayer = MediaPlayer.create(this@StartActivity, R.raw.btn_click_ef)
-                        mediaPlayer.start()
-                        mediaPlayer.setOnCompletionListener(MediaPlayer::release)
+                else -> {
+                    if (preferences.getBoolean("needProfile", true)) {
+                        dialogBinding.googlePlayWarning.visibility = View.VISIBLE
+                        dialogBinding.UpdateInfo.text = "You may need to UPDATE an app.\n(Link Below)"
                     }
-                    val url = "https://youtu.be/sahkEmzLhHY"
-                    CustomTabsIntent
-                        .Builder()
-                        .build()
-                        .launchUrl(this, Uri.parse(url))
-//                    startActivity(
-//                        Intent(
-//                            Intent.ACTION_VIEW,
-//                            Uri.parse("https://play.google.com/store/apps/details?id=com.google.android.play.games")
-//                        )
-//                    )
                 }
             }
-            if (isFirstRun) {
-                dialogBinding.buttonUpdate.setBounceClickListener {
-                    if (!isMuted) {
-                        val mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
-                        mediaPlayer.start()
-                        mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-                    }
+            dialogBinding.buttonUpdate.setBounceClickListener {
+                if (!isMuted) {
+                    val mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
+                    mediaPlayer?.start()
+                    mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
+                }
+                alertDialog.dismiss()
+                if (preferences.getBoolean("needProfile", true))
                     recreate()
-                    alertDialog.dismiss()
+            }
+            dialogBinding.playSvLink.setBounceClickListener {
+                dialogBinding.playSvLink.setTextColor(getColor(R.color.teal_700))
+                if (!isMuted) {
+                    val mediaPlayer = MediaPlayer.create(this@StartActivity, R.raw.btn_click_ef)
+                    mediaPlayer?.start()
+                    mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
                 }
-            } else {
-                //findViewById(R.id.scrBrdBtn).setEnabled(false);
-                if (errorCnt < 3 || !preferences.getBoolean("needProfile", true))
-                    dialogBinding.UpdateInfo.text = "Some functionalities are disabled."
-                dialogBinding.buttonUpdate.text = "Continue"
-                dialogBinding.buttonUpdate.setBounceClickListener {
-                    if (!isMuted) {
-                        val mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
-                        mediaPlayer.start()
-                        mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-                    }
-                    alertDialog.dismiss()
+                val playServiceUrl = "https://play.google.com/store/apps/details?id=com.google.android.gms"
+                CustomTabsIntent
+                    .Builder()
+                    .build()
+                    .launchUrl(this, Uri.parse(playServiceUrl))
+            }
+            dialogBinding.playGmLink.setBounceClickListener {
+                dialogBinding.playGmLink.setTextColor(getColor(R.color.teal_700))
+                if (!isMuted) {
+                    val mediaPlayer = MediaPlayer.create(this@StartActivity, R.raw.btn_click_ef)
+                    mediaPlayer?.start()
+                    mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
                 }
+                val url = "https://youtu.be/sahkEmzLhHY"
+                CustomTabsIntent
+                    .Builder()
+                    .build()
+                    .launchUrl(this, Uri.parse(url))
             }
             alertDialog.window?.setBackgroundDrawable(ColorDrawable(0))
             try { alertDialog.show() }
@@ -617,8 +604,8 @@ class StartActivity : AppCompatActivity() {
                             if (!isMuted) {
                                 val mediaPlayer =
                                     MediaPlayer.create(this@StartActivity, R.raw.btn_click_ef)
-                                mediaPlayer.start()
-                                mediaPlayer.setOnCompletionListener(MediaPlayer::release)
+                                mediaPlayer?.start()
+                                mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
                             }
                             if (langBtn.text == "EN") {
                                 narratorInfo.text = hadith.e
@@ -644,8 +631,8 @@ class StartActivity : AppCompatActivity() {
                                     this@StartActivity,
                                     R.raw.btn_click_ef
                                 )
-                                mediaPlayer.start()
-                                mediaPlayer.setOnCompletionListener(MediaPlayer::release)
+                                mediaPlayer?.start()
+                                mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
                             }
                             alertDialog.dismiss()
                         }
@@ -654,8 +641,8 @@ class StartActivity : AppCompatActivity() {
                             if (!isMuted) {
                                 val mediaPlayer =
                                     MediaPlayer.create(this@StartActivity, R.raw.btn_click_ef)
-                                mediaPlayer.start()
-                                mediaPlayer.setOnCompletionListener(MediaPlayer::release)
+                                mediaPlayer?.start()
+                                mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
                             }
                             var url = hadith.src
                             if (hadith.t == "q" && langBtn.text == "BN") url =
@@ -693,8 +680,8 @@ class StartActivity : AppCompatActivity() {
                         dialogBinding.buttonUpdate.setBounceClickListener {
                             if (!isMuted) {
                                 val mediaPlayer = MediaPlayer.create(this@StartActivity, R.raw.btn_click_ef)
-                                mediaPlayer.start()
-                                mediaPlayer.setOnCompletionListener(MediaPlayer::release)
+                                mediaPlayer?.start()
+                                mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
                             }
                             val appPackageName = packageName // getPackageName() from Context or Activity object
                                 //                        try {
@@ -782,8 +769,8 @@ class StartActivity : AppCompatActivity() {
     private fun scoreBoard(view: View) {
         if (!isMuted) {
             val mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
-            mediaPlayer.start()
-            mediaPlayer.setOnCompletionListener(MediaPlayer::release)
+            mediaPlayer?.start()
+            mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
         }
         scrBrdVisible = true
         val fm = supportFragmentManager
@@ -799,8 +786,8 @@ class StartActivity : AppCompatActivity() {
     private fun goBack(view: View) {
         if (!isMuted) {
             val mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
-            mediaPlayer.start()
-            mediaPlayer.setOnCompletionListener(MediaPlayer::release)
+            mediaPlayer?.start()
+            mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
         }
         onGoBack()
     }
@@ -825,8 +812,8 @@ class StartActivity : AppCompatActivity() {
         } else {
             run {
                 val mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
-                mediaPlayer.start()
-                mediaPlayer.setOnCompletionListener(MediaPlayer::release)
+                mediaPlayer?.start()
+                mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
             }
             findViewById<View>(R.id.volBtn).setBackgroundResource(R.drawable.btn_ylw_bg)
             (findViewById<View>(R.id.volBtn) as ImageButton).setImageResource(R.drawable.icon_vol_unmute)
@@ -837,8 +824,8 @@ class StartActivity : AppCompatActivity() {
     fun ideaBtn(view: View) {
         if (!isMuted) {
             val mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
-            mediaPlayer.start()
-            mediaPlayer.setOnCompletionListener(MediaPlayer::release)
+            mediaPlayer?.start()
+            mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
         }
         infoShow()
     }
@@ -871,8 +858,8 @@ class StartActivity : AppCompatActivity() {
         dialogBinding.buttonPre.setBounceClickListener {
             if (!isMuted) {
                 val mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
-                mediaPlayer.start()
-                mediaPlayer.setOnCompletionListener(MediaPlayer::release)
+                mediaPlayer?.start()
+                mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
             }
             if (i.get() != 0) i.getAndDecrement()
             if (i.get() == 0) dialogBinding.buttonPre.visibility = View.INVISIBLE
@@ -882,8 +869,8 @@ class StartActivity : AppCompatActivity() {
         dialogBinding.buttonNext.setBounceClickListener {
             if (!isMuted) {
                 val mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
-                mediaPlayer.start()
-                mediaPlayer.setOnCompletionListener(MediaPlayer::release)
+                mediaPlayer?.start()
+                mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
             }
             i.getAndIncrement()
             if (!isFirstRun && i.get() == 4) i.getAndIncrement()
@@ -902,8 +889,8 @@ class StartActivity : AppCompatActivity() {
     fun startBtn(view: View) {
         if (!isMuted) {
             val mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
-            mediaPlayer.start()
-            mediaPlayer.setOnCompletionListener(MediaPlayer::release)
+            mediaPlayer?.start()
+            mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
         }
         if (binding.mode1.alpha < .5) {
             if (onlineStatus == "pass") {
@@ -922,8 +909,8 @@ class StartActivity : AppCompatActivity() {
                 dialogBinding.buttonUpdate.setBounceClickListener {
                     if (!isMuted) {
                         val mediaPlayer = MediaPlayer.create(this@StartActivity, R.raw.btn_click_ef)
-                        mediaPlayer.start()
-                        mediaPlayer.setOnCompletionListener(MediaPlayer::release)
+                        mediaPlayer?.start()
+                        mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
                     }
                     recreate()
                     alertDialog.dismiss()
