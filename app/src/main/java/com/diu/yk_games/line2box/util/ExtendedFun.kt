@@ -34,16 +34,16 @@ fun Long.toDateTime(): String{
 
 fun Window.hideSystemBars() {
 //    decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-        insetsController?.hide(WindowInsets.Type.statusBars())
-        insetsController?.hide(WindowInsets.Type.navigationBars())
-        insetsController?.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-    } else {
-        @Suppress("DEPRECATION")
-        setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN)
-    }
-//    @Suppress("DEPRECATION")
-//    setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN)
+//    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+//        insetsController?.hide(WindowInsets.Type.statusBars())
+//        insetsController?.hide(WindowInsets.Type.navigationBars())
+//        insetsController?.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+//    } else {
+//        @Suppress("DEPRECATION")
+//        setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN)
+//    }
+    @Suppress("DEPRECATION")
+    setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN)
 }
 
 @SuppressLint("ClickableViewAccessibility")

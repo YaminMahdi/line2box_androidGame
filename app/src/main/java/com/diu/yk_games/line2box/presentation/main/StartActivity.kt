@@ -50,17 +50,16 @@ import com.google.android.play.core.appupdate.AppUpdateOptions
 import com.google.android.play.core.install.model.AppUpdateType
 import com.google.android.play.core.install.model.InstallStatus
 import com.google.android.play.core.install.model.UpdateAvailability
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.PlayGamesAuthProvider
-import com.google.firebase.auth.ktx.auth
+import com.google.firebase.auth.auth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ValueEventListener
-import com.google.firebase.database.ktx.database
 import com.google.firebase.firestore.AggregateSource
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
+import com.google.firebase.firestore.firestore
+import com.google.firebase.Firebase
+import com.google.firebase.database.database
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonElement
 import kotlinx.coroutines.Dispatchers
@@ -111,7 +110,6 @@ class StartActivity : AppCompatActivity() {
             "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan", "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "United States", "Uruguay", "Uzbekistan", "Vanuatu", "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"
         )
     )
-    private lateinit var mAuth: FirebaseAuth
     lateinit var context: Context
 //    private var mode1: ImageView? = null
 //    private var mode2: ImageView? = null
@@ -139,7 +137,7 @@ class StartActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 //        enableEdgeToEdge()
         window.hideSystemBars()
-        mAuth = Firebase.auth
+        val firebaseAuth = Firebase.auth
         PlayGamesSdk.initialize(this)
         ConnectivityObserver.initialize(this)
         context = this
@@ -244,7 +242,6 @@ class StartActivity : AppCompatActivity() {
             showAHadith()
             showHadith = false
         }
-        val firebaseAuth = Firebase.auth
         val gamesSignInClient = PlayGames.getGamesSignInClient(this)
         gamesSignInClient.isAuthenticated
             .addOnSuccessListener {authenticationResult->
