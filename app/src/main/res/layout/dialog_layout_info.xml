@@ -12,7 +12,7 @@
 
     >
 
-    <pl.droidsonroids.gif.GifImageView
+    <ImageView
         android:id="@+id/playGif"
         android:layout_width="200dp"
         android:layout_height="200dp"

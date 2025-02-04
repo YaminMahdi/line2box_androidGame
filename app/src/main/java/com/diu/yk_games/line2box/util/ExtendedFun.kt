@@ -4,24 +4,45 @@ import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
-import android.content.res.Configuration
-import android.os.Build
+import android.graphics.Bitmap
+import android.graphics.drawable.Drawable
+import android.net.Uri
+import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.Window
-import android.view.WindowInsets
-import android.view.WindowInsetsController
 import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
+import android.widget.ImageView
+import android.widget.Toast
+import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AppCompatActivity
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.findViewTreeLifecycleOwner
+import androidx.lifecycle.lifecycleScope
+import coil3.imageLoader
+import coil3.request.ImageRequest
+import coil3.request.crossfade
+import coil3.request.target
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
+import java.io.File
+import java.nio.ByteBuffer
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Locale
+import kotlin.coroutines.resume
 
 
 fun Long.toDateTime(): String{
@@ -46,76 +67,162 @@ fun Window.hideSystemBars() {
     setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN)
 }
 
+/**
+ * Adds a click listener to a view that simulates a bounce effect on touch.
+ *
+ * @param onClick An optional lambda function to be invoked when the view is clicked.
+ */
 @SuppressLint("ClickableViewAccessibility")
-fun View.setBounceClickListener(onClick: ((View) -> Unit)? = null){
-    this.setOnTouchListener { v, event ->
-        when (event.action) {
-            MotionEvent.ACTION_DOWN -> {
-                val scaleDownX = ObjectAnimator.ofFloat(
-                    v, "scaleX", 0.85f
-                )
-                val scaleDownY = ObjectAnimator.ofFloat(
-                    v, "scaleY", 0.85f
-                )
-                scaleDownX.duration = 120
-                scaleDownY.duration = 120
+fun View.setBounceClickListener(onClick: ((View) -> Unit)? = null) {
+    val mainScope = MainScope()
+    var delay = 0L
+    setOnClickListener {
+        mainScope.launch {
+            delay(200L)
+            onClick?.invoke(it)
+        }
+    }
+    setOnTouchListener { v, event ->
+        mainScope.launch {
+            if (event.action == MotionEvent.ACTION_DOWN) {
+                delay(delay)
+                val scaleDownX = ObjectAnimator.ofFloat(v, "scaleX", 0.85f)
+                val scaleDownY = ObjectAnimator.ofFloat(v, "scaleY", 0.85f)
+                scaleDownX.duration = 140L
+                scaleDownY.duration = 140L
 
                 val scaleDown = AnimatorSet()
                 scaleDown.play(scaleDownX).with(scaleDownY)
                 scaleDown.start()
-
-            }
-            MotionEvent.ACTION_UP -> {
-                val scaleDownX2 = ObjectAnimator.ofFloat(
-                    v, "scaleX", 1f
-                )
-                val scaleDownY2 = ObjectAnimator.ofFloat(
-                    v, "scaleY", 1f
-                )
-                scaleDownX2.duration = 150
-                scaleDownY2.duration = 150
+                delay = 140L
+            } else {
+                val delayNeeded =
+                    if (event.action == MotionEvent.ACTION_UP || !event.isInside(v)) delay else 350L
+                delay(delayNeeded)
+                delay = 0L
+                val scaleDownX2 = ObjectAnimator.ofFloat(v, "scaleX", 1f)
+                val scaleDownY2 = ObjectAnimator.ofFloat(v, "scaleY", 1f)
+                scaleDownX2.duration = 120L
+                scaleDownY2.duration = 120L
 
                 val scaleDown2 = AnimatorSet()
                 scaleDown2.play(scaleDownX2).with(scaleDownY2)
-
                 scaleDown2.start()
             }
         }
         false
     }
-    this.setOnClickListener { onClick?.invoke(this) }
 }
 
-@SuppressLint("DiscouragedApi")
-fun Context.getNavigationBarHeight(): Int {
-    val resources = this.resources
-
-    val resName =
-        if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT)
-            "navigation_bar_height"
-        else
-        "navigation_bar_height_landscape"
-
-    val id: Int = resources.getIdentifier(resName, "dimen", "android")
-
-    return if (id > 0) {
-        resources.getDimensionPixelSize(id)
-    } else {
-        0
+/**
+ * Checks if a touch event falls within the bounds of a view.
+ *
+ * @param view The view to check against.
+ * @return True if the touch event is inside the view's bounds, false otherwise.
+ */
+fun MotionEvent.isInside(view: View): Boolean {
+    if (view.width == 0 || view.height == 0) return false
+    return try {
+        val viewLocation = IntArray(2)
+        view.getLocationOnScreen(viewLocation)
+        val viewMaxX = viewLocation[0] + view.width - 1
+        val viewMaxY = viewLocation[1] + view.height - 1
+        (rawX <= viewMaxX && rawX >= viewLocation[0] && rawY <= viewMaxY && rawY >= viewLocation[1])
+    } catch (e: Exception) {
+        false
     }
 }
 
-fun Context.getClipBoardData() : String {
+//@SuppressLint("DiscouragedApi")
+//fun getNavigationBarHeight(): Int {
+//    val resources = this.resources
+//
+//    val resName =
+//        if (resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT)
+//            "navigation_bar_height"
+//        else
+//        "navigation_bar_height_landscape"
+//
+//    val id: Int = resources.getIdentifier(resName, "dimen", "android")
+//
+//    return if (id > 0) {
+//        resources.getDimensionPixelSize(id)
+//    } else {
+//        0
+//    }
+//}
+
+fun Context?.getClipBoardData(): String {
+    this ?: return ""
     val clipBoardManager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-    var data=""
-    if(clipBoardManager.primaryClip?.description?.hasMimeType("text/*") == true) {
+    var data = ""
+    if (clipBoardManager.primaryClip?.description?.hasMimeType("text/*") == true) {
         clipBoardManager.primaryClip?.itemCount?.let {
             for (i in 0 until it) {
                 data += clipBoardManager.primaryClip?.getItemAt(i)?.text ?: ""
             }
         }
     }
+    data.log("getClipBoardData")
     return data
+}
+
+fun Context?.setClipBoardData(data: String?, toastData: String?= null) {
+    this ?: return
+    data?.let {
+        val clipBoardManager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val clip = ClipData.newPlainText(data, data)
+        clipBoardManager.setPrimaryClip(clip)
+        toast(toastData ?: "Copied to clipboard")
+    }
+}
+
+fun Any?.log(tag: String = "TAG"): Any? {
+    if(this is Throwable)
+        Log.e("log> '$tag'", "$tag - $message", this)
+    else
+        Log.i("log> '$tag'", "$tag - $this : ${this?.javaClass?.name?.split('.')?.lastOrNull() ?: ""}")
+    return this
+}
+
+fun Fragment.toast(msg: String?) {
+    if (msg.isNullOrEmpty()) return
+    context?.let {
+        Toast.makeText(it, msg, Toast.LENGTH_SHORT).show()
+    }
+}
+
+fun Context?.toast(msg: String?) {
+    if (msg.isNullOrEmpty()) return
+    Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+}
+
+fun Context?.showCustomTab(url: String?) {
+    runCatching { if (this != null && !url.isNullOrEmpty()) {
+        val intent = CustomTabsIntent.Builder().build()
+        intent.launchUrl(this, Uri.parse(url))
+    } }.onFailure { toast("Something went wrong.") }
+}
+
+fun View.show() {
+    if(visibility != View.VISIBLE)
+        visibility = View.VISIBLE
+}
+
+fun View.invisible() {
+    if(visibility != View.INVISIBLE)
+        visibility = View.INVISIBLE
+}
+
+fun View.gone() {
+    if(visibility != View.GONE)
+        visibility = View.GONE
+}
+
+/**Coroutines Extension Function*/
+@Suppress("FunctionName")
+suspend fun <T, R> T.IO(block: suspend T.() -> R) = withContext(Dispatchers.IO) {
+    block()
 }
 
 fun Activity.closeKeyboard(nextFocus: View?= null) {
@@ -127,18 +234,65 @@ fun Activity.closeKeyboard(nextFocus: View?= null) {
     }
 }
 
-fun ViewGroup.setNavStatusPadding(vararg layout: ViewGroup, both: Int = 0){
-    ViewCompat.setOnApplyWindowInsetsListener(this) { _, insets ->
-        val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-        val bottomIme = insets.getInsets(WindowInsetsCompat.Type.ime()).bottom
-        val top = if(systemBars.top==0) 30 else systemBars.top
-        layout.forEach {
-            when (both) {
-                0 -> it.setPaddingRelative(0, top, 0, 0)
-                1 -> it.setPaddingRelative(0, top, 0, if(bottomIme==0) systemBars.bottom else bottomIme)
-                -1 -> it.setPadding(0, it.paddingTop, 0,  if(bottomIme==0) systemBars.bottom else bottomIme)
+var systemBarInsets: SystemBarInsets? = null
+
+data class SystemBarInsets(val top: Int = 0, val bottom: Int = 0)
+
+fun getSystemBars(): SystemBarInsets {
+    return systemBarInsets ?: SystemBarInsets()
+}
+
+fun ViewGroup.setNavStatusPadding(vararg layout: ViewGroup, both: Int = 1){
+    findViewTreeLifecycleOwner()?.lifecycleScope?.launch {
+        val insets = systemBarInsets ?: suspendCancellableCoroutine {
+            ViewCompat.setOnApplyWindowInsetsListener(this@setNavStatusPadding) { _, insets ->
+                val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+//                val bottomIme = insets.getInsets(WindowInsetsCompat.Type.ime()).bottom
+
+                val top = if(systemBars.top==0) 30 else systemBars.top
+                val bottom = systemBars.bottom
+                if(it.isActive) {
+                    systemBarInsets = SystemBarInsets(top, bottom)
+                    it.resume(systemBarInsets!!)
+                }
+                Log.d("TAG", "setNavStatusPadding: top $top, bottom ${systemBars.bottom}")
+                ViewCompat.setOnApplyWindowInsetsListener(this@setNavStatusPadding, null)
+                insets
             }
         }
-        return@setOnApplyWindowInsetsListener insets
+        Log.d("TAG", "setNavStatusPadding: $systemBarInsets")
+        layout.forEach {
+            when (both) {
+                0 -> it.setPaddingRelative(0, insets.top, 0, 0)
+                1 -> it.setPaddingRelative(0, insets.top, 0, insets.bottom)
+                -1 -> it.setPadding(0, it.paddingTop, 0,  insets.bottom)
+            }
+        }
     }
+}
+
+/**
+ * Loads an image into an [ImageView] using Coil.
+ *
+ * This function supports various data types for loading images, including:
+ * - [String] (mapped to a [Uri])
+ * - [Uri] ("android.resource", "content", "file", "http", and "https" schemes only)
+ * - [File]
+ * - [DrawableRes]
+ * - [Drawable]
+ * - [Bitmap]
+ * - [ByteArray]
+ * - [ByteBuffer]
+ *
+ * @receiver The [ImageView] instance.
+ * @param data The data to load.
+ */
+fun ImageView.loadDrawable(data: Any?) {
+    val request = ImageRequest.Builder(this.context)
+        .crossfade(true)
+        .data(data)
+        .target(this)
+        .build()
+
+    context.imageLoader.enqueue(request)
 }

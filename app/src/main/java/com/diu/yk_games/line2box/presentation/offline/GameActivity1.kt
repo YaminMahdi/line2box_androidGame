@@ -2,7 +2,6 @@ package com.diu.yk_games.line2box.presentation.offline
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
-import android.content.SharedPreferences
 import android.graphics.Paint
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.GradientDrawable
@@ -12,9 +11,7 @@ import android.os.Handler
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.Button
-import android.widget.ImageButton
 import android.widget.TextView
-import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -22,24 +19,35 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.lifecycle.lifecycleScope
 import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.ActivityGame1Binding
+import com.diu.yk_games.line2box.databinding.DialogLayoutAlertBinding
+import com.diu.yk_games.line2box.databinding.DialogLayoutInfoBinding
 import com.diu.yk_games.line2box.model.DataStore
+import com.diu.yk_games.line2box.util.applyState
+import com.diu.yk_games.line2box.util.isMuted
+import com.diu.yk_games.line2box.util.isNotMuted
+import com.diu.yk_games.line2box.util.performOnClick
+import com.diu.yk_games.line2box.pref
+import com.diu.yk_games.line2box.prefEditor
+import com.diu.yk_games.line2box.util.gone
 import com.diu.yk_games.line2box.util.hideSystemBars
+import com.diu.yk_games.line2box.util.invisible
+import com.diu.yk_games.line2box.util.loadDrawable
 import com.diu.yk_games.line2box.util.setBounceClickListener
 import com.diu.yk_games.line2box.util.setNavStatusPadding
+import com.diu.yk_games.line2box.util.show
+import com.diu.yk_games.line2box.util.toast
 import com.google.android.gms.tasks.Task
 import com.google.android.play.core.review.ReviewManagerFactory
-import com.google.firebase.database.ktx.database
+import com.google.firebase.Firebase
+import com.google.firebase.database.database
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import pl.droidsonroids.gif.GifImageView
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Objects
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicInteger
 
 
 @Suppress("DEPRECATION")
@@ -53,19 +61,16 @@ class GameActivity1 : AppCompatActivity() {
     private lateinit var nm1Txt: TextView
     private lateinit var nm2Txt: TextView
 
-    //MediaPlayer lineClick, boxPlus, winSoundEf, btnClick;
-    lateinit var sharedPref: SharedPreferences
-    private lateinit var editor: SharedPreferences.Editor
     private var isFirstRun = false
     @SuppressLint("SetTextI18n")
     fun onStopFragment() {
-        findViewById<View>(R.id.relativeLayout).visibility = View.VISIBLE
-        findViewById<View>(R.id.txtLayout).visibility = View.VISIBLE
-        findViewById<View>(R.id.nmLayout).visibility = View.VISIBLE
+        binding.relativeLayout.show()
+        binding.txtLayout.show()
+        binding.nmLayout.show()
         nm1Txt.text = "($nm1)"
         nm2Txt.text = "($nm2)"
-        if (nm1 == "Red") nm1Txt.visibility = View.GONE
-        if (nm2 == "Blue") nm2Txt.visibility = View.GONE
+        if (nm1 == "Red") nm1Txt.gone()
+        if (nm2 == "Blue") nm2Txt.gone()
 //        val handler = Handler()
 //        handler.postDelayed({ if (isFirstRun) infoShow() }, 200)
         lifecycleScope.launch {
@@ -74,16 +79,10 @@ class GameActivity1 : AppCompatActivity() {
         }
     }
 
-    private val isMuted: Boolean
-        get() = sharedPref.getBoolean("muted", false)
 
     private fun ifMuted() {
-        if (isMuted) {
-            findViewById<View>(R.id.volBtn).setBackgroundResource(R.drawable.btn_gry_bg)
-            (findViewById<View>(R.id.volBtn) as ImageButton).setImageResource(R.drawable.icon_vol_mute)
-        } else {
-            findViewById<View>(R.id.volBtn).setBackgroundResource(R.drawable.btn_ylw_bg)
-            (findViewById<View>(R.id.volBtn) as ImageButton).setImageResource(R.drawable.icon_vol_unmute)
+        lifecycleScope.launch {
+            binding.volBtn.applyState(isMuted())
         }
     }
 
@@ -106,20 +105,16 @@ class GameActivity1 : AppCompatActivity() {
         scoreBlue = 0
         bestScore = 9999
         one = true
-        sharedPref = getSharedPreferences(
-            getString(R.string.preference_file_key), MODE_PRIVATE
-        )
-        editor = sharedPref.edit()
         ifMuted()
-        isFirstRun = sharedPref.getBoolean("firstRun", true)
+        isFirstRun = pref.getBoolean("firstRun", true)
         if (flag) {
             val fm = supportFragmentManager
             val ft = fm.beginTransaction()
             ft.replace(R.id.nmFragment, NameInfoFragment())
             ft.commit()
-            binding.relativeLayout.visibility = View.INVISIBLE
-            binding.txtLayout.visibility = View.GONE
-            binding.nmLayout.visibility = View.INVISIBLE
+            binding.relativeLayout.invisible()
+            binding.txtLayout.gone()
+            binding.nmLayout.invisible()
             flag = false
         } else onStopFragment()
         val index = StringBuilder()
@@ -224,17 +219,15 @@ class GameActivity1 : AppCompatActivity() {
         onBackPressedDispatcher.addCallback(this, object: OnBackPressedCallback(true){
             override fun handleOnBackPressed() {
                 val builder = AlertDialog.Builder(this@GameActivity1)
-                val view = LayoutInflater.from(this@GameActivity1).inflate(
-                    R.layout.dialog_layout_alert, findViewById(R.id.layoutDialog)
-                )
-                builder.setView(view)
-                (view.findViewById<View>(R.id.textMessage) as TextView).text =
-                    "Do you really want to QUIT the match?"
-                (view.findViewById<View>(R.id.buttonYes) as Button).text = "YES"
-                (view.findViewById<View>(R.id.buttonNo) as Button).text = "NO"
+                val dialogBinding = DialogLayoutAlertBinding.inflate(layoutInflater)
+                builder.setView(dialogBinding.root)
+                dialogBinding.textMessage.text =
+                    getString(R.string.do_you_really_want_to_quit_the_match)
+                dialogBinding.buttonYes.text = getString(R.string.yes)
+                dialogBinding.buttonNo.text = getString(R.string.no)
                 val alertDialog = builder.create()
-                view.findViewById<View>(R.id.buttonYes).setBounceClickListener {
-                    if (!isMuted) {
+                dialogBinding.buttonYes.setBounceClickListener {
+                    isNotMuted {
                         val mediaPlayer = MediaPlayer.create(this@GameActivity1, R.raw.btn_click_ef)
                         mediaPlayer.start()
                         mediaPlayer.setOnCompletionListener(MediaPlayer::release)
@@ -247,8 +240,8 @@ class GameActivity1 : AppCompatActivity() {
                     onBackPressedDispatcher.onBackPressed()
                     isEnabled = true
                 }
-                view.findViewById<View>(R.id.buttonNo).setBounceClickListener {
-                    if (!isMuted) {
+                dialogBinding.buttonNo.setBounceClickListener {
+                    isNotMuted {
                         val mediaPlayer = MediaPlayer.create(this@GameActivity1, R.raw.btn_click_ef)
                         mediaPlayer.start()
                         mediaPlayer.setOnCompletionListener(MediaPlayer::release)
@@ -260,10 +253,10 @@ class GameActivity1 : AppCompatActivity() {
             }
         })
 
-        binding.volBtn.setBounceClickListener { volButton(it) }
+        binding.volBtn.performOnClick()
         binding.ideaBtn.setBounceClickListener { ideaBtn() }
         binding.backBtn.setBounceClickListener {
-            if (!isMuted) {
+            isNotMuted {
                 val mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
                 mediaPlayer.start()
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release)
@@ -296,7 +289,7 @@ class GameActivity1 : AppCompatActivity() {
 //        }
 //        temp=bg;
         if (color == resources.getColor(R.color.whiteX, theme)) {
-            if (!isMuted) {
+            isNotMuted {
                 val mediaPlayer = MediaPlayer.create(this, R.raw.line_click_ef)
                 mediaPlayer.start()
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release)
@@ -346,7 +339,7 @@ class GameActivity1 : AppCompatActivity() {
                     val bgUpC2 = crUp2.background as GradientDrawable
                     val txt = findViewById<TextView>(txtId)
                     if (clickCount % 2 == 1) {
-                        if (!isMuted) {
+                        isNotMuted {
                             val mediaPlayer = MediaPlayer.create(this, R.raw.box_ef)
                             mediaPlayer.start()
                             mediaPlayer.setOnCompletionListener(MediaPlayer::release)
@@ -380,14 +373,10 @@ class GameActivity1 : AppCompatActivity() {
                         )
                         if (one) {
                             one = false
-                            Toast.makeText(
-                                this,
-                                "Bonus TURN for " + redTxt.text,
-                                Toast.LENGTH_SHORT
-                            ).show()
+                            toast("Bonus TURN for ${redTxt.text}")
                         }
                     } else {
-                        if (!isMuted) {
+                        isNotMuted {
                             val mediaPlayer = MediaPlayer.create(this, R.raw.box_ef)
                             mediaPlayer.start()
                             mediaPlayer.setOnCompletionListener(MediaPlayer::release)
@@ -421,11 +410,7 @@ class GameActivity1 : AppCompatActivity() {
                         )
                         if (one) {
                             one = false
-                            Toast.makeText(
-                                this,
-                                "Bonus TURN for " + blueTxt.text,
-                                Toast.LENGTH_SHORT
-                            ).show()
+                            toast("Bonus TURN for ${blueTxt.text}")
                         }
                     }
                     change = true
@@ -470,7 +455,7 @@ class GameActivity1 : AppCompatActivity() {
                     val bgDownC2 = crDown2.background as GradientDrawable
                     val txt = findViewById<TextView>(txtId)
                     if (clickCount % 2 == 1) {
-                        if (!isMuted) {
+                        isNotMuted {
                             val mediaPlayer = MediaPlayer.create(this, R.raw.box_ef)
                             mediaPlayer.start()
                             mediaPlayer.setOnCompletionListener(MediaPlayer::release)
@@ -504,14 +489,10 @@ class GameActivity1 : AppCompatActivity() {
                         )
                         if (one) {
                             one = false
-                            Toast.makeText(
-                                this,
-                                "Bonus TURN for " + redTxt.text,
-                                Toast.LENGTH_SHORT
-                            ).show()
+                            toast("Bonus TURN for ${redTxt.text}")
                         }
                     } else {
-                        if (!isMuted) {
+                        isNotMuted {
                             val mediaPlayer = MediaPlayer.create(this, R.raw.box_ef)
                             mediaPlayer.start()
                             mediaPlayer.setOnCompletionListener(MediaPlayer::release)
@@ -545,11 +526,7 @@ class GameActivity1 : AppCompatActivity() {
                         )
                         if (one) {
                             one = false
-                            Toast.makeText(
-                                this,
-                                "Bonus TURN for " + blueTxt.text,
-                                Toast.LENGTH_SHORT
-                            ).show()
+                            toast("Bonus TURN for ${blueTxt.text}")
                         }
                     }
                     change = true
@@ -569,11 +546,11 @@ class GameActivity1 : AppCompatActivity() {
                 }
             }
             if (scoreRed + scoreBlue == 36) {
-                var winOffline = sharedPref.getInt("winOffline", 0)
-                editor.putInt("winOffline", ++winOffline).apply()
+                var winOffline = pref.getInt("winOffline", 0)
+                prefEditor.putInt("winOffline", ++winOffline).apply()
                 val handler = Handler()
                 handler.postDelayed({
-                    if (!isMuted) {
+                    isNotMuted {
                         val mediaPlayer = MediaPlayer.create(this, R.raw.win_ef)
                         mediaPlayer.start()
                         mediaPlayer.setOnCompletionListener(MediaPlayer::release)
@@ -601,17 +578,13 @@ class GameActivity1 : AppCompatActivity() {
         )
         builder.setView(view)
         //builder.setCancelable(false);
-        if (saveToFirebase()) Toast.makeText(
-            this,
-            "Score Saved to Online Score Board",
-            Toast.LENGTH_SHORT
-        ).show()
+        if (saveToFirebase()) toast("Score Saved to Online Score Board")
         (view.findViewById<View>(R.id.textMessage) as TextView).text = "" + winMsg
         (view.findViewById<View>(R.id.buttonNo) as Button).text = "Exit"
         (view.findViewById<View>(R.id.buttonYes) as Button).text = "Retry!"
         val alertDialog = builder.create()
         view.findViewById<View>(R.id.buttonYes).setBounceClickListener {
-            if (!isMuted) {
+            isNotMuted {
                 val mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
                 mediaPlayer.start()
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release)
@@ -642,7 +615,7 @@ class GameActivity1 : AppCompatActivity() {
             alertDialog.dismiss()
         }
         view.findViewById<View>(R.id.buttonNo).setBounceClickListener {
-            if (!isMuted) {
+            isNotMuted {
                 val mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
                 mediaPlayer.start()
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release)
@@ -650,7 +623,7 @@ class GameActivity1 : AppCompatActivity() {
             alertDialog.dismiss()
             finish()
             flag = true
-            Toast.makeText(this, "Score Saved to Online Score Board", Toast.LENGTH_SHORT).show()
+            toast("Score Saved to Online Score Board")
         }
         alertDialog.window?.setBackgroundDrawable(ColorDrawable(0))
         try {
@@ -660,25 +633,8 @@ class GameActivity1 : AppCompatActivity() {
         }
     }
 
-    private fun volButton(view: View) {
-        if (!isMuted) {
-            binding.volBtn.setBackgroundResource(R.drawable.btn_gry_bg)
-            binding.volBtn.setImageResource(R.drawable.icon_vol_mute)
-            editor.putBoolean("muted", true).apply()
-        } else {
-            run {
-                val mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
-                mediaPlayer.start()
-                mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-            }
-            binding.volBtn.setBackgroundResource(R.drawable.btn_ylw_bg)
-            binding.volBtn.setImageResource(R.drawable.icon_vol_unmute)
-            editor.putBoolean("muted", false).apply()
-        }
-    }
-
     private fun ideaBtn() {
-        if (!isMuted) {
+        isNotMuted {
             val mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
             mediaPlayer.start()
             mediaPlayer.setOnCompletionListener(MediaPlayer::release)
@@ -687,8 +643,8 @@ class GameActivity1 : AppCompatActivity() {
     }
 
     private fun infoShow() {
-        if (isFirstRun) editor.putBoolean("firstRun", false).apply()
-        val i = AtomicInteger()
+        if (isFirstRun) prefEditor.putBoolean("firstRun", false).apply()
+        var i = 0
         val gifs = intArrayOf(
             R.drawable.g0,
             R.drawable.g1,
@@ -704,40 +660,36 @@ class GameActivity1 : AppCompatActivity() {
             "Click on this button anytime to see the rules again."
         )
         val builder = AlertDialog.Builder(this@GameActivity1)
-        val view = LayoutInflater.from(this@GameActivity1).inflate(
-            R.layout.dialog_layout_info, findViewById(R.id.layoutInfo)
-        )
-        builder.setView(view)
+        val binding = DialogLayoutInfoBinding.inflate(layoutInflater)
+        builder.setView(binding.root)
         builder.setCancelable(false)
-        (view.findViewById<View>(R.id.textMessage) as TextView).text = msg[0]
-        (view.findViewById<View>(R.id.playGif) as GifImageView).setImageResource(gifs[0])
-        view.findViewById<View>(R.id.buttonPre).visibility = View.INVISIBLE
+        binding.textMessage.text = msg[0]
+        binding.playGif.loadDrawable(gifs[0])
+        binding.buttonPre.invisible()
         val alertDialog = builder.create()
-        view.findViewById<View>(R.id.buttonPre).setBounceClickListener {
-            if (!isMuted) {
+        binding.buttonPre.setBounceClickListener {
+            isNotMuted {
                 val mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
                 mediaPlayer.start()
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release)
             }
-            if (i.get() != 0) i.getAndDecrement()
-            if (i.get() == 0) view.findViewById<View>(R.id.buttonPre).visibility = View.INVISIBLE
-            (view.findViewById<View>(R.id.textMessage) as TextView).text = msg[i.get()]
-            (view.findViewById<View>(R.id.playGif) as GifImageView).setImageResource(gifs[i.get()])
+            if (i != 0) i--
+            if (i == 0) binding.buttonPre.invisible()
+            binding.textMessage.text = msg[i]
+            binding.playGif.loadDrawable(gifs[i])
         }
-        view.findViewById<View>(R.id.buttonNext).setBounceClickListener {
-            if (!isMuted) {
+        binding.buttonNext.setBounceClickListener {
+            isNotMuted {
                 val mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
                 mediaPlayer.start()
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release)
             }
-            i.getAndIncrement()
-            if (!isFirstRun && i.get() == 4) i.getAndIncrement()
-            if (i.get() == 1) view.findViewById<View>(R.id.buttonPre).visibility = View.VISIBLE
-            if (i.get() == 5) alertDialog.dismiss() else {
-                (view.findViewById<View>(R.id.textMessage) as TextView).text = msg[i.get()]
-                (view.findViewById<View>(R.id.playGif) as GifImageView).setImageResource(
-                    gifs[i.get()]
-                )
+            i++
+            if (!isFirstRun && i == 4) i++
+            if (i == 1) binding.buttonPre.show()
+            if (i == 5) alertDialog.dismiss() else {
+                binding.textMessage.text = msg[i]
+                binding.playGif.loadDrawable(gifs[i])
             }
         }
         alertDialog.window?.setBackgroundDrawable(ColorDrawable(0))
@@ -939,15 +891,15 @@ class GameActivity1 : AppCompatActivity() {
             val redData = "$nm1: $scoreRed"
             val blueData = "$nm2: $scoreBlue"
             val ds = DataStore(
-                System.currentTimeMillis(),
-                timeData,
-                redData,
-                blueData,
-                starData,
-                "offline",
-                "",
-                "",
-                ""
+                time = System.currentTimeMillis(),
+                timeData = timeData,
+                redData = redData,
+                blueData = blueData,
+                starData = starData,
+                plr1Id = "offline",
+                plr2Id = "",
+                plr1Cup = "",
+                plr2Cup = ""
             )
 
 //        FirebaseDatabase database = FirebaseDatabase.getInstance();

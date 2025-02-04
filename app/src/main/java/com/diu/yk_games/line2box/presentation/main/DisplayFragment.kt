@@ -3,7 +3,6 @@ package com.diu.yk_games.line2box.presentation.main
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Context
-import android.content.SharedPreferences
 import android.content.res.ColorStateList
 import android.graphics.PorterDuff
 import android.graphics.drawable.ColorDrawable
@@ -13,58 +12,63 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.AdapterView
-import android.widget.EditText
 import android.widget.LinearLayout
-import android.widget.ListView
-import android.widget.TextView
-import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.diu.yk_games.line2box.R
+import com.diu.yk_games.line2box.databinding.DialogLayoutProfileBinding
+import com.diu.yk_games.line2box.databinding.DialogLayoutScrGlobeBinding
+import com.diu.yk_games.line2box.databinding.FragmentDisplayBinding
 import com.diu.yk_games.line2box.model.DataStore
 import com.diu.yk_games.line2box.model.GameProfile
+import com.diu.yk_games.line2box.pref
 import com.diu.yk_games.line2box.presentation.MyListAdapter
+import com.diu.yk_games.line2box.util.gone
 import com.diu.yk_games.line2box.util.setBounceClickListener
-import com.google.firebase.firestore.FirebaseFirestore
-import java.util.Objects
+import com.diu.yk_games.line2box.util.toast
+import com.google.firebase.Firebase
+import com.google.firebase.firestore.firestore
+import com.google.firebase.firestore.toObject
 
 class DisplayFragment : Fragment() {
-    private val TAG = "Dis_frag"
-    private lateinit var dsList: ArrayList<DataStore>
+    lateinit var binding: FragmentDisplayBinding
+    private var dsList= mutableListOf<DataStore>()
     private var bestScore = "\n\n\nNetwork Error"
     private lateinit var p1Pro: GameProfile
     private lateinit var p2Pro: GameProfile
-    private lateinit var sharedPref: SharedPreferences
+    private lateinit var context: Context
+
+    companion object{
+        private const val TAG = "DisplayFragment"
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // Initialize dataset, this data would usually come from a local content provider or
         // remote server.
-        sharedPref = requireContext().getSharedPreferences(
-            getString(R.string.preference_file_key), Context.MODE_PRIVATE
-        )
+        context = requireContext()
     }
 
-    @SuppressLint("SetTextI18n", "CutPasteId")
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        val v = inflater.inflate(R.layout.fragment_display, container, false)
-        val lbs = v.findViewById<TextView>(R.id.lastBestScore)
-        dsList = ArrayList()
+    ): View {
+        binding = FragmentDisplayBinding.inflate(layoutInflater)
+        return binding.root
+    }
 
-        val db = FirebaseFirestore.getInstance()
+    @SuppressLint("SetTextI18n")
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        val db = Firebase.firestore
         //Source source = Source.CACHE;
         db.collection("LastBestPlayer").document("LastBestPlayer")
             .get().addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     val document = task.result
                     Log.d(TAG, "Cached document data: " + document.data)
-                    bestScore =
-                        Objects.requireNonNull(Objects.requireNonNull(document.data)["info"])
-                            .toString()
-                    lbs.text = "\uD83D\uDC51 $bestScore"
+                    bestScore = document.data?.get("info")?.toString().orEmpty()
+                    binding.lastBestScore.text = "\uD83D\uDC51 $bestScore"
                 } else {
                     Log.d(TAG, "Cached get failed: ", task.exception)
                 }
@@ -75,195 +79,137 @@ class DisplayFragment : Fragment() {
             .get()
             .addOnSuccessListener { task ->
                 task.documents.forEach {
-                    val ds = it.toObject(DataStore::class.java)!!
+                    val ds = it.toObject<DataStore>()!!
                     dsList.add(0, ds)
                 }
                 Log.d(TAG, "isSuccessful: ${dsList.size}")
                 try {
-                    val list = v.findViewById<ListView>(R.id.showScoreList)
-                   if(isAdded){
-                       val adapter = MyListAdapter(requireContext(), dsList) //
-                       list.adapter = adapter
-                   }
-                    list.setOnItemClickListener { parent: AdapterView<*>, view: View?, position: Int, id: Long ->
-                            val gamerPro = list.getItemAtPosition(position) as DataStore
-                            if ((gamerPro.plr1Id == "offline"))
-                                Toast.makeText(context, "Offline match doesn't have Profile Info.", Toast.LENGTH_SHORT).show()
-                            else if ((gamerPro.plr1Id == ""))
-                                Toast.makeText(context, "Old match doesn't have Profile Info.", Toast.LENGTH_SHORT).show()
-                            else {
-                                if (!sharedPref.getBoolean("muted", false)) {
-                                    val mediaPlayer =
-                                        MediaPlayer.create(context, R.raw.btn_click_ef)
-                                    mediaPlayer.start()
-                                    mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-                                }
-                                val builder = AlertDialog.Builder(context)
-                                val v1 = LayoutInflater.from(context).inflate(
-                                    R.layout.dialog_layout_scr_globe,
-                                    parent.findViewById(R.id.scoreDetailsLayoutDialog)
-                                )
-                                builder.setView(v1)
-                                Log.d(TAG, position.toString() + "onItemClick: 1id " + gamerPro.plr1Id)
-                                Log.d(TAG, "onItemClick: 2id " + gamerPro.plr2Id)
-                                db.collection("gamerProfile").document(gamerPro.plr1Id)
-                                    .get()
-                                    .addOnSuccessListener { documentSnapshot ->
-                                        if (documentSnapshot.exists()) {
-                                            val scr = gamerPro.redData.split(" ".toRegex())
-                                                .dropLastWhile { it.isEmpty() }
-                                                .toTypedArray()
-                                            Log.d(TAG, "onSuccess: scr " + scr[scr.size - 1])
-                                            v1.findViewById<TextView>(R.id.plr1Score).text = scr[scr.size - 1]
-                                            v1.findViewById<TextView>(R.id.plr1Cup).text = gamerPro.plr1Cup
-                                            Log.d(TAG, "onSuccess: cup " + gamerPro.plr1Cup)
-                                            p1Pro = documentSnapshot.toObject(GameProfile::class.java)!!
-                                            if (p1Pro.countryEmoji != "")
-                                                v1.findViewById<TextView>(R.id.plr1Flag).text = p1Pro.countryEmoji
-                                            v1.findViewById<TextView>(R.id.plr1Nm).text = p1Pro.nm
-                                            Log.d(TAG, "onSuccess: nm " + p1Pro.nm)
-                                            v1.findViewById<TextView>(R.id.plr1Lvl).text = "" + p1Pro.lvl
-                                        }
-                                    }
-                                db.collection("gamerProfile").document(gamerPro.plr2Id)
-                                    .get().addOnSuccessListener { documentSnapshot ->
-                                        if (documentSnapshot.exists()) {
-                                            val scr = gamerPro.blueData.split(" ".toRegex())
-                                                .dropLastWhile { it.isEmpty() }
-                                                .toTypedArray()
-                                            v1.findViewById<TextView>(R.id.plr2Score).text = scr[scr.size - 1]
-                                            v1.findViewById<TextView>(R.id.plr2Cup).text = gamerPro.plr2Cup
-                                            p2Pro = documentSnapshot.toObject(GameProfile::class.java)!!
-                                            if (p2Pro.countryEmoji != "")
-                                                v1.findViewById<TextView>(R.id.plr2Flag).text = p2Pro.countryEmoji
-                                            v1.findViewById<TextView>(R.id.plr2Nm).text = p2Pro.nm
-                                            v1.findViewById<TextView>(R.id.plr2Lvl).text = "" + p2Pro.lvl
-                                        }
-                                        val alertDialog = builder.create()
-                                        alertDialog.window?.setBackgroundDrawable(ColorDrawable(0))
-                                        try { alertDialog.show() }
-                                        catch (e: Exception) {
-                                            e.printStackTrace() }
-                                    }
-                                v1.findViewById<View>(R.id.linLayoutPlr1)
-                                    .setBounceClickListener {
-                                        if (!sharedPref.getBoolean("muted", false)) {
-                                            val mediaPlayer = MediaPlayer.create(context, R.raw.btn_click_ef)
-                                            mediaPlayer.start()
-                                            mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-                                        }
-                                        val builder2 = AlertDialog.Builder(context)
-                                        val v2 = LayoutInflater.from(context).inflate(
-                                            R.layout.dialog_layout_profile,
-                                            parent.findViewById(R.id.profileLayoutDialog)
-                                        )
-                                        builder2.setView(v2)
-                                        val params = LinearLayout.LayoutParams(
-                                            LinearLayout.LayoutParams.WRAP_CONTENT,
-                                            LinearLayout.LayoutParams.WRAP_CONTENT
-                                        )
-                                        params.setMargins(60, 0, 60, 0)
-                                        val linearLayoutFrame = v2.findViewById<View>(R.id.linearLayoutFrame)
-                                        linearLayoutFrame.layoutParams = params
-                                        linearLayoutFrame.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.cocX))
-                                        linearLayoutFrame.backgroundTintMode = PorterDuff.Mode.ADD
-                                        if (p1Pro.countryNm != "")
-                                            (v2.findViewById<View>(R.id.countryTxt) as TextView).text = p1Pro.countryNm + " " + p1Pro.countryEmoji
-                                        else
-                                            v2.findViewById<View>(R.id.countryLayout).visibility = View.GONE
-                                        (v2.findViewById<View>(R.id.lvlTxt) as TextView).text = "" + p1Pro.lvl
-                                        (v2.findViewById<View>(R.id.coinHave) as TextView).text = "" + p1Pro.coin
-                                        (v2.findViewById<View>(R.id.matchPlayedTxt) as TextView).text = "" + p1Pro.matchPlayed
-                                        (v2.findViewById<View>(R.id.matchWonTxt) as TextView).text = "" + p1Pro.matchWinMulti
-                                        val nmEditText =
-                                            v2.findViewById<EditText>(R.id.nmTxt)
-                                        nmEditText.isEnabled = false
-                                        nmEditText.setText(p1Pro.nm)
-                                        //nmEditText.setVisibility(View.GONE);
-                                        v2.findViewById<TextView>(R.id.profileTitle).textSize = 28f
-                                        v2.findViewById<View>(R.id.profileShapeLayout).visibility = View.GONE
-                                        v2.findViewById<View>(R.id.nmEditBtn).visibility = View.GONE
-                                        v2.findViewById<View>(R.id.nmLTxt).visibility = View.GONE
-                                        v2.findViewById<View>(R.id.themeBox).visibility = View.GONE
-                                        v2.findViewById<View>(R.id.countryLTxt).visibility = View.GONE
-                                        v2.findViewById<View>(R.id.buttonSaveInfo).visibility = View.GONE
-                                        val alertDialog = builder2.create()
-                                        alertDialog.window?.setBackgroundDrawable(ColorDrawable(0))
-                                        v2.setOnClickListener {
-                                            alertDialog.dismiss()
-                                        }
-                                        try {
-                                            alertDialog.show()
-                                        } catch (e: Exception) {
-                                            e.printStackTrace()
-                                        }
-                                    }
-                                v1.findViewById<View>(R.id.linLayoutPlr2)
-                                    .setBounceClickListener {
-                                        if (!sharedPref.getBoolean("muted", false)) {
-                                            val mediaPlayer =
-                                                MediaPlayer.create(context, R.raw.btn_click_ef)
-                                            mediaPlayer.start()
-                                            mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-                                        }
-                                        val builder2 = AlertDialog.Builder(context)
-                                        val v2 = LayoutInflater.from(context).inflate(
-                                            R.layout.dialog_layout_profile,
-                                            parent.findViewById(R.id.profileLayoutDialog)
-                                        )
-                                        builder2.setView(v2)
-                                        val params = LinearLayout.LayoutParams(
-                                            LinearLayout.LayoutParams.WRAP_CONTENT,
-                                            LinearLayout.LayoutParams.WRAP_CONTENT
-                                        )
-                                        params.setMargins(420, 0, 60, 0)
-                                        val linearLayoutFrame =
-                                            v2.findViewById<View>(R.id.linearLayoutFrame)
-
-                                        linearLayoutFrame.layoutParams =
-                                            params
-                                        linearLayoutFrame.backgroundTintList =
-                                            ColorStateList.valueOf(
-                                                ContextCompat.getColor(
-                                                    requireContext(), R.color.cocX
-                                                )
-                                            )
-                                        linearLayoutFrame.backgroundTintMode =
-                                            PorterDuff.Mode.ADD
-                                        if (p2Pro.countryNm != "")
-                                            v2.findViewById<TextView>(R.id.countryTxt).text =
-                                                p2Pro.countryNm + " " + p2Pro.countryEmoji
-                                        else
-                                            v2.findViewById<View>(R.id.countryLayout).visibility = View.GONE
-                                        v2.findViewById<TextView>(R.id.lvlTxt).text = "" + p2Pro.lvl
-                                        v2.findViewById<TextView>(R.id.coinHave).text = "" + p2Pro.coin
-                                        v2.findViewById<TextView>(R.id.matchPlayedTxt).text = "" + p2Pro.matchPlayed
-                                        v2.findViewById<TextView>(R.id.matchWonTxt).text = "" + p2Pro.matchWinMulti
-                                        val nmEditText = v2.findViewById<EditText>(R.id.nmTxt)
-                                        nmEditText.isEnabled = false
-                                        nmEditText.setText(p2Pro.nm)
-                                        //nmEditText.setVisibility(View.GONE);
-                                        v2.findViewById<TextView>(R.id.profileTitle).textSize = 28f
-                                        v2.findViewById<View>(R.id.profileShapeLayout).visibility = View.GONE
-                                        v2.findViewById<View>(R.id.nmEditBtn).visibility = View.GONE
-                                        v2.findViewById<View>(R.id.nmLTxt).visibility = View.GONE
-                                        v2.findViewById<View>(R.id.themeBox).visibility = View.GONE
-                                        v2.findViewById<View>(R.id.countryLTxt).visibility = View.GONE
-                                        v2.findViewById<View>(R.id.buttonSaveInfo).visibility = View.GONE
-                                        val alertDialog = builder2.create()
-                                        alertDialog.window?.setBackgroundDrawable(ColorDrawable(0))
-                                        v2.setOnClickListener {
-                                            alertDialog.dismiss()
-                                        }
-                                        try { alertDialog.show() }
-                                        catch (e: Exception) { e.printStackTrace() }
-                                    }
-                            }
-                        }
+                    if(isAdded){
+                        val adapter = MyListAdapter(context, dsList)
+                        binding.showScoreList.adapter = adapter
+                    }
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
             }
-        return v
+        binding.showScoreList.setOnItemClickListener { _, _, position, _ ->
+            val gamerPro = dsList[position]
+            if ((gamerPro.plr1Id == "offline"))
+                toast("Offline match doesn't have Profile Info.")
+            else if ((gamerPro.plr1Id == ""))
+                toast("Old match doesn't have Profile Info.")
+            else {
+                if (!pref.getBoolean("muted", false)) {
+                    val mediaPlayer =
+                        MediaPlayer.create(context, R.raw.btn_click_ef)
+                    mediaPlayer.start()
+                    mediaPlayer.setOnCompletionListener(MediaPlayer::release)
+                }
+                val builder = AlertDialog.Builder(context)
+                val dialogBinding = DialogLayoutScrGlobeBinding.inflate(layoutInflater, null, false)
+                builder.setView(dialogBinding.root)
+                Log.d(TAG, position.toString() + "onItemClick: 1id " + gamerPro.plr1Id)
+                Log.d(TAG, "onItemClick: 2id " + gamerPro.plr2Id)
+                db.collection("gamerProfile").document(gamerPro.plr1Id)
+                    .get()
+                    .addOnSuccessListener { documentSnapshot ->
+                        if (documentSnapshot.exists()) {
+                            val scr = gamerPro.redData.split(" ".toRegex())
+                                .dropLastWhile { it.isEmpty() }
+                                .toTypedArray()
+                            Log.d(TAG, "onSuccess: scr " + scr[scr.size - 1])
+                            dialogBinding.plr1Score.text = scr[scr.size - 1]
+                            dialogBinding.plr1Cup.text = gamerPro.plr1Cup
+                            Log.d(TAG, "onSuccess: cup " + gamerPro.plr1Cup)
+                            p1Pro = documentSnapshot.toObject<GameProfile>()!!
+                            if (p1Pro.countryEmoji != "")
+                                dialogBinding.plr1Flag.text = p1Pro.countryEmoji
+                            dialogBinding.plr1Nm.text = p1Pro.nm
+                            Log.d(TAG, "onSuccess: nm " + p1Pro.nm)
+                            dialogBinding.plr1Lvl.text = "" + p1Pro.lvl
+                        }
+                    }
+                db.collection("gamerProfile").document(gamerPro.plr2Id)
+                    .get().addOnSuccessListener { documentSnapshot ->
+                        if (documentSnapshot.exists()) {
+                            val scr = gamerPro.blueData.split(" ".toRegex())
+                                .dropLastWhile { it.isEmpty() }
+                                .toTypedArray()
+                            dialogBinding.plr2Score.text = scr[scr.size - 1]
+                            dialogBinding.plr2Cup.text = gamerPro.plr2Cup
+                            p2Pro = documentSnapshot.toObject<GameProfile>()!!
+                            if (p2Pro.countryEmoji != "")
+                                dialogBinding.plr2Flag.text = p2Pro.countryEmoji
+                            dialogBinding.plr2Nm.text = p2Pro.nm
+                            dialogBinding.plr2Lvl.text = "" + p2Pro.lvl
+                        }
+                        val alertDialog = builder.create()
+                        alertDialog.window?.setBackgroundDrawable(ColorDrawable(0))
+                        try { alertDialog.show() }
+                        catch (e: Exception) {
+                            e.printStackTrace() }
+                    }
+                dialogBinding.linLayoutPlr1
+                    .setBounceClickListener {
+                        onPlayerProfileClick(p1Pro)
+                    }
+                dialogBinding.linLayoutPlr2
+                    .setBounceClickListener {
+                        onPlayerProfileClick(p2Pro, 420)
+                    }
+            }
+        }
+    }
+
+    @SuppressLint("SetTextI18n")
+    private fun onPlayerProfileClick(profile: GameProfile, marginLeft: Int = 60) {
+        if (!pref.getBoolean("muted", false)) {
+            val mediaPlayer = MediaPlayer.create(context, R.raw.btn_click_ef)
+            mediaPlayer.start()
+            mediaPlayer.setOnCompletionListener(MediaPlayer::release)
+        }
+        val builder2 = AlertDialog.Builder(context)
+        val dBinding = DialogLayoutProfileBinding.inflate(layoutInflater, null, false)
+
+        builder2.setView(dBinding.root)
+        val params = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        params.setMargins(marginLeft, 0, 60, 0)
+        dBinding.linearLayoutFrame.apply {
+            layoutParams = params
+            backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(context, R.color.cocX))
+            backgroundTintMode = PorterDuff.Mode.ADD
+        }
+        dBinding.apply {
+            if (profile.countryNm != "")
+                countryTxt.text = profile.countryNm + " " + profile.countryEmoji
+            else
+                countryLayout.gone()
+            lvlTxt.text = "" + profile.lvl
+            coinHave.text = "" + profile.coin
+            matchPlayedTxt.text = "" + profile.matchPlayed
+            matchWonTxt.text = "" + profile.matchWinMulti
+            nmTxt.isEnabled = false
+            nmTxt.setText(profile.nm)
+            profileTitle.textSize = 28f
+            profileShapeLayout.gone()
+            nmEditBtn.gone()
+            nmLTxt.gone()
+            themeBox.gone()
+            countryLTxt.gone()
+            buttonSaveInfo.gone()
+        }
+        val alertDialog = builder2.create()
+        alertDialog.window?.setBackgroundDrawable(ColorDrawable(0))
+        dBinding.root.setOnClickListener {
+            alertDialog.dismiss()
+        }
+        try {
+            alertDialog.show()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 }

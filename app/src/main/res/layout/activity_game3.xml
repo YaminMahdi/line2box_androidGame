@@ -233,11 +233,6 @@
                 android:textSize="@dimen/_16ssp" />
         </LinearLayout>
 
-        <androidx.fragment.app.FragmentContainerView
-            android:id="@+id/nmFragment"
-            android:name="com.diu.yk_games.line2box.presentation.BlankFragment"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
 
     </LinearLayout>
 

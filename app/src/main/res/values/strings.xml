@@ -34,8 +34,8 @@
     <string name="ul_src"><u>(Open Source)</u></string>
     <string name="my_string_value">I am .</string>
     <string name="play_services"><u>1. Update "'"Google Play Services"'"</u></string>
-    <string name="play_game"><u>2. Google Play Game</u></string>
-    <string name="reboot_device"><u>2. Restart your device</u></string>
+    <string name="play_game"><u>1. Update "'"Google Play Game"'"</u></string>
+    <string name="reboot_device"><u>3. Restart your device</u></string>
     <string name="logo">logo</string>
     <string name="_0">0</string>
     <string name="total_player">Total Player -</string>
@@ -44,4 +44,7 @@
     <string name="input_id">Input ID</string>
     <string name="start_match">start match</string>
     <string name="game_id">Game ID</string>
+    <string name="do_you_really_want_to_quit_the_match">Do you really want to QUIT the match?</string>
+    <string name="yes">YES</string>
+    <string name="no">NO</string>
 </resources>

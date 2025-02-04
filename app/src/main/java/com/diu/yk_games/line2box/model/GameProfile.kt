@@ -1,28 +1,29 @@
 package com.diu.yk_games.line2box.model
 
-import android.content.SharedPreferences
+import com.diu.yk_games.line2box.pref
+import com.diu.yk_games.line2box.prefEditor
 import kotlin.math.floor
 import kotlin.math.sqrt
 
 class GameProfile {
-    @JvmField var nm = sharedPreferences.getString("nm", "Noob" + floor(Math.random() * 900 + 100).toInt())!!
-    @JvmField var cityNm = sharedPreferences.getString("cityNm", "")!!
-    @JvmField var query = sharedPreferences.getString("query", "")!!
-    @JvmField var matchPlayed = sharedPreferences.getInt("matchPlayed", 0)
-    @JvmField var matchWinMulti = sharedPreferences.getInt("matchWinMulti", 0)
-    @JvmField var coin = sharedPreferences.getInt("coins", 100)
-    @JvmField var lvl = sharedPreferences.getInt("lvl", lvlByCal)
-    @JvmField var playerId = ""
-    @JvmField var countryEmoji = ""
-    @JvmField var countryNm = ""
+    var nm = pref.getString("nm", "Noob" + floor(Math.random() * 900 + 100).toInt())!!
+    var cityNm = pref.getString("cityNm", "")!!
+    var query = pref.getString("query", "")!!
+    var matchPlayed = pref.getInt("matchPlayed", 0)
+    var matchWinMulti = pref.getInt("matchWinMulti", 0)
+    var coin = pref.getInt("coins", 100)
+    var lvl = pref.getInt("lvl", lvlByCal)
+    var playerId = ""
+    var countryEmoji = ""
+    var countryNm = ""
 
     fun apply() {
-        preferencesEditor.putString("nm", nm).apply()
-        preferencesEditor.putString("cityNm", cityNm).apply()
-        preferencesEditor.putString("query", query).apply()
-        preferencesEditor.putInt("coins", coin).apply()
-        preferencesEditor.putInt("matchPlayed", matchPlayed).apply()
-        preferencesEditor.putInt("matchWinMulti", matchWinMulti).apply()
+        prefEditor.putString("nm", nm).apply()
+        prefEditor.putString("cityNm", cityNm).apply()
+        prefEditor.putString("query", query).apply()
+        prefEditor.putInt("coins", coin).apply()
+        prefEditor.putInt("matchPlayed", matchPlayed).apply()
+        prefEditor.putInt("matchWinMulti", matchWinMulti).apply()
     }
 
     val lvlByCal: Int
@@ -40,13 +41,4 @@ class GameProfile {
         matchWinMulti++
     }
 
-    companion object {
-        lateinit var sharedPreferences: SharedPreferences
-        lateinit var preferencesEditor: SharedPreferences.Editor
-
-        @JvmStatic fun setPreferences(x: SharedPreferences) {
-            sharedPreferences = x
-            preferencesEditor = sharedPreferences.edit()
-        }
-    }
 }

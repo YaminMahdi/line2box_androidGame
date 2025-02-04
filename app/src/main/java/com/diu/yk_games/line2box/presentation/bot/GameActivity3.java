@@ -1,5 +1,7 @@
 package com.diu.yk_games.line2box.presentation.bot;
 
+import static com.diu.yk_games.line2box.util.ExtendedFunKt.loadDrawable;
+import static com.diu.yk_games.line2box.util.ExtendedFunKt.log;
 import static com.diu.yk_games.line2box.util.ExtendedFunKt.setNavStatusPadding;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
@@ -27,6 +29,7 @@ import androidx.core.content.res.ResourcesCompat;
 
 import com.diu.yk_games.line2box.R;
 import com.diu.yk_games.line2box.databinding.ActivityGame3Binding;
+import com.diu.yk_games.line2box.databinding.DialogLayoutInfoBinding;
 import com.google.android.gms.tasks.Task;
 import com.google.android.play.core.review.ReviewInfo;
 import com.google.android.play.core.review.ReviewManager;
@@ -40,7 +43,6 @@ import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import kotlin.Suppress;
-import pl.droidsonroids.gif.GifImageView;
 
 @SuppressLint("DiscouragedApi")
 public class GameActivity3 extends AppCompatActivity {
@@ -83,7 +85,7 @@ public class GameActivity3 extends AppCompatActivity {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         binding = ActivityGame3Binding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-        setNavStatusPadding(binding.getRoot(), new ViewGroup[]{binding.linearLayout, binding.nmFragment},0);
+        setNavStatusPadding(binding.getRoot(), new ViewGroup[]{binding.linearLayout},0);
         scoreRedView = findViewById(R.id.scoreRed);
         scoreBlueView = findViewById(R.id.scoreBlue);
         redTxt = findViewById(R.id.red);
@@ -115,7 +117,7 @@ public class GameActivity3 extends AppCompatActivity {
                 ((Button) view.findViewById(R.id.buttonYes)).setText("YES");
                 ((Button) view.findViewById(R.id.buttonNo)).setText("NO");
                 final AlertDialog alertDialog = builder.create();
-                view.findViewById(R.id.buttonYes).setOnClickListener(view1 ->
+                view.findViewById(R.id.buttonYes).setOnClickListener(_ ->
                 {
                     if (!isMuted())
                     {
@@ -137,7 +139,7 @@ public class GameActivity3 extends AppCompatActivity {
 //            startActivity(new Intent(this, StartActivity.class));
                     //android.os.Process.killProcess(android.os.Process.myPid());
                 });
-                view.findViewById(R.id.buttonNo).setOnClickListener(view2 ->
+                view.findViewById(R.id.buttonNo).setOnClickListener(_ ->
                 {
                     if (!isMuted())
                     {
@@ -151,7 +153,7 @@ public class GameActivity3 extends AppCompatActivity {
                     alertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(0));
                 }
                 try {alertDialog.show();}
-                catch (NullPointerException npe) {npe.printStackTrace();}
+                catch (Exception e) { log(e,"TAG"); }
             }
         });
 
@@ -281,7 +283,7 @@ public class GameActivity3 extends AppCompatActivity {
         int red = getResources().getColor(R.color.redX, getTheme());
         int blue = getResources().getColor(R.color.blueX, getTheme());
         int white = getResources().getColor(R.color.whiteX, getTheme());
-        if (color == white && clickEnabled && lineIDs.size()>0) {
+        if (color == white && clickEnabled && !lineIDs.isEmpty()) {
             if (!isMuted())
             {
                 MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.line_click_ef);
@@ -485,7 +487,7 @@ public class GameActivity3 extends AppCompatActivity {
             {
                 clickEnabled=true;
             }
-            else if(lineIDs.size()>0)
+            else if(!lineIDs.isEmpty())
             {
                 clickEnabled=false;
 
@@ -850,9 +852,7 @@ public class GameActivity3 extends AppCompatActivity {
             mFillPaint.setAccessible(true);
             Paint strokePaint = (Paint) mFillPaint.get(bg);
             color = Objects.requireNonNull(strokePaint).getColor();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        } catch (Exception e) {log(e,"TAG");}
         return color;
     }
 
@@ -866,12 +866,12 @@ public class GameActivity3 extends AppCompatActivity {
         builder.setView(view);
         //builder.setCancelable(false);
 
-        ((TextView) view.findViewById(R.id.textMessage)).setText("" + winMsg);
+        ((TextView) view.findViewById(R.id.textMessage)).setText(winMsg);
         ((Button) view.findViewById(R.id.buttonNo)).setText("Exit");
         ((Button) view.findViewById(R.id.buttonYes)).setText("Retry!");
 
         final AlertDialog alertDialog = builder.create();
-        view.findViewById(R.id.buttonYes).setOnClickListener(view1 ->
+        view.findViewById(R.id.buttonYes).setOnClickListener(_ ->
         {
             if (!isMuted())
             {
@@ -887,7 +887,7 @@ public class GameActivity3 extends AppCompatActivity {
                         // We can get the ReviewInfo object
                         ReviewInfo reviewInfo = task.getResult();
                         Task<Void> flow = manager.launchReviewFlow(this, reviewInfo);
-                        flow.addOnCompleteListener(task2 -> {
+                        flow.addOnCompleteListener(_ -> {
                             // The flow has finished. The API does not indicate whether the user
                             // reviewed or not, or even whether the review dialog was shown. Thus, no
                             // matter the result, we continue our app flow.
@@ -907,7 +907,7 @@ public class GameActivity3 extends AppCompatActivity {
 //            startActivity(new Intent(GameActivity3.this, GameActivity3.class));
 //            finish();
         });
-        view.findViewById(R.id.buttonNo).setOnClickListener(view2 ->
+        view.findViewById(R.id.buttonNo).setOnClickListener(_ ->
         {
             if (!isMuted())
             {
@@ -925,7 +925,7 @@ public class GameActivity3 extends AppCompatActivity {
             alertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(0));
         }
         try {alertDialog.show();}
-        catch (NullPointerException npe) {npe.printStackTrace();}
+        catch (Exception e) { log(e,"TAG"); }
     }
 
 
@@ -974,17 +974,15 @@ public class GameActivity3 extends AppCompatActivity {
                 "Click on this button anytime to see the rules again."};
 
         AlertDialog.Builder builder = new AlertDialog.Builder(GameActivity3.this);
-        View view = LayoutInflater.from(GameActivity3.this).inflate(
-                R.layout.dialog_layout_info, findViewById(R.id.layoutInfo)
-        );
-        builder.setView(view);
+        DialogLayoutInfoBinding binding = DialogLayoutInfoBinding.inflate(getLayoutInflater());
+        builder.setView(binding.getRoot());
         builder.setCancelable(false);
 
-        ((TextView) view.findViewById(R.id.textMessage)).setText(msg[0]);
-        ((GifImageView) view.findViewById(R.id.playGif)).setImageResource(gifs[0]);
-        view.findViewById(R.id.buttonPre).setVisibility(View.INVISIBLE);
+        binding.textMessage.setText(msg[0]);
+        loadDrawable(binding.playGif, gifs[0]);
+        binding.buttonPre.setVisibility(View.INVISIBLE);
         final AlertDialog alertDialog = builder.create();
-        view.findViewById(R.id.buttonPre).setOnClickListener(view1 ->
+        binding.buttonPre.setOnClickListener(_ ->
         {
             if (!isMuted())
             {
@@ -995,12 +993,12 @@ public class GameActivity3 extends AppCompatActivity {
             if (i.get() != 0)
                 i.getAndDecrement();
             if (i.get() == 0)
-                view.findViewById(R.id.buttonPre).setVisibility(View.INVISIBLE);
-            ((TextView) view.findViewById(R.id.textMessage)).setText(msg[i.get()]);
-            ((GifImageView) view.findViewById(R.id.playGif)).setImageResource(gifs[i.get()]);
+                binding.buttonPre.setVisibility(View.INVISIBLE);
+            binding.textMessage.setText(msg[i.get()]);
+            loadDrawable(binding.playGif, gifs[i.get()]);
 
         });
-        view.findViewById(R.id.buttonNext).setOnClickListener(view2 ->
+        binding.buttonNext.setOnClickListener(_ ->
         {
             if (!isMuted())
             {
@@ -1012,19 +1010,19 @@ public class GameActivity3 extends AppCompatActivity {
             if (!isFirstRun && i.get() == 4)
                 i.getAndIncrement();
             if (i.get() == 1)
-                view.findViewById(R.id.buttonPre).setVisibility(View.VISIBLE);
+                binding.buttonPre.setVisibility(View.VISIBLE);
             if (i.get() == 5)
                 alertDialog.dismiss();
             else {
-                ((TextView) view.findViewById(R.id.textMessage)).setText(msg[i.get()]);
-                ((GifImageView) view.findViewById(R.id.playGif)).setImageResource(gifs[i.get()]);
+                binding.textMessage.setText(msg[i.get()]);
+                loadDrawable(binding.playGif, gifs[i.get()]);
             }
         });
         if (alertDialog.getWindow() != null) {
             alertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(0));
         }
         try {alertDialog.show();}
-        catch (NullPointerException npe) {npe.printStackTrace();}
+        catch (Exception e) { log(e,"TAG"); }
     }
 
     public void backBtn(View view) {

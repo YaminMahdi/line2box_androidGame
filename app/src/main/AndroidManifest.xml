@@ -2,15 +2,16 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <uses-feature android:name="android.hardware.screen.portrait" />
+    <uses-feature android:name="android.hardware.screen.portrait" tools:ignore="UnnecessaryRequiredFeature" />
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <uses-permission android:name="com.google.android.gms.permission.AD_ID" tools:node="remove"/>
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID" tools:node="remove" />
 
 
     <application
+        android:name=".Line2BoxApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -21,40 +22,34 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Line2Box"
         android:usesCleartextTraffic="true"
+        tools:ignore="DiscouragedApi"
         tools:targetApi="31">
         <activity
             android:name=".presentation.bot.GameActivity3"
-            android:exported="false" />
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".presentation.online.MultiplayerActivity"
             android:exported="true"
-            android:screenOrientation="sensorPortrait"
-            android:windowSoftInputMode="adjustPan"
-            tools:ignore="LockedOrientationActivity" />
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".presentation.online.GameActivity2"
             android:exported="true"
-            android:label="@string/title_activity_game2"
-            android:screenOrientation="sensorPortrait"
-            android:windowSoftInputMode="adjustResize"
-            tools:ignore="LockedOrientationActivity" />
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".presentation.main.StartActivity"
             android:exported="true"
-            android:screenOrientation="sensorPortrait"
-            tools:ignore="LockedOrientationActivity">
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity> <!-- android:usesCleartextTraffic="true" -->
+        </activity>
         <activity
             android:name=".presentation.offline.GameActivity1"
             android:exported="true"
-            android:noHistory="false"
-            android:screenOrientation="sensorPortrait"
-            tools:ignore="LockedOrientationActivity" />
+            android:windowSoftInputMode="adjustResize" />
 
         <meta-data
             android:name="com.google.android.gms.games.APP_ID"

@@ -5,13 +5,13 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class DataStore (
-    @JvmField var time : Long = 0L,
-    @JvmField var timeData : String = "",
-    @JvmField var redData : String = "Red",
-    @JvmField var blueData : String = "Blue",
-    @JvmField var starData : String = "",
-    @JvmField var plr1Id : String = "",
-    @JvmField var plr2Id : String = "",
-    @JvmField var plr1Cup : String = "",
-    @JvmField var plr2Cup : String = ""
+    var time : Long = 0L,
+    var timeData : String = "",
+    var redData : String = "Red",
+    var blueData : String = "Blue",
+    var starData : String = "",
+    var plr1Id : String = "",
+    var plr2Id : String = "",
+    var plr1Cup : String = "",
+    var plr2Cup : String = ""
 ): Parcelable

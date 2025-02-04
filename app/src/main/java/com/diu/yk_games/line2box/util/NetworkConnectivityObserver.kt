@@ -29,7 +29,7 @@ object ConnectivityObserver {
                     super.onAvailable(network)
                     launch { send(Status.Available) }
                     isConnected = true
-                    Log.d("TAG", "onAvailable: $isConnected")
+                    Log.d("TAG", "onAvailable: true")
                 }
 
                 override fun onLosing(network: Network, maxMsToLive: Int) {
@@ -42,14 +42,14 @@ object ConnectivityObserver {
                     super.onLost(network)
                     launch { send(Status.Lost) }
                     isConnected = false
-                    Log.d("TAG", "onLost: $isConnected")
+                    Log.d("TAG", "onLost: false")
                 }
 
                 override fun onUnavailable() {
                     super.onUnavailable()
                     launch { send(Status.Unavailable) }
                     isConnected = false
-                    Log.d("TAG", "onUnavailable: $isConnected")
+                    Log.d("TAG", "onUnavailable: false")
                 }
             }
 

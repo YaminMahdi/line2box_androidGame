@@ -8,9 +8,11 @@
     android:layout_gravity="center"
     android:gravity="center"
     >
-    <pl.droidsonroids.gif.GifImageView
+    <ImageView
+        android:id="@+id/loader"
         android:layout_width="220dp"
         android:layout_height="220dp"
+        android:contentDescription="@string/logo"
         android:src="@drawable/g_loading"
         />
 

@@ -185,7 +185,6 @@
                     android:layout_height="@dimen/_36sdp"
                     android:background="@drawable/btn_grn_bg"
                     android:fontFamily="@font/sortie"
-                    android:onClick="leaderBoard"
                     android:src="@drawable/icon_leaderboard" />
 
                 <ImageButton
@@ -323,7 +322,7 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <pl.droidsonroids.gif.GifImageView
+    <ImageView
         android:id="@+id/emojiPlay"
         android:layout_width="wrap_content"
         android:layout_height="@dimen/_65sdp"

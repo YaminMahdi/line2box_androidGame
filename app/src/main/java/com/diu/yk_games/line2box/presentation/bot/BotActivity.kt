@@ -3,40 +3,46 @@ package com.diu.yk_games.line2box.presentation.bot
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Intent
-import android.content.SharedPreferences
 import android.graphics.Paint
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.GradientDrawable
 import android.media.MediaPlayer
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
-import android.widget.ImageButton
 import android.widget.TextView
-import android.widget.Toast
-import androidx.activity.OnBackPressedCallback
+import androidx.activity.addCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
+import androidx.lifecycle.lifecycleScope
 import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.ActivityGame3Binding
 import com.diu.yk_games.line2box.databinding.DialogLayoutAlertBinding
 import com.diu.yk_games.line2box.databinding.DialogLayoutInfoBinding
+import com.diu.yk_games.line2box.pref
+import com.diu.yk_games.line2box.prefEditor
 import com.diu.yk_games.line2box.presentation.main.StartActivity
+import com.diu.yk_games.line2box.util.applyState
 import com.diu.yk_games.line2box.util.hideSystemBars
+import com.diu.yk_games.line2box.util.invisible
+import com.diu.yk_games.line2box.util.isMuted
+import com.diu.yk_games.line2box.util.isNotMuted
+import com.diu.yk_games.line2box.util.loadDrawable
+import com.diu.yk_games.line2box.util.performOnClick
 import com.diu.yk_games.line2box.util.setBounceClickListener
-import kotlinx.coroutines.DelicateCoroutinesApi
+import com.diu.yk_games.line2box.util.show
+import com.diu.yk_games.line2box.util.toast
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.util.Objects
 import java.util.Random
-import java.util.concurrent.atomic.AtomicInteger
 
-@OptIn(DelicateCoroutinesApi::class)
-class GameActivity3tmp : AppCompatActivity() {
+class BotActivity : AppCompatActivity() {
     private lateinit var binding: ActivityGame3Binding
 
-    private var lineIDs =
+    private val lineIDs =
         mutableListOf(
             "r1c1T", "r1c1L", "r1c2T", "r1c2L", "r1c3T", "r1c3L", "r1c4T", "r1c4L", "r1c5T", "r1c5L", "r1c6T", "r1c6L", "r1c7L", "r2c1T", "r2c1L", "r2c2T", "r2c2L", "r2c3T", "r2c3L",
             "r2c4T", "r2c4L", "r2c5T", "r2c5L", "r2c6T", "r2c6L", "r2c7L", "r3c1T", "r3c1L", "r3c2T", "r3c2L", "r3c3T", "r3c3L", "r3c4T", "r3c4L", "r3c5T", "r3c5L", "r3c6T", "r3c6L", 
@@ -45,99 +51,76 @@ class GameActivity3tmp : AppCompatActivity() {
             "r6c4L", "r7c4T", "r6c5T", "r6c5L", "r7c5T", "r6c6T", "r6c6L", "r6c7L"
         )
     private var random = Random()
-    private lateinit var scoreRedView: TextView
-    private lateinit var scoreBlueView: TextView
-    private lateinit var redTxt: TextView
-    private lateinit var blueTxt: TextView
 
     //MediaPlayer lineClick, boxPlus, winSoundEf, btnClick;
-    private lateinit var sharedPref: SharedPreferences
-    private lateinit var editor: SharedPreferences.Editor
     private var isFirstRun = false
     private var recursion = false
     private var clickEnabled = false
     private var tmpLineId = 0
-    private val isMuted: Boolean
-        get() = sharedPref.getBoolean("muted", false)
 
     private fun ifMuted() {
-        if (isMuted) {
-            findViewById<View>(R.id.volBtn).setBackgroundResource(R.drawable.btn_gry_bg)
-            (findViewById<View>(R.id.volBtn) as ImageButton).setImageResource(R.drawable.icon_vol_mute)
-        } else {
-            findViewById<View>(R.id.volBtn).setBackgroundResource(R.drawable.btn_ylw_bg)
-            (findViewById<View>(R.id.volBtn) as ImageButton).setImageResource(R.drawable.icon_vol_unmute)
+        lifecycleScope.launch {
+            binding.volBtn.applyState(isMuted())
         }
     }
 
-    @SuppressLint("DiscouragedApi")
+    @SuppressLint("DiscouragedApi", "SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityGame3Binding.inflate(layoutInflater)
         setContentView(binding.root)
         window.hideSystemBars()
-        scoreRedView = findViewById(R.id.scoreRed)
-        scoreBlueView = findViewById(R.id.scoreBlue)
-        redTxt = findViewById(R.id.red)
-        blueTxt = findViewById(R.id.blue)
         clickCount = 0
         scoreRed = 0
         scoreBlue = 0
         bestScore = 9999
-        sharedPref = getSharedPreferences(
-            getString(R.string.preference_file_key), MODE_PRIVATE
-        )
-        editor = sharedPref.edit()
-        ifMuted()
-        isFirstRun = sharedPref.getBoolean("firstRun", true)
 
-        binding.volBtn.setBounceClickListener {
-            volButton(it)
-        }
-        binding.ideaBtn.setBounceClickListener{
-            ideaBtn(it)
+        ifMuted()
+        isFirstRun = pref.getBoolean("firstRun", true)
+
+        binding.volBtn.performOnClick()
+        binding.ideaBtn.setBounceClickListener {
+            ideaBtn()
         }
         binding.homeBtn.setBounceClickListener {
-            backBtn(it)
+            backBtn()
         }
-        onBackPressedDispatcher.addCallback(this, object: OnBackPressedCallback(true) {
-            @SuppressLint("SetTextI18n")
-            override fun handleOnBackPressed() {
-                val builder = AlertDialog.Builder(this@GameActivity3tmp)
-                val dialogBinding = DialogLayoutAlertBinding.inflate(LayoutInflater.from(this@GameActivity3tmp))
-                builder.setView(dialogBinding.root)
-                dialogBinding.textMessage.text = "Do you really want to QUIT the match?"
-                dialogBinding.buttonYes.text = "YES"
-                dialogBinding.buttonNo.text = "NO"
-                val alertDialog = builder.create()
-                dialogBinding.buttonYes.setBounceClickListener {
-                    if (!isMuted) {
-                        val mediaPlayer = MediaPlayer.create(this@GameActivity3tmp, R.raw.btn_click_ef)
-                        mediaPlayer.start()
-                        mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-                    }
-                    alertDialog.dismiss()
-                    scoreRed = 0
-                    scoreBlue = 0
-                    clickCount = 0
-                    flag = true
-                    onBackPressedDispatcher.onBackPressed()
-                    //startActivity(Intent(this@GameActivity3tmp, StartActivity::class.java))
-                    finish()
+        onBackPressedDispatcher.addCallback(this) {
+            val builder = AlertDialog.Builder(this@BotActivity)
+            val dialogBinding =
+                DialogLayoutAlertBinding.inflate(LayoutInflater.from(this@BotActivity))
+            builder.setView(dialogBinding.root)
+            dialogBinding.textMessage.text = "Do you really want to QUIT the match?"
+            dialogBinding.buttonYes.text = "YES"
+            dialogBinding.buttonNo.text = "NO"
+            val alertDialog = builder.create()
+            dialogBinding.buttonYes.setBounceClickListener {
+                isNotMuted {
+                    val mediaPlayer = MediaPlayer.create(this@BotActivity, R.raw.btn_click_ef)
+                    mediaPlayer.start()
+                    mediaPlayer.setOnCompletionListener(MediaPlayer::release)
                 }
-                dialogBinding.buttonNo.setBounceClickListener {
-                    if (!isMuted) {
-                        val mediaPlayer = MediaPlayer.create(this@GameActivity3tmp, R.raw.btn_click_ef)
-                        mediaPlayer.start()
-                        mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-                    }
-                    alertDialog.dismiss()
-                }
-                alertDialog.window?.setBackgroundDrawable(ColorDrawable(0))
-                try { alertDialog.show() }
-                catch (npe: Exception) { npe.printStackTrace() }
+                alertDialog.dismiss()
+                scoreRed = 0
+                scoreBlue = 0
+                clickCount = 0
+                flag = true
+//                onBackPressedDispatcher.onBackPressed()
+                //startActivity(Intent(this@GameActivity3, StartActivity::class.java))
+                finish()
             }
-        })
+            dialogBinding.buttonNo.setBounceClickListener {
+                isNotMuted {
+                    val mediaPlayer = MediaPlayer.create(this@BotActivity, R.raw.btn_click_ef)
+                    mediaPlayer.start()
+                    mediaPlayer.setOnCompletionListener(MediaPlayer::release)
+                }
+                alertDialog.dismiss()
+            }
+            alertDialog.window?.setBackgroundDrawable(ColorDrawable(0))
+            try { alertDialog.show() }
+            catch (npe: Exception) { npe.printStackTrace() }
+        }
 
         val index = StringBuilder()
         for (i in 1..6) {
@@ -154,9 +137,9 @@ class GameActivity3tmp : AppCompatActivity() {
             index.insert(3, 'r')
             circle = index.toString()
             for (j in 1..6) {
-                var idTop = this.resources.getIdentifier(top, "id", this.packageName)
-                var idLeft = this.resources.getIdentifier(left, "id", this.packageName)
-                var idCircle = this.resources.getIdentifier(circle, "id", this.packageName)
+                var idTop = resources.getIdentifier(top, "id", packageName)
+                var idLeft = resources.getIdentifier(left, "id", packageName)
+                var idCircle = resources.getIdentifier(circle, "id", packageName)
                 var lineTop = findViewById<View>(idTop)
                 var lineLeft = findViewById<View>(idLeft)
                 var lineCircle = findViewById<View>(idCircle)
@@ -172,13 +155,13 @@ class GameActivity3tmp : AppCompatActivity() {
                     index.append(top)
                     index.deleteCharAt(1)
                     index.insert(1, i + 1)
-                    idTop = this.resources.getIdentifier(index.toString(), "id", this.packageName)
+                    idTop = resources.getIdentifier(index.toString(), "id", packageName)
                     index.setLength(0)
                     index.append(circle)
                     index.deleteCharAt(1)
                     index.insert(1, i + 1)
                     idCircle =
-                        this.resources.getIdentifier(index.toString(), "id", this.packageName)
+                        resources.getIdentifier(index.toString(), "id", packageName)
                     lineTop = findViewById(idTop)
                     lineCircle = findViewById(idCircle)
                     bgTop = lineTop.background as GradientDrawable
@@ -209,13 +192,13 @@ class GameActivity3tmp : AppCompatActivity() {
                     index.deleteCharAt(3)
                     index.insert(3, j + 1)
                     left = index.toString()
-                    idLeft = this.resources.getIdentifier(left, "id", this.packageName)
+                    idLeft = resources.getIdentifier(left, "id", packageName)
                     index.setLength(0)
                     index.append(circle)
                     index.deleteCharAt(4)
                     index.insert(4, j + 1)
                     circle = index.toString()
-                    idCircle = this.resources.getIdentifier(circle, "id", this.packageName)
+                    idCircle = resources.getIdentifier(circle, "id", packageName)
                     lineLeft = findViewById(idLeft)
                     lineCircle = findViewById(idCircle)
                     bgLeft = lineLeft.background as GradientDrawable
@@ -232,7 +215,7 @@ class GameActivity3tmp : AppCompatActivity() {
                         index.deleteCharAt(1)
                         index.insert(1, i + 1)
                         circle = index.toString()
-                        idCircle = this.resources.getIdentifier(circle, "id", this.packageName)
+                        idCircle = resources.getIdentifier(circle, "id", packageName)
                         lineCircle = findViewById(idCircle)
                         bgCircle = lineCircle.background as GradientDrawable
                         bgCircle.setColor(ContextCompat.getColor(applicationContext, R.color.white))
@@ -245,30 +228,33 @@ class GameActivity3tmp : AppCompatActivity() {
             }
         }
         val ind = random.nextInt(84)
-        val randLineId = resources.getIdentifier(lineIDs[ind], "id", this.packageName)
-        if (isFirstRun){
-            Handler(Looper.getMainLooper()).postDelayed({
-                infoShow{
-                    Handler(Looper.getMainLooper()).postDelayed({
+        val randLineId = resources.getIdentifier(lineIDs[ind], "id", packageName)
+        lifecycleScope.launch {
+            if (isFirstRun) {
+                delay(200)
+                infoShow {
+                    lifecycleScope.launch {
+                        delay(600)
                         clickEnabled = true
-                        lineClick(findViewById(randLineId))
-                    }, 600)
+                        performClick(findViewById(randLineId))
+                    }
                 }
-            }, 200)
-        }else{
-            Handler(Looper.getMainLooper()).postDelayed({
+            } else {
+                delay(600)
                 clickEnabled = true
-                lineClick(findViewById(randLineId))
-            }, 600)
+                performClick(findViewById(randLineId))
+            }
         }
-//        Handler().postDelayed({
-//            clickEnabled = true
-//            lineClick(findViewById(randLineId))
-//        }, 600)
+    }
+
+    fun lineClick(view: View) {
+        lifecycleScope.launch{
+            performClick(view)
+        }
     }
 
     @SuppressLint("SetTextI18n", "DiscouragedApi")
-    fun lineClick(view: View) {
+    suspend fun performClick(view: View) {
         idNm = resources.getResourceEntryName(view.id)
         val bg = view.background as GradientDrawable
         val color = getColorGrad(bg)
@@ -276,8 +262,8 @@ class GameActivity3tmp : AppCompatActivity() {
         val red = resources.getColor(R.color.redX, theme)
         val blue = resources.getColor(R.color.blueX, theme)
         val white = resources.getColor(R.color.whiteX, theme)
-        if (color == white && clickEnabled && lineIDs.size > 0) {
-            if (!isMuted) {
+        if (color == white && clickEnabled && lineIDs.isNotEmpty()) {
+            isNotMuted {
                 val mediaPlayer = MediaPlayer.create(this, R.raw.line_click_ef)
                 mediaPlayer.start()
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release)
@@ -290,11 +276,13 @@ class GameActivity3tmp : AppCompatActivity() {
                 bg.setColor(ContextCompat.getColor(applicationContext, R.color.blueX))
             }
 
-            if (Character.getNumericValue(idNm[1]) > 1 && idNm[4] == 'T' || Character.getNumericValue(idNm[3]) > 1 && idNm[4] == 'L'
+            if (Character.getNumericValue(idNm[1]) > 1 && idNm[4] == 'T' || Character.getNumericValue(
+                    idNm[3]
+                ) > 1 && idNm[4] == 'L'
             ) {
-                val idTopU = resources.getIdentifier(getIdNm(idNm)[0], "id", this.packageName)
-                val idTopL = resources.getIdentifier(getIdNm(idNm)[1], "id", this.packageName)
-                val idTopR = resources.getIdentifier(getIdNm(idNm)[2], "id", this.packageName)
+                val idTopU = resources.getIdentifier(getIdNm(idNm)[0], "id", packageName)
+                val idTopL = resources.getIdentifier(getIdNm(idNm)[1], "id", packageName)
+                val idTopR = resources.getIdentifier(getIdNm(idNm)[2], "id", packageName)
                 val lineU = findViewById<View>(idTopU)
                 val lineL = findViewById<View>(idTopL)
                 val lineR = findViewById<View>(idTopR)
@@ -305,11 +293,11 @@ class GameActivity3tmp : AppCompatActivity() {
                     (getColorGrad(bgTopL) == red || getColorGrad(bgTopL) == blue) &&
                     (getColorGrad(bgTopR) == red || getColorGrad(bgTopR) == blue)
                 ) {
-                    val txtId = resources.getIdentifier(getIdNm(idNm)[6], "id", this.packageName)
-                    val idMidC1 = resources.getIdentifier(getIdNm(idNm)[8], "id", this.packageName)
-                    val idMidC2 = resources.getIdentifier(getIdNm(idNm)[9], "id", this.packageName)
-                    val idUpC1 = resources.getIdentifier(getIdNm(idNm)[10], "id", this.packageName)
-                    val idUpC2 = resources.getIdentifier(getIdNm(idNm)[11], "id", this.packageName)
+                    val txtId = resources.getIdentifier(getIdNm(idNm)[6], "id", packageName)
+                    val idMidC1 = resources.getIdentifier(getIdNm(idNm)[8], "id", packageName)
+                    val idMidC2 = resources.getIdentifier(getIdNm(idNm)[9], "id", packageName)
+                    val idUpC1 = resources.getIdentifier(getIdNm(idNm)[10], "id", packageName)
+                    val idUpC2 = resources.getIdentifier(getIdNm(idNm)[11], "id", packageName)
                     val crMid1 = findViewById<View>(idMidC1)
                     val crMid2 = findViewById<View>(idMidC2)
                     val crUp1 = findViewById<View>(idUpC1)
@@ -320,13 +308,13 @@ class GameActivity3tmp : AppCompatActivity() {
                     val bgUpC2 = crUp2.background as GradientDrawable
                     val txt = findViewById<TextView>(txtId)
                     if (clickCount % 2 == 1) {
-                        if (!isMuted) {
+                        isNotMuted {
                             val mediaPlayer = MediaPlayer.create(this, R.raw.box_ef)
                             mediaPlayer.start()
                             mediaPlayer.setOnCompletionListener(MediaPlayer::release)
                         }
                         scoreRed++
-                        scoreRedView.text = "" + scoreRed
+                        binding.scoreRed.text = "" + scoreRed
                         txt.text = "" + nm1[0]
                         txt.typeface = ResourcesCompat.getFont(applicationContext, R.font.bertram)
 
@@ -344,13 +332,13 @@ class GameActivity3tmp : AppCompatActivity() {
                         bgUpC2.setColor(ContextCompat.getColor(applicationContext, R.color.redX))
                         bgUpC2.setStroke(14, ContextCompat.getColor(applicationContext, R.color.redY))
                     } else {
-                        if (!isMuted) {
+                        isNotMuted {
                             val mediaPlayer = MediaPlayer.create(this, R.raw.box_ef)
                             mediaPlayer.start()
                             mediaPlayer.setOnCompletionListener(MediaPlayer::release)
                         }
                         scoreBlue++
-                        scoreBlueView.text = "" + scoreBlue
+                        binding.scoreBlue.text = scoreBlue.toString()
                         txt.text = "" + nm2[0]
                         txt.typeface = ResourcesCompat.getFont(applicationContext, R.font.bertram)
                         bgTopU.setColor(ContextCompat.getColor(applicationContext, R.color.blueX))
@@ -368,7 +356,7 @@ class GameActivity3tmp : AppCompatActivity() {
                         bgUpC2.setStroke(14, ContextCompat.getColor(applicationContext, R.color.blueY))
                         if (one) {
                             one = false
-                            Toast.makeText(this, "Bonus TURN for you", Toast.LENGTH_SHORT).show()
+                            toast("Bonus TURN for you")
                         }
                     }
                     change = true
@@ -376,9 +364,9 @@ class GameActivity3tmp : AppCompatActivity() {
             }
             if ((Character.getNumericValue(idNm[1]) < 7 && idNm[4] == 'T' || Character.getNumericValue(idNm[3]) < 7) && idNm[4] == 'L'
             ) {
-                val idDownU = resources.getIdentifier(getIdNm(idNm)[3], "id", this.packageName)
-                val idDownL = resources.getIdentifier(getIdNm(idNm)[4], "id", this.packageName)
-                val idDownR = resources.getIdentifier(getIdNm(idNm)[5], "id", this.packageName)
+                val idDownU = resources.getIdentifier(getIdNm(idNm)[3], "id", packageName)
+                val idDownL = resources.getIdentifier(getIdNm(idNm)[4], "id", packageName)
+                val idDownR = resources.getIdentifier(getIdNm(idNm)[5], "id", packageName)
                 val lineDownU = findViewById<View>(idDownU)
                 val lineDownL = findViewById<View>(idDownL)
                 val lineDownR = findViewById<View>(idDownR)
@@ -389,11 +377,11 @@ class GameActivity3tmp : AppCompatActivity() {
                     (getColorGrad(bgDownL) == red || getColorGrad(bgDownL) == blue) &&
                     (getColorGrad(bgDownR) == red || getColorGrad(bgDownR) == blue)
                 ) {
-                    val txtId = resources.getIdentifier(getIdNm(idNm)[7], "id", this.packageName)
-                    val idMidC1 = resources.getIdentifier(getIdNm(idNm)[8], "id", this.packageName)
-                    val idMidC2 = resources.getIdentifier(getIdNm(idNm)[9], "id", this.packageName)
-                    val idDownC1 = resources.getIdentifier(getIdNm(idNm)[12], "id", this.packageName)
-                    val idDownC2 = resources.getIdentifier(getIdNm(idNm)[13], "id", this.packageName)
+                    val txtId = resources.getIdentifier(getIdNm(idNm)[7], "id", packageName)
+                    val idMidC1 = resources.getIdentifier(getIdNm(idNm)[8], "id", packageName)
+                    val idMidC2 = resources.getIdentifier(getIdNm(idNm)[9], "id", packageName)
+                    val idDownC1 = resources.getIdentifier(getIdNm(idNm)[12], "id", packageName)
+                    val idDownC2 = resources.getIdentifier(getIdNm(idNm)[13], "id", packageName)
                     val crMid1 = findViewById<View>(idMidC1)
                     val crMid2 = findViewById<View>(idMidC2)
                     val crDown1 = findViewById<View>(idDownC1)
@@ -405,13 +393,13 @@ class GameActivity3tmp : AppCompatActivity() {
                     val bgDownC2 = crDown2.background as GradientDrawable
                     val txt = findViewById<TextView>(txtId)
                     if (clickCount % 2 == 1) {
-                        if (!isMuted) {
+                        isNotMuted {
                             val mediaPlayer = MediaPlayer.create(this, R.raw.box_ef)
                             mediaPlayer.start()
                             mediaPlayer.setOnCompletionListener(MediaPlayer::release)
                         }
                         scoreRed++
-                        scoreRedView.text = "" + scoreRed
+                        binding.scoreRed.text = "" + scoreRed
                         txt.text = "" + nm1[0]
                         txt.typeface = ResourcesCompat.getFont(applicationContext, R.font.bertram)
                         bgDownU.setColor(ContextCompat.getColor(applicationContext, R.color.redX))
@@ -428,13 +416,13 @@ class GameActivity3tmp : AppCompatActivity() {
                         bgDownC2.setColor(ContextCompat.getColor(applicationContext, R.color.redX))
                         bgDownC2.setStroke(14, ContextCompat.getColor(applicationContext, R.color.redY))
                     } else {
-                        if (!isMuted) {
+                        isNotMuted {
                             val mediaPlayer = MediaPlayer.create(this, R.raw.box_ef)
                             mediaPlayer.start()
                             mediaPlayer.setOnCompletionListener(MediaPlayer::release)
                         }
                         scoreBlue++
-                        scoreBlueView.text = "" + scoreBlue
+                        binding.scoreBlue.text = scoreBlue.toString()
                         txt.text = "" + nm2[0]
                         txt.typeface = ResourcesCompat.getFont(applicationContext, R.font.bertram)
                         bgDownU.setColor(ContextCompat.getColor(applicationContext, R.color.blueX))
@@ -452,7 +440,7 @@ class GameActivity3tmp : AppCompatActivity() {
                         bgDownC2.setStroke(14, ContextCompat.getColor(applicationContext, R.color.blueY))
                         if (one) {
                             one = false
-                            Toast.makeText(this, "Bonus TURN for you", Toast.LENGTH_SHORT).show()
+                            toast("Bonus TURN for you")
                         }
                     }
                     change = true
@@ -464,20 +452,20 @@ class GameActivity3tmp : AppCompatActivity() {
             } else {
                 if (clickCount % 2 == 1) {
                     clickEnabled = true
-                    redTxt.textSize = 30f
-                    redTxt.setTextColor(resources.getColor(R.color.whiteT, theme))
-                    blueTxt.textSize = 35f
-                    blueTxt.setTextColor(resources.getColor(R.color.white, theme))
+                    binding.red.textSize = 30f
+                    binding.red.setTextColor(resources.getColor(R.color.whiteT, theme))
+                    binding.blue.textSize = 35f
+                    binding.blue.setTextColor(resources.getColor(R.color.white, theme))
                 } else {
-                    blueTxt.textSize = 30f
-                    blueTxt.setTextColor(resources.getColor(R.color.whiteT, theme))
-                    redTxt.textSize = 35f
-                    redTxt.setTextColor(resources.getColor(R.color.white, theme))
+                    binding.blue.textSize = 30f
+                    binding.blue.setTextColor(resources.getColor(R.color.whiteT, theme))
+                    binding.red.textSize = 35f
+                    binding.red.setTextColor(resources.getColor(R.color.white, theme))
                 }
             }
             if (clickCount % 2 == 1) {
                 clickEnabled = true
-            } else if (lineIDs.size > 0) {
+            } else if (lineIDs.isNotEmpty()) {
                 clickEnabled = false
                 var countColored = 0
                 var blankIndex = -69
@@ -487,9 +475,9 @@ class GameActivity3tmp : AppCompatActivity() {
                     ) > 1 && idNm[4] == 'L'
                 ) {
                     //Log.d("TAG", "lineClick: AI in top half");
-                    val idTopU = resources.getIdentifier(getIdNm(idNm)[0], "id", this.packageName)
-                    val idTopL = resources.getIdentifier(getIdNm(idNm)[1], "id", this.packageName)
-                    val idTopR = resources.getIdentifier(getIdNm(idNm)[2], "id", this.packageName)
+                    val idTopU = resources.getIdentifier(getIdNm(idNm)[0], "id", packageName)
+                    val idTopL = resources.getIdentifier(getIdNm(idNm)[1], "id", packageName)
+                    val idTopR = resources.getIdentifier(getIdNm(idNm)[2], "id", packageName)
                     val lineU = findViewById<View>(idTopU)
                     val lineL = findViewById<View>(idTopL)
                     val lineR = findViewById<View>(idTopR)
@@ -501,14 +489,15 @@ class GameActivity3tmp : AppCompatActivity() {
                     if (getColorGrad(bgTopR) != white) countColored++ else blankIndex = 2
                     if (countColored == 2) {
                         //Log.d("TAG", "lineClick: AI in top half countColored");
-                        val lineId = resources.getIdentifier(getIdNm(idNm)[blankIndex], "id", this.packageName)
-                        Handler(Looper.getMainLooper()).postDelayed({
+                        val lineId = resources.getIdentifier(getIdNm(idNm)[blankIndex], "id", packageName)
+                        lifecycleScope.launch(Dispatchers.Main){
+                            delay(500)
                             clickEnabled = true
                             recursion = true
-                            lineClick(findViewById(lineId))
+                            performClick(findViewById(lineId))
                             tmpLineId = lineId
                             recursion = false
-                        }, 500)
+                        }
                         extraTurn = true
                     }
                 }
@@ -519,9 +508,9 @@ class GameActivity3tmp : AppCompatActivity() {
                     ) < 7 && idNm[4] == 'L'
                 ) {
                     //Log.d("TAG", "lineClick: AI in dwn half");
-                    val idDownU = resources.getIdentifier(getIdNm(idNm)[3], "id", this.packageName)
-                    val idDownL = resources.getIdentifier(getIdNm(idNm)[4], "id", this.packageName)
-                    val idDownR = resources.getIdentifier(getIdNm(idNm)[5], "id", this.packageName)
+                    val idDownU = resources.getIdentifier(getIdNm(idNm)[3], "id", packageName)
+                    val idDownL = resources.getIdentifier(getIdNm(idNm)[4], "id", packageName)
+                    val idDownR = resources.getIdentifier(getIdNm(idNm)[5], "id", packageName)
                     val lineDownU = findViewById<View>(idDownU)
                     val lineDownL = findViewById<View>(idDownL)
                     val lineDownR = findViewById<View>(idDownR)
@@ -532,15 +521,14 @@ class GameActivity3tmp : AppCompatActivity() {
                     if (getColorGrad(bgDownL) != white) countColored++ else blankIndex = 4
                     if (getColorGrad(bgDownR) != white) countColored++ else blankIndex = 5
                     if (countColored == 2) {
-                        val lineId = this.resources.getIdentifier(getIdNm(idNm)[blankIndex], "id", this.packageName)
+                        val lineId = resources.getIdentifier(getIdNm(idNm)[blankIndex], "id", packageName)
                         //Log.d("TAG", "lineClick: AI in dwn half countColored");
-                        Handler(Looper.getMainLooper()).postDelayed({
-                            if (tmpLineId != lineId) {
-                                clickEnabled = true
-                                recursion = true
-                                lineClick(findViewById(lineId))
-                            }
-                        }, 650)
+                        delay(650)
+                        if (tmpLineId != lineId) {
+                            clickEnabled = true
+                            recursion = true
+                            performClick(findViewById(lineId))
+                        }
                         recursion = false
                         extraTurn = true
                     }
@@ -561,9 +549,9 @@ class GameActivity3tmp : AppCompatActivity() {
                         if (Character.getNumericValue(randLineIdNm!![1]) > 1 && randLineIdNm[4] == 'T' ||
                             Character.getNumericValue(randLineIdNm[3]) > 1 && randLineIdNm[4] == 'L'
                         ) {
-                            val idTopU = this.resources.getIdentifier(getIdNm(randLineIdNm)[0], "id", this.packageName)
-                            val idTopL = this.resources.getIdentifier(getIdNm(randLineIdNm)[1], "id", this.packageName)
-                            val idTopR = this.resources.getIdentifier(getIdNm(randLineIdNm)[2], "id", this.packageName)
+                            val idTopU = resources.getIdentifier(getIdNm(randLineIdNm)[0], "id", packageName)
+                            val idTopL = resources.getIdentifier(getIdNm(randLineIdNm)[1], "id", packageName)
+                            val idTopR = resources.getIdentifier(getIdNm(randLineIdNm)[2], "id", packageName)
                             val lineU = findViewById<View>(idTopU)
                             val lineL = findViewById<View>(idTopL)
                             val lineR = findViewById<View>(idTopR)
@@ -576,9 +564,9 @@ class GameActivity3tmp : AppCompatActivity() {
                         }
                         if ((Character.getNumericValue(randLineIdNm[1]) < 7 && randLineIdNm[4] == 'T' || Character.getNumericValue(randLineIdNm[3]) < 7) && randLineIdNm[4] == 'L'
                         ) {
-                            val idDownU = this.resources.getIdentifier(getIdNm(randLineIdNm)[3], "id", this.packageName)
-                            val idDownL = this.resources.getIdentifier(getIdNm(randLineIdNm)[4], "id", this.packageName)
-                            val idDownR = this.resources.getIdentifier(getIdNm(randLineIdNm)[5], "id", this.packageName)
+                            val idDownU = resources.getIdentifier(getIdNm(randLineIdNm)[3], "id", packageName)
+                            val idDownL = resources.getIdentifier(getIdNm(randLineIdNm)[4], "id", packageName)
+                            val idDownR = resources.getIdentifier(getIdNm(randLineIdNm)[5], "id", packageName)
                             val lineDownU = findViewById<View>(idDownU)
                             val lineDownL = findViewById<View>(idDownL)
                             val lineDownR = findViewById<View>(idDownR)
@@ -604,39 +592,35 @@ class GameActivity3tmp : AppCompatActivity() {
                     }
 
                     //Log.d("TAG", "AiLineClick: "+randLineIdNm+" Up- "+countColoredUp+" Dn- "+countColoredDn);
-                    val lineId = this.resources.getIdentifier(randLineIdNm, "id", this.packageName)
-                    Handler(Looper.getMainLooper()).postDelayed({
-                        clickEnabled = true
-                        lineClick(findViewById(lineId))
-                    }, 800)
+                    val lineId = resources.getIdentifier(randLineIdNm, "id", packageName)
+                    delay(800)
+                    clickEnabled = true
+                    performClick(findViewById(lineId))
                 }
             }
-            Handler(Looper.getMainLooper()).postDelayed({
-                if (scoreRed + scoreBlue == 36) {
-                    if (!isMuted) {
-                        val mediaPlayer = MediaPlayer.create(this@GameActivity3tmp, R.raw.win_ef)
-                        mediaPlayer.start()
-                        mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-                    }
-                    redTxt.textSize = 30f
-                    redTxt.setTextColor(resources.getColor(R.color.white, theme))
-                    blueTxt.textSize = 30f
-                    blueTxt.setTextColor(resources.getColor(R.color.white, theme))
-                    if (scoreRed > scoreBlue) onGameOver("AI won the match.") else if (scoreRed < scoreBlue) onGameOver(
-                        "You won the match."
-                    ) else onGameOver("Match Draw.")
+            if (scoreRed + scoreBlue == 36){
+                delay(950)
+                isNotMuted {
+                    val mediaPlayer = MediaPlayer.create(this@BotActivity, R.raw.win_ef)
+                    mediaPlayer.start()
+                    mediaPlayer.setOnCompletionListener(MediaPlayer::release)
                 }
-
-            }, 950)
-
+                binding.red.textSize = 30f
+                binding.red.setTextColor(resources.getColor(R.color.white, theme))
+                binding.blue.textSize = 30f
+                binding.blue.setTextColor(resources.getColor(R.color.white, theme))
+                if (scoreRed > scoreBlue) onGameOver("AI won the match.") else if (scoreRed < scoreBlue) onGameOver(
+                    "You won the match."
+                ) else onGameOver("Match Draw.")
+            }
         }
     }
 
 
     @SuppressLint("SetTextI18n")
     fun onGameOver(winMsg: String) {
-        val builder = AlertDialog.Builder(this@GameActivity3tmp)
-        val dialogBinding = DialogLayoutAlertBinding.inflate(LayoutInflater.from(this@GameActivity3tmp))
+        val builder = AlertDialog.Builder(this@BotActivity)
+        val dialogBinding = DialogLayoutAlertBinding.inflate(LayoutInflater.from(this@BotActivity))
         builder.setView(dialogBinding.root)
         //builder.setCancelable(false);
         dialogBinding.textMessage.text = "" + winMsg
@@ -644,17 +628,17 @@ class GameActivity3tmp : AppCompatActivity() {
         dialogBinding.buttonYes.text = "Retry!"
         val alertDialog = builder.create()
         dialogBinding.buttonYes.setBounceClickListener {
-            if (!isMuted) {
+            isNotMuted {
                 val mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
                 mediaPlayer.start()
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release)
             }
             alertDialog.dismiss()
-            startActivity(Intent(this@GameActivity3tmp, GameActivity3tmp::class.java))
+            startActivity(Intent(this@BotActivity, BotActivity::class.java))
             finish()
         }
         dialogBinding.buttonNo.setBounceClickListener {
-            if (!isMuted) {
+            isNotMuted {
                 val mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
                 mediaPlayer.start()
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release)
@@ -671,25 +655,8 @@ class GameActivity3tmp : AppCompatActivity() {
         catch (npe: Exception) { npe.printStackTrace() }
     }
 
-    fun volButton(view: View) {
-        if (!isMuted) {
-            findViewById<View>(R.id.volBtn).setBackgroundResource(R.drawable.btn_gry_bg)
-            (findViewById<View>(R.id.volBtn) as ImageButton).setImageResource(R.drawable.icon_vol_mute)
-            editor.putBoolean("muted", true).apply()
-        } else {
-            if (!isMuted) {
-                val mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
-                mediaPlayer.start()
-                mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-            }
-            findViewById<View>(R.id.volBtn).setBackgroundResource(R.drawable.btn_ylw_bg)
-            (findViewById<View>(R.id.volBtn) as ImageButton).setImageResource(R.drawable.icon_vol_unmute)
-            editor.putBoolean("muted", false).apply()
-        }
-    }
-
-    fun ideaBtn(view: View) {
-        if (!isMuted) {
+    fun ideaBtn() {
+        isNotMuted {
             val mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
             mediaPlayer.start()
             mediaPlayer.setOnCompletionListener(MediaPlayer::release)
@@ -698,8 +665,8 @@ class GameActivity3tmp : AppCompatActivity() {
     }
 
     private fun infoShow(finish: (() -> Unit)? = null) {
-        if (isFirstRun) editor.putBoolean("firstRun", false).apply()
-        val i = AtomicInteger()
+        if (isFirstRun) prefEditor.putBoolean("firstRun", false).apply()
+        var i = 0
         val gifs = intArrayOf(
             R.drawable.g0,
             R.drawable.g1,
@@ -714,42 +681,41 @@ class GameActivity3tmp : AppCompatActivity() {
             "Take a bonus TURN after making a BOX.",
             "Click on this button anytime to see the rules again."
         )
-        val builder = AlertDialog.Builder(this@GameActivity3tmp)
-        val dialogBinding = DialogLayoutInfoBinding.inflate(LayoutInflater.from(this@GameActivity3tmp))
+        val builder = AlertDialog.Builder(this@BotActivity)
+        val dialogBinding = DialogLayoutInfoBinding.inflate(LayoutInflater.from(this@BotActivity))
         builder.setView(dialogBinding.root)
         builder.setCancelable(false)
 
         dialogBinding.textMessage.text = msg[0]
-        dialogBinding.playGif.setImageResource(gifs[0])
-        dialogBinding.buttonPre.visibility = View.INVISIBLE
+        dialogBinding.playGif.loadDrawable(gifs[0])
+        dialogBinding.buttonPre.invisible()
         val alertDialog = builder.create()
         dialogBinding.buttonPre.setBounceClickListener {
-            if (!isMuted) {
+            isNotMuted {
                 val mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
                 mediaPlayer.start()
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release)
             }
-            if (i.get() != 0) i.getAndDecrement()
-            if (i.get() == 0) dialogBinding.buttonPre.visibility = View.INVISIBLE
-            dialogBinding.textMessage.text = msg[i.get()]
-            dialogBinding.playGif.setImageResource(gifs[i.get()])
+            if (i != 0) i--
+            if (i == 0) dialogBinding.buttonPre.invisible()
+            dialogBinding.textMessage.text = msg[i]
+            dialogBinding.playGif.loadDrawable(gifs[i])
         }
         dialogBinding.buttonNext.setBounceClickListener {
-            if (!isMuted) {
+            isNotMuted {
                 val mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
                 mediaPlayer.start()
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release)
             }
-            i.getAndIncrement()
-            if (!isFirstRun && i.get() == 4) i.getAndIncrement()
-            if (i.get() == 1) dialogBinding.buttonPre.visibility = View.VISIBLE
-            if (i.get() == 5) {
+            i++
+            if (!isFirstRun && i == 4) i++
+            if (i == 1) dialogBinding.buttonPre.show()
+            if (i == 5) {
                 alertDialog.dismiss()
                 finish?.invoke()
-            }
-            else {
-                dialogBinding.textMessage.text = msg[i.get()]
-                dialogBinding.playGif.setImageResource(gifs[i.get()])
+            } else {
+                dialogBinding.textMessage.text = msg[i]
+                dialogBinding.playGif.loadDrawable(gifs[i])
             }
         }
         alertDialog.window?.setBackgroundDrawable(ColorDrawable(0))
@@ -758,8 +724,8 @@ class GameActivity3tmp : AppCompatActivity() {
         catch (npe: Exception) { npe.printStackTrace() }
     }
 
-    fun backBtn(view: View) {
-        if (!isMuted) {
+    private fun backBtn() {
+        isNotMuted {
             val mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
             mediaPlayer.start()
             mediaPlayer.setOnCompletionListener(MediaPlayer::release)
