@@ -1,41 +1,62 @@
 package com.diu.yk_games.line2box.presentation
 
-import android.annotation.SuppressLint
-import android.content.Context
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
-import android.widget.TextView
+import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
+import androidx.recyclerview.widget.RecyclerView
 import com.diu.yk_games.line2box.R
+import com.diu.yk_games.line2box.databinding.CustomMsgListViewBinding
 import com.diu.yk_games.line2box.model.MsgStore
 import com.diu.yk_games.line2box.util.toDateTime
 
-class MsgListAdapter(
-    context: Context,
-    private val ms: List<MsgStore>
-) : ArrayAdapter<MsgStore>(context, 0, ms) {
-    @SuppressLint("SetTextI18n")
-    override fun getView(position: Int, convView: View?, parent: ViewGroup): View {
-        var convertView = convView
-        if (convertView == null) {
-            convertView =
-                LayoutInflater.from(context).inflate(R.layout.custom_msg_list_view, parent, false)
+class MsgListAdapter : ListAdapter<MsgStore, MsgListAdapter.ViewHolder>(MsgStoreDiffCallback()) {
+
+    var onClickListener: ((MsgStore) -> Unit)? = null
+    var onLongClickListener: ((MsgStore) -> Boolean)? = null
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        return ViewHolder(CustomMsgListViewBinding.inflate(
+            LayoutInflater.from(parent.context), parent, false
+        ))
+    }
+
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        holder.bind(getItem(position))
+    }
+
+    inner class ViewHolder(private val binding: CustomMsgListViewBinding) : RecyclerView.ViewHolder(binding.root) {
+
+        fun bind(item: MsgStore) {
+            binding.apply {
+                // Set time data
+                timeShowId.text = if (item.time != 0L) item.time.toDateTime() else item.timeData
+
+                // Set name and level data
+                nmId.text = item.nmData
+                lvlId.text = item.lvlData
+
+                // Set message data and color
+                msgId.text = item.msgData
+                val messageColor = when (item.msgData) {
+                    "Created the match.", "Joined the match.", "Won the match." -> R.color.color_match_action
+                    "Left the match." -> R.color.color_left_match
+                    else -> R.color.whiteY
+                }
+                msgId.setTextColor(ContextCompat.getColor(itemView.context, messageColor))
+                root.setOnClickListener {
+                    onClickListener?.invoke(item)
+                }
+                root.setOnLongClickListener {
+                    onLongClickListener?.invoke(item) ?: false
+                }
+            }
         }
-        val timeData = convertView!!.findViewById<TextView>(R.id.timeShowId)
-        val nmData = convertView.findViewById<TextView>(R.id.nmId)
-        val msgData = convertView.findViewById<TextView>(R.id.msgId)
-        val lvlData = convertView.findViewById<TextView>(R.id.lvlId)
-        timeData.text = if(ms[position].time != 0L) ms[position].time.toDateTime() else ms[position].timeData
-        nmData.text = ms[position].nmData
-        lvlData.text = ms[position].lvlData
-        val data = ms[position].msgData
-        msgData.text = data
-        when (data) {
-            "Created the match.", "Joined the match.", "Won the match." -> msgData.setTextColor(-0x9f3dcb)
-            "Left the match." -> msgData.setTextColor(-0x21d2bb)
-            else -> msgData.setTextColor(-0x262627)
-        }
-        return convertView
+    }
+
+    class MsgStoreDiffCallback : DiffUtil.ItemCallback<MsgStore>() {
+        override fun areItemsTheSame(oldItem: MsgStore, newItem: MsgStore) = oldItem.time == newItem.time && oldItem.msgData == newItem.msgData
+        override fun areContentsTheSame(oldItem: MsgStore, newItem: MsgStore)= oldItem == newItem
     }
 }

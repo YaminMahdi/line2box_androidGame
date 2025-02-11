@@ -16,7 +16,6 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
-import android.widget.Toast
 import androidx.activity.addCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -46,6 +45,7 @@ import com.diu.yk_games.line2box.util.setBounceClickListener
 import com.diu.yk_games.line2box.util.setClipBoardData
 import com.diu.yk_games.line2box.util.setNavStatusPadding
 import com.diu.yk_games.line2box.util.show
+import com.diu.yk_games.line2box.util.toast
 import com.google.android.gms.common.images.ImageManager
 import com.google.android.gms.games.PlayGames
 import com.google.firebase.Firebase
@@ -207,22 +207,20 @@ class MultiplayerActivity : AppCompatActivity() {
                                             })
                                     }else if(!amiThePayer){
                                         binding.startMatchBtn.isEnabled = false
-                                        Toast.makeText(this@MultiplayerActivity, "Match already started", Toast.LENGTH_SHORT).show()
+                                        toast("Match already started")
                                     }
                                 } else{
                                     binding.startMatchBtn.isEnabled = false
-                                    Toast.makeText(this@MultiplayerActivity, "Invalid Key", Toast.LENGTH_SHORT).show()
+                                    toast("Invalid Key")
                                 }
                             }
                             override fun onCancelled(error: DatabaseError) {
                                 Log.w("TAG", "Failed to read value.", error.toException())
-                                Toast.makeText(this@MultiplayerActivity, "Server Error", Toast.LENGTH_SHORT).show()
+                                toast("Server Error")
                             }
                         })
                 }
-                else {
-                    Toast.makeText(this@MultiplayerActivity, "Invalid Key", Toast.LENGTH_SHORT).show()
-                }
+                else toast("Invalid Key")
             }
         }
         nm2 = GameProfile().nm
@@ -379,7 +377,6 @@ class MultiplayerActivity : AppCompatActivity() {
             val layout1 = findViewById<LinearLayout>(R.id.chatFragmentLinerLayout)
             val layout2 = findViewById<LinearLayout>(R.id.navCloseButtonLayout)
             if (heightDiff > 0.25 * maxHight) {
-                //Toast.makeText(MultiplayerActivity.this, "hi", Toast.LENGTH_SHORT).show();
                 // if more than 25% of the screen, its probably a keyboard......do something here
                 Log.d("TAG", "onGlobalLayout: here")
                 layout1.setPadding(0, 0, 0, heightDiff)
@@ -556,7 +553,7 @@ class MultiplayerActivity : AppCompatActivity() {
 
     @Suppress("DEPRECATION")
     private fun changeNameNeeded() {
-        Toast.makeText(this, "Change Your Name.", Toast.LENGTH_SHORT).show()
+        toast("Change Your Name.")
         prefEditor.putBoolean("muted", true).apply()
         profileBtn{binding->
             prefEditor.putBoolean("muted", false).apply()
@@ -747,8 +744,8 @@ class MultiplayerActivity : AppCompatActivity() {
                     closeKeyboard()
                     val newNm: String = nmTxt.text.toString()
                      if (newNm.length <2) {
-                        Toast.makeText(this@MultiplayerActivity, "Can't be single character.", Toast.LENGTH_SHORT).show()
-                        nmTxt.setText(oldName)
+                         toast("Can't be single character.")
+                         nmTxt.setText(oldName)
                     } else {
                         val z = GameProfile()
                         z.nm = newNm
@@ -774,10 +771,10 @@ class MultiplayerActivity : AppCompatActivity() {
                 closeKeyboard()
                 val newNm: String = nmTxt.text.toString()
                 if ((newNm == "")) {
-                    Toast.makeText(this@MultiplayerActivity, "Can't be empty.", Toast.LENGTH_SHORT).show()
+                    toast("Can't be empty.")
                     nmTxt.setText("" + oldName)
                 } else if (newNm.length == 1) {
-                    Toast.makeText(this@MultiplayerActivity, "Can't be single character.", Toast.LENGTH_SHORT).show()
+                    toast("Can't be single character.")
                     nmTxt.setText("" + oldName)
                 } else {
                     val z = GameProfile()

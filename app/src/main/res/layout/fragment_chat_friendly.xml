@@ -1,94 +1,91 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/ChatFragmentFriendly"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".presentation.online.ChatFragmentFriendly"
-    android:id="@+id/ChatFragmentFriendly"
     android:background="@color/cocX"
-    android:weightSum="2"
-    android:layout_alignParentBottom="true"
-    android:fitsSystemWindows="true"
+    tools:context=".presentation.online.ChatFragmentFriendly">
 
-    >
-    <!-- TODO: Update blank fragment layout -->
-
-    <ListView
+    <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/showMsgList"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/emoji"
-        android:layout_alignParentTop="true"
-        android:stackFromBottom="true"
-        android:transcriptMode="normal" />
+        android:layout_height="0dp"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        app:layout_constraintBottom_toTopOf="@+id/emoji"
+        app:layout_constraintTop_toTopOf="parent"
+        app:reverseLayout="true"
+        tools:listitem="@layout/custom_msg_list_view" />
 
     <LinearLayout
         android:id="@+id/emoji"
         android:layout_width="match_parent"
         android:layout_height="75dp"
-        android:layout_above="@+id/lin"
         android:background="@drawable/side_nav_bar"
         android:gravity="center"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toTopOf="@+id/lin">
 
         <Button
             android:id="@+id/sendHaha"
+            style="?android:attr/buttonBarButtonStyle"
             android:layout_width="0dp"
-            android:layout_weight="1"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:background="@drawable/btn_special_bg"
             android:text="🤣"
-            android:textSize="35sp"
-            style="?android:attr/buttonBarButtonStyle" />
+            android:textSize="35sp" />
 
         <Button
             android:id="@+id/sendCry"
+            style="?android:attr/buttonBarButtonStyle"
             android:layout_width="0dp"
-            android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:text="😭"
-            android:textSize="35sp"
+            android:layout_weight="1"
             android:background="@drawable/btn_special_bg"
-            style="?android:attr/buttonBarButtonStyle" />
+            android:text="😭"
+            android:textSize="35sp" />
+
         <Button
             android:id="@+id/sendScream"
+            style="?android:attr/buttonBarButtonStyle"
             android:layout_width="0dp"
-            android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:text="😱"
-            android:textSize="35sp"
+            android:layout_weight="1"
             android:background="@drawable/btn_special_bg"
-            style="?android:attr/buttonBarButtonStyle" />
+            android:text="😱"
+            android:textSize="35sp" />
+
         <Button
             android:id="@+id/sendKiss"
+            style="?android:attr/buttonBarButtonStyle"
             android:layout_width="0dp"
-            android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:text="😘"
-            android:textSize="35sp"
+            android:layout_weight="1"
             android:background="@drawable/btn_special_bg"
-            style="?android:attr/buttonBarButtonStyle" />
+            android:text="😘"
+            android:textSize="35sp" />
 
         <Button
             android:id="@+id/sendYawn"
+            style="?android:attr/buttonBarButtonStyle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:background="@drawable/btn_special_bg"
             android:text="🥱"
-            android:textSize="35sp"
-            style="?android:attr/buttonBarButtonStyle" />
+            android:textSize="35sp" />
 
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/lin"
         android:layout_width="match_parent"
         android:layout_height="60dp"
-        android:layout_alignParentBottom="true"
-        android:id="@+id/lin"
         android:background="@drawable/side_nav_bar"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent">
 
         <EditText
             android:id="@+id/chatBoxFriendly"
@@ -98,16 +95,15 @@
             android:layout_marginStart="5dp"
             android:layout_weight="1.4"
             android:background="@drawable/box_chat"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
             android:fontFamily="@font/sortie"
             android:hint="Type Here..."
+            android:lineSpacingExtra="5sp"
             android:paddingHorizontal="20dp"
             android:textColor="@color/cocZz"
             android:textColorHint="@color/cocZ"
-            android:textSize="20sp"
-            android:lineSpacingExtra="5sp"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            />
+            android:textSize="20sp" />
 
         <ImageButton
             android:id="@+id/msgSendBtn"
@@ -118,10 +114,9 @@
             android:layout_weight=".5"
             android:background="@drawable/btn_send_bg"
             android:src="@drawable/icon_send"
-            app:tint="#E0D89F"
-            />
+            app:tint="#E0D89F" />
 
     </LinearLayout>
 
 
-</RelativeLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

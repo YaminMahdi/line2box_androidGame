@@ -9,8 +9,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.AdapterView
-import android.widget.AdapterView.OnItemLongClickListener
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.core.os.bundleOf
@@ -25,27 +23,30 @@ import com.diu.yk_games.line2box.presentation.MsgListAdapter
 import com.diu.yk_games.line2box.util.gone
 import com.diu.yk_games.line2box.util.setBounceClickListener
 import com.diu.yk_games.line2box.util.setClipBoardData
+import com.diu.yk_games.line2box.util.toast
 import com.google.firebase.Firebase
 import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.database
+import com.google.firebase.database.getValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.toObject
 
 class ChatFragmentGlobal : Fragment() {
     private lateinit var binding: FragmentChatGlobalBinding
-    var msList= mutableListOf<MsgStore>()
+    var msList = mutableListOf<MsgStore>()
     private var database = Firebase.database
     private var myRef = database.getReference("globalChat")
-    private lateinit var playerId: String
     private lateinit var activity: Activity
+    private val msgListAdapter by lazy { MsgListAdapter() }
+    private lateinit var playerId: String
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (arguments != null) {
-            playerId = requireArguments().getString("playerId")!!
+        arguments?.let{
+            playerId = it.getString("playerId").orEmpty()
         }
-        activity = requireActivity()
     }
 
     override fun onCreateView(
@@ -53,23 +54,21 @@ class ChatFragmentGlobal : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentChatGlobalBinding.inflate(inflater, container, false)
-
+        activity = requireActivity()
         return binding.root
     }
 
     @SuppressLint("SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        binding.showMsgList.adapter = msgListAdapter
         binding.chatBoxGlobal.requestFocus()
         myRef.limitToLast(100).addChildEventListener(object : ChildEventListener {
             override fun onChildAdded(dataSnapshot: DataSnapshot, s: String?) {
-                if (dataSnapshot.exists()) {
-                    val ms = dataSnapshot.getValue(MsgStore::class.java)!!
-                    msList.add(ms)
-                    if (this@ChatFragmentGlobal.isAdded) {
-                        val adapter = MsgListAdapter(activity, msList) //
-                        binding.showMsgList.adapter = adapter
-                    }
+                val ms = dataSnapshot.getValue<MsgStore>()
+                if (dataSnapshot.exists() && ms != null) {
+                    msList.add(0,ms)
+                    msgListAdapter.submitList(msList)
                 }
             }
 
@@ -79,63 +78,65 @@ class ChatFragmentGlobal : Fragment() {
             override fun onCancelled(databaseError: DatabaseError) {}
         })
 
-        binding.showMsgList.onItemClickListener =
-            AdapterView.OnItemClickListener { _, _, position, _ ->
-
-                val playerId1 = msList[position].playerId
-                //presentationEco str = (presentationEco)o; //As you are using Default String Adapter
-                if (!pref.getBoolean("muted", false)) {
-                    val mediaPlayer =
-                        MediaPlayer.create(activity, R.raw.btn_click_ef)
-                    mediaPlayer.start()
-                    mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-                }
-                if (playerId1 != "") {
-                    val db = FirebaseFirestore.getInstance()
-                    db.collection("gamerProfile").document(playerId1)
-                        .get().addOnSuccessListener { documentSnapshot ->
-                            if (documentSnapshot.exists()) {
-                                val server2device = documentSnapshot.toObject<GameProfile>()
-                                val builder = AlertDialog.Builder(activity)
-                                val binding =
-                                    DialogLayoutProfileBinding.inflate(layoutInflater, null, false)
-                                builder.setView(binding.root)
-                                val params = LinearLayout.LayoutParams(
-                                    LinearLayout.LayoutParams.WRAP_CONTENT,
-                                    LinearLayout.LayoutParams.WRAP_CONTENT
-                                )
-                                params.setMargins(60, 150, 60, 0)
-                                binding.linearLayoutFrame.layoutParams = params
-                                binding.countryTxt.text =
-                                    "${server2device!!.countryNm} ${server2device.countryEmoji}"
-                                binding.lvlTxt.text = server2device.lvl.toString()
-                                binding.coinHave.text = server2device.coin.toString()
-                                binding.matchPlayedTxt.text = server2device.matchPlayed.toString()
-                                binding.matchWonTxt.text = server2device.matchWinMulti.toString()
-                                binding.nmTxt.isEnabled = false
-                                binding.nmTxt.setText(server2device.nm)
-                                //nmEditText.setVisibility(View.GONE);
-                                binding.profileTitle.textSize = 28f
-                                binding.profileShapeLayout.gone()
-                                binding.nmEditBtn.gone()
-                                binding.nmLTxt.gone()
-                                binding.themeBox.gone()
-                                binding.countryLTxt.gone()
-                                binding.buttonSaveInfo.gone()
-                                val alertDialog = builder.create()
-                                alertDialog.window?.setBackgroundDrawable(ColorDrawable(0))
-                                try {
-                                    alertDialog.show()
-                                } catch (npe: NullPointerException) {
-                                    npe.printStackTrace()
-                                }
+        msgListAdapter.onClickListener = { msg ->
+            val playerId1 = msg.playerId
+            //presentationEco str = (presentationEco)o; //As you are using Default String Adapter
+            if (!pref.getBoolean("muted", false)) {
+                val mediaPlayer =
+                    MediaPlayer.create(activity, R.raw.btn_click_ef)
+                mediaPlayer.start()
+                mediaPlayer.setOnCompletionListener(MediaPlayer::release)
+            }
+            if (playerId1 != "") {
+                val db = FirebaseFirestore.getInstance()
+                db.collection("gamerProfile").document(playerId1)
+                    .get().addOnSuccessListener { documentSnapshot ->
+                        if (documentSnapshot.exists()) {
+                            val server2device = documentSnapshot.toObject<GameProfile>()
+                            val builder = AlertDialog.Builder(activity)
+                            val binding =
+                                DialogLayoutProfileBinding.inflate(layoutInflater, null, false)
+                            builder.setView(binding.root)
+                            val params = LinearLayout.LayoutParams(
+                                LinearLayout.LayoutParams.WRAP_CONTENT,
+                                LinearLayout.LayoutParams.WRAP_CONTENT
+                            )
+                            params.setMargins(60, 150, 60, 0)
+                            binding.apply {
+                                linearLayoutFrame.layoutParams = params
+                                countryTxt.text = "${server2device!!.countryNm} ${server2device.countryEmoji}"
+                                lvlTxt.text = server2device.lvl.toString()
+                                coinHave.text = server2device.coin.toString()
+                                matchPlayedTxt.text = server2device.matchPlayed.toString()
+                                matchWonTxt.text = server2device.matchWinMulti.toString()
+                                nmTxt.isEnabled = false
+                                nmTxt.setText(server2device.nm)
+                                profileTitle.textSize = 28f
+                                profileShapeLayout.gone()
+                                nmEditBtn.gone()
+                                nmLTxt.gone()
+                                themeBox.gone()
+                                countryLTxt.gone()
+                                buttonSaveInfo.gone()
+                            }
+                            val alertDialog = builder.create()
+                            alertDialog.window?.setBackgroundDrawable(ColorDrawable(0))
+                            binding.root.setOnClickListener {
+                                alertDialog.dismiss()
+                            }
+                            try {
+                                alertDialog.show()
+                            } catch (e: Exception) {
+                                e.printStackTrace()
                             }
                         }
-                } else
-                    Toast.makeText(activity, "Older messages don't have profile info.", Toast.LENGTH_SHORT).show()
-            }
-        binding.showMsgList.onItemLongClickListener = OnItemLongClickListener { _, _, position, _ ->
-            activity.setClipBoardData(msList[position].msgData, "Text/ID copied")
+                    }
+            } else
+                toast("Older messages don't have profile info.")
+        }
+
+        msgListAdapter.onLongClickListener = { msg ->
+            activity.setClipBoardData(msg.msgData, "Text/ID copied")
             true
         }
 

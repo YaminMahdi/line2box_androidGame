@@ -38,5 +38,8 @@
     <color name="pinkX">#99C91DE7</color>
     <color name="pinkY">#AF2BC5</color>
 
+    <color name="color_match_action">#A0C34B</color>
+    <color name="color_left_match">#DE2E2E</color>
+
 
 </resources>

@@ -1,47 +1,59 @@
 package com.diu.yk_games.line2box.presentation
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
-import android.widget.TextView
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
+import androidx.recyclerview.widget.RecyclerView
 import com.diu.yk_games.line2box.R
+import com.diu.yk_games.line2box.databinding.CustomRankListViewBinding
 import com.diu.yk_games.line2box.model.GameProfile
 
 class RankListAdapter(
-    context: Context,
-    private val rankList: List<GameProfile>,
     private var playerId: String
-) : ArrayAdapter<GameProfile>(context, 0, rankList) {
-    @SuppressLint("SetTextI18n")
-    override fun getView(position: Int, convView: View?, parent: ViewGroup): View {
-        var convertView = convView
-        if (convertView == null) {
-            convertView = LayoutInflater.from(context)
-                .inflate(R.layout.custom_rank_list_view, parent, false)
-        }
-        if (rankList[position].playerId == playerId) {
-            myPosition = position
-            convertView!!.findViewById<View>(R.id.rankListItemBg)
-                .setBackgroundResource(R.drawable.box_chat_fill)
-        } else {
-            convertView!!.findViewById<View>(R.id.rankListItemBg)
-                .setBackgroundResource(R.drawable.btn_rank_bg)
-        }
-        val serialNo = convertView.findViewById<TextView>(R.id.serialId)
-        val nmData = convertView.findViewById<TextView>(R.id.nmId)
-        val coinData = convertView.findViewById<TextView>(R.id.coinId)
-        serialNo.text = (position + 1).toString() + "."
-        nmData.text = rankList[position].nm.split("\n")[0]
-        coinData.text = "" + rankList[position].coin
-        (convertView.findViewById<View>(R.id.lvlId) as TextView).text =
-            "" + rankList[position].lvl
-        return convertView
+) : ListAdapter<GameProfile, RankListAdapter.ViewHolder>(GameProfileDiffCallback()) {
+
+    var onClickListener: ((GameProfile) -> Unit)? = null
+
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        return ViewHolder(CustomRankListViewBinding.inflate(
+            LayoutInflater.from(parent.context), parent, false
+        ))
     }
 
-    companion object {
-        var myPosition = 0
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        holder.bind(getItem(position), position)
+    }
+
+    inner class ViewHolder(
+        private val binding: CustomRankListViewBinding
+    ) : RecyclerView.ViewHolder(binding.root) {
+
+        @SuppressLint("SetTextI18n")
+        fun bind(item: GameProfile, position: Int) {
+            binding.apply {
+                // Highlight current player's item
+                rankListItemBg.setBackgroundResource(
+                    if (item.playerId == playerId) R.drawable.box_chat_fill
+                    else R.drawable.btn_rank_bg
+                )
+
+                serialId.text = "${position + 1}."
+                nmId.text = item.nm.split("\n")[0]
+                coinId.text = item.coin.toString()
+                lvlId.text = item.lvl.toString()
+                root.setOnClickListener {
+                    if (item.playerId.isNotEmpty())
+                        onClickListener?.invoke(item)
+                }
+            }
+        }
+    }
+
+    class GameProfileDiffCallback : DiffUtil.ItemCallback<GameProfile>() {
+        override fun areItemsTheSame(oldItem: GameProfile, newItem: GameProfile) = oldItem.playerId == newItem.playerId
+        override fun areContentsTheSame(oldItem: GameProfile, newItem: GameProfile) = oldItem.playerId == newItem.playerId
     }
 }

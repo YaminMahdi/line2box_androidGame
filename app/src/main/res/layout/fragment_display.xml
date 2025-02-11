@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@drawable/box"
     android:layout_marginHorizontal="20dp"
     android:layout_marginTop="50dp"
@@ -43,11 +44,12 @@
 
             />
     </LinearLayout>
-    <ListView
+    <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/showScoreList"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:listitem="@layout/custom_list_view"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         />
 
 </LinearLayout>

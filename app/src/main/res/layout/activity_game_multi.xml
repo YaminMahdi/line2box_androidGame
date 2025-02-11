@@ -147,15 +147,14 @@
             <LinearLayout
                 android:id="@+id/chatFragmentLinerLayout"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="match_parent">
 
                 <androidx.fragment.app.FragmentContainerView
                     android:id="@+id/chatFragment"
                     android:name="com.diu.yk_games.line2box.presentation.BlankFragment"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:fitsSystemWindows="true"
-                    tools:layout="@layout/fragment_blank"
+                    android:layout_height="match_parent"
+                    tools:layout="@layout/fragment_chat_global"
                     />
             </LinearLayout>
 

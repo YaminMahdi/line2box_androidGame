@@ -22,7 +22,7 @@ import com.diu.yk_games.line2box.databinding.FragmentDisplayBinding
 import com.diu.yk_games.line2box.model.DataStore
 import com.diu.yk_games.line2box.model.GameProfile
 import com.diu.yk_games.line2box.pref
-import com.diu.yk_games.line2box.presentation.MyListAdapter
+import com.diu.yk_games.line2box.presentation.ScoreListAdapter
 import com.diu.yk_games.line2box.util.gone
 import com.diu.yk_games.line2box.util.setBounceClickListener
 import com.diu.yk_games.line2box.util.toast
@@ -37,6 +37,8 @@ class DisplayFragment : Fragment() {
     private lateinit var p1Pro: GameProfile
     private lateinit var p2Pro: GameProfile
     private lateinit var context: Context
+
+    private val scoreListAdapter by lazy { ScoreListAdapter() }
 
     companion object{
         private const val TAG = "DisplayFragment"
@@ -60,6 +62,7 @@ class DisplayFragment : Fragment() {
     @SuppressLint("SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        binding.showScoreList.adapter = scoreListAdapter
         val db = Firebase.firestore
         //Source source = Source.CACHE;
         db.collection("LastBestPlayer").document("LastBestPlayer")
@@ -79,21 +82,14 @@ class DisplayFragment : Fragment() {
             .get()
             .addOnSuccessListener { task ->
                 task.documents.forEach {
-                    val ds = it.toObject<DataStore>()!!
-                    dsList.add(0, ds)
+                    it.toObject<DataStore>()?.let {ds->
+                        dsList.add(0, ds)
+                    }
                 }
                 Log.d(TAG, "isSuccessful: ${dsList.size}")
-                try {
-                    if(isAdded){
-                        val adapter = MyListAdapter(context, dsList)
-                        binding.showScoreList.adapter = adapter
-                    }
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
+                scoreListAdapter.submitList(dsList)
             }
-        binding.showScoreList.setOnItemClickListener { _, _, position, _ ->
-            val gamerPro = dsList[position]
+        scoreListAdapter.onClickListener = { gamerPro ->
             if ((gamerPro.plr1Id == "offline"))
                 toast("Offline match doesn't have Profile Info.")
             else if ((gamerPro.plr1Id == ""))
@@ -108,12 +104,13 @@ class DisplayFragment : Fragment() {
                 val builder = AlertDialog.Builder(context)
                 val dialogBinding = DialogLayoutScrGlobeBinding.inflate(layoutInflater, null, false)
                 builder.setView(dialogBinding.root)
-                Log.d(TAG, position.toString() + "onItemClick: 1id " + gamerPro.plr1Id)
+                Log.d(TAG, "onItemClick: 1id " + gamerPro.plr1Id)
                 Log.d(TAG, "onItemClick: 2id " + gamerPro.plr2Id)
                 db.collection("gamerProfile").document(gamerPro.plr1Id)
                     .get()
                     .addOnSuccessListener { documentSnapshot ->
-                        if (documentSnapshot.exists()) {
+                        val gp = documentSnapshot.toObject<GameProfile>()
+                        if (documentSnapshot.exists() && gp != null) {
                             val scr = gamerPro.redData.split(" ".toRegex())
                                 .dropLastWhile { it.isEmpty() }
                                 .toTypedArray()
@@ -121,7 +118,7 @@ class DisplayFragment : Fragment() {
                             dialogBinding.plr1Score.text = scr[scr.size - 1]
                             dialogBinding.plr1Cup.text = gamerPro.plr1Cup
                             Log.d(TAG, "onSuccess: cup " + gamerPro.plr1Cup)
-                            p1Pro = documentSnapshot.toObject<GameProfile>()!!
+                            p1Pro = gp
                             if (p1Pro.countryEmoji != "")
                                 dialogBinding.plr1Flag.text = p1Pro.countryEmoji
                             dialogBinding.plr1Nm.text = p1Pro.nm
@@ -131,13 +128,14 @@ class DisplayFragment : Fragment() {
                     }
                 db.collection("gamerProfile").document(gamerPro.plr2Id)
                     .get().addOnSuccessListener { documentSnapshot ->
-                        if (documentSnapshot.exists()) {
+                        val gp = documentSnapshot.toObject<GameProfile>()
+                        if (documentSnapshot.exists() && gp != null) {
                             val scr = gamerPro.blueData.split(" ".toRegex())
                                 .dropLastWhile { it.isEmpty() }
                                 .toTypedArray()
                             dialogBinding.plr2Score.text = scr[scr.size - 1]
                             dialogBinding.plr2Cup.text = gamerPro.plr2Cup
-                            p2Pro = documentSnapshot.toObject<GameProfile>()!!
+                            p2Pro = gp
                             if (p2Pro.countryEmoji != "")
                                 dialogBinding.plr2Flag.text = p2Pro.countryEmoji
                             dialogBinding.plr2Nm.text = p2Pro.nm
@@ -146,8 +144,7 @@ class DisplayFragment : Fragment() {
                         val alertDialog = builder.create()
                         alertDialog.window?.setBackgroundDrawable(ColorDrawable(0))
                         try { alertDialog.show() }
-                        catch (e: Exception) {
-                            e.printStackTrace() }
+                        catch (e: Exception) { e.printStackTrace() }
                     }
                 dialogBinding.linLayoutPlr1
                     .setBounceClickListener {
