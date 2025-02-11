@@ -38,14 +38,14 @@
             android:src="@drawable/icon_forward"
             app:tint="@color/cocZz" />
 
-        <com.mikhaellopez.circularimageview.CircularImageView
+        <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/newMsgBoltu"
             android:layout_width="14dp"
             android:layout_height="14dp"
             android:layout_marginStart="15dp"
-            android:src="@drawable/icon_home"
-            app:civ_border_color="@color/redY"
-            app:civ_border_width="7dp" />
+            android:background="@color/redY"
+            app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.Round" />
+
     </RelativeLayout>
 
     <LinearLayout

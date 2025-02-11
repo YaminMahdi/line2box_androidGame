@@ -87,8 +87,6 @@ dependencies {
     implementation("org.jsoup:jsoup:1.18.3")
 
     implementation("io.ak1:bubbletabbar:1.0.8")
-//    implementation("pl.droidsonroids.gif:android-gif-drawable:1.2.29")
-    implementation("com.mikhaellopez:circularimageview:4.3.1")
     implementation("com.github.GwonHyeok:StickySwitch:0.0.16")
 
     // Dimension libraries (sdp, ssp)

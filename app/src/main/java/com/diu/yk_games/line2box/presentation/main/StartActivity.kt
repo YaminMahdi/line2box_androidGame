@@ -7,15 +7,11 @@ import android.content.Intent
 import android.graphics.drawable.ColorDrawable
 import android.media.MediaPlayer
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
-import android.util.AttributeSet
 import android.util.Log
 import android.view.LayoutInflater
-import android.view.View
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.diu.yk_games.line2box.BuildConfig
@@ -30,11 +26,7 @@ import com.diu.yk_games.line2box.databinding.DialogLayoutUpdateuiBinding
 import com.diu.yk_games.line2box.model.ErrorType
 import com.diu.yk_games.line2box.model.GameProfile
 import com.diu.yk_games.line2box.model.HadithStore
-import com.diu.yk_games.line2box.util.applyState
-import com.diu.yk_games.line2box.util.isMuted
-import com.diu.yk_games.line2box.util.isNotMuted
 import com.diu.yk_games.line2box.model.msg
-import com.diu.yk_games.line2box.util.performOnClick
 import com.diu.yk_games.line2box.pref
 import com.diu.yk_games.line2box.prefEditor
 import com.diu.yk_games.line2box.presentation.BlankFragment
@@ -42,10 +34,14 @@ import com.diu.yk_games.line2box.presentation.bot.GameActivity3
 import com.diu.yk_games.line2box.presentation.offline.GameActivity1
 import com.diu.yk_games.line2box.presentation.online.MultiplayerActivity
 import com.diu.yk_games.line2box.util.ConnectivityObserver
+import com.diu.yk_games.line2box.util.applyState
 import com.diu.yk_games.line2box.util.gone
 import com.diu.yk_games.line2box.util.hideSystemBars
 import com.diu.yk_games.line2box.util.invisible
+import com.diu.yk_games.line2box.util.isMuted
+import com.diu.yk_games.line2box.util.isNotMuted
 import com.diu.yk_games.line2box.util.loadDrawable
+import com.diu.yk_games.line2box.util.performOnClick
 import com.diu.yk_games.line2box.util.setBounceClickListener
 import com.diu.yk_games.line2box.util.setNavStatusPadding
 import com.diu.yk_games.line2box.util.show
@@ -123,6 +119,7 @@ class StartActivity : AppCompatActivity() {
 //    private var mode3: ImageView? = null
     private lateinit var loadingUI: LoadingUI
     private var onlineStatus =""
+    private val db = Firebase.firestore
 
     // ...
     // Initialize Firebase Auth
@@ -138,16 +135,6 @@ class StartActivity : AppCompatActivity() {
         super.onDestroy()
     }
 
-    override fun onCreateView(
-        parent: View?,
-        name: String,
-        context: Context,
-        attrs: AttributeSet
-    ): View? {
-        return super.onCreateView(parent, name, context, attrs)
-    }
-
-    @RequiresApi(Build.VERSION_CODES.R)
     @SuppressLint("VisibleForTests")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -166,7 +153,6 @@ class StartActivity : AppCompatActivity() {
 //        mode3 = findViewById(R.id.mode3)
         loadingUI = LoadingUI()
         loadingUI.start()
-        val db = FirebaseFirestore.getInstance()
         //if (!isFirstRun)
 
         //if(isFirstRun)
@@ -283,7 +269,7 @@ class StartActivity : AppCompatActivity() {
                                                             val document = task.result
                                                             if (document.exists()) {
                                                                 prefEditor.putBoolean("needProfile", false).apply()
-                                                                loadProfileFromServer(db)
+                                                                loadProfileFromServer()
                                                                 onlineStatus = "pass"
                                                                 loadingUI.stop()
                                                                 //Log.d(TAG, "Profile exists!");
@@ -308,7 +294,7 @@ class StartActivity : AppCompatActivity() {
                                                                         onlineStatus = "needReload"
                                                                         loadingUI.stop()
                                                                     }
-                                                                getLocation(db)
+                                                                getLocation()
                                                             }
                                                         } else {
                                                             //Log.d(TAG, "Failed with: ", task.getException());
@@ -317,7 +303,7 @@ class StartActivity : AppCompatActivity() {
                                                         }
                                                     }
                                             } else {
-                                                loadProfileFromServer(db)
+                                                loadProfileFromServer()
                                                 onlineStatus = "pass"
                                                 loadingUI.stop()
                                             }
@@ -378,21 +364,21 @@ class StartActivity : AppCompatActivity() {
 
     }
 
-    private fun loadProfileFromServer(db: FirebaseFirestore) {
+    private fun loadProfileFromServer() {
         db.collection("gamerProfile")
 //            .whereEqualTo("playerId",playerId)
             .document(playerId).get()
             .addOnSuccessListener { documentSnapshot ->
                 if (documentSnapshot.exists()) {
-                    val server2device = documentSnapshot.toObject<GameProfile>()!!
-                    server2device.apply()
+                    val server2device = documentSnapshot.toObject<GameProfile>()
+                    server2device?.apply()
                     //remove some day
-                    getLocation(db)
+                    getLocation()
                 }
             }
     }
 
-    private fun getLocation(db: FirebaseFirestore) {
+    private fun getLocation() {
         lifecycleScope.launch(Dispatchers.IO) {
             val bodyTxt: String
             try {
@@ -574,14 +560,15 @@ class StartActivity : AppCompatActivity() {
         val db = Firebase.firestore
         db.collection("dailyHadith")
             .count().get(AggregateSource.SERVER)
-            .addOnSuccessListener {
-                val totalHadith = it.count
+            .addOnCompleteListener {
+                if(!it.isSuccessful) return@addOnCompleteListener
+                val totalHadith = it.result.count
                 val randDocId = Random().nextInt(totalHadith.toInt()).toString()
                 Log.d(TAG, "showAHadith: $randDocId")
                 db.collection("dailyHadith").document(randDocId)
                     .get()
                     .addOnSuccessListener { doc ->
-                        val hadith = doc.toObject<HadithStore>() ?: HadithStore()
+                        val hadith = doc.toObject<HadithStore>() ?: return@addOnSuccessListener
                         val builder = AlertDialog.Builder(this@StartActivity)
                         val dialogBinding = DialogLayoutShowHadithBinding.inflate(LayoutInflater.from(this@StartActivity))
                         builder.setView(dialogBinding.root)
