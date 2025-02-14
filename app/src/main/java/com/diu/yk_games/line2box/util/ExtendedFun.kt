@@ -7,6 +7,7 @@ import android.app.Activity
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.net.Uri
@@ -23,6 +24,7 @@ import android.widget.Toast
 import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.browser.customtabs.CustomTabsIntent
+import androidx.core.net.toUri
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
@@ -197,11 +199,19 @@ fun Context?.toast(msg: String?) {
     Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
 }
 
-fun Context?.showCustomTab(url: String?) {
-    runCatching { if (this != null && !url.isNullOrEmpty()) {
+fun Context?.showCustomTab(url: String?): Unit? {
+    if (this == null || url.isNullOrEmpty()) return null
+    return try {
         val intent = CustomTabsIntent.Builder().build()
         intent.launchUrl(this, Uri.parse(url))
-    } }.onFailure { toast("Something went wrong.") }
+    }catch (e: Exception) { null }
+}
+
+fun Context?.showOnMarket(packageName: String) {
+    if (this == null) return
+    runCatching {
+        startActivity(Intent(Intent.ACTION_VIEW).setData("market://details?id=$packageName".toUri()))
+    }
 }
 
 fun View.show() {
@@ -224,6 +234,13 @@ fun View.gone() {
 suspend fun <T, R> T.IO(block: suspend T.() -> R) = withContext(Dispatchers.IO) {
     block()
 }
+
+inline fun <T> tryGet(data: () -> T): T? =
+    try {
+        data()
+    } catch (e: Exception) {
+        null
+    }
 
 fun Activity.closeKeyboard(nextFocus: View?= null) {
     val view = this.currentFocus

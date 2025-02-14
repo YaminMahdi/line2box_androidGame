@@ -1,5 +1,6 @@
 package com.diu.yk_games.line2box.presentation.bot;
 
+import static com.diu.yk_games.line2box.util.ExtendedFunKt.hideSystemBars;
 import static com.diu.yk_games.line2box.util.ExtendedFunKt.loadDrawable;
 import static com.diu.yk_games.line2box.util.ExtendedFunKt.log;
 import static com.diu.yk_games.line2box.util.ExtendedFunKt.setNavStatusPadding;
@@ -13,6 +14,7 @@ import android.graphics.drawable.GradientDrawable;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -82,7 +84,7 @@ public class GameActivity3 extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        hideSystemBars(getWindow());
         binding = ActivityGame3Binding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         setNavStatusPadding(binding.getRoot(), new ViewGroup[]{binding.linearLayout},0);
@@ -261,12 +263,12 @@ public class GameActivity3 extends AppCompatActivity {
 
         int ind = random.nextInt(84);
         int randLineId=this.getResources().getIdentifier(lineIDs.get(ind), "id", this.getPackageName());
-        new Handler().postDelayed(() ->
+        new Handler(Looper.getMainLooper()).postDelayed(() ->
         {
             if(isFirstRun)
                 infoShow();
         }, 200);
-        new Handler().postDelayed(() ->
+        new Handler(Looper.getMainLooper()).postDelayed(() ->
         {
             clickEnabled=true;
             lineClick(findViewById(randLineId));

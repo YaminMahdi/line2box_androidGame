@@ -31,6 +31,7 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.database
 import com.google.firebase.database.getValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.firestore
 import com.google.firebase.firestore.toObject
 
 class ChatFragmentGlobal : Fragment() {
@@ -88,11 +89,11 @@ class ChatFragmentGlobal : Fragment() {
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release)
             }
             if (playerId1 != "") {
-                val db = FirebaseFirestore.getInstance()
+                val db = Firebase.firestore
                 db.collection("gamerProfile").document(playerId1)
                     .get().addOnSuccessListener { documentSnapshot ->
-                        if (documentSnapshot.exists()) {
-                            val server2device = documentSnapshot.toObject<GameProfile>()
+                        val server2device = documentSnapshot.toObject<GameProfile>()
+                        if (server2device != null) {
                             val builder = AlertDialog.Builder(activity)
                             val binding =
                                 DialogLayoutProfileBinding.inflate(layoutInflater, null, false)
@@ -104,7 +105,7 @@ class ChatFragmentGlobal : Fragment() {
                             params.setMargins(60, 150, 60, 0)
                             binding.apply {
                                 linearLayoutFrame.layoutParams = params
-                                countryTxt.text = "${server2device!!.countryNm} ${server2device.countryEmoji}"
+                                countryTxt.text = "${server2device.countryNm} ${server2device.countryEmoji}"
                                 lvlTxt.text = server2device.lvl.toString()
                                 coinHave.text = server2device.coin.toString()
                                 matchPlayedTxt.text = server2device.matchPlayed.toString()

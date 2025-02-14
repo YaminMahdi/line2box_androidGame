@@ -22,6 +22,7 @@
         android:id="@+id/globalScoreFrag"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:visibility="gone"
         android:layout_marginTop="@dimen/_14sdp"
         android:orientation="vertical">
 

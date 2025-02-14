@@ -8,6 +8,7 @@ import android.graphics.drawable.GradientDrawable
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.os.Handler
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.Button
@@ -42,6 +43,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.database.database
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
@@ -164,7 +166,6 @@ class GameActivity1 : AppCompatActivity() {
                     bgTop.setColor(ContextCompat.getColor(applicationContext, R.color.whiteX))
                     bgCircle.setColor(ContextCompat.getColor(applicationContext, R.color.white))
                     bgCircle.setStroke(14, ContextCompat.getColor(applicationContext, R.color.whiteY))
-                    ////Log.d("TAG", "onDestroy: " + top + " " + circle);
                 }
                 index.setLength(0)
                 index.append(top)
@@ -267,13 +268,13 @@ class GameActivity1 : AppCompatActivity() {
     }
 
     // Hide the status bar.
-    //WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
-    //getWindow().getDecorView().setSystemUiVisibility(getWindow().getDecorView().SYSTEM_UI_FLAG_FULLSCREEN);
-    //getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
-    //getActionBar().hide();
+    //WindowCompat.setDecorFitsSystemWindows(getWindow(), false)
+    //getWindow().getDecorView().setSystemUiVisibility(getWindow().getDecorView().SYSTEM_UI_FLAG_FULLSCREEN)
+    //getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
+    //getActionBar().hide()
     @SuppressLint("SetTextI18n", "DiscouragedApi")
     fun lineClick(view: View) {
-        //Toast.makeText(this, "clicked", Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this, "clicked", Toast.LENGTH_SHORT).show()
         idNm = resources.getResourceEntryName(view.id)
         val bg = view.background as GradientDrawable
         val color = getColorGrad(bg)
@@ -283,9 +284,9 @@ class GameActivity1 : AppCompatActivity() {
         //        if(temp != null)
 //        {
 //            if(getColorGrad(temp)==ContextCompat.getColor(getApplicationContext(), R.color.redZ))
-//                temp.setColor(red);
+//                temp.setColor(red)
 //            else
-//                temp.setColor(blue);
+//                temp.setColor(blue)
 //        }
 //        temp=bg;
         if (color == resources.getColor(R.color.whiteX, theme)) {
@@ -577,7 +578,7 @@ class GameActivity1 : AppCompatActivity() {
             R.layout.dialog_layout_alert, findViewById(R.id.layoutDialog)
         )
         builder.setView(view)
-        //builder.setCancelable(false);
+        //builder.setCancelable(false)
         if (saveToFirebase()) toast("Score Saved to Online Score Board")
         (view.findViewById<View>(R.id.textMessage) as TextView).text = "" + winMsg
         (view.findViewById<View>(R.id.buttonNo) as Button).text = "Exit"
@@ -606,7 +607,7 @@ class GameActivity1 : AppCompatActivity() {
                     } else {
                         recreate()
                         // There was some problem, log or handle the error code.
-//                        @ReviewErrorCode int reviewErrorCode = ((ReviewException) task.getException()).getErrorCode();
+//                        @ReviewErrorCode int reviewErrorCode = ((ReviewException) task.getException()).getErrorCode()
                     }
                 }
             } else {
@@ -902,8 +903,8 @@ class GameActivity1 : AppCompatActivity() {
                 plr2Cup = ""
             )
 
-//        FirebaseDatabase database = FirebaseDatabase.getInstance();
-//        DatabaseReference myRef = database.getReference("ScoreBoard");
+//        FirebaseDatabase database = FirebaseDatabase.getInstance()
+//        DatabaseReference myRef = database.getReference("ScoreBoard")
 //        //single
 //        DatabaseReference finalMyRef = myRef;
 //        myRef.child("Last Best Player").addValueEventListener(new ValueEventListener() {
@@ -913,14 +914,14 @@ class GameActivity1 : AppCompatActivity() {
 //            {
 //                if(dataSnapshot.exists())
 //                {
-//                    String bestScoreData = dataSnapshot.getValue(String.class);
+//                    String bestScoreData = dataSnapshot.getValue(String.class)
 //                    assert bestScoreData != null;
-//                    String[] arrOfStr =bestScoreData.split(" ");
-//                    bestScore= Integer.parseInt(arrOfStr[arrOfStr.length-1]);
+//                    String[] arrOfStr =bestScoreData.split(" ")
+//                    bestScore= Integer.parseInt(arrOfStr[arrOfStr.length-1])
 //                    if(bestScore < scoreRed)
-//                        finalMyRef.child("Last Best Player").setValue(redData);
+//                        finalMyRef.child("Last Best Player").setValue(redData)
 //                    else if(bestScore < scoreBlue)
-//                        finalMyRef.child("Last Best Player").setValue(blueData);
+//                        finalMyRef.child("Last Best Player").setValue(blueData)
 //                    scoreRed=0;
 //                    scoreBlue=0;
 //                }
@@ -928,24 +929,24 @@ class GameActivity1 : AppCompatActivity() {
 //            }
 //            @Override
 //            public void onCancelled(@NonNull DatabaseError error) {
-//                Log.w("saveToFirebase", "Failed to read value.", error.toException());
+//                Log.w("saveToFirebase", "Failed to read value.", error.toException())
 //            }
-//        });
+//        })
 //
 //        //multiple
-//        myRef=myRef.child("allScore");
-//        String key = myRef.push().getKey();
+//        myRef=myRef.child("allScore")
+//        String key = myRef.push().getKey()
 //        assert key != null;
-//        myRef.child(key).setValue(ds);
+//        myRef.child(key).setValue(ds)
 
             //single
-            val db = FirebaseFirestore.getInstance()
+            val db = Firebase.firestore
             //Source source = Source.CACHE;
             db.collection("LastBestPlayer").document("LastBestPlayer")
                 .get().addOnCompleteListener { task: Task<DocumentSnapshot> ->
                     if (task.isSuccessful) {
                         val document = task.result
-                        //Log.d("TAG", "Cached document data: " + document.getData());
+                        Log.d("TAG", "Cached document data: " + document.getData())
                         val bestScoreData =
                             Objects.requireNonNull(Objects.requireNonNull(document.data)["info"])
                                 .toString()

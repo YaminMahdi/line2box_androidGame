@@ -29,6 +29,7 @@ import com.diu.yk_games.line2box.util.setBounceClickListener
 import com.diu.yk_games.line2box.util.setClipBoardData
 import com.diu.yk_games.line2box.util.show
 import com.diu.yk_games.line2box.util.toast
+import com.google.firebase.Firebase
 import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -37,6 +38,7 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.getValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.firestore
 import com.google.firebase.firestore.toObject
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -106,12 +108,12 @@ class ChatFragmentFriendly : Fragment() {
             if (msg.playerId != "") {
                 toast("Long Press To Copy Text/ID")
 
-                val db = FirebaseFirestore.getInstance()
+                val db = Firebase.firestore
                 db.collection("gamerProfile").document(msg.playerId)
                     .get()
                     .addOnSuccessListener { documentSnapshot ->
-                        if (documentSnapshot.exists()) {
-                            val server2device = documentSnapshot.toObject<GameProfile>()
+                        val server2device = documentSnapshot.toObject<GameProfile>()
+                        if (server2device != null) {
                             val builder = AlertDialog.Builder(activity)
                             val binding =
                                 DialogLayoutProfileBinding.inflate(layoutInflater, null, false)
@@ -123,7 +125,7 @@ class ChatFragmentFriendly : Fragment() {
                             params.setMargins(60, 150, 60, 0)
                             binding.apply {
                                 linearLayoutFrame.layoutParams = params
-                                countryTxt.text = "${server2device!!.countryNm} ${server2device.countryEmoji}"
+                                countryTxt.text = "${server2device.countryNm} ${server2device.countryEmoji}"
                                 lvlTxt.text = server2device.lvl.toString()
                                 coinHave.text = server2device.coin.toString()
                                 matchPlayedTxt.text = server2device.matchPlayed.toString()
@@ -173,7 +175,7 @@ class ChatFragmentFriendly : Fragment() {
                         mediaPlayer.setOnCompletionListener(MediaPlayer::release)
                     } else if (!mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
                         mp.start()
-                        //mp.setOnCompletionListener(MediaPlayer::release);
+                        //mp.setOnCompletionListener(MediaPlayer::release)
                     }
                     tempMsg = " # # 69"
                 }

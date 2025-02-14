@@ -56,19 +56,19 @@ class LeaderBoardFragment : Fragment() {
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     for (document in task.result) {
-                        //Log.d(TAG, document.getId() );
+                        Log.d(TAG, document.getId() )
                         val xx = document.toObject<GameProfile>()
                         rankList.add(xx)
                         rankListAdapter.submitList(rankList)
                     }
-                    //rankList.sort(Comparator.comparing(a -> a.coin));
-                    //Collections.reverse(rankList);
+                    //rankList.sort(Comparator.comparing(a -> a.coin))
+                    //Collections.reverse(rankList)
                     val pos = findIndex(rankList, playerId)
                     try {
-                        // rankList.indexOf(user);
-                        //Log.d(TAG, "onComplete(pos): "+pos+" ser- "+rankList.get(pos).playerId+" "+playerId);
+                        // rankList.indexOf(user)
+                        Log.d(TAG, "onComplete(pos): "+pos+" ser- "+rankList.get(pos).playerId+" "+playerId)
                         if (pos > 5) binding.showRankList.scrollToPosition(pos - 1)
-                        //list.post(() -> list.smoothScrollToPosition(pos));
+                        //list.post(() -> list.smoothScrollToPosition(pos))
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }
@@ -96,7 +96,7 @@ class LeaderBoardFragment : Fragment() {
             Firebase.firestore.collection("gamerProfile").document(gamerPro.playerId)
                 .get().addOnSuccessListener { documentSnapshot ->
                     val server2device = documentSnapshot.toObject<GameProfile>()
-                    if (documentSnapshot.exists() && server2device != null) {
+                    if (server2device != null) {
                         val dialogBinding = DialogLayoutProfileBinding.inflate(layoutInflater, null, false)
                         val alertDialog = AlertDialog.Builder(context)
                             .setView(dialogBinding.root)
@@ -108,7 +108,7 @@ class LeaderBoardFragment : Fragment() {
                         params.setMargins(60, 150, 60, 0)
                         dialogBinding.apply {
                             linearLayoutFrame.layoutParams = params
-                            //v.findViewById(R.id.linearLayoutFrame).setPadding(20,0,20,0);
+                            //v.findViewById(R.id.linearLayoutFrame).setPadding(20,0,20,0)
                             if (server2device.countryNm != "")
                                 countryTxt.text = "${server2device.countryNm} ${server2device.countryEmoji}"
                             else

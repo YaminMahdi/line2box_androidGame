@@ -14,8 +14,8 @@ class GameProfile {
     var coin = pref.getInt("coins", 100)
     var lvl = pref.getInt("lvl", lvlByCal)
     var playerId = ""
-    var countryEmoji = ""
-    var countryNm = ""
+    var countryEmoji = pref.getString("countryEmoji", "")!!
+    var countryNm = pref.getString("countryNm", "")!!
 
     fun apply() {
         prefEditor.putString("nm", nm).apply()
@@ -24,6 +24,8 @@ class GameProfile {
         prefEditor.putInt("coins", coin).apply()
         prefEditor.putInt("matchPlayed", matchPlayed).apply()
         prefEditor.putInt("matchWinMulti", matchWinMulti).apply()
+        prefEditor.putString("countryEmoji", countryEmoji).apply()
+        prefEditor.putString("countryNm", countryNm).apply()
     }
 
     val lvlByCal: Int

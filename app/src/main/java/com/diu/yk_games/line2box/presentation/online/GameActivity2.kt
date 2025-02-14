@@ -11,9 +11,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
-import android.view.inputmethod.InputMethodManager
 import android.widget.Button
-import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
@@ -32,17 +30,18 @@ import com.diu.yk_games.line2box.databinding.DialogLayoutInfoBinding
 import com.diu.yk_games.line2box.model.DataStore
 import com.diu.yk_games.line2box.model.GameProfile
 import com.diu.yk_games.line2box.model.MsgStore
-import com.diu.yk_games.line2box.util.applyState
-import com.diu.yk_games.line2box.util.isMuted
-import com.diu.yk_games.line2box.util.isNotMuted
-import com.diu.yk_games.line2box.util.performOnClick
 import com.diu.yk_games.line2box.pref
 import com.diu.yk_games.line2box.prefEditor
+import com.diu.yk_games.line2box.util.applyState
+import com.diu.yk_games.line2box.util.closeKeyboard
 import com.diu.yk_games.line2box.util.getSystemBars
 import com.diu.yk_games.line2box.util.gone
 import com.diu.yk_games.line2box.util.hideSystemBars
 import com.diu.yk_games.line2box.util.invisible
+import com.diu.yk_games.line2box.util.isMuted
+import com.diu.yk_games.line2box.util.isNotMuted
 import com.diu.yk_games.line2box.util.loadDrawable
+import com.diu.yk_games.line2box.util.performOnClick
 import com.diu.yk_games.line2box.util.setBounceClickListener
 import com.diu.yk_games.line2box.util.setNavStatusPadding
 import com.diu.yk_games.line2box.util.show
@@ -56,9 +55,8 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.database
-import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
-import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
@@ -138,7 +136,7 @@ class GameActivity2 : AppCompatActivity() {
             override fun onDrawerOpened(drawerView: View) {}
             override fun onDrawerClosed(drawerView: View) {}
             override fun onDrawerStateChanged(newState: Int) {
-                //Log.d("TAG", "onDrawerStateChanged: "+newState);
+                Log.d("TAG", "onDrawerStateChanged: $newState")
                 if (newState == 2) {
                     closeKeyboard()
                     isNotMuted {
@@ -171,12 +169,12 @@ class GameActivity2 : AppCompatActivity() {
             activityRootView.getWindowVisibleDisplayFrame(r)
             val maxHight = activityRootView.height
             val heightDiff = maxHight - r.height()
-            //Log.d("TAG", "onGlobalLayout: "+"heidiff: "+heightDiff+" "+r.height()+" "+maxHight);
+            Log.d("TAG", "onGlobalLayout: "+"heidiff: "+heightDiff+" "+r.height()+" "+maxHight)
             val layout1 = findViewById<LinearLayout>(R.id.chatFragmentLinerLayout)
             val layout2 = findViewById<LinearLayout>(R.id.navCloseButtonLayout)
             if (heightDiff > 0.25 * maxHight) {
                 // if more than 25% of the screen, its probably a keyboard......do something here
-                //Log.d("TAG", "onGlobalLayout: here");
+                Log.d("TAG", "onGlobalLayout: here")
                 layout1.setPadding(0, 0, 0, heightDiff)
                 layout2.setPadding(0, 0, 0, heightDiff)
             } else {
@@ -193,7 +191,7 @@ class GameActivity2 : AppCompatActivity() {
                     val viewIdFromServer = dataSnapshot.getValue(String::class.java)!!
                     plyrTurn = true
                     lineClick(findViewById(resources.getIdentifier(viewIdFromServer, "id", packageName)))
-                    //Log.d(TAG, "onChildAdded (view): "+getResources().getResourceEntryName(viewFromServer)+" "+plyrTurn);
+//                    Log.d(TAG, "onChildAdded (view): "+getResources().getResourceEntryName(viewIdFromServer)+" "+plyrTurn)
                 }
             }
             override fun onChildChanged(dataSnapshot: DataSnapshot, s: String?) {}
@@ -209,7 +207,7 @@ class GameActivity2 : AppCompatActivity() {
                     val viewIdFromServer = Objects.requireNonNull(dataSnapshot.getValue(String::class.java))
                     plyrTurn = true
                     lineClick(findViewById(resources.getIdentifier(viewIdFromServer, "id", packageName)))
-                    //Log.d(TAG, "onChildAdded (view): "+getResources().getResourceEntryName(viewFromServer)+" "+plyrTurn);
+//                    Log.d(TAG, "onChildAdded (view): "+getResources().getResourceEntryName(viewFromServer)+" "+plyrTurn)
                 }
             }
             override fun onChildChanged(dataSnapshot: DataSnapshot, s: String?) {}
@@ -337,7 +335,7 @@ class GameActivity2 : AppCompatActivity() {
                         14,
                         ContextCompat.getColor(applicationContext, R.color.whiteY)
                     )
-                    ////Log.d("TAG", "onDestroy: " + top + " " + circle);
+                    //Log.d("TAG", "onDestroy: " + top + " " + circle)
                 }
                 index.setLength(0)
                 index.append(top)
@@ -399,8 +397,8 @@ class GameActivity2 : AppCompatActivity() {
 
     @SuppressLint("SetTextI18n")
     fun lineClick(view: View) {
-        //Log.d(TAG, "After lineClick (plyrTurn): "+plyrTurn);
-        //Toast.makeText(this, "clicked", Toast.LENGTH_SHORT).show();
+        Log.d(TAG, "After lineClick (plyrTurn): $plyrTurn")
+        //Toast.makeText(this, "clicked", Toast.LENGTH_SHORT).show()
         idNm = resources.getResourceEntryName(view.id)
         val bg = view.background as GradientDrawable
         val color = getColorGrad(bg)
@@ -673,7 +671,7 @@ class GameActivity2 : AppCompatActivity() {
                 }
             }
             if (scoreRed + scoreBlue == 36) {
-                val db = FirebaseFirestore.getInstance()
+                val db = Firebase.firestore
                 val doc = db.collection("gamerProfile").document(playerId)
                 doc.update("matchPlayed", FieldValue.increment(1))
                 val updatePro = GameProfile()
@@ -801,7 +799,7 @@ class GameActivity2 : AppCompatActivity() {
             } else {
                 bindingRoot.drawerLayout.openDrawer(GravityCompat.START)
             }
-            //recreate();
+            //recreate()
             alertDialog.dismiss()
         }
         view.findViewById<View>(R.id.buttonNo).setBounceClickListener { 
@@ -878,26 +876,26 @@ class GameActivity2 : AppCompatActivity() {
             plr1Cup,
             ""
         )
-        val db = FirebaseFirestore.getInstance()
+        val db = Firebase.firestore
         //Source source = Source.CACHE;
         db.collection("LastBestPlayer").document("LastBestPlayer")
-            .get().addOnCompleteListener { task: Task<DocumentSnapshot> ->
-                if (task.isSuccessful) {
-                    val document = task.result
-                    //Log.d("TAG", "Cached document data: " + document.getData());
-                    val bestScoreData =
-                        Objects.requireNonNull(Objects.requireNonNull(document.data)["info"])
-                            .toString()
-                    val arrOfStr = bestScoreData.split(" ".toRegex()).dropLastWhile { it.isEmpty() }
-                        .toTypedArray()
-                    bestScore = arrOfStr[arrOfStr.size - 1].toInt()
-                    if (bestScore <= scoreRed) db.collection("LastBestPlayer")
-                        .document("LastBestPlayer").update(
-                        "info",
-                        redData
-                    ) else if (bestScore <= scoreBlue) db.collection("LastBestPlayer")
-                        .document("LastBestPlayer").update("info", blueData)
-                } //else {//Log.d("TAG", "Cached get failed: ", task.getException());}
+            .get().addOnSuccessListener { document ->
+                Log.d("TAG", "Cached document data: " + document.data)
+                val bestScoreData =
+                    Objects.requireNonNull(Objects.requireNonNull(document.data)["info"])
+                        .toString()
+                val arrOfStr = bestScoreData.split(" ".toRegex()).dropLastWhile { it.isEmpty() }
+                    .toTypedArray()
+                bestScore = arrOfStr[arrOfStr.size - 1].toInt()
+                if (bestScore <= scoreRed) {
+                    db.collection("LastBestPlayer")
+                        .document("LastBestPlayer")
+                        .update("info", redData)
+                }else if (bestScore <= scoreBlue) {
+                    db.collection("LastBestPlayer")
+                        .document("LastBestPlayer")
+                        .update("info", blueData)
+                }
             }
         //multiple
         val plrInfo = FirebaseDatabase.getInstance().getReference("MultiPlayer").child(
@@ -930,8 +928,8 @@ class GameActivity2 : AppCompatActivity() {
         } else {
             plrInfo.child("plr2Id").setValue(playerId)
             plrInfo.child("plr2Cup").setValue(plr2Cup)
-            //db.collection("ScoreBoard").document(key).update("plr2Id",playerId);
-            //db.collection("ScoreBoard").document(key).update("plr2Cup",plr2Cup);
+            //db.collection("ScoreBoard").document(key).update("plr2Id",playerId)
+            //db.collection("ScoreBoard").document(key).update("plr2Cup",plr2Cup)
         }
     }
 
@@ -1001,16 +999,6 @@ class GameActivity2 : AppCompatActivity() {
             alertDialog.show()
         } catch (npe: NullPointerException) {
             npe.printStackTrace()
-        }
-    }
-
-    private fun closeKeyboard() {
-        val view = this.currentFocus
-        //if (view != null)
-        //Log.d("TAG", "closeKeyboard: "+(view instanceof EditText));
-        if (view is EditText) {
-            val manager = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-            manager.hideSoftInputFromWindow(view.getWindowToken(), 0)
         }
     }
 

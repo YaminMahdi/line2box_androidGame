@@ -14,7 +14,7 @@ import kotlin.coroutines.coroutineContext
 
 enum class MuteState(val backgroundRes: Int, val imageRes: Int) {
     MUTED(R.drawable.btn_gry_bg, R.drawable.icon_vol_mute),
-    UNMUTED(R.drawable.btn_ylw_bg, R.drawable.icon_vol_unmute);
+    UNMUTED(R.drawable.btn_ylw_bg, R.drawable.icon_vol_unmute)
 }
 
 fun ImageButton.applyState(isMuted: Boolean) {

@@ -8,6 +8,7 @@ import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.GradientDrawable
 import android.media.MediaPlayer
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.TextView
@@ -169,7 +170,7 @@ class BotActivity : AppCompatActivity() {
                     bgTop.setColor(ContextCompat.getColor(applicationContext, R.color.whiteX))
                     bgCircle.setColor(ContextCompat.getColor(applicationContext, R.color.white))
                     bgCircle.setStroke(14, ContextCompat.getColor(applicationContext, R.color.whiteY))
-                    ////Log.d("TAG", "onDestroy: " + top + " " + circle);
+                    //Log.d("TAG", "onDestroy: " + top + " " + circle)
                 }
                 index.setLength(0)
                 index.append(top)
@@ -474,7 +475,7 @@ class BotActivity : AppCompatActivity() {
                         idNm[3]
                     ) > 1 && idNm[4] == 'L'
                 ) {
-                    //Log.d("TAG", "lineClick: AI in top half");
+                    Log.d("TAG", "lineClick: AI in top half")
                     val idTopU = resources.getIdentifier(getIdNm(idNm)[0], "id", packageName)
                     val idTopL = resources.getIdentifier(getIdNm(idNm)[1], "id", packageName)
                     val idTopR = resources.getIdentifier(getIdNm(idNm)[2], "id", packageName)
@@ -488,7 +489,7 @@ class BotActivity : AppCompatActivity() {
                     if (getColorGrad(bgTopL) != white) countColored++ else blankIndex = 1
                     if (getColorGrad(bgTopR) != white) countColored++ else blankIndex = 2
                     if (countColored == 2) {
-                        //Log.d("TAG", "lineClick: AI in top half countColored");
+                        Log.d("TAG", "lineClick: AI in top half countColored")
                         val lineId = resources.getIdentifier(getIdNm(idNm)[blankIndex], "id", packageName)
                         lifecycleScope.launch(Dispatchers.Main){
                             delay(500)
@@ -507,7 +508,7 @@ class BotActivity : AppCompatActivity() {
                         idNm[3]
                     ) < 7 && idNm[4] == 'L'
                 ) {
-                    //Log.d("TAG", "lineClick: AI in dwn half");
+                    Log.d("TAG", "lineClick: AI in dwn half")
                     val idDownU = resources.getIdentifier(getIdNm(idNm)[3], "id", packageName)
                     val idDownL = resources.getIdentifier(getIdNm(idNm)[4], "id", packageName)
                     val idDownR = resources.getIdentifier(getIdNm(idNm)[5], "id", packageName)
@@ -522,7 +523,7 @@ class BotActivity : AppCompatActivity() {
                     if (getColorGrad(bgDownR) != white) countColored++ else blankIndex = 5
                     if (countColored == 2) {
                         val lineId = resources.getIdentifier(getIdNm(idNm)[blankIndex], "id", packageName)
-                        //Log.d("TAG", "lineClick: AI in dwn half countColored");
+                        Log.d("TAG", "lineClick: AI in dwn half countColored")
                         delay(650)
                         if (tmpLineId != lineId) {
                             clickEnabled = true
@@ -533,9 +534,9 @@ class BotActivity : AppCompatActivity() {
                         extraTurn = true
                     }
                 }
-                //Log.d("TAG", "lineClick: lineIDs.size(): "+lineIDs.size());
+                Log.d("TAG", "lineClick: lineIDs.size: ${lineIDs.size}")
                 if (!extraTurn && !recursion) {
-                    //Log.d("TAG", "lineClick: AI in random");
+                    Log.d("TAG", "lineClick: AI in random")
                     //recursion=false;
                     var ind: Int
                     var countColoredUp = 0
@@ -545,7 +546,7 @@ class BotActivity : AppCompatActivity() {
                     ind = random.nextInt(lineIDs.size)
                     randLineIdNm = lineIDs[ind]
                     while (true) {
-                        //Log.d("TAG", "lineClick: AI in random loop");
+                        Log.d("TAG", "lineClick: AI in random loop")
                         if (Character.getNumericValue(randLineIdNm!![1]) > 1 && randLineIdNm[4] == 'T' ||
                             Character.getNumericValue(randLineIdNm[3]) > 1 && randLineIdNm[4] == 'L'
                         ) {
@@ -578,7 +579,7 @@ class BotActivity : AppCompatActivity() {
                             if (getColorGrad(bgDownR) != white) countColoredDn++
                         }
                         if ((countColoredUp > 1 || countColoredDn > 1) && !(countColoredUp == 3 || countColoredDn == 3)) {
-                            //Log.d("TAG", "lineClick: AI in random countColored u d. clk cnt: "+clickCount);
+                            Log.d("TAG", "lineClick: AI in random countColored u d. clk cnt: "+clickCount)
                             if (lineIdTemp.size == 1) {
                                 randLineIdNm = lineIdTemp[0]
                                 break
@@ -591,7 +592,7 @@ class BotActivity : AppCompatActivity() {
                         } else break
                     }
 
-                    //Log.d("TAG", "AiLineClick: "+randLineIdNm+" Up- "+countColoredUp+" Dn- "+countColoredDn);
+                    Log.d("TAG", "AiLineClick: "+randLineIdNm+" Up- "+countColoredUp+" Dn- "+countColoredDn)
                     val lineId = resources.getIdentifier(randLineIdNm, "id", packageName)
                     delay(800)
                     clickEnabled = true
@@ -622,7 +623,7 @@ class BotActivity : AppCompatActivity() {
         val builder = AlertDialog.Builder(this@BotActivity)
         val dialogBinding = DialogLayoutAlertBinding.inflate(LayoutInflater.from(this@BotActivity))
         builder.setView(dialogBinding.root)
-        //builder.setCancelable(false);
+        //builder.setCancelable(false)
         dialogBinding.textMessage.text = "" + winMsg
         dialogBinding.buttonNo.text = "Exit"
         dialogBinding.buttonYes.text = "Retry!"

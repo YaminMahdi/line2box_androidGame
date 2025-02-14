@@ -34,7 +34,7 @@
     <string name="ul_src"><u>(Open Source)</u></string>
     <string name="my_string_value">I am .</string>
     <string name="play_services"><u>1. Update "'"Google Play Services"'"</u></string>
-    <string name="play_game"><u>1. Update "'"Google Play Game"'"</u></string>
+    <string name="play_game"><u>2. Update "'"Google Play Game"'"</u></string>
     <string name="reboot_device"><u>3. Restart your device</u></string>
     <string name="logo">logo</string>
     <string name="_0">0</string>

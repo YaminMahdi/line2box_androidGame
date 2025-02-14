@@ -110,7 +110,7 @@ class DisplayFragment : Fragment() {
                     .get()
                     .addOnSuccessListener { documentSnapshot ->
                         val gp = documentSnapshot.toObject<GameProfile>()
-                        if (documentSnapshot.exists() && gp != null) {
+                        if (gp != null) {
                             val scr = gamerPro.redData.split(" ".toRegex())
                                 .dropLastWhile { it.isEmpty() }
                                 .toTypedArray()
@@ -129,7 +129,7 @@ class DisplayFragment : Fragment() {
                 db.collection("gamerProfile").document(gamerPro.plr2Id)
                     .get().addOnSuccessListener { documentSnapshot ->
                         val gp = documentSnapshot.toObject<GameProfile>()
-                        if (documentSnapshot.exists() && gp != null) {
+                        if (gp != null) {
                             val scr = gamerPro.blueData.split(" ".toRegex())
                                 .dropLastWhile { it.isEmpty() }
                                 .toTypedArray()

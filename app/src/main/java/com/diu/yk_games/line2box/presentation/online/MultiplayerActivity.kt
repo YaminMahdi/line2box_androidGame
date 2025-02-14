@@ -7,7 +7,6 @@ import android.content.Intent
 import android.graphics.Rect
 import android.graphics.drawable.ColorDrawable
 import android.media.MediaPlayer
-import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -33,6 +32,7 @@ import com.diu.yk_games.line2box.pref
 import com.diu.yk_games.line2box.prefEditor
 import com.diu.yk_games.line2box.presentation.BlankFragment
 import com.diu.yk_games.line2box.presentation.main.DisplayFragment
+import com.diu.yk_games.line2box.util.Constants
 import com.diu.yk_games.line2box.util.applyState
 import com.diu.yk_games.line2box.util.closeKeyboard
 import com.diu.yk_games.line2box.util.getClipBoardData
@@ -45,6 +45,7 @@ import com.diu.yk_games.line2box.util.setBounceClickListener
 import com.diu.yk_games.line2box.util.setClipBoardData
 import com.diu.yk_games.line2box.util.setNavStatusPadding
 import com.diu.yk_games.line2box.util.show
+import com.diu.yk_games.line2box.util.showOnMarket
 import com.diu.yk_games.line2box.util.toast
 import com.google.android.gms.common.images.ImageManager
 import com.google.android.gms.games.PlayGames
@@ -56,7 +57,7 @@ import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.database
-import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.firestore
 import io.ghyeok.stickyswitch.widget.StickySwitch
 import io.ghyeok.stickyswitch.widget.StickySwitch.OnSelectedChangeListener
 import kotlinx.coroutines.delay
@@ -91,7 +92,7 @@ class MultiplayerActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         window.hideSystemBars()
         bindingMain = ActivityGameMultiBinding.inflate(layoutInflater)
-        //getWindow().addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+        //getWindow().addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
         setContentView(bindingMain.root)
         bindingMain.root.setNavStatusPadding(binding.multiConstraintLyt, binding.globalScoreFrag)
 //        val drawer = binding.drawerLayout
@@ -518,7 +519,7 @@ class MultiplayerActivity : AppCompatActivity() {
                 mediaPlayer.start()
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release)
             }
-            FirebaseFirestore.getInstance().collection("gamerProfile").document((playerId))
+            Firebase.firestore.collection("gamerProfile").document((playerId))
                 .update("lvl", pf.lvlByCal)
             prefEditor.putInt("tmpLvl", pf.lvlByCal).apply()
             val builder = AlertDialog.Builder(this)
@@ -689,10 +690,10 @@ class MultiplayerActivity : AppCompatActivity() {
         builder.setView(bindingProfileDialog.root)
         val alertDialog = builder.create()
 
-        //builder.setCancelable(false);
+        //builder.setCancelable(false)
         val x = GameProfile()
-        x.countryEmoji = (pref.getString("countryEmoji", ""))!!
-        x.countryNm = (pref.getString("countryNm", ""))!!
+//        x.countryEmoji = (pref.getString("countryEmoji", ""))!!
+//        x.countryNm = (pref.getString("countryNm", ""))!!
         bindingProfileDialog.apply {
             countryTxt.text = x.countryNm + " " + x.countryEmoji
             lvlTxt.text = "" + x.lvlByCal
@@ -703,27 +704,24 @@ class MultiplayerActivity : AppCompatActivity() {
             PlayGames.getPlayersClient(this@MultiplayerActivity).currentPlayer.addOnSuccessListener { player ->
                 Log.d("TAG", "profileBtn: " + player.displayName)
                 Log.d("TAG", "profileBtn: " + player.playerId)
-                mgr.loadImage(profileImage, player.iconImageUri!!)
+                player.iconImageUri?.let {
+                    mgr.loadImage(profileImage, it)
+                }
             }
             val oldName = GameProfile().nm
             Log.d("TAG", "profileBtn nm: " + pref.getString("nm", "x"))
-            nmTxt .setText(oldName)
-            val db = FirebaseFirestore.getInstance()
+            nmTxt.setText(oldName)
+            val db = Firebase.firestore
             profileShapeLayout.setBounceClickListener {
-                var intent: Intent = Intent(Intent.ACTION_VIEW).setClassName(
-                    "com.google.android.play.games",
-                    "com.google.android.gms.games.ui.destination.main.MainActivity"
-                )
-                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                val intent: Intent = Intent(Intent.ACTION_VIEW).setClassName(
+                    Constants.PLAY_GAMES,
+                    "${Constants.PLAY_GAMES}.ui.destination.main.MainActivity"
+                ).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
                 try {
                     startActivity(intent)
                 } catch (e: ActivityNotFoundException) {
-                    intent = Intent(Intent.ACTION_VIEW)
-                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                    intent.data = Uri.parse("market://details?id=" + "com.google.android.play.games")
-                    startActivity(intent)
+                    showOnMarket(Constants.PLAY_GAMES)
                 }
-                startActivity(intent)
             }
             nmEditBtn.setBounceClickListener {
                 isNotMuted {
@@ -806,7 +804,7 @@ class MultiplayerActivity : AppCompatActivity() {
         closeKeyboard()
         bindingMain.root.closeDrawer(GravityCompat.START)
         findViewById<View>(R.id.newMsgBoltu).gone()
-        // getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+        // getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
     }
 
     private fun openNavBtn() {
@@ -819,35 +817,35 @@ class MultiplayerActivity : AppCompatActivity() {
                 bindingMain.bubbleTabBar.setSelected(1,true)
         }
 
-//        FragmentManager fm=getSupportFragmentManager();
-//        FragmentTransaction ft=fm.beginTransaction();
+//        FragmentManager fm=getSupportFragmentManager()
+//        FragmentTransaction ft=fm.beginTransaction()
 //        if(playerCountLocal==1 && findViewById(R.id.newMsgBoltu).getVisibility() != View.VISIBLE)
 //        {
-//            bubbleTabBar.setSelected(0,true);
-//            ft.replace(R.id.chatFragment,new ChatFragmentGlobal());
+//            bubbleTabBar.setSelected(0,true)
+//            ft.replace(R.id.chatFragment,new ChatFragmentGlobal())
 //        }
 //        else
 //        {
-//            bubbleTabBar.setSelected(1,true);
+//            bubbleTabBar.setSelected(1,true)
 //            if(key!=null)
-//                ft.replace(R.id.chatFragment,ChatFragmentFriendly.newInstance(key));
+//                ft.replace(R.id.chatFragment,ChatFragmentFriendly.newInstance(key))
 //            else
-//                ft.replace(R.id.chatFragment,new BlankFragment());
+//                ft.replace(R.id.chatFragment,new BlankFragment())
 //        }
-//        ft.commit();
+//        ft.commit()
         findViewById<View>(R.id.newMsgBoltu).gone()
 
 
-        /*        InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, InputMethodManager.HIDE_IMPLICIT_ONLY);*/
+        /*        InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE)
+        imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, InputMethodManager.HIDE_IMPLICIT_ONLY)*/
         //show keyboard
 
 
-        //getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+        //getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
 
-        //getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        //getWindow().clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
-        //getWindow().setFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN,WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+        //getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
+        //getWindow().clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
+        //getWindow().setFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN,WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN)
     }
 
     private fun backBtn() {
