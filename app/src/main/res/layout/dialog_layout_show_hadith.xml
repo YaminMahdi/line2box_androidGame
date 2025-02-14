@@ -37,7 +37,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <Button
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/langBtn"
             android:layout_width="40sp"
             android:layout_height="40sp"
@@ -101,7 +101,7 @@
         android:background="@drawable/btn_special_bg"
         />
 
-    <Button
+    <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/buttonDone"
         android:layout_width="100dp"
         android:layout_height="40dp"

@@ -36,7 +36,7 @@
         android:layout_marginHorizontal="24dp"
         />
 
-    <Button
+    <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/buttonUpdate"
         android:layout_width="100dp"
         android:layout_height="40dp"

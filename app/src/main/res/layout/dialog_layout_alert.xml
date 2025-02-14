@@ -29,7 +29,7 @@
         android:layout_marginVertical="@dimen/_20sdp"
         android:orientation="horizontal">
 
-        <Button
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/buttonYes"
             android:layout_width="100dp"
             android:layout_height="40dp"
@@ -41,7 +41,7 @@
             android:textSize="18sp"
             tools:ignore="ButtonStyle" />
 
-        <Button
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/buttonNo"
             android:layout_width="100dp"
             android:layout_height="40dp"

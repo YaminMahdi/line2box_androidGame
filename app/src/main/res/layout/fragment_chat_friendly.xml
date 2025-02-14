@@ -27,7 +27,7 @@
         android:orientation="horizontal"
         app:layout_constraintBottom_toTopOf="@+id/lin">
 
-        <Button
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/sendHaha"
             style="?android:attr/buttonBarButtonStyle"
             android:layout_width="0dp"
@@ -37,7 +37,7 @@
             android:text="🤣"
             android:textSize="35sp" />
 
-        <Button
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/sendCry"
             style="?android:attr/buttonBarButtonStyle"
             android:layout_width="0dp"
@@ -47,7 +47,7 @@
             android:text="😭"
             android:textSize="35sp" />
 
-        <Button
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/sendScream"
             style="?android:attr/buttonBarButtonStyle"
             android:layout_width="0dp"
@@ -57,7 +57,7 @@
             android:text="😱"
             android:textSize="35sp" />
 
-        <Button
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/sendKiss"
             style="?android:attr/buttonBarButtonStyle"
             android:layout_width="0dp"
@@ -67,7 +67,7 @@
             android:text="😘"
             android:textSize="35sp" />
 
-        <Button
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/sendYawn"
             style="?android:attr/buttonBarButtonStyle"
             android:layout_width="0dp"

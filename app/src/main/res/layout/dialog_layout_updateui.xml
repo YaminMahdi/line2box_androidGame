@@ -94,7 +94,7 @@
             android:textStyle="bold" />
     </LinearLayout>
 
-    <Button
+    <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/buttonUpdate"
         android:layout_width="100dp"
         android:layout_height="40dp"

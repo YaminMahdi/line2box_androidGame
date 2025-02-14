@@ -47,7 +47,7 @@
             tools:layout="@layout/fragment_blank"
             />
 
-        <Button
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/goBackBtn"
             android:layout_width="wrap_content"
             android:layout_height="45dp"
@@ -224,7 +224,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent">
 
-            <Button
+            <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/startBtnId"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

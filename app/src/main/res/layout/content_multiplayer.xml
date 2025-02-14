@@ -75,7 +75,7 @@
             android:layout_weight="1"
             tools:layout="@layout/fragment_blank" />
 
-        <Button
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/goBackBtn"
             android:layout_width="wrap_content"
             android:layout_height="45dp"
@@ -303,7 +303,7 @@
 
         </RelativeLayout>
 
-        <Button
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/startMatchBtn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

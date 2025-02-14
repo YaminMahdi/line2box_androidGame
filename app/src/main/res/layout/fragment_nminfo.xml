@@ -96,7 +96,7 @@
             android:textColor="@color/whiteY"
             android:textSize="17sp" />
 
-        <Button
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/playBtn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

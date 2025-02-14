@@ -6,8 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:openDrawer="start"
-
-    >
+    tools:context=".presentation.online.MultiplayerActivity">
 
     <include
         android:id="@+id/app_bar_game2"

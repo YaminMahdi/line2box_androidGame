@@ -33,7 +33,7 @@
         android:layout_marginHorizontal="@dimen/_18ssp"
         />
 
-    <Button
+    <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/buttonOkey"
         android:layout_width="100dp"
         android:layout_height="40dp"
