@@ -31,7 +31,7 @@ class MsgListAdapter : ListAdapter<MsgStore, MsgListAdapter.ViewHolder>(MsgStore
         fun bind(item: MsgStore) {
             binding.apply {
                 // Set time data
-                timeShowId.text = if (item.time != 0L) item.time.toDateTime() else item.timeData
+                timeShowId.text = item.time.toDateTime()
 
                 // Set name and level data
                 nmId.text = item.nmData

@@ -47,8 +47,7 @@ class ChatFragmentFriendly : Fragment() {
     var msList: MutableList<MsgStore> = mutableListOf()
     private var database = FirebaseDatabase.getInstance()
     private lateinit var myRef: DatabaseReference
-    var tempMsg: String? = null
-    var lastMsg: String? = null
+    var tempMsg: String = " # # 69"
     private lateinit var activity: Activity
     private val msgListAdapter by lazy { MsgListAdapter() }
     private lateinit var playerId: String
@@ -66,9 +65,35 @@ class ChatFragmentFriendly : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentChatFriendlyBinding.inflate(inflater, container, false)
-        myRef = database.getReference("MultiPlayer").child(key).child("friendlyChat")
-
         activity = requireActivity()
+        myRef = database.getReference("MultiPlayer").child(key).child("friendlyChat")
+        val mp = MediaPlayer.create(activity, R.raw.pop)
+        val mDrawerLayout = activity.findViewById<DrawerLayout>(R.id.drawer_layout)
+        myRef.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val lastMsg = msList.lastOrNull()?.msgData
+                if (snapshot.exists()) {
+                    if (lastMsg == "🤣") emojiRunner(R.drawable.emoji_haha, R.raw.haha)
+                    else if (lastMsg == "😭") emojiRunner(R.drawable.emoji_cry, R.raw.cry)
+                    else if (lastMsg == "😱") emojiRunner(R.drawable.emoji_scream, R.raw.scream)
+                    else if (lastMsg == "😘") emojiRunner(R.drawable.emoji_kiss, R.raw.kiss)
+                    else if (lastMsg == "🥱") emojiRunner(R.drawable.emoji_yawn, R.raw.yawn)
+                    else if (lastMsg == tempMsg || !mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
+                        mp.start()
+//                        val mediaPlayer = MediaPlayer.create(activity, R.raw.pop)
+//                        mediaPlayer.start()
+//                        mediaPlayer.setOnCompletionListener(MediaPlayer::release)
+                    }
+//                    else if (!mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
+//                        mp.start()
+//                        //mp.setOnCompletionListener(MediaPlayer::release)
+//                    }
+                    tempMsg = " # # 69"
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {}
+        })
         return binding.root
     }
 
@@ -77,15 +102,12 @@ class ChatFragmentFriendly : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         binding.chatBoxFriendly.requestFocus()
         binding.showMsgList.adapter = msgListAdapter
-        val mp = MediaPlayer.create(activity, R.raw.pop)
-        val mDrawerLayout = requireActivity().findViewById<DrawerLayout>(R.id.drawer_layout)
         myRef.addChildEventListener(object : ChildEventListener {
             override fun onChildAdded(dataSnapshot: DataSnapshot, s: String?) {
                 val ms = dataSnapshot.getValue<MsgStore>()
                 if (dataSnapshot.exists() && ms != null) {
-                    msList.add(ms)
+                    msList.add(0,ms)
                     msgListAdapter.submitList(msList)
-                    lastMsg = ms.msgData
                     if (isAdded)
                         activity.findViewById<View>(R.id.newMsgBoltu).show()
                 }
@@ -159,29 +181,6 @@ class ChatFragmentFriendly : Fragment() {
             activity.setClipBoardData(msg.msgData, "Text/ID copied")
             true
         }
-
-        myRef.addValueEventListener(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                if (snapshot.exists()) {
-                    if (lastMsg == "🤣") emojiRunner(R.drawable.emoji_haha, R.raw.haha)
-                    else if (lastMsg == "😭") emojiRunner(R.drawable.emoji_cry, R.raw.cry)
-                    else if (lastMsg == "😱") emojiRunner(R.drawable.emoji_scream, R.raw.scream)
-                    else if (lastMsg == "😘") emojiRunner(R.drawable.emoji_kiss, R.raw.kiss)
-                    else if (lastMsg == "🥱") emojiRunner(R.drawable.emoji_yawn, R.raw.yawn)
-                    else if (lastMsg == tempMsg) {
-                        val mediaPlayer = MediaPlayer.create(activity, R.raw.pop)
-                        mediaPlayer.start()
-                        mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-                    } else if (!mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
-                        mp.start()
-                        //mp.setOnCompletionListener(MediaPlayer::release)
-                    }
-                    tempMsg = " # # 69"
-                }
-            }
-
-            override fun onCancelled(error: DatabaseError) {}
-        })
         binding.msgSendBtn.setBounceClickListener {
             sendThisMsg(binding.chatBoxFriendly.text.toString())
             binding.chatBoxFriendly.setText("")
@@ -221,7 +220,7 @@ class ChatFragmentFriendly : Fragment() {
         }
     }
 
-    private fun sendThisMsg(msg: String?) {
+    private fun sendThisMsg(msg: String) {
         val gp = GameProfile()
         val ms = MsgStore()
         ms.playerId = playerId
@@ -229,7 +228,7 @@ class ChatFragmentFriendly : Fragment() {
         ms.lvlData = gp.lvlByCal.toString()
         ms.time = System.currentTimeMillis()
         tempMsg = msg
-        ms.msgData = msg!!
+        ms.msgData = msg
         val key = myRef.push().key!!
         myRef.child(key).setValue(ms)
     }

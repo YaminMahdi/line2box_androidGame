@@ -16,6 +16,7 @@ import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.addCallback
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
@@ -31,6 +32,7 @@ import com.diu.yk_games.line2box.model.MsgStore
 import com.diu.yk_games.line2box.pref
 import com.diu.yk_games.line2box.prefEditor
 import com.diu.yk_games.line2box.presentation.BlankFragment
+import com.diu.yk_games.line2box.presentation.MainViewModel
 import com.diu.yk_games.line2box.presentation.main.DisplayFragment
 import com.diu.yk_games.line2box.util.Constants
 import com.diu.yk_games.line2box.util.applyState
@@ -42,7 +44,6 @@ import com.diu.yk_games.line2box.util.hideSystemBars
 import com.diu.yk_games.line2box.util.isMuted
 import com.diu.yk_games.line2box.util.isNotMuted
 import com.diu.yk_games.line2box.util.setBounceClickListener
-import com.diu.yk_games.line2box.util.setClipBoardData
 import com.diu.yk_games.line2box.util.setNavStatusPadding
 import com.diu.yk_games.line2box.util.show
 import com.diu.yk_games.line2box.util.showOnMarket
@@ -70,6 +71,7 @@ import java.time.format.DateTimeFormatter
 class MultiplayerActivity : AppCompatActivity() {
     private lateinit var bindingMain: ActivityGameMultiBinding
     private val binding by lazy { bindingMain.appBarGame2 }
+    private val viewModel: MainViewModel by viewModels()
     private lateinit var database: FirebaseDatabase
     lateinit var myRef: DatabaseReference
     var dsList = mutableListOf<String>()
@@ -336,12 +338,12 @@ class MultiplayerActivity : AppCompatActivity() {
                             lifecycleScope.launch{
                                 delay(400)
                                 binding.joinInputId.hint = getKey4(key)
-                                binding.copyPastBtn.setImageResource(R.drawable.icon_copy)
-                                binding.copyPastBtn.tag = R.drawable.icon_copy
+                                binding.copyPastBtn.setImageResource(R.drawable.icon_share)
+                                binding.copyPastBtn.tag = R.drawable.icon_share
                                 stickySwitch.switchColor =
                                     ContextCompat.getColor(applicationContext, R.color.greenY)
-                                if (tmpKey != null) {
-                                    myRef.child(tmpKey!!).removeValue()
+                                tmpKey?.let{
+                                    myRef.child(it).removeValue()
                                     tmpKey = null
                                 }
                             }
@@ -358,7 +360,9 @@ class MultiplayerActivity : AppCompatActivity() {
             }
             when (stickySwitch.getDirection()) {
                 StickySwitch.Direction.RIGHT ->  {
-                    setClipBoardData(getKey4(key), "ID copied")
+//                    setClipBoardData(getKey4(key), "ID copied")
+                    viewModel.gameId = getKey4(key)
+                    ShareDialogFragment().show(supportFragmentManager, "share")
                 }
                 StickySwitch.Direction.LEFT -> {
                     // Access your context here using YourActivityName.this

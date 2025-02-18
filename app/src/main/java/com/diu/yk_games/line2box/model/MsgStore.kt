@@ -8,3 +8,12 @@ data class MsgStore (
     var msgData : String = "Blue",
     var lvlData : String = "1"
 )
+
+fun GameProfile.toMessage(text: String) =
+    MsgStore(
+        playerId = playerId,
+        time = System.currentTimeMillis(),
+        nmData = nm,
+        msgData = text,
+        lvlData = lvlByCal.toString()
+    )

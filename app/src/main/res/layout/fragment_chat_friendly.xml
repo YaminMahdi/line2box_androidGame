@@ -29,7 +29,6 @@
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/sendHaha"
-            style="?android:attr/buttonBarButtonStyle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -39,7 +38,6 @@
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/sendCry"
-            style="?android:attr/buttonBarButtonStyle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -49,7 +47,6 @@
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/sendScream"
-            style="?android:attr/buttonBarButtonStyle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -59,7 +56,6 @@
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/sendKiss"
-            style="?android:attr/buttonBarButtonStyle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -69,7 +65,6 @@
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/sendYawn"
-            style="?android:attr/buttonBarButtonStyle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"

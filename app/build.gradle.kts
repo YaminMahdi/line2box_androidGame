@@ -21,7 +21,12 @@ android {
 //            storePassword = "**"
 //            keyPassword = "**"
 //        }
-
+        getByName("debug") {
+            storeFile = file("C:/Documents/keys/line2box_key.jks")
+            keyAlias = "key0"
+            storePassword = "s2451998"
+            keyPassword = "s2451998"
+        }
     }
     namespace = "com.diu.yk_games.line2box"
     compileSdk = 35
@@ -72,6 +77,8 @@ dependencies {
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("com.google.android.material:material:1.12.0")
     implementation("androidx.constraintlayout:constraintlayout:2.2.0")
+    implementation("androidx.activity:activity-ktx:1.10.0")
+    implementation("androidx.fragment:fragment-ktx:1.8.6")
 
     implementation(platform("com.google.firebase:firebase-bom:33.9.0"))
     implementation("com.google.firebase:firebase-auth")

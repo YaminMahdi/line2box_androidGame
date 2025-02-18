@@ -43,16 +43,33 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.nio.ByteBuffer
 import java.text.SimpleDateFormat
+import java.time.Instant
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlin.coroutines.resume
 
 
-fun Long.toDateTime(): String{
+fun Long.toDateTimeOld(): String {
     var date = SimpleDateFormat("dd MMM, hh:mm a", Locale.US).format(this)
     val day = SimpleDateFormat("dd", Locale.US).format(System.currentTimeMillis())
     if (day.toInt() == date.split(" ")[0].toInt())
         date = date.split(", ")[1]
     return date.toString()
+}
+
+fun Long.toDateTime(): String {
+    val zoneId = ZoneId.systemDefault() // Uses the device's local time zone
+    val now = ZonedDateTime.now(zoneId) // Get current time once
+    val dateTime = Instant.ofEpochMilli(this).atZone(zoneId)
+
+    val format = if (dateTime.dayOfMonth == now.dayOfMonth && dateTime.month == now.month && dateTime.year == now.year)
+        "hh:mm a"
+    else
+        "dd MMM, hh:mm a"
+
+    return dateTime.format(DateTimeFormatter.ofPattern(format, Locale.US))
 }
 
 fun Window.hideSystemBars() {
@@ -169,7 +186,7 @@ fun Context?.getClipBoardData(): String {
     return data
 }
 
-fun Context?.setClipBoardData(data: String?, toastData: String?= null) {
+fun Context?.setClipBoardData(data: String?, toastData: String? = null) {
     this ?: return
     data?.let {
         val clipBoardManager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
@@ -180,10 +197,13 @@ fun Context?.setClipBoardData(data: String?, toastData: String?= null) {
 }
 
 fun Any?.log(tag: String = "TAG"): Any? {
-    if(this is Throwable)
+    if (this is Throwable)
         Log.e("log> '$tag'", "$tag - $message", this)
     else
-        Log.i("log> '$tag'", "$tag - $this : ${this?.javaClass?.name?.split('.')?.lastOrNull() ?: ""}")
+        Log.i(
+            "log> '$tag'",
+            "$tag - $this : ${this?.javaClass?.name?.split('.')?.lastOrNull() ?: ""}"
+        )
     return this
 }
 
@@ -204,7 +224,9 @@ fun Context?.showCustomTab(url: String?): Unit? {
     return try {
         val intent = CustomTabsIntent.Builder().build()
         intent.launchUrl(this, Uri.parse(url))
-    }catch (e: Exception) { null }
+    } catch (e: Exception) {
+        null
+    }
 }
 
 fun Context?.showOnMarket(packageName: String) {
@@ -215,17 +237,17 @@ fun Context?.showOnMarket(packageName: String) {
 }
 
 fun View.show() {
-    if(visibility != View.VISIBLE)
+    if (visibility != View.VISIBLE)
         visibility = View.VISIBLE
 }
 
 fun View.invisible() {
-    if(visibility != View.INVISIBLE)
+    if (visibility != View.INVISIBLE)
         visibility = View.INVISIBLE
 }
 
 fun View.gone() {
-    if(visibility != View.GONE)
+    if (visibility != View.GONE)
         visibility = View.GONE
 }
 
@@ -242,10 +264,11 @@ inline fun <T> tryGet(data: () -> T): T? =
         null
     }
 
-fun Activity.closeKeyboard(nextFocus: View?= null) {
+fun Activity.closeKeyboard(nextFocus: View? = null) {
     val view = this.currentFocus
     if (view is EditText) {
-        val manager = this.getSystemService(AppCompatActivity.INPUT_METHOD_SERVICE) as InputMethodManager
+        val manager =
+            this.getSystemService(AppCompatActivity.INPUT_METHOD_SERVICE) as InputMethodManager
         manager.hideSoftInputFromWindow(view.getWindowToken(), 0)
         nextFocus?.requestFocus()
     }
@@ -259,16 +282,16 @@ fun getSystemBars(): SystemBarInsets {
     return systemBarInsets ?: SystemBarInsets()
 }
 
-fun ViewGroup.setNavStatusPadding(vararg layout: ViewGroup, both: Int = 1){
+fun ViewGroup.setNavStatusPadding(vararg layout: ViewGroup, both: Int = 1) {
     findViewTreeLifecycleOwner()?.lifecycleScope?.launch {
         val insets = systemBarInsets ?: suspendCancellableCoroutine {
             ViewCompat.setOnApplyWindowInsetsListener(this@setNavStatusPadding) { _, insets ->
                 val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
 //                val bottomIme = insets.getInsets(WindowInsetsCompat.Type.ime()).bottom
 
-                val top = if(systemBars.top==0) 30 else systemBars.top
+                val top = if (systemBars.top == 0) 30 else systemBars.top
                 val bottom = systemBars.bottom
-                if(it.isActive) {
+                if (it.isActive) {
                     systemBarInsets = SystemBarInsets(top, bottom)
                     it.resume(systemBarInsets!!)
                 }
@@ -282,7 +305,7 @@ fun ViewGroup.setNavStatusPadding(vararg layout: ViewGroup, both: Int = 1){
             when (both) {
                 0 -> it.setPaddingRelative(0, insets.top, 0, 0)
                 1 -> it.setPaddingRelative(0, insets.top, 0, insets.bottom)
-                -1 -> it.setPadding(0, it.paddingTop, 0,  insets.bottom)
+                -1 -> it.setPadding(0, it.paddingTop, 0, insets.bottom)
             }
         }
     }
