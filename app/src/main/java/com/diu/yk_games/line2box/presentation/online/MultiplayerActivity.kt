@@ -28,7 +28,9 @@ import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.ActivityGameMultiBinding
 import com.diu.yk_games.line2box.databinding.DialogLayoutProfileBinding
 import com.diu.yk_games.line2box.model.GameProfile
+import com.diu.yk_games.line2box.model.GameRoom
 import com.diu.yk_games.line2box.model.MsgStore
+import com.diu.yk_games.line2box.model.PlayerInfo
 import com.diu.yk_games.line2box.pref
 import com.diu.yk_games.line2box.prefEditor
 import com.diu.yk_games.line2box.presentation.BlankFragment
@@ -48,6 +50,7 @@ import com.diu.yk_games.line2box.util.setNavStatusPadding
 import com.diu.yk_games.line2box.util.show
 import com.diu.yk_games.line2box.util.showOnMarket
 import com.diu.yk_games.line2box.util.toast
+import com.diu.yk_games.line2box.util.tryGet
 import com.google.android.gms.common.images.ImageManager
 import com.google.android.gms.games.PlayGames
 import com.google.firebase.Firebase
@@ -58,13 +61,12 @@ import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.database
+import com.google.firebase.database.getValue
 import com.google.firebase.firestore.firestore
 import io.ghyeok.stickyswitch.widget.StickySwitch
 import io.ghyeok.stickyswitch.widget.StickySwitch.OnSelectedChangeListener
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 @Suppress("DEPRECATION")
 @SuppressLint("SetTextI18n")
@@ -156,10 +158,10 @@ class MultiplayerActivity : AppCompatActivity() {
             }
         })
         binding.joinInputId.doAfterTextChanged {txt->
-            Log.d("getKey", "afterTextChanged: " + validKey + " " + binding.joinInputId.text.toString().length)
+            val newKey = validKey
+            Log.d("getKey", "afterTextChanged: " + newKey + " " + binding.joinInputId.text.toString().length)
             if (txt?.length == 4) {
                 closeKeyboard()
-                val newKey = validKey
                 if (!newKey.isNullOrEmpty()) {
                     mBundle.putString("gameKey", newKey)
                     myRef.child(newKey).child("playerCount")
@@ -167,7 +169,7 @@ class MultiplayerActivity : AppCompatActivity() {
                             @SuppressLint("SetTextI18n")
                             override fun onDataChange(dataSnapshot: DataSnapshot) {
                                 if (dataSnapshot.exists()) {
-                                    val playerCount = dataSnapshot.getValue(String::class.java)?.toIntOrNull()
+                                    val playerCount = dataSnapshot.getValue<String>()?.toIntOrNull()
                                     if (playerCount == 1) {
                                         amiThePayer = true
                                         myRef.child(newKey).child("playerCount")
@@ -180,14 +182,13 @@ class MultiplayerActivity : AppCompatActivity() {
                                             .setValue(GameProfile().nm)
                                         myRef.child(newKey).child("playerInfo")
                                             .child("lvl2").setValue(GameProfile().lvlByCal)
-                                        val ms = MsgStore()
-                                        ms.playerId = playerId
-                                        ms.nmData = nm2
-                                        ms.lvlData = lvl2.toString()
-                                        val dtf = DateTimeFormatter.ofPattern("dd MMM, hh:mm a")
-                                        val now = LocalDateTime.now()
-                                        ms.timeData = dtf.format(now)
-                                        ms.msgData = "Joined the match."
+                                        val ms = MsgStore(
+                                            playerId = playerId,
+                                            nmData = nm2,
+                                            lvlData = lvl2.toString(),
+                                            time = System.currentTimeMillis(),
+                                            msgData = "Joined the match.",
+                                        )
                                         val key2 = myRef.child(newKey).child("friendlyChat")
                                             .push().key!!
                                         myRef.child(newKey).child("friendlyChat")
@@ -280,30 +281,19 @@ class MultiplayerActivity : AppCompatActivity() {
                             prefEditor.putString("tmpKey", key).apply()
                             Log.d("TAG", "onCreate key: $key")
                             mBundle.putString("gameKey", key)
-                            assert(key != null)
-                            myRef.child((key)!!).child("playerCount").setValue("1")
-                            myRef.child((key)!!).child("playerInfo").child("nm1")
-                                .setValue(GameProfile().nm)
-                            myRef.child((key)!!).child("playerInfo").child("lvl1")
-                                .setValue(GameProfile().lvlByCal)
-                            myRef.child((key)!!).child("playerInfo").child("nm2")
-                                .setValue("")
-                            myRef.child((key)!!).child("playerInfo").child("lvl2")
-                                .setValue(0)
-                            val ms = MsgStore()
-                            ms.playerId = (playerId)
-                            ms.nmData = nm1
-                            ms.lvlData = lvl1.toString()
-                            val dtf: DateTimeFormatter = DateTimeFormatter.ofPattern("dd MMM, hh:mm a")
-                            val now: LocalDateTime = LocalDateTime.now()
-                            ms.timeData = dtf.format(now)
-                            ms.msgData = "Created the match."
-                            val key2: String? = myRef.child((key)!!).child("friendlyChat").push().key!!
-                            myRef
-                                .child((key)!!)
+                            val gameRoom = GameRoom(PlayerInfo(nm1 = nm1, lvl1 = lvl1))
+                            myRef.child(key!!).setValue(gameRoom)
+                            val key2 = myRef.child(key!!).child("friendlyChat").push().key!!
+                            myRef.child(key!!)
                                 .child("friendlyChat")
-                                .child((key2)!!)
-                                .setValue(ms)
+                                .child(key2)
+                                .setValue(MsgStore(
+                                    playerId = playerId,
+                                    nmData = nm1,
+                                    lvlData = lvl1.toString(),
+                                    time = System.currentTimeMillis(),
+                                    msgData = "Created the match.",
+                                ))
                             bindingMain.bubbleTabBar.setSelected(1, true)
                             val ft2: FragmentTransaction = fm.beginTransaction()
                             ft2.replace(R.id.chatFragment, ChatFragmentFriendly.newInstance(key, playerId))
@@ -319,7 +309,7 @@ class MultiplayerActivity : AppCompatActivity() {
                                                 lvl2 = dataSnapshot.child("playerInfo").child("lvl2").getValue(Int::class.java) ?: 0
                                                 Log.d("TAG", "ver2: $nm2 $lvl2")
                                                 mBundle.putString("nm2", nm2)
-                                                mBundle.putInt("lvl2", (lvl2))
+                                                mBundle.putInt("lvl2", lvl2)
                                                 if (playerCount == 2) {
                                                     binding.startMatchBtn.isEnabled = true
                                                     //playerCountLocal=2;
@@ -502,15 +492,8 @@ class MultiplayerActivity : AppCompatActivity() {
     }
 
     val validKey: String?
-        get() {
-            val input = binding.joinInputId.text.toString().uppercase()
-            for (i in dsList.indices) {
-                if ((getKey4(dsList[i]) == input)) {
-                    key = dsList[i]
-                    return dsList[i]
-                }
-            }
-            return null
+        get() = tryGet { binding.joinInputId.text.toString().uppercase() }?.let { input ->
+            dsList.find { getKey4(it) == input }
         }
 
     @SuppressLint("SetTextI18n")
@@ -868,7 +851,7 @@ class MultiplayerActivity : AppCompatActivity() {
             mediaPlayer.setOnCompletionListener(MediaPlayer::release)
         }
         val mIntent = Intent(this, GameActivity2::class.java)
-        startActivity(mIntent.putExtra("bundleInfo", mBundle))
+        startActivity(mIntent.putExtras(mBundle))
 //        finish()
     }
 

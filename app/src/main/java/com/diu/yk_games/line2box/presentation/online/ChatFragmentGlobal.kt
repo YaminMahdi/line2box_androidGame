@@ -66,9 +66,11 @@ class ChatFragmentGlobal : Fragment() {
         myRef.limitToLast(100).addChildEventListener(object : ChildEventListener {
             override fun onChildAdded(dataSnapshot: DataSnapshot, s: String?) {
                 val ms = dataSnapshot.getValue<MsgStore>()
-                if (dataSnapshot.exists() && ms != null) {
-                    msList.add(0,ms)
+                ms?.let {
+                    msList.add(ms)
                     msgListAdapter.submitList(msList)
+                    if(isAdded)
+                        binding.showMsgList.scrollToPosition(msList.size - 1)
                 }
             }
 

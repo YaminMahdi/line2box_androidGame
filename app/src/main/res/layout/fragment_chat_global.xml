@@ -15,7 +15,7 @@
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintBottom_toTopOf="@+id/lin"
         app:layout_constraintTop_toTopOf="parent"
-        app:reverseLayout="true"
+        app:stackFromEnd="true"
         tools:listitem="@layout/custom_msg_list_view" />
 
     <LinearLayout

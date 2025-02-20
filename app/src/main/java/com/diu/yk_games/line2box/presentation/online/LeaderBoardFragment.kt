@@ -91,7 +91,7 @@ class LeaderBoardFragment : Fragment() {
                 val mediaPlayer =
                     MediaPlayer.create(context, R.raw.btn_click_ef)
                 mediaPlayer.start()
-                mediaPlayer.setOnCompletionListener { obj: MediaPlayer -> obj.release() }
+                mediaPlayer.setOnCompletionListener(MediaPlayer::release)
             }
             Firebase.firestore.collection("gamerProfile").document(gamerPro.playerId)
                 .get().addOnSuccessListener { documentSnapshot ->

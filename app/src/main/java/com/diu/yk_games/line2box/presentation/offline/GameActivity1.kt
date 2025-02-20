@@ -23,16 +23,16 @@ import com.diu.yk_games.line2box.databinding.ActivityGame1Binding
 import com.diu.yk_games.line2box.databinding.DialogLayoutAlertBinding
 import com.diu.yk_games.line2box.databinding.DialogLayoutInfoBinding
 import com.diu.yk_games.line2box.model.DataStore
-import com.diu.yk_games.line2box.util.applyState
-import com.diu.yk_games.line2box.util.isMuted
-import com.diu.yk_games.line2box.util.isNotMuted
-import com.diu.yk_games.line2box.util.performOnClick
 import com.diu.yk_games.line2box.pref
 import com.diu.yk_games.line2box.prefEditor
+import com.diu.yk_games.line2box.util.applyState
 import com.diu.yk_games.line2box.util.gone
 import com.diu.yk_games.line2box.util.hideSystemBars
 import com.diu.yk_games.line2box.util.invisible
+import com.diu.yk_games.line2box.util.isMuted
+import com.diu.yk_games.line2box.util.isNotMuted
 import com.diu.yk_games.line2box.util.loadDrawable
+import com.diu.yk_games.line2box.util.performOnClick
 import com.diu.yk_games.line2box.util.setBounceClickListener
 import com.diu.yk_games.line2box.util.setNavStatusPadding
 import com.diu.yk_games.line2box.util.show
@@ -42,7 +42,6 @@ import com.google.android.play.core.review.ReviewManagerFactory
 import com.google.firebase.Firebase
 import com.google.firebase.database.database
 import com.google.firebase.firestore.DocumentSnapshot
-import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -64,13 +63,13 @@ class GameActivity1 : AppCompatActivity() {
     private lateinit var nm2Txt: TextView
 
     private var isFirstRun = false
-    @SuppressLint("SetTextI18n")
+
     fun onStopFragment() {
         binding.relativeLayout.show()
         binding.txtLayout.show()
         binding.nmLayout.show()
-        nm1Txt.text = "($nm1)"
-        nm2Txt.text = "($nm2)"
+        nm1Txt.text = nm1
+        nm2Txt.text = nm2
         if (nm1 == "Red") nm1Txt.gone()
         if (nm2 == "Blue") nm2Txt.gone()
 //        val handler = Handler()

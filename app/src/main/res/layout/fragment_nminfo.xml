@@ -82,13 +82,13 @@
             android:textColor="@color/white"
             android:textColorHint="#CCE8E8E8" />
 
-        <CheckBox
+        <androidx.appcompat.widget.AppCompatCheckBox
             android:id="@+id/nmSaveBox"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="-20dp"
             android:layout_marginTop="12dp"
-            android:buttonTint="@color/pinkY"
+            app:buttonTint="@color/pinkY"
             android:fontFamily="@font/sortie"
             android:scaleX="0.80"
             android:scaleY="0.80"
@@ -98,19 +98,17 @@
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/playBtn"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
+            android:paddingHorizontal="@dimen/_20sdp"
+            android:layout_gravity="center"
             android:layout_height="wrap_content"
-            android:layout_marginStart="40dp"
             android:layout_marginTop="20dp"
-            android:layout_marginEnd="40dp"
             android:layout_marginBottom="10dp"
             android:background="@drawable/btn_pink_bg"
             android:fontFamily="@font/sortie"
             android:text="Start Match"
             android:textColor="@color/white"
-            android:textSize="30dp"
-
-            />
+            android:textSize="@dimen/_20ssp" />
     </LinearLayout>
 
 </RelativeLayout>

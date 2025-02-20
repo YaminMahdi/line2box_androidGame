@@ -10,8 +10,10 @@ import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.diu.yk_games.line2box.BuildConfig
 import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.ActivityStartBinding
 import com.diu.yk_games.line2box.databinding.DialogLayoutAlertBinding
@@ -27,6 +29,7 @@ import com.diu.yk_games.line2box.model.msg
 import com.diu.yk_games.line2box.pref
 import com.diu.yk_games.line2box.prefEditor
 import com.diu.yk_games.line2box.presentation.BlankFragment
+import com.diu.yk_games.line2box.presentation.MainViewModel
 import com.diu.yk_games.line2box.presentation.bot.GameActivity3
 import com.diu.yk_games.line2box.presentation.offline.GameActivity1
 import com.diu.yk_games.line2box.presentation.online.MultiplayerActivity
@@ -70,6 +73,7 @@ import java.util.Random
 
 class StartActivity : AppCompatActivity() {
     private lateinit var binding: ActivityStartBinding
+    private val viewModel: MainViewModel by viewModels()
     private var scrBrdVisible = false
     private val isFirstRun: Boolean by lazy { pref.getBoolean("firstRun", true) }
     companion object {
@@ -190,7 +194,11 @@ class StartActivity : AppCompatActivity() {
         binding.goBackBtn.setBounceClickListener {
             goBack()
         }
-        binding.logo.setBounceClickListener()
+        binding.logo.setBounceClickListener {
+            if(BuildConfig.DEBUG){
+                viewModel.clearMultiPlayerDB()
+            }
+        }
         onBackPressedDispatcher.addCallback(this, object: OnBackPressedCallback(true) {
             @SuppressLint("SetTextI18n")
             override fun handleOnBackPressed() {

@@ -28,8 +28,15 @@ class MainViewModel(
         if (text.isEmpty()) return null
         return viewModelScope.launch(Dispatchers.IO) {
             globalChatRef.push().key?.let {
-                globalChatRef.child(it).setValue(GameProfile().toMessage(text))
+                globalChatRef.child(it).setValue(GameProfile().toMessage(text).copy(gameId = gameId))
             }
         }
+    }
+
+    fun clearMultiPlayerDB(){
+        viewModelScope.launch(Dispatchers.IO) {
+            database.getReference("MultiPlayer").removeValue()
+        }
+
     }
 }

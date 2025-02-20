@@ -27,6 +27,10 @@ class MsgListAdapter : ListAdapter<MsgStore, MsgListAdapter.ViewHolder>(MsgStore
     }
 
     inner class ViewHolder(private val binding: CustomMsgListViewBinding) : RecyclerView.ViewHolder(binding.root) {
+//
+//        init {
+//            setIsRecyclable(false)
+//        }
 
         fun bind(item: MsgStore) {
             binding.apply {

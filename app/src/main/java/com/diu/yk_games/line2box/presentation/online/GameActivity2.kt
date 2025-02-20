@@ -110,15 +110,14 @@ class GameActivity2 : AppCompatActivity() {
             if (isFirstRun) infoShow()
         }
         PACKAGE_NAME = applicationContext.packageName
-        val bundleInfo = intent.getBundleExtra("bundleInfo")
-        if(bundleInfo != null) {
-            key = bundleInfo.getString("gameKey")!!
-            nm1 = bundleInfo.getString("nm1")!!
-            nm2 = bundleInfo.getString("nm2")!!
-            lvl1 = bundleInfo.getInt("lvl1")
-            lvl2 = bundleInfo.getInt("lvl2")
-            plyr1 = bundleInfo.getBoolean("plyr1")
-            playerId = bundleInfo.getString("playerId")!!
+        intent.extras?.let{
+            key = it.getString("gameKey")!!
+            nm1 = it.getString("nm1")!!
+            nm2 = it.getString("nm2")!!
+            lvl1 = it.getInt("lvl1")
+            lvl2 = it.getInt("lvl2")
+            plyr1 = it.getBoolean("plyr1")
+            playerId = it.getString("playerId")!!
         }
         plyrTurn = plyr1
         binding.nm1Id.text = "($nm1)"

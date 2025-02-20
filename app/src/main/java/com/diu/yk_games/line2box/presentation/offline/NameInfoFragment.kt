@@ -42,34 +42,35 @@ class NameInfoFragment : Fragment() {
                 if (!pref.getBoolean("muted", false)) {
                     val mediaPlayer = MediaPlayer.create(context, R.raw.btn_click_ef)
                     mediaPlayer.start()
-                    mediaPlayer.setOnCompletionListener { obj: MediaPlayer -> obj.release() }
+                    mediaPlayer.setOnCompletionListener(MediaPlayer::release)
                 }
                 if (binding.palyerRed.text.toString() != "") nm1 = palyerRed.text.toString()
 
                 if (binding.palyerBlue.text.toString() != "") nm2 = palyerBlue.text.toString()
 
                 if (binding.nmSaveBox.isChecked) {
-                    if (binding.palyerRed.text.toString() != "") prefEditor.putString("plrNm1", nm1)
-                        .apply()
-                    if (binding.palyerBlue.text.toString() != "") prefEditor.putString(
-                        "plrNm2",
-                        nm2
-                    )
-                        .apply()
+                    if (binding.palyerRed.text.toString() != "")
+                        prefEditor.putString("plrNm1", nm1).apply()
+                    if (binding.palyerBlue.text.toString() != "")
+                        prefEditor.putString("plrNm2", nm2).apply()
                 }
                 GameActivity1.nm1 = nm1
                 GameActivity1.nm2 = nm2
-                activity?.supportFragmentManager?.beginTransaction()?.remove(this@NameInfoFragment)
-                    ?.commit()
+                (activity as? GameActivity1)?.apply {
+                    supportFragmentManager.beginTransaction().remove(this@NameInfoFragment).commit()
+                    onStopFragment()
+                }
             }
             nmSwanBtn.setBounceClickListener {
                 if (!pref.getBoolean("muted", false)) {
                     val mediaPlayer = MediaPlayer.create(context, R.raw.btn_click_ef)
                     mediaPlayer.start()
-                    mediaPlayer.setOnCompletionListener { obj: MediaPlayer -> obj.release() }
+                    mediaPlayer.setOnCompletionListener(MediaPlayer::release)
                 }
-                palyerRed.setText(binding.palyerBlue.text.toString())
-                palyerBlue.setText(binding.palyerRed.text.toString())
+                binding.palyerRed.text.toString().let {
+                    binding.palyerRed.setText(binding.palyerBlue.text.toString())
+                    binding.palyerBlue.setText(it)
+                }
             }
         }
 
