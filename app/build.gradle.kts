@@ -6,6 +6,8 @@ plugins {
     id("com.google.firebase.crashlytics")
 }
 
+val secrets = org.jetbrains.kotlin.konan.properties.loadProperties("${rootDir}/local.properties")
+
 android {
     signingConfigs {
 //         Uncomment and configure your signing config if needed
@@ -15,17 +17,13 @@ android {
 //             storePassword = "android"
 //             keyPassword = "android"
 //         }
-//        getByName("debug") {
-//            storeFile = file("C:/Documents/keys/line2box_key.jks")
-//            keyAlias = "key0"
-//            storePassword = "**"
-//            keyPassword = "**"
-//        }
         getByName("debug") {
             storeFile = file("C:/Documents/keys/line2box_key.jks")
             keyAlias = "key0"
-            storePassword = "s2451998"
-            keyPassword = "s2451998"
+            secrets.getProperty("keyPass")?.let {
+                storePassword = it
+                keyPassword = it
+            }
         }
     }
     namespace = "com.diu.yk_games.line2box"
