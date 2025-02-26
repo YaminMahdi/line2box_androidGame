@@ -3,7 +3,6 @@ package com.diu.yk_games.line2box.presentation.online
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
-import android.graphics.drawable.ColorDrawable
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -11,6 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.LinearLayout
+import androidx.core.graphics.drawable.toDrawable
 import androidx.core.os.bundleOf
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
@@ -21,6 +21,7 @@ import com.diu.yk_games.line2box.databinding.DialogLayoutProfileBinding
 import com.diu.yk_games.line2box.databinding.FragmentChatFriendlyBinding
 import com.diu.yk_games.line2box.model.GameProfile
 import com.diu.yk_games.line2box.model.MsgStore
+import com.diu.yk_games.line2box.model.toMessage
 import com.diu.yk_games.line2box.pref
 import com.diu.yk_games.line2box.presentation.MsgListAdapter
 import com.diu.yk_games.line2box.util.gone
@@ -164,7 +165,7 @@ class ChatFragmentFriendly : Fragment() {
                                 buttonSaveInfo.gone()
                             }
                             val alertDialog = builder.create()
-                            alertDialog.window?.setBackgroundDrawable(ColorDrawable(0))
+                            alertDialog.window?.setBackgroundDrawable(0.toDrawable())
                             binding.root.setOnClickListener {
                                 alertDialog.dismiss()
                             }
@@ -180,12 +181,15 @@ class ChatFragmentFriendly : Fragment() {
         }
 
         msgListAdapter.onLongClickListener = { msg ->
-            activity.setClipBoardData(msg.msgData, "Text/ID copied")
+            activity.setClipBoardData(msg.msgData, "Text copied")
             true
         }
         binding.msgSendBtn.setBounceClickListener {
-            sendThisMsg(binding.chatBoxFriendly.text.toString())
-            binding.chatBoxFriendly.setText("")
+            val txt = binding.chatBoxFriendly.text.toString()
+            if (txt.isNotEmpty()) {
+                sendThisMsg(txt)
+                binding.chatBoxFriendly.setText("")
+            } else toast("Write Something..")
         }
         binding.sendHaha.setBounceClickListener { sendThisMsg("🤣") }
         binding.sendCry.setBounceClickListener { sendThisMsg("😭") }
@@ -205,11 +209,11 @@ class ChatFragmentFriendly : Fragment() {
             mediaPlayer.start()
             mediaPlayer.setOnCompletionListener(MediaPlayer::release)
         }
-        (activity.findViewById<View>(R.id.emojiPlay) as ImageView).loadDrawable(gif)
-        activity.findViewById<View>(R.id.emojiPlay).show()
-        (activity.findViewById<View>(R.id.drawer_layout) as DrawerLayout).closeDrawer(
-            GravityCompat.START
-        )
+        activity.findViewById<ImageView>(R.id.emojiPlay).apply {
+            loadDrawable(gif)
+            show()
+        }
+        activity.findViewById<DrawerLayout>(R.id.drawer_layout).closeDrawer(GravityCompat.START)
         activity.findViewById<View>(R.id.newMsgBoltu).gone()
         lifecycleScope.launch {
             delay(2500)
@@ -223,14 +227,8 @@ class ChatFragmentFriendly : Fragment() {
     }
 
     private fun sendThisMsg(msg: String) {
-        val gp = GameProfile()
-        val ms = MsgStore()
-        ms.playerId = playerId
-        ms.nmData = gp.nm
-        ms.lvlData = gp.lvlByCal.toString()
-        ms.time = System.currentTimeMillis()
+        val ms = GameProfile().toMessage(playerId = playerId, msg = msg)
         tempMsg = msg
-        ms.msgData = msg
         val key = myRef.push().key!!
         myRef.child(key).setValue(ms)
     }

@@ -3,22 +3,28 @@ package com.diu.yk_games.line2box.presentation.online
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
-import android.graphics.drawable.ColorDrawable
+import android.content.Intent
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
-import android.widget.Toast
+import androidx.core.graphics.drawable.toDrawable
 import androidx.core.os.bundleOf
+import androidx.core.view.GravityCompat
+import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
 import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.DialogLayoutProfileBinding
 import com.diu.yk_games.line2box.databinding.FragmentChatGlobalBinding
 import com.diu.yk_games.line2box.model.GameProfile
 import com.diu.yk_games.line2box.model.MsgStore
+import com.diu.yk_games.line2box.model.toMessage
 import com.diu.yk_games.line2box.pref
+import com.diu.yk_games.line2box.presentation.MainViewModel
 import com.diu.yk_games.line2box.presentation.MsgListAdapter
 import com.diu.yk_games.line2box.util.gone
 import com.diu.yk_games.line2box.util.setBounceClickListener
@@ -32,9 +38,11 @@ import com.google.firebase.database.database
 import com.google.firebase.database.getValue
 import com.google.firebase.firestore.firestore
 import com.google.firebase.firestore.toObject
+import kotlinx.coroutines.launch
 
 class ChatFragmentGlobal : Fragment() {
     private lateinit var binding: FragmentChatGlobalBinding
+    private val viewModel by activityViewModels<MainViewModel>()
     var msList = mutableListOf<MsgStore>()
     private var database = Firebase.database
     private var myRef = database.getReference("globalChat")
@@ -122,7 +130,7 @@ class ChatFragmentGlobal : Fragment() {
                                 buttonSaveInfo.gone()
                             }
                             val alertDialog = builder.create()
-                            alertDialog.window?.setBackgroundDrawable(ColorDrawable(0))
+                            alertDialog.window?.setBackgroundDrawable(0.toDrawable())
                             binding.root.setOnClickListener {
                                 alertDialog.dismiss()
                             }
@@ -138,28 +146,34 @@ class ChatFragmentGlobal : Fragment() {
         }
 
         msgListAdapter.onLongClickListener = { msg ->
-            activity.setClipBoardData(msg.msgData, "Text/ID copied")
+            activity.setClipBoardData(msg.msgData, "Text copied")
             true
+        }
+
+        msgListAdapter.onJoinClickListener = { gameId ->
+            lifecycleScope.launch {
+                viewModel.getJoinBundle(gameId).onSuccess {
+                    activity.findViewById<DrawerLayout>(R.id.drawer_layout)?.closeDrawer(GravityCompat.START)
+                    activity.startActivity(Intent(activity, GameActivity2::class.java).putExtras(it))
+                }.onFailure {
+                    toast(it.message.toString())
+                }
+            }
         }
 
         binding.msgSendBtn.setBounceClickListener {
             val mp = MediaPlayer.create(activity, R.raw.pop)
             mp.start()
             mp.setOnCompletionListener(MediaPlayer::release)
-            val gp = GameProfile()
-            val ms = MsgStore()
-            ms.playerId = playerId
-            ms.nmData = gp.nm
-            ms.lvlData = gp.lvlByCal.toString()
-            ms.time = System.currentTimeMillis()
-            ms.msgData = binding.chatBoxGlobal.text.toString()
+            val ms = GameProfile().toMessage(
+                playerId = playerId,
+                msg = binding.chatBoxGlobal.text.toString()
+            )
             if (ms.msgData.isNotEmpty()) {
                 val key = myRef.push().key!!
                 myRef.child(key).setValue(ms)
                 binding.chatBoxGlobal.setText("")
-            } else {
-                Toast.makeText(activity, "Write Something", Toast.LENGTH_SHORT).show()
-            }
+            } else toast("Write Something..")
         }
     }
 

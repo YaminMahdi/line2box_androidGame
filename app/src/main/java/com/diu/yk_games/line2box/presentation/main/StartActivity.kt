@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
-import android.graphics.drawable.ColorDrawable
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.util.Log
@@ -12,6 +11,7 @@ import android.view.LayoutInflater
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.graphics.drawable.toDrawable
 import androidx.lifecycle.lifecycleScope
 import com.diu.yk_games.line2box.BuildConfig
 import com.diu.yk_games.line2box.R
@@ -214,7 +214,7 @@ class StartActivity : AppCompatActivity() {
                     dialogBinding.textMessage.text ="Do you really want to exit?"
                     dialogBinding.buttonYes.text = "YES"
                     dialogBinding.buttonNo.text = "NO"
-                    alertDialog.window?.setBackgroundDrawable(ColorDrawable(0))
+                    alertDialog.window?.setBackgroundDrawable(0.toDrawable())
                     dialogBinding.buttonYes.setBounceClickListener {
                         isNotMuted {
                             val mediaPlayer = MediaPlayer.create(this@StartActivity, R.raw.btn_click_ef)
@@ -467,7 +467,7 @@ class StartActivity : AppCompatActivity() {
                 .setCancelable(false)
                 .create()
             dialogBinding.loader.loadDrawable(R.drawable.g_loading)
-            alertDialog.window?.setBackgroundDrawable(ColorDrawable(0))
+            alertDialog.window?.setBackgroundDrawable(0.toDrawable())
         }
         fun start() {
             try {
@@ -557,7 +557,7 @@ class StartActivity : AppCompatActivity() {
             }
             showCustomTab(Constants.RESTART_YOUTUBE_URL)
         }
-        alertDialog.window?.setBackgroundDrawable(ColorDrawable(0))
+        alertDialog.window?.setBackgroundDrawable(0.toDrawable())
         try { alertDialog.show() }
         catch (ex: Exception) { ex.printStackTrace() }
     }
@@ -660,7 +660,7 @@ class StartActivity : AppCompatActivity() {
                                 url.replace("bn", "en")
                             showCustomTab(url)
                         }
-                        alertDialog.window?.setBackgroundDrawable(ColorDrawable(0))
+                        alertDialog.window?.setBackgroundDrawable(0.toDrawable())
                         try {
                             alertDialog.show()
                         } catch (ex: Exception) {
@@ -773,7 +773,7 @@ class StartActivity : AppCompatActivity() {
                 dialogBinding.playGif.loadDrawable(gifs[i])
             }
         }
-        alertDialog.window?.setBackgroundDrawable(ColorDrawable(0))
+        alertDialog.window?.setBackgroundDrawable(0.toDrawable())
         try { alertDialog.show() }
         catch (npe: NullPointerException) { npe.printStackTrace() }
     }
@@ -808,7 +808,7 @@ class StartActivity : AppCompatActivity() {
                     recreate()
                     alertDialog.dismiss()
                 }
-                alertDialog.window?.setBackgroundDrawable(ColorDrawable(0))
+                alertDialog.window?.setBackgroundDrawable(0.toDrawable())
                 try { alertDialog.show() }
                 catch (ex: Exception) { ex.printStackTrace() }
             }

@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+
+    >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="2dp"
+        android:background="@drawable/custom_msg_hover"
+        android:hapticFeedbackEnabled="true"
+        android:orientation="vertical"
+        android:paddingHorizontal="1dp"
+        android:paddingVertical="5dp"
+        tools:ignore="UselessParent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingHorizontal="10dp"
+            android:paddingBottom="2sp">
+
+            <TextView
+                android:id="@+id/nmId"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/sortie"
+                android:textColor="@color/cocZz"
+                android:textSize="15sp"
+                tools:ignore="HardcodedText"
+                tools:text="@tools:sample/first_names" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start"
+                android:fontFamily="@font/sortie"
+                android:paddingStart="2sp"
+                android:paddingTop="1sp"
+                android:paddingEnd="0dp"
+                android:text="lvl."
+                android:textColor="@color/white"
+                android:textSize="10sp"
+                tools:ignore="HardcodedText" />
+
+            <TextView
+                android:id="@+id/lvlId"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start"
+                android:fontFamily="@font/sortie"
+                android:text="1"
+                android:textColor="@color/greenY"
+                android:textSize="12sp"
+                tools:ignore="HardcodedText" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="right">
+
+                <TextView
+                    android:id="@+id/timeShowId"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/sortie"
+                    android:text="24 July, 4:24 PM"
+                    android:textColor="@color/cocZ"
+                    android:textSize="11sp"
+                    tools:ignore="HardcodedText" />
+
+            </LinearLayout>
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/msgId"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/sortie"
+            android:lineSpacingExtra="6sp"
+            android:paddingHorizontal="10sp"
+            android:paddingVertical="5dp"
+            android:textColor="@color/whiteY"
+            android:textSize="18sp"
+            tools:ignore="HardcodedText"
+            tools:text="@string/join_my_match" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_5sdp"
+            android:orientation="horizontal"
+            android:paddingHorizontal="10sp"
+            android:paddingBottom="5dp">
+
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.Material3.CardView.Filled"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:cardBackgroundColor="@color/whiteX"
+                app:cardCornerRadius="@dimen/_10sdp">
+
+                <LinearLayout
+                    android:id="@+id/linearLayout2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+                    <FrameLayout
+                        android:layout_width="@dimen/_60ssp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginVertical="@dimen/_7sdp"
+                        android:layout_marginStart="@dimen/_7sdp">
+
+                        <TextView
+                            android:id="@+id/gameId"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:layout_marginVertical="@dimen/_5sdp"
+                            android:fontFamily="@font/sortie"
+                            tools:text="@string/game_id"
+                            android:maxLength="4"
+                            android:textColor="@color/whiteY"
+                            android:textColorHint="@color/whiteY"
+                            android:textSize="@dimen/_16ssp" />
+
+                    </FrameLayout>
+
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnCopy"
+                        style="@style/Widget.Material3.Button.IconButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        app:icon="@drawable/icon_copy"
+                        app:iconSize="@dimen/_16sdp"
+                        app:iconTint="@color/cocZz"
+                        app:rippleColor="@color/whiteX" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1" />
+
+            <!-- Join Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnJoin"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/_30sdp"
+                android:layout_gravity="bottom"
+                android:background="@drawable/btn_grnx_bg"
+                android:fontFamily="@font/sortie"
+                android:src="@drawable/icon_send"
+                android:text="@string/join"
+                android:textSize="@dimen/_13ssp"
+                app:backgroundTint="@color/greenY" />
+        </LinearLayout>
+    </LinearLayout>
+
+</LinearLayout>

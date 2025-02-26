@@ -50,4 +50,6 @@
     <string name="whatsapp">Whatsapp</string>
     <string name="chat">Chat</string>
     <string name="play_with_your_friend">Play with your friend..</string>
+    <string name="join">JOIN</string>
+    <string name="join_my_match">Join my match! 🎮 Let\'s play!</string>
 </resources>

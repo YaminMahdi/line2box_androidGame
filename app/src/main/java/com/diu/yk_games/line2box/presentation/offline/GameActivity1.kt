@@ -3,7 +3,6 @@ package com.diu.yk_games.line2box.presentation.offline
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.graphics.Paint
-import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.GradientDrawable
 import android.media.MediaPlayer
 import android.os.Bundle
@@ -17,6 +16,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
+import androidx.core.graphics.drawable.toDrawable
 import androidx.lifecycle.lifecycleScope
 import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.ActivityGame1Binding
@@ -248,7 +248,7 @@ class GameActivity1 : AppCompatActivity() {
                     }
                     alertDialog.dismiss()
                 }
-                alertDialog.window?.setBackgroundDrawable(ColorDrawable(0))
+                alertDialog.window?.setBackgroundDrawable(0.toDrawable())
                 try { alertDialog.show() } catch (npe: NullPointerException) { npe.printStackTrace() }
             }
         })
@@ -625,7 +625,7 @@ class GameActivity1 : AppCompatActivity() {
             flag = true
             toast("Score Saved to Online Score Board")
         }
-        alertDialog.window?.setBackgroundDrawable(ColorDrawable(0))
+        alertDialog.window?.setBackgroundDrawable(0.toDrawable())
         try {
             alertDialog.show()
         } catch (e: Exception) {
@@ -692,7 +692,7 @@ class GameActivity1 : AppCompatActivity() {
                 binding.playGif.loadDrawable(gifs[i])
             }
         }
-        alertDialog.window?.setBackgroundDrawable(ColorDrawable(0))
+        alertDialog.window?.setBackgroundDrawable(0.toDrawable())
         try {
             alertDialog.show()
         } catch (npe: NullPointerException) {
@@ -892,7 +892,6 @@ class GameActivity1 : AppCompatActivity() {
             val blueData = "$nm2: $scoreBlue"
             val ds = DataStore(
                 time = System.currentTimeMillis(),
-                timeData = timeData,
                 redData = redData,
                 blueData = blueData,
                 starData = starData,

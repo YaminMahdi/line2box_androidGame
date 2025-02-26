@@ -5,7 +5,6 @@ import android.app.AlertDialog
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.graphics.Rect
-import android.graphics.drawable.ColorDrawable
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.util.Log
@@ -19,6 +18,8 @@ import androidx.activity.addCallback
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.content.edit
+import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.GravityCompat
 import androidx.core.widget.doAfterTextChanged
 import androidx.drawerlayout.widget.DrawerLayout.DrawerListener
@@ -27,12 +28,12 @@ import androidx.lifecycle.lifecycleScope
 import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.ActivityGameMultiBinding
 import com.diu.yk_games.line2box.databinding.DialogLayoutProfileBinding
-import com.diu.yk_games.line2box.model.GameProfile
 import com.diu.yk_games.line2box.model.GameRoom
 import com.diu.yk_games.line2box.model.MsgStore
-import com.diu.yk_games.line2box.model.PlayerInfo
+import com.diu.yk_games.line2box.model.PlayerInfoOld
+import com.diu.yk_games.line2box.model.toMessage
+import com.diu.yk_games.line2box.model.toPlayerInfo
 import com.diu.yk_games.line2box.pref
-import com.diu.yk_games.line2box.prefEditor
 import com.diu.yk_games.line2box.presentation.BlankFragment
 import com.diu.yk_games.line2box.presentation.MainViewModel
 import com.diu.yk_games.line2box.presentation.main.DisplayFragment
@@ -50,7 +51,6 @@ import com.diu.yk_games.line2box.util.setNavStatusPadding
 import com.diu.yk_games.line2box.util.show
 import com.diu.yk_games.line2box.util.showOnMarket
 import com.diu.yk_games.line2box.util.toast
-import com.diu.yk_games.line2box.util.tryGet
 import com.google.android.gms.common.images.ImageManager
 import com.google.android.gms.games.PlayGames
 import com.google.firebase.Firebase
@@ -76,7 +76,6 @@ class MultiplayerActivity : AppCompatActivity() {
     private val viewModel: MainViewModel by viewModels()
     private lateinit var database: FirebaseDatabase
     lateinit var myRef: DatabaseReference
-    var dsList = mutableListOf<String>()
     var nm1: String =""
     var nm2: String =""
     var lvl1: Int = 0
@@ -89,7 +88,8 @@ class MultiplayerActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        binding.trophyTextId.text = ""+GameProfile().coin
+        viewModel.initGameProfile()
+        binding.trophyTextId.text = ""+viewModel.gameProfile.coin
         lvlUpgrade()
     }
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -99,14 +99,16 @@ class MultiplayerActivity : AppCompatActivity() {
         //getWindow().addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
         setContentView(bindingMain.root)
         bindingMain.root.setNavStatusPadding(binding.multiConstraintLyt, binding.globalScoreFrag)
-//        val drawer = binding.drawerLayout
-//        val navigationView = binding.navView
-        Log.d("TAG", "onCreate: local" + GameProfile().coin)
-        binding.trophyTextId.text = ""+GameProfile().coin
+        intent.extras?.getString("playerId")?.let {
+            playerId = it
+            viewModel.initGameProfile(it)
+        }
+        Log.d("TAG", "onCreate: local" + viewModel.gameProfile.coin)
+        binding.trophyTextId.text = ""+viewModel.gameProfile.coin
         binding.globalScoreFrag.gone()
         binding.newMsgBoltu.gone()
         binding.emojiPlay.gone()
-        val tmpNm = GameProfile().nm
+        val tmpNm = viewModel.gameProfile.nm
         if (pref.getBoolean("needName", true) || tmpNm.contains("Noob"))
             changeNameNeeded()
 //        binding.root.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
@@ -127,45 +129,43 @@ class MultiplayerActivity : AppCompatActivity() {
                 }
             }
         })
-        playerId = intent.extras!!.getString("playerId")!!
         //chat bug fix
         val fm = supportFragmentManager
-        val ft = fm.beginTransaction()
-        ft.replace(R.id.chatFragment, ChatFragmentGlobal.newInstance(playerId))
-        ft.commit()
+        fm.beginTransaction()
+            .replace(R.id.chatFragment, ChatFragmentGlobal.newInstance(playerId))
+            .commit()
         lvlUpgrade()
         mBundle.putString("playerId", playerId)
         binding.copyPastBtn.setImageResource(R.drawable.icon_paste)
         binding.copyPastBtn.tag = R.drawable.icon_paste
         binding.startMatchBtn.isEnabled = false
         ifMuted()
-        dsList = mutableListOf()
         database = Firebase.database
         myRef = database.getReference("MultiPlayer")
         myRef.child((pref.getString("tmpKey", "69"))!!).removeValue()
-        myRef.addChildEventListener(object : ChildEventListener {
+        myRef.limitToLast(100).addChildEventListener(object : ChildEventListener {
             override fun onChildAdded(dataSnapshot: DataSnapshot, s: String?) {
                 Log.d("addList", "onChildAdded: " + dataSnapshot.key)
-                dataSnapshot.key?.let { dsList.add(it) }
+                dataSnapshot.key?.let { viewModel.matchKeys.add(it) }
             }
             override fun onChildChanged(dataSnapshot: DataSnapshot, s: String?) {}
             override fun onChildRemoved(dataSnapshot: DataSnapshot) {
-                dataSnapshot.key?.let { dsList.remove(it) }
+                dataSnapshot.key?.let { viewModel.matchKeys.remove(it) }
             }
             override fun onChildMoved(dataSnapshot: DataSnapshot, s: String?) {}
             override fun onCancelled(databaseError: DatabaseError) {
                 Log.w("TAG", "Failed to read value.", databaseError.toException())
             }
         })
-        binding.joinInputId.doAfterTextChanged {txt->
-            val newKey = validKey
-            Log.d("getKey", "afterTextChanged: " + newKey + " " + binding.joinInputId.text.toString().length)
+        binding.joinInputId.doAfterTextChanged { txt->
             if (txt?.length == 4) {
+                val newKey = viewModel.getValidKey(txt.toString())
+                Log.d("getKey", "afterTextChanged: " + newKey + " " + binding.joinInputId.text.toString().length)
                 closeKeyboard()
                 if (!newKey.isNullOrEmpty()) {
                     mBundle.putString("gameKey", newKey)
                     myRef.child(newKey).child("playerCount")
-                        .addValueEventListener(object : ValueEventListener {
+                        .addListenerForSingleValueEvent(object : ValueEventListener {
                             @SuppressLint("SetTextI18n")
                             override fun onDataChange(dataSnapshot: DataSnapshot) {
                                 if (dataSnapshot.exists()) {
@@ -177,32 +177,34 @@ class MultiplayerActivity : AppCompatActivity() {
                                         //playerCountLocal=2;
                                         binding.startMatchBtn.isEnabled = true
                                         tmpKey = newKey
-                                        prefEditor.putString("tmpKey", newKey).apply()
+                                        pref.edit { putString("tmpKey", newKey) }
+                                        //remove
                                         myRef.child(newKey).child("playerInfo").child("nm2")
-                                            .setValue(GameProfile().nm)
+                                            .setValue(viewModel.gameProfile.nm)
                                         myRef.child(newKey).child("playerInfo")
-                                            .child("lvl2").setValue(GameProfile().lvlByCal)
-                                        val ms = MsgStore(
+                                            .child("lvl2").setValue(viewModel.gameProfile.lvlByCal)
+                                        //remove
+                                        myRef.child(newKey).child("player2")
+                                            .setValue(viewModel.gameProfile.toPlayerInfo())
+                                        val ms = viewModel.gameProfile.toMessage(
                                             playerId = playerId,
-                                            nmData = nm2,
-                                            lvlData = lvl2.toString(),
-                                            time = System.currentTimeMillis(),
-                                            msgData = "Joined the match.",
+                                            msg = "Joined the match.",
+                                            type = MsgStore.Type.EnterText
                                         )
                                         val key2 = myRef.child(newKey).child("friendlyChat")
                                             .push().key!!
                                         myRef.child(newKey).child("friendlyChat")
                                             .child(key2).setValue(ms)
                                         bindingMain.bubbleTabBar.setSelected(1, true)
-                                        val ft2 = fm.beginTransaction()
-                                        ft2.replace(R.id.chatFragment, ChatFragmentFriendly.newInstance(tmpKey, playerId))
-                                        ft2.commit()
+//                                        fm.beginTransaction()
+//                                            .replace(R.id.chatFragment, ChatFragmentFriendly.newInstance(tmpKey, playerId))
+//                                            .commit()
                                         myRef.child(newKey).child("playerInfo")
                                             .addValueEventListener(object : ValueEventListener {
                                                 override fun onDataChange(dataSnapshot: DataSnapshot) {
                                                     if (dataSnapshot.exists()) {
-                                                        nm1 = dataSnapshot.child("nm1").getValue(String::class.java) ?: "No Name"
-                                                        lvl1 = dataSnapshot.child("lvl1").getValue(Int::class.java) ?: 0
+                                                        nm1 = dataSnapshot.child("nm1").getValue<String>() ?: "No Name"
+                                                        lvl1 = dataSnapshot.child("lvl1").getValue<Int>() ?: 0
                                                         mBundle.putString("nm1", nm1)
                                                         mBundle.putInt("lvl1", lvl1)
                                                     }
@@ -227,8 +229,10 @@ class MultiplayerActivity : AppCompatActivity() {
                 else toast("Invalid Key")
             }
         }
-        nm2 = GameProfile().nm
-        lvl2 = GameProfile().lvlByCal
+        viewModel.gameProfile.let {
+            nm2 = it.nm
+            lvl2 = it.lvlByCal
+        }
         Log.d("TAG left", "ver: $nm1 $lvl1")
         mBundle.putString("nm2", nm2)
         mBundle.putInt("lvl2", lvl2)
@@ -245,14 +249,16 @@ class MultiplayerActivity : AppCompatActivity() {
                             binding.joinInputId.hint = ""
                             binding.joinInputId.setText("")
                             mBundle.putBoolean("plyr1", false)
-                            nm2 = GameProfile().nm
-                            lvl2 = GameProfile().lvlByCal
+                            viewModel.gameProfile.let {
+                                nm2 = it.nm
+                                lvl2 = it.lvlByCal
+                            }
                             Log.d("TAG left", "ver: $nm1 $lvl1")
                             mBundle.putString("nm2", nm2)
                             mBundle.putInt("lvl2", lvl2)
-                            val ft2: FragmentTransaction = fm.beginTransaction()
-                            ft2.replace(R.id.chatFragment, ChatFragmentGlobal.newInstance(playerId))
-                            ft2.commit()
+                            fm.beginTransaction()
+                                .replace(R.id.chatFragment, ChatFragmentGlobal.newInstance(playerId))
+                                .commit()
                             findViewById<View>(R.id.newMsgBoltu).gone()
                             lifecycleScope.launch {
                                 delay(400)
@@ -272,16 +278,19 @@ class MultiplayerActivity : AppCompatActivity() {
                             binding.joinInputId.hint = ""
                             binding.joinInputId.setText("")
                             mBundle.putBoolean("plyr1", true)
-                            nm1 = GameProfile().nm
-                            lvl1 = GameProfile().lvlByCal
+                            nm1 = viewModel.gameProfile.nm
+                            lvl1 = viewModel.gameProfile.lvlByCal
                             Log.d("TAG", "ver: $nm1 $lvl1")
                             mBundle.putString("nm1", nm1)
                             mBundle.putInt("lvl1", lvl1)
                             key = myRef.push().key
-                            prefEditor.putString("tmpKey", key).apply()
+                            pref.edit { putString("tmpKey", key) }
                             Log.d("TAG", "onCreate key: $key")
                             mBundle.putString("gameKey", key)
-                            val gameRoom = GameRoom(PlayerInfo(nm1 = nm1, lvl1 = lvl1))
+                            val gameRoom = GameRoom(
+                                player1 = viewModel.gameProfile.toPlayerInfo(),
+                                playerInfo = PlayerInfoOld(nm1 = nm1, lvl1 = lvl1, plr1Id = playerId)
+                            )
                             myRef.child(key!!).setValue(gameRoom)
                             val key2 = myRef.child(key!!).child("friendlyChat").push().key!!
                             myRef.child(key!!)
@@ -293,19 +302,20 @@ class MultiplayerActivity : AppCompatActivity() {
                                     lvlData = lvl1.toString(),
                                     time = System.currentTimeMillis(),
                                     msgData = "Created the match.",
+                                    type = MsgStore.Type.EnterText.name
                                 ))
                             bindingMain.bubbleTabBar.setSelected(1, true)
-                            val ft2: FragmentTransaction = fm.beginTransaction()
-                            ft2.replace(R.id.chatFragment, ChatFragmentFriendly.newInstance(key, playerId))
-                            ft2.commit()
+//                            fm.beginTransaction()
+//                                .replace(R.id.chatFragment, ChatFragmentFriendly.newInstance(key, playerId))
+//                                .commit()
                             myRef.child(key!!)
                                 .addValueEventListener(object : ValueEventListener {
                                     override fun onDataChange(dataSnapshot: DataSnapshot) {
                                         if (dataSnapshot.exists()) {
-                                            Log.d("TAG -int key", "onDataChange: " + key + " " + validKey + " " + dataSnapshot.child("playerCount").getValue(String::class.java))
+//                                            Log.d("TAG -int key", "onDataChange: $key $validKey ${dataSnapshot.child("playerCount").getValue(String::class.java)}")
                                             try {
                                                 val playerCount = dataSnapshot.child("playerCount").getValue(String::class.java)?.toInt()!!
-                                                nm2 = dataSnapshot.child("playerInfo").child("nm2").getValue(String::class.java)!!
+                                                nm2 = dataSnapshot.child("playerInfo").child("nm2").getValue(String::class.java).orEmpty()
                                                 lvl2 = dataSnapshot.child("playerInfo").child("lvl2").getValue(Int::class.java) ?: 0
                                                 Log.d("TAG", "ver2: $nm2 $lvl2")
                                                 mBundle.putString("nm2", nm2)
@@ -327,7 +337,7 @@ class MultiplayerActivity : AppCompatActivity() {
                                 })
                             lifecycleScope.launch{
                                 delay(400)
-                                binding.joinInputId.hint = getKey4(key)
+                                binding.joinInputId.hint = viewModel.getKey4(key)
                                 binding.copyPastBtn.setImageResource(R.drawable.icon_share)
                                 binding.copyPastBtn.tag = R.drawable.icon_share
                                 stickySwitch.switchColor =
@@ -350,8 +360,7 @@ class MultiplayerActivity : AppCompatActivity() {
             }
             when (stickySwitch.getDirection()) {
                 StickySwitch.Direction.RIGHT ->  {
-//                    setClipBoardData(getKey4(key), "ID copied")
-                    viewModel.gameId = getKey4(key)
+                    viewModel.gameId = viewModel.getKey4(key)
                     ShareDialogFragment().show(supportFragmentManager, "share")
                 }
                 StickySwitch.Direction.LEFT -> {
@@ -432,7 +441,7 @@ class MultiplayerActivity : AppCompatActivity() {
                     }
                     alertDialog.dismiss()
                 }
-                alertDialog.window?.setBackgroundDrawable(ColorDrawable(0))
+                alertDialog.window?.setBackgroundDrawable(0.toDrawable())
                 try {
                     alertDialog.show()
                 } catch (npe: NullPointerException) {
@@ -454,10 +463,6 @@ class MultiplayerActivity : AppCompatActivity() {
         }
         binding.volBtn.setBounceClickListener{
             volButton()
-//            val x = GameProfile()     // testing
-//            x.coin = x.coin + 69
-//            x.matchPlayed = x.matchPlayed + 50
-//            x.apply()
         }
         binding.ideaBtn.setBounceClickListener{
             ideaBtn()
@@ -476,29 +481,9 @@ class MultiplayerActivity : AppCompatActivity() {
         }
     }
 
-    fun getKey4(key: String?): String {
-        val key4 = StringBuilder("")
-        var i = 4
-        var j = 7
-        key?.let {
-            while (i <= j) {
-                if ((key[i] == '0') || (key[i] == 'O') || (key[i] == 'o')) key4.append('M') else {
-                    if (key[i] != '-' && key[i] != '_') key4.append(key[i]) else j++
-                }
-                i++
-            }
-        }
-        return key4.toString().uppercase()
-    }
-
-    val validKey: String?
-        get() = tryGet { binding.joinInputId.text.toString().uppercase() }?.let { input ->
-            dsList.find { getKey4(it) == input }
-        }
-
     @SuppressLint("SetTextI18n")
     fun lvlUpgrade() {
-        val pf = GameProfile()
+        val pf = viewModel.gameProfile
         val tmpLvl = pref.getInt("tmpLvl", 1)
         if (tmpLvl != pf.lvlByCal) {
             isNotMuted {
@@ -508,7 +493,7 @@ class MultiplayerActivity : AppCompatActivity() {
             }
             Firebase.firestore.collection("gamerProfile").document((playerId))
                 .update("lvl", pf.lvlByCal)
-            prefEditor.putInt("tmpLvl", pf.lvlByCal).apply()
+            pref.edit{ putInt("tmpLvl", pf.lvlByCal) }
             val builder = AlertDialog.Builder(this)
             val v = LayoutInflater.from(this).inflate(
                 R.layout.dialog_layout_update, findViewById(R.id.updateLayoutDialog)
@@ -530,7 +515,7 @@ class MultiplayerActivity : AppCompatActivity() {
                 }
                 alertDialog.dismiss()
             }
-            alertDialog.window?.setBackgroundDrawable(ColorDrawable(0))
+            alertDialog.window?.setBackgroundDrawable(0.toDrawable())
             try {
                 alertDialog.show()
             } catch (npe: NullPointerException) {
@@ -542,9 +527,9 @@ class MultiplayerActivity : AppCompatActivity() {
     @Suppress("DEPRECATION")
     private fun changeNameNeeded() {
         toast("Change Your Name.")
-        prefEditor.putBoolean("muted", true).apply()
+        pref.edit { putBoolean("muted", true) }
         profileBtn{binding->
-            prefEditor.putBoolean("muted", false).apply()
+            pref.edit { putBoolean("muted", false) }
             lifecycleScope.launch {
                 delay(250)
                 binding.nmTxt.isEnabled = true
@@ -577,10 +562,10 @@ class MultiplayerActivity : AppCompatActivity() {
 
     private fun onGoBack() {
         scrBrdVisible = false
-        val fm = supportFragmentManager
-        val ft = fm.beginTransaction()
-        ft.replace(R.id.disFragment, BlankFragment())
-        ft.commit()
+        supportFragmentManager
+            .beginTransaction()
+            .replace(R.id.disFragment, BlankFragment())
+            .commit()
         binding.multiConstraintLyt.show()
         binding.globalScoreFrag.gone()
     }
@@ -592,11 +577,11 @@ class MultiplayerActivity : AppCompatActivity() {
             mediaPlayer.setOnCompletionListener(MediaPlayer::release)
             binding.volBtn.setBackgroundResource(R.drawable.btn_ylw_bg)
             binding.volBtn.setImageResource(R.drawable.icon_vol_unmute)
-            prefEditor.putBoolean("muted", false).apply()
+            pref.edit { putBoolean("muted", false) }
         }, ifNotTrue = {
             binding.volBtn.setBackgroundResource(R.drawable.btn_gry_bg)
             binding.volBtn.setImageResource(R.drawable.icon_vol_mute)
-            prefEditor.putBoolean("muted", true).apply()
+            pref.edit { putBoolean("muted", true) }
         })
     }
 
@@ -621,7 +606,7 @@ class MultiplayerActivity : AppCompatActivity() {
             }
             alertDialog.dismiss()
         }
-        alertDialog.window?.setBackgroundDrawable(ColorDrawable(0))
+        alertDialog.window?.setBackgroundDrawable(0.toDrawable())
         try {
             alertDialog.show()
         } catch (npe: NullPointerException) {
@@ -636,10 +621,9 @@ class MultiplayerActivity : AppCompatActivity() {
             mediaPlayer.setOnCompletionListener(MediaPlayer::release)
         }
         scrBrdVisible = true
-        val fm = supportFragmentManager
-        val ft = fm.beginTransaction()
-        ft.replace(R.id.disFragment, DisplayFragment())
-        ft.commit()
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.disFragment, DisplayFragment())
+            .commit()
         findViewById<View>(R.id.multiConstraintLyt).gone()
         (findViewById<View>(R.id.FragLabel) as TextView).text = "Global Score Board"
         findViewById<View>(R.id.globalScoreFrag).show()
@@ -652,10 +636,9 @@ class MultiplayerActivity : AppCompatActivity() {
             mediaPlayer.setOnCompletionListener(MediaPlayer::release)
         }
         scrBrdVisible = true
-        val fm = supportFragmentManager
-        val ft = fm.beginTransaction()
-        ft.replace(R.id.disFragment, LeaderBoardFragment.newInstance(playerId))
-        ft.commit()
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.disFragment, LeaderBoardFragment.newInstance(playerId))
+            .commit()
         findViewById<View>(R.id.multiConstraintLyt).gone()
         (findViewById<View>(R.id.FragLabel) as TextView).text = "Global Rank List"
         findViewById<View>(R.id.globalScoreFrag).show()
@@ -678,7 +661,7 @@ class MultiplayerActivity : AppCompatActivity() {
         val alertDialog = builder.create()
 
         //builder.setCancelable(false)
-        val x = GameProfile()
+        val x = viewModel.gameProfile
 //        x.countryEmoji = (pref.getString("countryEmoji", ""))!!
 //        x.countryNm = (pref.getString("countryNm", ""))!!
         bindingProfileDialog.apply {
@@ -695,7 +678,7 @@ class MultiplayerActivity : AppCompatActivity() {
                     mgr.loadImage(profileImage, it)
                 }
             }
-            val oldName = GameProfile().nm
+            val oldName = x.nm
             Log.d("TAG", "profileBtn nm: " + pref.getString("nm", "x"))
             nmTxt.setText(oldName)
             val db = Firebase.firestore
@@ -706,7 +689,7 @@ class MultiplayerActivity : AppCompatActivity() {
                 ).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
                 try {
                     startActivity(intent)
-                } catch (e: ActivityNotFoundException) {
+                } catch (_: ActivityNotFoundException) {
                     showOnMarket(Constants.PLAY_GAMES)
                 }
             }
@@ -732,18 +715,16 @@ class MultiplayerActivity : AppCompatActivity() {
                          toast("Can't be single character.")
                          nmTxt.setText(oldName)
                     } else {
-                        val z = GameProfile()
-                        z.nm = newNm
-                        z.apply()
+                        x.nm = newNm
+                        x.apply()
                         Log.d("TAG", "profileBtn: $playerId")
-                        db
-                            .collection("gamerProfile")
+                        db.collection("gamerProfile")
                             .document(playerId)
-                            .update("nm", "" + newNm)
+                            .update("nm", newNm)
                         nmTxt.isEnabled = false
                         nmEditBtn.setImageResource(R.drawable.icon_edit)
                         editing = false
-                        prefEditor.putBoolean("needName", false).apply()
+                         pref.edit { putBoolean("needName", false) }
                     }
                 }
             }
@@ -757,27 +738,25 @@ class MultiplayerActivity : AppCompatActivity() {
                 val newNm: String = nmTxt.text.toString()
                 if ((newNm == "")) {
                     toast("Can't be empty.")
-                    nmTxt.setText("" + oldName)
+                    nmTxt.setText(oldName)
                 } else if (newNm.length == 1) {
                     toast("Can't be single character.")
-                    nmTxt.setText("" + oldName)
+                    nmTxt.setText(oldName)
                 } else {
-                    val z = GameProfile()
-                    z.nm = newNm
-                    z.apply()
+                    x.nm = newNm
+                    x.apply()
                     Log.d("TAG", "profileBtn: $playerId")
-                    db
-                        .collection("gamerProfile")
+                    db.collection("gamerProfile")
                         .document(playerId)
-                        .update("nm", "" + newNm)
+                        .update("nm", newNm)
                     nmTxt.isEnabled = false
                     nmEditBtn.setImageResource(R.drawable.icon_edit)
                     editing = false
-                    prefEditor.putBoolean("needName", false).apply()
+                    pref.edit { putBoolean("needName", false) }
                     alertDialog.dismiss()
                 }
             }
-            alertDialog.window?.setBackgroundDrawable(ColorDrawable(0))
+            alertDialog.window?.setBackgroundDrawable(0.toDrawable())
         }
 
         try {
@@ -803,36 +782,7 @@ class MultiplayerActivity : AppCompatActivity() {
             StickySwitch.Direction.RIGHT ->
                 bindingMain.bubbleTabBar.setSelected(1,true)
         }
-
-//        FragmentManager fm=getSupportFragmentManager()
-//        FragmentTransaction ft=fm.beginTransaction()
-//        if(playerCountLocal==1 && findViewById(R.id.newMsgBoltu).getVisibility() != View.VISIBLE)
-//        {
-//            bubbleTabBar.setSelected(0,true)
-//            ft.replace(R.id.chatFragment,new ChatFragmentGlobal())
-//        }
-//        else
-//        {
-//            bubbleTabBar.setSelected(1,true)
-//            if(key!=null)
-//                ft.replace(R.id.chatFragment,ChatFragmentFriendly.newInstance(key))
-//            else
-//                ft.replace(R.id.chatFragment,new BlankFragment())
-//        }
-//        ft.commit()
-        findViewById<View>(R.id.newMsgBoltu).gone()
-
-
-        /*        InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE)
-        imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, InputMethodManager.HIDE_IMPLICIT_ONLY)*/
-        //show keyboard
-
-
-        //getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
-
-        //getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
-        //getWindow().clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
-        //getWindow().setFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN,WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN)
+        binding.newMsgBoltu.gone()
     }
 
     private fun backBtn() {

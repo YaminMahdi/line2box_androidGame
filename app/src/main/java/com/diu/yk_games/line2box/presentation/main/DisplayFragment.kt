@@ -5,7 +5,6 @@ import android.app.AlertDialog
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.PorterDuff
-import android.graphics.drawable.ColorDrawable
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.util.Log
@@ -14,6 +13,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toDrawable
 import androidx.fragment.app.Fragment
 import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.DialogLayoutProfileBinding
@@ -142,7 +142,7 @@ class DisplayFragment : Fragment() {
                             dialogBinding.plr2Lvl.text = "" + p2Pro.lvl
                         }
                         val alertDialog = builder.create()
-                        alertDialog.window?.setBackgroundDrawable(ColorDrawable(0))
+                        alertDialog.window?.setBackgroundDrawable(0.toDrawable())
                         try { alertDialog.show() }
                         catch (e: Exception) { e.printStackTrace() }
                     }
@@ -199,7 +199,7 @@ class DisplayFragment : Fragment() {
             buttonSaveInfo.gone()
         }
         val alertDialog = builder2.create()
-        alertDialog.window?.setBackgroundDrawable(ColorDrawable(0))
+        alertDialog.window?.setBackgroundDrawable(0.toDrawable())
         dBinding.root.setOnClickListener {
             alertDialog.dismiss()
         }

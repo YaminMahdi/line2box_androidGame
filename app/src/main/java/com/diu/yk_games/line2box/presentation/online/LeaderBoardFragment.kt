@@ -2,7 +2,6 @@ package com.diu.yk_games.line2box.presentation.online
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
-import android.graphics.drawable.ColorDrawable
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.util.Log
@@ -10,6 +9,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
+import androidx.core.graphics.drawable.toDrawable
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -127,7 +127,7 @@ class LeaderBoardFragment : Fragment() {
                             countryLTxt.gone()
                             buttonSaveInfo.gone()
                         }
-                        alertDialog.window?.setBackgroundDrawable(ColorDrawable(0))
+                        alertDialog.window?.setBackgroundDrawable(0.toDrawable())
                         dialogBinding.root.setOnClickListener {
                             alertDialog.dismiss()
                         }

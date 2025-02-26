@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.graphics.Paint
 import android.graphics.Rect
-import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.GradientDrawable
 import android.media.MediaPlayer
 import android.os.Bundle
@@ -19,6 +18,7 @@ import androidx.activity.addCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
+import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.drawerlayout.widget.DrawerLayout.DrawerListener
@@ -30,6 +30,7 @@ import com.diu.yk_games.line2box.databinding.DialogLayoutInfoBinding
 import com.diu.yk_games.line2box.model.DataStore
 import com.diu.yk_games.line2box.model.GameProfile
 import com.diu.yk_games.line2box.model.MsgStore
+import com.diu.yk_games.line2box.model.toMessage
 import com.diu.yk_games.line2box.pref
 import com.diu.yk_games.line2box.prefEditor
 import com.diu.yk_games.line2box.util.applyState
@@ -41,10 +42,12 @@ import com.diu.yk_games.line2box.util.invisible
 import com.diu.yk_games.line2box.util.isMuted
 import com.diu.yk_games.line2box.util.isNotMuted
 import com.diu.yk_games.line2box.util.loadDrawable
+import com.diu.yk_games.line2box.util.onBackPressedIgnoreCallback
 import com.diu.yk_games.line2box.util.performOnClick
 import com.diu.yk_games.line2box.util.setBounceClickListener
 import com.diu.yk_games.line2box.util.setNavStatusPadding
 import com.diu.yk_games.line2box.util.show
+import com.diu.yk_games.line2box.util.toast
 import com.google.android.gms.tasks.Task
 import com.google.android.play.core.review.ReviewInfo
 import com.google.android.play.core.review.ReviewManagerFactory
@@ -54,15 +57,15 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.database
+import com.google.firebase.database.getValue
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import java.util.Objects
-import java.util.Random
+import kotlin.random.Random
 
 
 @SuppressLint("DiscouragedApi")
@@ -72,8 +75,10 @@ class GameActivity2 : AppCompatActivity() {
 
     private var lvl1: Int = 0
     private var lvl2: Int = 0
-    private lateinit var key: String
+    private lateinit var gameKey: String
     private lateinit var playerId: String
+    private lateinit var plr1Id: String
+    private lateinit var plr2Id: String
     private var redX = 0
     private var redY = 0
     private var blueX = 0
@@ -111,13 +116,15 @@ class GameActivity2 : AppCompatActivity() {
         }
         PACKAGE_NAME = applicationContext.packageName
         intent.extras?.let{
-            key = it.getString("gameKey")!!
+            gameKey = it.getString("gameKey")!!
             nm1 = it.getString("nm1")!!
             nm2 = it.getString("nm2")!!
             lvl1 = it.getInt("lvl1")
             lvl2 = it.getInt("lvl2")
             plyr1 = it.getBoolean("plyr1")
-            playerId = it.getString("playerId")!!
+            plr1Id = it.getString("plr1Id")!!
+            plr2Id = it.getString("plr2Id")!!
+            playerId = if(plyr1) plr1Id else plr2Id
         }
         plyrTurn = plyr1
         binding.nm1Id.text = "($nm1)"
@@ -149,7 +156,7 @@ class GameActivity2 : AppCompatActivity() {
         bindingRoot.bubbleTabBar.setSelected(1, true)
         val fm = supportFragmentManager
         val ft = fm.beginTransaction()
-        ft.replace(R.id.chatFragment, ChatFragmentFriendly.newInstance(key, playerId))
+        ft.replace(R.id.chatFragment, ChatFragmentFriendly.newInstance(gameKey, playerId))
         ft.commit()
         bindingRoot.bubbleTabBar.addBubbleListener { id: Int ->
             val fm2 = supportFragmentManager
@@ -157,7 +164,7 @@ class GameActivity2 : AppCompatActivity() {
             if (id == R.id.globalChat) {
                 ft2.replace(R.id.chatFragment, ChatFragmentGlobal.newInstance(playerId))
             } else {
-                ft2.replace(R.id.chatFragment, ChatFragmentFriendly.newInstance(key, playerId))
+                ft2.replace(R.id.chatFragment, ChatFragmentFriendly.newInstance(gameKey, playerId))
             }
             ft2.commit()
         }
@@ -183,7 +190,7 @@ class GameActivity2 : AppCompatActivity() {
             }
         }
         database = FirebaseDatabase.getInstance()
-        myRef = database.getReference("MultiPlayer").child(key).child("matchInfo")
+        myRef = database.getReference("MultiPlayer").child(gameKey).child("matchInfo")
         myRef.child("plyr2").addChildEventListener(object : ChildEventListener {
             override fun onChildAdded(dataSnapshot: DataSnapshot, s: String?) {
                 if (dataSnapshot.exists() && plyr1) {
@@ -253,21 +260,16 @@ class GameActivity2 : AppCompatActivity() {
                     mediaPlayer.start()
                     mediaPlayer.setOnCompletionListener(MediaPlayer::release)
                 }
-                val ms = MsgStore()
-                ms.playerId = playerId
-                ms.nmData = nm2
-                ms.lvlData = lvl2.toString()
-                ms.time = System.currentTimeMillis()
-                ms.msgData = "Left the match."
-                val key2 = myRef.child(key).child("friendlyChat").push().key!!
-                myRef.child(key).child("friendlyChat").child(key2).setValue(ms)
+                val ms = GameProfile().toMessage(
+                    playerId = playerId,
+                    msg = "Left the match.",
+                    type = MsgStore.Type.ExitText
+                )
+                val key = myRef.child(gameKey).child("friendlyChat").push().key!!
+                myRef.child(gameKey).child("friendlyChat").child(key).setValue(ms)
                 alertDialog.dismiss()
-                database.getReference("MultiPlayer").child(key).removeValue()
-                isEnabled = false
-                onBackPressedDispatcher.onBackPressed()
-                isEnabled = true
-//            startActivity(Intent(this, MultiplayerActivity::class.java).putExtra("playerId", playerId))
-//                finish()
+                database.getReference("MultiPlayer").child(gameKey).removeValue()
+                onBackPressedIgnoreCallback()
             }
             view.findViewById<View>(R.id.buttonNo).setBounceClickListener {
                 isNotMuted {
@@ -277,7 +279,7 @@ class GameActivity2 : AppCompatActivity() {
                 }
                 alertDialog.dismiss()
             }
-            alertDialog.window?.setBackgroundDrawable(ColorDrawable(0))
+            alertDialog.window?.setBackgroundDrawable(0.toDrawable())
             try {
                 alertDialog.show()
             } catch (npe: Exception) {
@@ -475,25 +477,13 @@ class GameActivity2 : AppCompatActivity() {
                         bgTopL.setColor(redX)
                         bgTopR.setColor(redX)
                         bgMidC1.setColor(redX)
-                        bgMidC1.setStroke(
-                            14,
-                            redY
-                        )
+                        bgMidC1.setStroke(14, redY)
                         bgMidC2.setColor(redX)
-                        bgMidC2.setStroke(
-                            14,
-                            redY
-                        )
+                        bgMidC2.setStroke(14, redY)
                         bgUpC1.setColor(redX)
-                        bgUpC1.setStroke(
-                            14,
-                            redY
-                        )
+                        bgUpC1.setStroke(14, redY)
                         bgUpC2.setColor(redX)
-                        bgUpC2.setStroke(
-                            14,
-                            redY
-                        )
+                        bgUpC2.setStroke(14, redY)
                         if (one) {
                             one = false
                             Toast.makeText(this, "Bonus TURN for $nm1", Toast.LENGTH_SHORT).show()
@@ -512,28 +502,16 @@ class GameActivity2 : AppCompatActivity() {
                         bgTopL.setColor(blueX)
                         bgTopR.setColor(blueX)
                         bgMidC1.setColor(blueX)
-                        bgMidC1.setStroke(
-                            14,
-                            blueY
-                        )
+                        bgMidC1.setStroke(14, blueY)
                         bgMidC2.setColor(blueX)
-                        bgMidC2.setStroke(
-                            14,
-                            blueY
-                        )
+                        bgMidC2.setStroke(14, blueY)
                         bgUpC1.setColor(blueX)
-                        bgUpC1.setStroke(
-                            14,
-                            blueY
-                        )
+                        bgUpC1.setStroke(14, blueY)
                         bgUpC2.setColor(blueX)
-                        bgUpC2.setStroke(
-                            14,
-                            blueY
-                        )
+                        bgUpC2.setStroke(14, blueY)
                         if (one) {
                             one = false
-                            Toast.makeText(this, "Bonus TURN for $nm2", Toast.LENGTH_SHORT).show()
+                            toast("Bonus TURN for $nm2")
                         }
                     }
                     change = true
@@ -616,32 +594,16 @@ class GameActivity2 : AppCompatActivity() {
                         bgDownL.setColor(blueX)
                         bgDownR.setColor(blueX)
                         bgMidC1.setColor(blueX)
-                        bgMidC1.setStroke(
-                            14,
-                            blueY
-                        )
+                        bgMidC1.setStroke(14, blueY)
                         bgMidC2.setColor(blueX)
-                        bgMidC2.setStroke(
-                            14,
-                            blueY
-                        )
+                        bgMidC2.setStroke(14, blueY)
                         bgDownC1.setColor(blueX)
-                        bgDownC1.setStroke(
-                            14,
-                            blueY
-                        )
+                        bgDownC1.setStroke(14, blueY)
                         bgDownC2.setColor(blueX)
-                        bgDownC2.setStroke(
-                            14,
-                            blueY
-                        )
+                        bgDownC2.setStroke(14, blueY)
                         if (one) {
                             one = false
-                            Toast.makeText(
-                                this,
-                                "Bonus TURN for " + binding.blue.text,
-                                Toast.LENGTH_SHORT
-                            ).show()
+                            toast("Bonus TURN for " + binding.blue.text)
                         }
                     }
                     change = true
@@ -674,8 +636,8 @@ class GameActivity2 : AppCompatActivity() {
                 val doc = db.collection("gamerProfile").document(playerId)
                 doc.update("matchPlayed", FieldValue.increment(1))
                 val updatePro = GameProfile()
-                val winCoin = Random().nextInt(80) + 45
-                val lostCoin = Random().nextInt(35) + 15
+                val winCoin = Random.nextInt(80) + 45
+                val lostCoin = Random.nextInt(35) + 15
                 updatePro.setMatchPlayed()
                 isNotMuted {
                     val mediaPlayer = MediaPlayer.create(this, R.raw.win_ef)
@@ -686,75 +648,80 @@ class GameActivity2 : AppCompatActivity() {
                 binding.red.setTextColor(resources.getColor(R.color.white, theme))
                 binding.blue.textSize = 30f
                 binding.blue.setTextColor(resources.getColor(R.color.white, theme))
-                val winTxt: String
-                val wCoin: String
+                var winTxt = ""
+                var wCoin = ""
                 var plr1Cup = ""
                 var plr2Cup = ""
-                if (scoreRed > scoreBlue) {
-                    if (plyr1) {
-                        doc.update("matchWinMulti", FieldValue.increment(1))
-                        updatePro.setMatchWinMulti()
-                        updatePro.coin += winCoin
-                        updatePro.apply()
-                        doc.update("coin", updatePro.coin)
-                        winTxt = "You won the match."
-                        wCoin = "+$winCoin"
-                        plr1Cup = wCoin
-                        val ms = MsgStore()
-                        ms.playerId = playerId
-                        ms.nmData = nm2
-                        ms.lvlData = lvl2.toString()
-                        ms.time = System.currentTimeMillis()
-                        ms.msgData = "Won the match."
-                        val key2 = myRef.child(key).child("friendlyChat").push().key!!
-                        myRef.child(key).child("friendlyChat").child(key2).setValue(ms)
-                    } else {
-                        updatePro.coin -= lostCoin
-                        updatePro.apply()
-                        doc.update("coin", updatePro.coin)
-                        winTxt = "You lost the match."
-                        wCoin = "-$lostCoin"
-                        plr2Cup = wCoin
-                    }
-                } else if (scoreRed < scoreBlue) {
-                    if (!plyr1) {
-                        doc.update("matchWinMulti", FieldValue.increment(1))
-                        updatePro.setMatchWinMulti()
-                        updatePro.coin += winCoin
-                        updatePro.apply()
-                        doc.update("coin", updatePro.coin)
-                        winTxt = "You won the match."
-                        wCoin = "+$winCoin"
-                        plr2Cup = wCoin
-                        val ms = MsgStore()
-                        ms.playerId = playerId
-                        ms.nmData = nm2
-                        ms.lvlData = lvl2.toString()
-                        ms.time = System.currentTimeMillis()
-                        ms.msgData = "Won the match."
-                        val key2 = myRef.child(key).child("friendlyChat").push().key!!
-                        myRef.child(key).child("friendlyChat").child(key2).setValue(ms)
-                    } else {
-                        updatePro.coin -= lostCoin
-                        updatePro.apply()
-                        doc.update("coin", updatePro.coin)
-                        winTxt = "You lost the match."
-                        wCoin = "-$lostCoin"
-                        plr1Cup = wCoin
-                    }
-                } else {
+
+                fun handleWin() {
+                    doc.update("matchWinMulti", FieldValue.increment(1))
+                    updatePro.setMatchWinMulti()
+                    updatePro.coin += winCoin
+                    updatePro.apply()
+                    doc.update("coin", updatePro.coin)
+
+                    winTxt = "You won the match."
+                    wCoin = "+$winCoin"
+
+                    val ms = MsgStore(
+                        playerId = if (plyr1) plr1Id else plr2Id,
+                        nmData = if (plyr1) nm1 else nm2,
+                        lvlData = (if (plyr1) lvl1 else lvl2).toString(),
+                        time = System.currentTimeMillis(),
+                        msgData = "Won the match.",
+                        type = MsgStore.Type.EnterText.name
+                    )
+
+                    val key = myRef.child(gameKey).child("friendlyChat").push().key!!
+                    myRef.child(gameKey).child("friendlyChat").child(key).setValue(ms)
+                }
+
+                fun handleLoss() {
+                    updatePro.coin -= lostCoin
+                    updatePro.apply()
+                    doc.update("coin", updatePro.coin)
+
+                    winTxt = "You lost the match."
+                    wCoin = "-$lostCoin"
+                }
+
+                fun handleDraw() {
                     updatePro.coin = 50
                     updatePro.apply()
                     doc.update("coin", updatePro.coin)
+
                     winTxt = "Match Draw."
                     wCoin = "+$winCoin"
                 }
+
+                when {
+                    scoreRed > scoreBlue -> {
+                        if (plyr1) {
+                            handleWin()
+                            plr1Cup = "+$winCoin"
+                        } else {
+                            handleLoss()
+                            plr2Cup = "-$lostCoin"
+                        }
+                    }
+                    scoreRed < scoreBlue -> {
+                        if (!plyr1) {
+                            handleWin()
+                            plr2Cup = "+$winCoin"
+                        } else {
+                            handleLoss()
+                            plr1Cup = "-$lostCoin"
+                        }
+                    }
+                    else -> handleDraw()
+                }
+                // Update level after match
                 doc.update("lvl", updatePro.lvlByCal)
-                lifecycleScope.launch { 
+                saveToFirebase(plr1Cup, plr2Cup)
+                lifecycleScope.launch {
                     delay(1200)
                     onGameOver(winTxt, wCoin, updatePro)
                 }
-                saveToFirebase(plr1Cup, plr2Cup)
             }
         }
     }
@@ -808,7 +775,7 @@ class GameActivity2 : AppCompatActivity() {
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release)
             }
             alertDialog.dismiss()
-            database.getReference("MultiPlayer").child(key).removeValue()
+            database.getReference("MultiPlayer").child(gameKey).removeValue()
             if (updatePro.matchWinMulti > 2) {
                 val manager = ReviewManagerFactory.create(this)
                 val request = manager.requestReviewFlow()
@@ -831,9 +798,7 @@ class GameActivity2 : AppCompatActivity() {
                 finish()
             }
         }
-        if (alertDialog.window != null) {
-            alertDialog.window!!.setBackgroundDrawable(ColorDrawable(0))
-        }
+        alertDialog.window?.setBackgroundDrawable(0.toDrawable())
         try {
             alertDialog.show()
             lifecycleScope.launch {
@@ -852,84 +817,53 @@ class GameActivity2 : AppCompatActivity() {
                     (view.findViewById<View>(R.id.coinWin) as TextView).text = "$coin"
                 }
             }
-        } catch (npe: Exception) {
-            npe.printStackTrace()
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
     private fun saveToFirebase(plr1Cup: String, plr2Cup: String) {
-        val dtf = DateTimeFormatter.ofPattern("dd MMM, hh:mm a")
-        val now = LocalDateTime.now()
-        val timeData = dtf.format(now)
-        val starData = "globe"
-        val redData = "${nm1.split("\n")[0]}: $scoreRed"
-        val blueData = "${nm2.split("\n")[0]}: $scoreBlue"
-        val ds = DataStore(
-            System.currentTimeMillis(),
-            timeData,
-            redData,
-            blueData,
-            starData,
-            playerId,
-            "",
-            plr1Cup,
-            ""
-        )
         val db = Firebase.firestore
-        //Source source = Source.CACHE;
-        db.collection("LastBestPlayer").document("LastBestPlayer")
-            .get().addOnSuccessListener { document ->
-                Log.d("TAG", "Cached document data: " + document.data)
-                val bestScoreData =
-                    Objects.requireNonNull(Objects.requireNonNull(document.data)["info"])
-                        .toString()
-                val arrOfStr = bestScoreData.split(" ".toRegex()).dropLastWhile { it.isEmpty() }
-                    .toTypedArray()
-                bestScore = arrOfStr[arrOfStr.size - 1].toInt()
-                if (bestScore <= scoreRed) {
-                    db.collection("LastBestPlayer")
-                        .document("LastBestPlayer")
-                        .update("info", redData)
-                }else if (bestScore <= scoreBlue) {
-                    db.collection("LastBestPlayer")
-                        .document("LastBestPlayer")
-                        .update("info", blueData)
+        val plr2CupRef = Firebase.database.getReference("MultiPlayer").child(gameKey).child("plr2Cup") //he he
+        val key = Firebase.database.getReference("ScoreBoard").child("allScore").push().key!!
+        if (!plyr1) {
+            plr2CupRef.setValue(plr2Cup)
+            return
+        }
+        val ds = DataStore(
+            time = System.currentTimeMillis(),
+            redData = "${nm1.split("\n").firstOrNull()}: $scoreRed",
+            blueData = "${nm2.split("\n").firstOrNull()}: $scoreBlue",
+            starData = "globe",
+            plr1Id = plr1Id,
+            plr2Id = plr2Id,
+            plr1Cup = plr1Cup,
+            plr2Cup = "0"
+        )
+        db.collection("LastBestPlayer").document("LastBestPlayer").get()
+            .addOnSuccessListener { document ->
+                Log.d("TAG", "Cached document data: ${document.data}")
+                val bestScore = document.data?.get("info")
+                    ?.toString()
+                    ?.substringAfterLast(": ")
+                    ?.toIntOrNull() ?: 0
+                val data = when {
+                    bestScore <= scoreRed -> ds.redData
+                    bestScore <= scoreBlue -> ds.blueData
+                    else -> null
+                }
+                data?.let {
+                    db.collection("LastBestPlayer").document("LastBestPlayer")
+                        .update("info", it)
                 }
             }
-        //multiple
-        val plrInfo = FirebaseDatabase.getInstance().getReference("MultiPlayer").child(
-            key
-        ).child("playerInfo") //he he
-        val myRef =
-            FirebaseDatabase.getInstance().getReference("ScoreBoard").child("allScore") //he he
-        val key2 = myRef.push().key!!
-        if (plyr1) {
-            val c = intArrayOf(0)
-            plrInfo.addChildEventListener(object : ChildEventListener {
-                override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
-                    if (snapshot.exists()) {
-                        if (snapshot.key == "plr2Id") {
-                            ds.plr2Id = snapshot.getValue(String::class.java)!!
-                            c[0]++
-                        } else if (snapshot.key == "plr2Cup") {
-                            ds.plr2Cup = snapshot.getValue(String::class.java)!!
-                            c[0]++
-                        }
-                        if (c[0] == 2) db.collection("ScoreBoard").document(key2).set(ds)
-                    }
-                }
-
-                override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {}
-                override fun onChildRemoved(snapshot: DataSnapshot) {}
-                override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {}
-                override fun onCancelled(error: DatabaseError) {}
-            })
-        } else {
-            plrInfo.child("plr2Id").setValue(playerId)
-            plrInfo.child("plr2Cup").setValue(plr2Cup)
-            //db.collection("ScoreBoard").document(key).update("plr2Id",playerId)
-            //db.collection("ScoreBoard").document(key).update("plr2Cup",plr2Cup)
-        }
+        plr2CupRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                ds.plr2Cup = snapshot.getValue<String>() ?: "0"
+                db.collection("ScoreBoard").document(key).set(ds)
+            }
+            override fun onCancelled(error: DatabaseError) {}
+        })
     }
 
     fun ideaBtn() {
@@ -992,7 +926,7 @@ class GameActivity2 : AppCompatActivity() {
             }
         }
         if (alertDialog.window != null) {
-            alertDialog.window!!.setBackgroundDrawable(ColorDrawable(0))
+            alertDialog.window!!.setBackgroundDrawable(0.toDrawable())
         }
         try {
             alertDialog.show()

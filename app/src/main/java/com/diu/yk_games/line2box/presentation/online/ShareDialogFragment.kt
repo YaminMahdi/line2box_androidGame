@@ -6,6 +6,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.GravityCompat
+import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.activityViewModels
 import com.diu.yk_games.line2box.BuildConfig
 import com.diu.yk_games.line2box.R
@@ -15,6 +17,7 @@ import com.diu.yk_games.line2box.util.setBounceClickListener
 import com.diu.yk_games.line2box.util.setClipBoardData
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import io.ak1.BubbleTabBar
 
 class ShareDialogFragment : BottomSheetDialogFragment() {
 
@@ -59,13 +62,23 @@ class ShareDialogFragment : BottomSheetDialogFragment() {
                 context.setClipBoardData(viewModel.gameId, "ID copied")
             }
             btnSend2Chat.setBounceClickListener {
-                viewModel.sendMessage2GlobalChat(message)
+                viewModel.sendInvitation2Chat(
+                    gameId = viewModel.gameId,
+//                    text = getString(R.string.join_my_match)
+                    text = "${getString(R.string.join_my_match)}\n\nMatch ID: ${viewModel.gameId}"
+                )
+                dismiss()
+                activity?.findViewById<DrawerLayout>(R.id.drawer_layout)?.openDrawer(GravityCompat.START)
+                activity?.findViewById<BubbleTabBar>(R.id.bubbleTabBar)?.setSelected(1, true)
+                activity?.supportFragmentManager?.beginTransaction()
+                    ?.replace(R.id.chatFragment, ChatFragmentGlobal.newInstance(viewModel.playerId))
+                    ?.commit()
             }
             btnSend2WhatsApp.setBounceClickListener {
                 try {
                     // Attempt to send via WhatsApp
                     startActivity(intent)
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     // WhatsApp not installed, fallback to generic share intent
                     val sendIntent = Intent(Intent.ACTION_SEND).apply {
                         putExtra(Intent.EXTRA_TEXT, message)

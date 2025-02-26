@@ -16,6 +16,7 @@ import androidx.activity.addCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
+import androidx.core.graphics.drawable.toDrawable
 import androidx.lifecycle.lifecycleScope
 import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.ActivityGame3Binding
@@ -118,7 +119,7 @@ class BotActivity : AppCompatActivity() {
                 }
                 alertDialog.dismiss()
             }
-            alertDialog.window?.setBackgroundDrawable(ColorDrawable(0))
+            alertDialog.window?.setBackgroundDrawable(0.toDrawable())
             try { alertDialog.show() }
             catch (npe: Exception) { npe.printStackTrace() }
         }
@@ -650,7 +651,7 @@ class BotActivity : AppCompatActivity() {
             flag = true
         }
         if (alertDialog.window != null) {
-            alertDialog.window!!.setBackgroundDrawable(ColorDrawable(0))
+            alertDialog.window!!.setBackgroundDrawable(0.toDrawable())
         }
         try { alertDialog?.show() }
         catch (npe: Exception) { npe.printStackTrace() }
@@ -719,7 +720,7 @@ class BotActivity : AppCompatActivity() {
                 dialogBinding.playGif.loadDrawable(gifs[i])
             }
         }
-        alertDialog.window?.setBackgroundDrawable(ColorDrawable(0))
+        alertDialog.window?.setBackgroundDrawable(0.toDrawable())
 
         try { alertDialog?.show() }
         catch (npe: Exception) { npe.printStackTrace() }

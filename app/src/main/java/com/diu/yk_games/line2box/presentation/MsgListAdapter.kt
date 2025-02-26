@@ -7,30 +7,74 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.diu.yk_games.line2box.R
+import com.diu.yk_games.line2box.databinding.CustomInvitationListViewBinding
 import com.diu.yk_games.line2box.databinding.CustomMsgListViewBinding
 import com.diu.yk_games.line2box.model.MsgStore
+import com.diu.yk_games.line2box.model.typeEnum
+import com.diu.yk_games.line2box.util.setBounceClickListener
+import com.diu.yk_games.line2box.util.setClipBoardData
 import com.diu.yk_games.line2box.util.toDateTime
+import com.diu.yk_games.line2box.util.toast
 
-class MsgListAdapter : ListAdapter<MsgStore, MsgListAdapter.ViewHolder>(MsgStoreDiffCallback()) {
+class MsgListAdapter : ListAdapter<MsgStore, RecyclerView.ViewHolder>(MsgStoreDiffCallback()) {
 
     var onClickListener: ((MsgStore) -> Unit)? = null
     var onLongClickListener: ((MsgStore) -> Boolean)? = null
+    var onJoinClickListener: ((String) -> Unit)? = null
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        return ViewHolder(CustomMsgListViewBinding.inflate(
-            LayoutInflater.from(parent.context), parent, false
-        ))
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        return if (viewType == 0) TextViewHolder(
+            CustomMsgListViewBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        )
+        else InvitationViewHolder(
+            CustomInvitationListViewBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        )
     }
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bind(getItem(position))
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        val item = getItem(position) ?: return
+        when(holder){
+            is TextViewHolder -> holder.bind(item)
+            is InvitationViewHolder -> holder.bind(item)
+        }
     }
 
-    inner class ViewHolder(private val binding: CustomMsgListViewBinding) : RecyclerView.ViewHolder(binding.root) {
-//
-//        init {
-//            setIsRecyclable(false)
-//        }
+    override fun getItemViewType(position: Int): Int {
+        return if (getItem(position)?.type == MsgStore.Type.Invitation.name) 1 else 0
+    }
+
+    inner class InvitationViewHolder(private val binding: CustomInvitationListViewBinding) : RecyclerView.ViewHolder(binding.root) {
+        fun bind(item: MsgStore){
+            binding.apply {
+                timeShowId.text = item.time.toDateTime()
+                nmId.text = item.nmData
+                lvlId.text = item.lvlData
+                msgId.text = item.msgData.split("Match ID").firstOrNull()?.trim() ?: item.msgData
+                gameId.text = item.gameId
+                btnJoin.setBounceClickListener {
+                    if(item.gameId != null)
+                        onJoinClickListener?.invoke(item.gameId)
+                    else
+                        root.context.toast("Invalid ID")
+                }
+                btnCopy.setBounceClickListener {
+                    root.context.setClipBoardData(item.gameId, "ID copied")
+                }
+                root.setOnClickListener {
+                    onClickListener?.invoke(item)
+                }
+                root.setOnLongClickListener {
+                    onLongClickListener?.invoke(item) == true
+                }
+            }
+        }
+    }
+    inner class TextViewHolder(private val binding: CustomMsgListViewBinding) : RecyclerView.ViewHolder(binding.root) {
+
+        private val enter = ContextCompat.getColor(binding.root.context, R.color.color_match_action)
+        private val exit = ContextCompat.getColor(binding.root.context, R.color.color_left_match)
+        private val white = ContextCompat.getColor(binding.root.context, R.color.whiteY)
 
         fun bind(item: MsgStore) {
             binding.apply {
@@ -43,24 +87,26 @@ class MsgListAdapter : ListAdapter<MsgStore, MsgListAdapter.ViewHolder>(MsgStore
 
                 // Set message data and color
                 msgId.text = item.msgData
-                val messageColor = when (item.msgData) {
-                    "Created the match.", "Joined the match.", "Won the match." -> R.color.color_match_action
-                    "Left the match." -> R.color.color_left_match
-                    else -> R.color.whiteY
+                val messageColor = when (item.type.typeEnum) {
+                    MsgStore.Type.EnterText -> enter
+                    MsgStore.Type.ExitText -> exit
+                    else -> white
                 }
-                msgId.setTextColor(ContextCompat.getColor(itemView.context, messageColor))
+                msgId.setTextColor(messageColor)
                 root.setOnClickListener {
                     onClickListener?.invoke(item)
                 }
                 root.setOnLongClickListener {
-                    onLongClickListener?.invoke(item) ?: false
+                    onLongClickListener?.invoke(item) == true
                 }
             }
         }
     }
 
     class MsgStoreDiffCallback : DiffUtil.ItemCallback<MsgStore>() {
-        override fun areItemsTheSame(oldItem: MsgStore, newItem: MsgStore) = oldItem.time == newItem.time && oldItem.msgData == newItem.msgData
-        override fun areContentsTheSame(oldItem: MsgStore, newItem: MsgStore)= oldItem == newItem
+        override fun areItemsTheSame(oldItem: MsgStore, newItem: MsgStore) =
+            oldItem.time == newItem.time && oldItem.msgData == newItem.msgData
+
+        override fun areContentsTheSame(oldItem: MsgStore, newItem: MsgStore) = oldItem == newItem
     }
 }

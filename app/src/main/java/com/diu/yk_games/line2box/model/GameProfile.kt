@@ -1,12 +1,11 @@
 package com.diu.yk_games.line2box.model
 
+import androidx.core.content.edit
 import com.diu.yk_games.line2box.pref
-import com.diu.yk_games.line2box.prefEditor
-import kotlin.math.floor
 import kotlin.math.sqrt
 
 class GameProfile {
-    var nm = pref.getString("nm", "Noob" + floor(Math.random() * 900 + 100).toInt())!!
+    var nm = pref.getString("nm", "Noob" + (100..999).random())!!
     var cityNm = pref.getString("cityNm", "")!!
     var query = pref.getString("query", "")!!
     var matchPlayed = pref.getInt("matchPlayed", 0)
@@ -18,14 +17,16 @@ class GameProfile {
     var countryNm = pref.getString("countryNm", "")!!
 
     fun apply() {
-        prefEditor.putString("nm", nm).apply()
-        prefEditor.putString("cityNm", cityNm).apply()
-        prefEditor.putString("query", query).apply()
-        prefEditor.putInt("coins", coin).apply()
-        prefEditor.putInt("matchPlayed", matchPlayed).apply()
-        prefEditor.putInt("matchWinMulti", matchWinMulti).apply()
-        prefEditor.putString("countryEmoji", countryEmoji).apply()
-        prefEditor.putString("countryNm", countryNm).apply()
+        pref.edit {
+            putString("nm", nm)
+            putString("cityNm", cityNm)
+            putString("query", query)
+            putInt("coins", coin)
+            putInt("matchPlayed", matchPlayed)
+            putInt("matchWinMulti", matchWinMulti)
+            putString("countryEmoji", countryEmoji)
+            putString("countryNm", countryNm)
+        }
     }
 
     val lvlByCal: Int

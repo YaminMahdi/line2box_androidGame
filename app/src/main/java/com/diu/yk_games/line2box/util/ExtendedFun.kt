@@ -1,3 +1,5 @@
+@file:Suppress("CONTEXT_RECEIVERS_DEPRECATED")
+
 package com.diu.yk_games.line2box.util
 
 import android.animation.AnimatorSet
@@ -21,6 +23,7 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.browser.customtabs.CustomTabsIntent
@@ -28,6 +31,7 @@ import androidx.core.net.toUri
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.findViewTreeLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import coil3.imageLoader
@@ -147,7 +151,7 @@ fun MotionEvent.isInside(view: View): Boolean {
         val viewMaxX = viewLocation[0] + view.width - 1
         val viewMaxY = viewLocation[1] + view.height - 1
         (rawX <= viewMaxX && rawX >= viewLocation[0] && rawY <= viewMaxY && rawY >= viewLocation[1])
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         false
     }
 }
@@ -223,8 +227,8 @@ fun Context?.showCustomTab(url: String?): Unit? {
     if (this == null || url.isNullOrEmpty()) return null
     return try {
         val intent = CustomTabsIntent.Builder().build()
-        intent.launchUrl(this, Uri.parse(url))
-    } catch (e: Exception) {
+        intent.launchUrl(this, url.toUri())
+    } catch (_: Exception) {
         null
     }
 }
@@ -260,7 +264,7 @@ suspend fun <T, R> T.IO(block: suspend T.() -> R) = withContext(Dispatchers.IO) 
 inline fun <T> tryGet(data: () -> T): T? =
     try {
         data()
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         null
     }
 
@@ -269,7 +273,7 @@ fun Activity.closeKeyboard(nextFocus: View? = null) {
     if (view is EditText) {
         val manager =
             this.getSystemService(AppCompatActivity.INPUT_METHOD_SERVICE) as InputMethodManager
-        manager.hideSoftInputFromWindow(view.getWindowToken(), 0)
+        manager.hideSoftInputFromWindow(view.windowToken, 0)
         nextFocus?.requestFocus()
     }
 }
@@ -335,4 +339,20 @@ fun ImageView.loadDrawable(data: Any?) {
         .build()
 
     context.imageLoader.enqueue(request)
+}
+
+context(Fragment)
+fun OnBackPressedCallback.onBackPressedIgnoreCallback() {
+    activity?.closeKeyboard()
+    isEnabled = false
+    activity?.onBackPressedDispatcher?.onBackPressed()
+    isEnabled = true
+}
+
+context(FragmentActivity)
+fun OnBackPressedCallback.onBackPressedIgnoreCallback() {
+    closeKeyboard()
+    isEnabled = false
+    onBackPressedDispatcher.onBackPressed()
+    isEnabled = true
 }
