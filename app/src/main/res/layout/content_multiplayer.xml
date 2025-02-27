@@ -24,7 +24,7 @@
         android:layout_gravity="bottom"
         android:orientation="vertical">
 
-        <ImageButton
+        <androidx.appcompat.widget.AppCompatImageButton
             android:id="@+id/openNavBtn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -124,7 +124,7 @@
 
                     >
 
-                    <ImageButton
+                    <androidx.appcompat.widget.AppCompatImageButton
                         android:id="@+id/backBtn"
                         android:layout_width="@dimen/_36sdp"
                         android:layout_height="@dimen/_36sdp"
@@ -134,7 +134,7 @@
                         android:fontFamily="@font/sortie"
                         android:src="@drawable/icon_home" />
 
-                    <ImageButton
+                    <androidx.appcompat.widget.AppCompatImageButton
                         android:id="@+id/scoreBoardBtn"
                         android:layout_width="@dimen/_36sdp"
                         android:layout_height="@dimen/_36sdp"
@@ -151,7 +151,7 @@
 
                     >
 
-                    <ImageButton
+                    <androidx.appcompat.widget.AppCompatImageButton
                         android:id="@+id/volBtn"
                         android:layout_width="@dimen/_36sdp"
                         android:layout_height="@dimen/_36sdp"
@@ -161,7 +161,7 @@
                         android:fontFamily="@font/sortie"
                         android:src="@drawable/icon_vol_unmute" />
 
-                    <ImageButton
+                    <androidx.appcompat.widget.AppCompatImageButton
                         android:id="@+id/ideaBtn"
                         android:layout_width="@dimen/_36sdp"
                         android:layout_height="@dimen/_36sdp"
@@ -179,7 +179,7 @@
                 android:layout_marginHorizontal="@dimen/_16sdp"
                 android:layout_marginTop="@dimen/_8sdp">
 
-                <ImageButton
+                <androidx.appcompat.widget.AppCompatImageButton
                     android:id="@+id/leaderBoardBtn"
                     android:layout_width="@dimen/_36sdp"
                     android:layout_height="@dimen/_36sdp"
@@ -187,7 +187,7 @@
                     android:fontFamily="@font/sortie"
                     android:src="@drawable/icon_leaderboard" />
 
-                <ImageButton
+                <androidx.appcompat.widget.AppCompatImageButton
                     android:id="@+id/profileBtn"
                     android:layout_width="@dimen/_36sdp"
                     android:layout_height="@dimen/_36sdp"
@@ -219,7 +219,7 @@
 
                     />
 
-                <ImageView
+                <androidx.appcompat.widget.AppCompatImageView
                     android:layout_width="@dimen/_42sdp"
                     android:layout_height="@dimen/_42sdp"
                     android:layout_gravity="end"
@@ -270,16 +270,17 @@
 
                 <FrameLayout
                     android:layout_width="@dimen/_80ssp"
-                    android:layout_height="wrap_content"
-                    >
+                    android:layout_height="wrap_content">
+
                     <EditText
                         android:id="@+id/joinInputId"
-                        android:layout_gravity="center"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_gravity="center"
                         android:background="#0000"
                         android:fontFamily="@font/sortie"
                         android:hint="@string/game_id"
+                        android:importantForAutofill="no"
                         android:inputType="textCapCharacters|textAutoCorrect"
                         android:maxLength="4"
                         android:paddingVertical="@dimen/_14sdp"
@@ -290,7 +291,7 @@
                 </FrameLayout>
 
 
-                <ImageButton
+                <androidx.appcompat.widget.AppCompatImageButton
                     android:id="@+id/copyPastBtn"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -310,11 +311,11 @@
             android:layout_gravity="center"
             android:layout_marginBottom="@dimen/_80sdp"
             android:background="@drawable/btn_grnx_bg"
+            android:enabled="false"
             android:fontFamily="@font/sortie"
             android:paddingHorizontal="@dimen/_20sdp"
             android:paddingVertical="@dimen/_16sdp"
             android:text="@string/start_match"
-            android:enabled="false"
             android:textColor="@color/btn_white_state"
             android:textSize="@dimen/_20ssp"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -323,7 +324,7 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <ImageView
+    <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/emojiPlay"
         android:layout_width="wrap_content"
         android:layout_height="@dimen/_65sdp"
