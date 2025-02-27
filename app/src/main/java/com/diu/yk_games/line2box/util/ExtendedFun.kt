@@ -32,15 +32,22 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.findViewTreeLifecycleOwner
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import coil3.imageLoader
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.request.target
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
@@ -52,8 +59,60 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.resume
 
+/**Flow collect from Fragment with `repeatOnLifecycle` on` lifecycleScope` till `RESUMED` */
+context(Fragment)
+fun <T> Flow<T?>.collectWithLifecycle(
+    context: CoroutineContext = EmptyCoroutineContext,
+    minActiveState: Lifecycle.State = Lifecycle.State.RESUMED,
+    block: suspend CoroutineScope.(T) -> Unit,
+) {
+    lifecycleScope.launch(context) {
+        repeatOnLifecycle(minActiveState) {
+            filterNotNull().collect { value ->
+                if (isAdded && lifecycle.currentState.isAtLeast(minActiveState))
+                    block(value)
+            }
+        }
+    }
+}
+
+/**Flow collect from Fragment with `repeatOnLifecycle` on` lifecycleScope` till `RESUMED` */
+context(Fragment)
+fun <T> Flow<T?>.collectWithLifecycleStateIn(
+    context: CoroutineContext = EmptyCoroutineContext,
+    minActiveState: Lifecycle.State = Lifecycle.State.RESUMED,
+    block: suspend CoroutineScope.(T) -> Unit,
+) {
+    lifecycleScope.launch(context) {
+        repeatOnLifecycle(minActiveState) {
+            filterNotNull().stateIn(this).collect { value ->
+                if (isAdded && lifecycle.currentState.isAtLeast(minActiveState))
+                    block(value)
+            }
+        }
+    }
+}
+
+/**Flow collect from Activity with `repeatOnLifecycle` on` lifecycleScope` till `RESUMED` */
+context(LifecycleOwner)
+fun <T> Flow<T?>.collectWithLifecycle(
+    context: CoroutineContext = EmptyCoroutineContext,
+    minActiveState: Lifecycle.State = Lifecycle.State.RESUMED,
+    block: suspend CoroutineScope.(T) -> Unit,
+) {
+    lifecycleScope.launch(context) {
+        repeatOnLifecycle(minActiveState) {
+            filterNotNull().collect { value ->
+                if (lifecycle.currentState.isAtLeast(minActiveState))
+                    block(value)
+            }
+        }
+    }
+}
 
 fun Long.toDateTimeOld(): String {
     var date = SimpleDateFormat("dd MMM, hh:mm a", Locale.US).format(this)

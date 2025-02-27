@@ -16,11 +16,11 @@ import com.diu.yk_games.line2box.util.setClipBoardData
 import com.diu.yk_games.line2box.util.toDateTime
 import com.diu.yk_games.line2box.util.toast
 
-class MsgListAdapter : ListAdapter<MsgStore, RecyclerView.ViewHolder>(MsgStoreDiffCallback()) {
+class MsgListAdapter(private val playerId: String) : ListAdapter<MsgStore, RecyclerView.ViewHolder>(MsgStoreDiffCallback()) {
 
     var onClickListener: ((MsgStore) -> Unit)? = null
     var onLongClickListener: ((MsgStore) -> Boolean)? = null
-    var onJoinClickListener: ((String) -> Unit)? = null
+    var onJoinClickListener: ((MsgStore) -> Unit)? = null
 
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
@@ -52,9 +52,11 @@ class MsgListAdapter : ListAdapter<MsgStore, RecyclerView.ViewHolder>(MsgStoreDi
                 lvlId.text = item.lvlData
                 msgId.text = item.msgData.split("Match ID").firstOrNull()?.trim() ?: item.msgData
                 gameId.text = item.gameId
+                if(item.playerId == playerId)
+                    btnJoin.isEnabled = false
                 btnJoin.setBounceClickListener {
-                    if(item.gameId != null)
-                        onJoinClickListener?.invoke(item.gameId)
+                    if(item.gameId.isNotEmpty())
+                        onJoinClickListener?.invoke(item)
                     else
                         root.context.toast("Invalid ID")
                 }
@@ -70,6 +72,7 @@ class MsgListAdapter : ListAdapter<MsgStore, RecyclerView.ViewHolder>(MsgStoreDi
             }
         }
     }
+
     inner class TextViewHolder(private val binding: CustomMsgListViewBinding) : RecyclerView.ViewHolder(binding.root) {
 
         private val enter = ContextCompat.getColor(binding.root.context, R.color.color_match_action)
@@ -104,9 +107,8 @@ class MsgListAdapter : ListAdapter<MsgStore, RecyclerView.ViewHolder>(MsgStoreDi
     }
 
     class MsgStoreDiffCallback : DiffUtil.ItemCallback<MsgStore>() {
-        override fun areItemsTheSame(oldItem: MsgStore, newItem: MsgStore) =
-            oldItem.time == newItem.time && oldItem.msgData == newItem.msgData
+        override fun areItemsTheSame(oldItem: MsgStore, newItem: MsgStore) = oldItem.key == newItem.key
 
-        override fun areContentsTheSame(oldItem: MsgStore, newItem: MsgStore) = oldItem == newItem
+        override fun areContentsTheSame(oldItem: MsgStore, newItem: MsgStore) = oldItem.key == newItem.key
     }
 }

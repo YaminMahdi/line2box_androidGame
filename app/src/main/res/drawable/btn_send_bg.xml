@@ -1,52 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
-<selector xmlns:android="http://schemas.android.com/apk/res/android" >
-    <item android:state_pressed="true" >
-        <shape android:shape="rectangle"  >
-            <corners android:radius="10dp" />
-            <stroke android:width="4dp" android:color="#99E34816" />
-            <gradient
-                android:angle="270"
-                android:endColor="@color/orangeZ"
-                android:centerColor="@color/orangeZ"
-                android:startColor="@color/orangeX"
-                android:type="linear" />
-        </shape>
-    </item>
-    <item android:state_focused="true">
-        <shape android:shape="rectangle"  >
-            <corners android:radius="10dp" />
-            <stroke android:width="4dp" android:color="#99E34816" />
-            <gradient
-                android:angle="270"
-                android:endColor="@color/orangeZ"
-                android:centerColor="@color/orangeZ"
-                android:startColor="@color/orangeX"
-                android:type="linear" />
-        </shape>
-    </item>
-    <item android:state_enabled="false">
-        <shape android:shape="rectangle"  >
-            <corners android:radius="10dp" />
-            <stroke android:width="2dp" android:color="@color/grayY" />
-            <solid android:color="@color/grayX"/>
-        </shape>
-    </item>
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="@color/orangeY"> <!-- Ripple effect color -->
 
+    <!-- Button states -->
     <item>
-
-        <shape android:shape="rectangle"  >
-            <corners android:radius="10dp" />
-            <gradient
-                android:angle="270"
-                android:endColor="@color/orangeZ"
-                android:startColor="@color/orangeX"
-                android:type="linear" />
-            <stroke android:width="4dp" android:color="@color/orangeY" />
-
-        </shape>
-
-
+        <selector>
+            <!-- Disabled state -->
+            <item android:state_enabled="false">
+                <shape android:shape="rectangle">
+                    <corners android:radius="10dp" />
+                    <stroke android:width="2dp" android:color="@color/grayY" />
+                    <solid android:color="@color/grayX"/>
+                </shape>
+            </item>
+            <!-- Default state -->
+            <item>
+                <shape android:shape="rectangle">
+                    <corners android:radius="10dp" />
+                    <gradient
+                        android:angle="270"
+                        android:endColor="@color/orangeZ"
+                        android:startColor="@color/orangeX"
+                        android:type="linear" />
+                    <stroke android:width="4dp" android:color="@color/orangeY" />
+                </shape>
+            </item>
+        </selector>
     </item>
 
-
-</selector>
+</ripple>

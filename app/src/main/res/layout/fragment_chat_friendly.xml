@@ -15,7 +15,7 @@
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintBottom_toTopOf="@+id/emoji"
         app:layout_constraintTop_toTopOf="parent"
-        app:stackFromEnd="true"
+        app:reverseLayout="true"
         tools:listitem="@layout/custom_msg_list_view" />
 
     <LinearLayout
@@ -33,7 +33,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:background="@drawable/btn_special_bg"
-            android:text="🤣"
+            android:text="@string/emoji_haha"
             android:textSize="35sp" />
 
         <androidx.appcompat.widget.AppCompatButton
@@ -42,7 +42,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:background="@drawable/btn_special_bg"
-            android:text="😭"
+            android:text="@string/emoji_cry"
             android:textSize="35sp" />
 
         <androidx.appcompat.widget.AppCompatButton
@@ -51,7 +51,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:background="@drawable/btn_special_bg"
-            android:text="😱"
+            android:text="@string/emoji_scream"
             android:textSize="35sp" />
 
         <androidx.appcompat.widget.AppCompatButton
@@ -60,7 +60,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:background="@drawable/btn_special_bg"
-            android:text="😘"
+            android:text="@string/emoji_kiss"
             android:textSize="35sp" />
 
         <androidx.appcompat.widget.AppCompatButton
@@ -69,7 +69,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:background="@drawable/btn_special_bg"
-            android:text="🥱"
+            android:text="@string/emoji_yawn"
             android:textSize="35sp" />
 
     </LinearLayout>
@@ -93,14 +93,16 @@
             android:focusable="true"
             android:focusableInTouchMode="true"
             android:fontFamily="@font/sortie"
-            android:hint="Type Here..."
+            android:hint="@string/type_here"
+            android:importantForAutofill="no"
+            android:inputType="text"
             android:lineSpacingExtra="5sp"
             android:paddingHorizontal="20dp"
             android:textColor="@color/cocZz"
             android:textColorHint="@color/cocZ"
             android:textSize="20sp" />
 
-        <ImageButton
+        <androidx.appcompat.widget.AppCompatImageButton
             android:id="@+id/msgSendBtn"
             android:layout_width="0dp"
             android:layout_height="match_parent"

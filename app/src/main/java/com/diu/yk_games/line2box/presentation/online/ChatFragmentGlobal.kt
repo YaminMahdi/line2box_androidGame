@@ -21,21 +21,15 @@ import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.DialogLayoutProfileBinding
 import com.diu.yk_games.line2box.databinding.FragmentChatGlobalBinding
 import com.diu.yk_games.line2box.model.GameProfile
-import com.diu.yk_games.line2box.model.MsgStore
-import com.diu.yk_games.line2box.model.toMessage
 import com.diu.yk_games.line2box.pref
 import com.diu.yk_games.line2box.presentation.MainViewModel
 import com.diu.yk_games.line2box.presentation.MsgListAdapter
+import com.diu.yk_games.line2box.util.collectWithLifecycle
 import com.diu.yk_games.line2box.util.gone
 import com.diu.yk_games.line2box.util.setBounceClickListener
 import com.diu.yk_games.line2box.util.setClipBoardData
 import com.diu.yk_games.line2box.util.toast
 import com.google.firebase.Firebase
-import com.google.firebase.database.ChildEventListener
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.database
-import com.google.firebase.database.getValue
 import com.google.firebase.firestore.firestore
 import com.google.firebase.firestore.toObject
 import kotlinx.coroutines.launch
@@ -43,19 +37,10 @@ import kotlinx.coroutines.launch
 class ChatFragmentGlobal : Fragment() {
     private lateinit var binding: FragmentChatGlobalBinding
     private val viewModel by activityViewModels<MainViewModel>()
-    var msList = mutableListOf<MsgStore>()
-    private var database = Firebase.database
-    private var myRef = database.getReference("globalChat")
     private lateinit var activity: Activity
-    private val msgListAdapter by lazy { MsgListAdapter() }
     private lateinit var playerId: String
+    private val msgListAdapter by lazy { MsgListAdapter(playerId) }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let{
-            playerId = it.getString("playerId").orEmpty()
-        }
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -69,27 +54,16 @@ class ChatFragmentGlobal : Fragment() {
     @SuppressLint("SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        arguments?.let{
+            playerId = it.getString("playerId").orEmpty()
+        }
         binding.showMsgList.adapter = msgListAdapter
         binding.chatBoxGlobal.requestFocus()
-        myRef.limitToLast(100).addChildEventListener(object : ChildEventListener {
-            override fun onChildAdded(dataSnapshot: DataSnapshot, s: String?) {
-                val ms = dataSnapshot.getValue<MsgStore>()
-                ms?.let {
-                    msList.add(ms)
-                    msgListAdapter.submitList(msList)
-                    if(isAdded)
-                        binding.showMsgList.scrollToPosition(msList.size - 1)
-                }
-            }
-
-            override fun onChildChanged(dataSnapshot: DataSnapshot, s: String?) {}
-            override fun onChildRemoved(dataSnapshot: DataSnapshot) {}
-            override fun onChildMoved(dataSnapshot: DataSnapshot, s: String?) {}
-            override fun onCancelled(databaseError: DatabaseError) {}
-        })
+        viewModel.globalChatList.collectWithLifecycle {
+            msgListAdapter.submitList(it)
+        }
 
         msgListAdapter.onClickListener = { msg ->
-            val playerId1 = msg.playerId
             //presentationEco str = (presentationEco)o; //As you are using Default String Adapter
             if (!pref.getBoolean("muted", false)) {
                 val mediaPlayer =
@@ -97,9 +71,9 @@ class ChatFragmentGlobal : Fragment() {
                 mediaPlayer.start()
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release)
             }
-            if (playerId1 != "") {
+            if (msg.playerId.isNotEmpty()) {
                 val db = Firebase.firestore
-                db.collection("gamerProfile").document(playerId1)
+                db.collection("gamerProfile").document(msg.playerId)
                     .get().addOnSuccessListener { documentSnapshot ->
                         val server2device = documentSnapshot.toObject<GameProfile>()
                         if (server2device != null) {
@@ -150,9 +124,9 @@ class ChatFragmentGlobal : Fragment() {
             true
         }
 
-        msgListAdapter.onJoinClickListener = { gameId ->
+        msgListAdapter.onJoinClickListener = { msg ->
             lifecycleScope.launch {
-                viewModel.getJoinBundle(gameId).onSuccess {
+                viewModel.getJoinBundle(msg).onSuccess {
                     activity.findViewById<DrawerLayout>(R.id.drawer_layout)?.closeDrawer(GravityCompat.START)
                     activity.startActivity(Intent(activity, GameActivity2::class.java).putExtras(it))
                 }.onFailure {
@@ -165,15 +139,9 @@ class ChatFragmentGlobal : Fragment() {
             val mp = MediaPlayer.create(activity, R.raw.pop)
             mp.start()
             mp.setOnCompletionListener(MediaPlayer::release)
-            val ms = GameProfile().toMessage(
-                playerId = playerId,
-                msg = binding.chatBoxGlobal.text.toString()
-            )
-            if (ms.msgData.isNotEmpty()) {
-                val key = myRef.push().key!!
-                myRef.child(key).setValue(ms)
+            viewModel.sendMessage2GlobalChat(binding.chatBoxGlobal.text.toString())?.also{
                 binding.chatBoxGlobal.setText("")
-            } else toast("Write Something..")
+            } ?: toast("Write Something..")
         }
     }
 

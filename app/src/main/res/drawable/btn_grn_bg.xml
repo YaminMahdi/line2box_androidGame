@@ -1,24 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
-<selector xmlns:android="http://schemas.android.com/apk/res/android" >
-    <item android:state_pressed="true" >
-        <shape android:shape="rectangle"  >
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="@color/greenY"> <!-- Ripple effect color -->
+
+    <!-- Default button shape states -->
+    <item>
+        <selector>
+            <!-- Default state -->
+            <item>
+                <shape android:shape="rectangle">
+                    <corners android:radius="@dimen/_18sdp" />
+                    <stroke android:width="@dimen/_2sdp" android:color="@color/greenY" />
+                    <solid android:color="@color/greenX"/>
+                </shape>
+            </item>
+        </selector>
+    </item>
+
+    <!-- Ripple mask -->
+    <item android:id="@android:id/mask">
+        <shape android:shape="rectangle">
             <corners android:radius="@dimen/_18sdp" />
-            <stroke android:width="@dimen/_2sdp" android:color="@color/greenX" />
-            <solid android:color="@color/greenY"/>
+            <solid android:color="@color/greenY"/> <!-- Mask for ripple effect -->
         </shape>
     </item>
-    <item android:state_focused="true">
-        <shape android:shape="rectangle"  >
-            <corners android:radius="@dimen/_18sdp" />
-            <stroke android:width="@dimen/_2sdp" android:color="@color/greenX" />
-            <solid android:color="@color/greenY"/>
-        </shape>
-    </item>
-    <item >
-        <shape android:shape="rectangle"  >
-            <corners android:radius="@dimen/_18sdp" />
-            <stroke android:width="@dimen/_2sdp" android:color="@color/greenY" />
-            <solid android:color="@color/greenX"/>
-        </shape>
-    </item>
-</selector>
+
+</ripple>

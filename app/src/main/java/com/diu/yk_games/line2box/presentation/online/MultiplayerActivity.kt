@@ -57,10 +57,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
-import com.google.firebase.database.database
 import com.google.firebase.database.getValue
 import com.google.firebase.firestore.firestore
 import io.ghyeok.stickyswitch.widget.StickySwitch
@@ -74,8 +71,6 @@ class MultiplayerActivity : AppCompatActivity() {
     private lateinit var bindingMain: ActivityGameMultiBinding
     private val binding by lazy { bindingMain.appBarGame2 }
     private val viewModel: MainViewModel by viewModels()
-    private lateinit var database: FirebaseDatabase
-    lateinit var myRef: DatabaseReference
     var nm1: String =""
     var nm2: String =""
     var lvl1: Int = 0
@@ -83,7 +78,6 @@ class MultiplayerActivity : AppCompatActivity() {
     private var editing = false
     var mBundle = Bundle()
     lateinit var playerId: String
-    var tmpKey: String? = null
 
 
     override fun onResume() {
@@ -92,6 +86,7 @@ class MultiplayerActivity : AppCompatActivity() {
         binding.trophyTextId.text = ""+viewModel.gameProfile.coin
         lvlUpgrade()
     }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.hideSystemBars()
@@ -140,10 +135,8 @@ class MultiplayerActivity : AppCompatActivity() {
         binding.copyPastBtn.tag = R.drawable.icon_paste
         binding.startMatchBtn.isEnabled = false
         ifMuted()
-        database = Firebase.database
-        myRef = database.getReference("MultiPlayer")
-        myRef.child((pref.getString("tmpKey", "69"))!!).removeValue()
-        myRef.limitToLast(100).addChildEventListener(object : ChildEventListener {
+        viewModel.removeTempMatch()
+        viewModel.multiPlayerRef.limitToLast(100).addChildEventListener(object : ChildEventListener {
             override fun onChildAdded(dataSnapshot: DataSnapshot, s: String?) {
                 Log.d("addList", "onChildAdded: " + dataSnapshot.key)
                 dataSnapshot.key?.let { viewModel.matchKeys.add(it) }
@@ -164,7 +157,7 @@ class MultiplayerActivity : AppCompatActivity() {
                 closeKeyboard()
                 if (!newKey.isNullOrEmpty()) {
                     mBundle.putString("gameKey", newKey)
-                    myRef.child(newKey).child("playerCount")
+                    viewModel.multiPlayerRef.child(newKey).child("playerCount")
                         .addListenerForSingleValueEvent(object : ValueEventListener {
                             @SuppressLint("SetTextI18n")
                             override fun onDataChange(dataSnapshot: DataSnapshot) {
@@ -172,34 +165,33 @@ class MultiplayerActivity : AppCompatActivity() {
                                     val playerCount = dataSnapshot.getValue<String>()?.toIntOrNull()
                                     if (playerCount == 1) {
                                         amiThePayer = true
-                                        myRef.child(newKey).child("playerCount")
+                                        viewModel.multiPlayerRef.child(newKey).child("playerCount")
                                             .setValue("2")
                                         //playerCountLocal=2;
                                         binding.startMatchBtn.isEnabled = true
-                                        tmpKey = newKey
-                                        pref.edit { putString("tmpKey", newKey) }
+                                        viewModel.addTempKey(newKey)
                                         //remove
-                                        myRef.child(newKey).child("playerInfo").child("nm2")
+                                        viewModel.multiPlayerRef.child(newKey).child("playerInfo").child("nm2")
                                             .setValue(viewModel.gameProfile.nm)
-                                        myRef.child(newKey).child("playerInfo")
+                                        viewModel.multiPlayerRef.child(newKey).child("playerInfo")
                                             .child("lvl2").setValue(viewModel.gameProfile.lvlByCal)
                                         //remove
-                                        myRef.child(newKey).child("player2")
+                                        viewModel.multiPlayerRef.child(newKey).child("player2")
                                             .setValue(viewModel.gameProfile.toPlayerInfo())
                                         val ms = viewModel.gameProfile.toMessage(
                                             playerId = playerId,
                                             msg = "Joined the match.",
                                             type = MsgStore.Type.EnterText
                                         )
-                                        val key2 = myRef.child(newKey).child("friendlyChat")
+                                        val key2 = viewModel.multiPlayerRef.child(newKey).child("friendlyChat")
                                             .push().key!!
-                                        myRef.child(newKey).child("friendlyChat")
+                                        viewModel.multiPlayerRef.child(newKey).child("friendlyChat")
                                             .child(key2).setValue(ms)
                                         bindingMain.bubbleTabBar.setSelected(1, true)
 //                                        fm.beginTransaction()
 //                                            .replace(R.id.chatFragment, ChatFragmentFriendly.newInstance(tmpKey, playerId))
 //                                            .commit()
-                                        myRef.child(newKey).child("playerInfo")
+                                        viewModel.multiPlayerRef.child(newKey).child("playerInfo")
                                             .addValueEventListener(object : ValueEventListener {
                                                 override fun onDataChange(dataSnapshot: DataSnapshot) {
                                                     if (dataSnapshot.exists()) {
@@ -259,17 +251,14 @@ class MultiplayerActivity : AppCompatActivity() {
                             fm.beginTransaction()
                                 .replace(R.id.chatFragment, ChatFragmentGlobal.newInstance(playerId))
                                 .commit()
-                            findViewById<View>(R.id.newMsgBoltu).gone()
+                            binding.newMsgBoltu.gone()
+                            viewModel.clearTempMatches()
                             lifecycleScope.launch {
                                 delay(400)
                                 binding.joinInputId.hint = "Game ID"
                                 binding.copyPastBtn.setImageResource(R.drawable.icon_paste)
                                 binding.copyPastBtn.tag = R.drawable.icon_paste
                                 stickySwitch.switchColor = -0xdc8e06
-                                if (key != null) {
-                                    myRef.child(key!!).removeValue()
-                                    key = null
-                                }
                             }
                         }
                         StickySwitch.Direction.RIGHT -> {
@@ -283,17 +272,17 @@ class MultiplayerActivity : AppCompatActivity() {
                             Log.d("TAG", "ver: $nm1 $lvl1")
                             mBundle.putString("nm1", nm1)
                             mBundle.putInt("lvl1", lvl1)
-                            key = myRef.push().key
-                            pref.edit { putString("tmpKey", key) }
+                            key = viewModel.multiPlayerRef.push().key
+                            viewModel.addTempKey(key)
                             Log.d("TAG", "onCreate key: $key")
                             mBundle.putString("gameKey", key)
                             val gameRoom = GameRoom(
                                 player1 = viewModel.gameProfile.toPlayerInfo(),
                                 playerInfo = PlayerInfoOld(nm1 = nm1, lvl1 = lvl1, plr1Id = playerId)
                             )
-                            myRef.child(key!!).setValue(gameRoom)
-                            val key2 = myRef.child(key!!).child("friendlyChat").push().key!!
-                            myRef.child(key!!)
+                            viewModel.multiPlayerRef.child(key!!).setValue(gameRoom)
+                            val key2 = viewModel.multiPlayerRef.child(key!!).child("friendlyChat").push().key!!
+                            viewModel.multiPlayerRef.child(key!!)
                                 .child("friendlyChat")
                                 .child(key2)
                                 .setValue(MsgStore(
@@ -308,7 +297,7 @@ class MultiplayerActivity : AppCompatActivity() {
 //                            fm.beginTransaction()
 //                                .replace(R.id.chatFragment, ChatFragmentFriendly.newInstance(key, playerId))
 //                                .commit()
-                            myRef.child(key!!)
+                            viewModel.multiPlayerRef.child(key!!)
                                 .addValueEventListener(object : ValueEventListener {
                                     override fun onDataChange(dataSnapshot: DataSnapshot) {
                                         if (dataSnapshot.exists()) {
@@ -342,14 +331,9 @@ class MultiplayerActivity : AppCompatActivity() {
                                 binding.copyPastBtn.tag = R.drawable.icon_share
                                 stickySwitch.switchColor =
                                     ContextCompat.getColor(applicationContext, R.color.greenY)
-                                tmpKey?.let{
-                                    myRef.child(it).removeValue()
-                                    tmpKey = null
-                                }
                             }
                         }
                     }
-
                 }
             }
         binding.copyPastBtn.setBounceClickListener {
@@ -682,11 +666,12 @@ class MultiplayerActivity : AppCompatActivity() {
             Log.d("TAG", "profileBtn nm: " + pref.getString("nm", "x"))
             nmTxt.setText(oldName)
             val db = Firebase.firestore
+            //"com.google.android.play.games", "com.google.android.gms.games.ui.destination.main.MainActivity"
             profileShapeLayout.setBounceClickListener {
-                val intent: Intent = Intent(Intent.ACTION_VIEW).setClassName(
-                    Constants.PLAY_GAMES,
-                    "${Constants.PLAY_GAMES}.ui.destination.main.MainActivity"
-                ).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                val intent: Intent = Intent(Intent.ACTION_VIEW).apply {
+                    setClassName(Constants.PLAY_GAMES, "${Constants.PLAY_SERVICES}.games.ui.destination.main.MainActivity")
+                    addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                }
                 try {
                     startActivity(intent)
                 } catch (_: ActivityNotFoundException) {
@@ -769,8 +754,7 @@ class MultiplayerActivity : AppCompatActivity() {
     private fun closeNavBtn() {
         closeKeyboard()
         bindingMain.root.closeDrawer(GravityCompat.START)
-        findViewById<View>(R.id.newMsgBoltu).gone()
-        // getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
+        binding.newMsgBoltu.gone()
     }
 
     private fun openNavBtn() {

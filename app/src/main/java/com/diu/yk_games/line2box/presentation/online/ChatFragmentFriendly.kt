@@ -15,15 +15,16 @@ import androidx.core.os.bundleOf
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.DialogLayoutProfileBinding
 import com.diu.yk_games.line2box.databinding.FragmentChatFriendlyBinding
 import com.diu.yk_games.line2box.model.GameProfile
-import com.diu.yk_games.line2box.model.MsgStore
-import com.diu.yk_games.line2box.model.toMessage
 import com.diu.yk_games.line2box.pref
+import com.diu.yk_games.line2box.presentation.MainViewModel
 import com.diu.yk_games.line2box.presentation.MsgListAdapter
+import com.diu.yk_games.line2box.util.collectWithLifecycle
 import com.diu.yk_games.line2box.util.gone
 import com.diu.yk_games.line2box.util.loadDrawable
 import com.diu.yk_games.line2box.util.setBounceClickListener
@@ -31,35 +32,19 @@ import com.diu.yk_games.line2box.util.setClipBoardData
 import com.diu.yk_games.line2box.util.show
 import com.diu.yk_games.line2box.util.toast
 import com.google.firebase.Firebase
-import com.google.firebase.database.ChildEventListener
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
-import com.google.firebase.database.getValue
 import com.google.firebase.firestore.firestore
 import com.google.firebase.firestore.toObject
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.getValue
 
 class ChatFragmentFriendly : Fragment() {
     private lateinit var binding: FragmentChatFriendlyBinding
-    var msList: MutableList<MsgStore> = mutableListOf()
-    private var database = FirebaseDatabase.getInstance()
-    private lateinit var myRef: DatabaseReference
+    private val viewModel by activityViewModels<MainViewModel>()
     var tempMsg: String = " # # 69"
     private lateinit var activity: Activity
-    private val msgListAdapter by lazy { MsgListAdapter() }
     private lateinit var playerId: String
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let{
-            key = it.getString("key").orEmpty()
-            playerId = it.getString("playerId").orEmpty()
-        }
-    }
+    private val msgListAdapter by lazy { MsgListAdapter(playerId) }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -67,34 +52,12 @@ class ChatFragmentFriendly : Fragment() {
     ): View {
         binding = FragmentChatFriendlyBinding.inflate(inflater, container, false)
         activity = requireActivity()
-        myRef = database.getReference("MultiPlayer").child(key).child("friendlyChat")
-        val mp = MediaPlayer.create(activity, R.raw.pop)
-        val mDrawerLayout = activity.findViewById<DrawerLayout>(R.id.drawer_layout)
-        myRef.addValueEventListener(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                val lastMsg = msList.lastOrNull()?.msgData
-                if (snapshot.exists()) {
-                    if (lastMsg == "🤣") emojiRunner(R.drawable.emoji_haha, R.raw.haha)
-                    else if (lastMsg == "😭") emojiRunner(R.drawable.emoji_cry, R.raw.cry)
-                    else if (lastMsg == "😱") emojiRunner(R.drawable.emoji_scream, R.raw.scream)
-                    else if (lastMsg == "😘") emojiRunner(R.drawable.emoji_kiss, R.raw.kiss)
-                    else if (lastMsg == "🥱") emojiRunner(R.drawable.emoji_yawn, R.raw.yawn)
-                    else if (lastMsg == tempMsg || !mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
-                        mp.start()
-//                        val mediaPlayer = MediaPlayer.create(activity, R.raw.pop)
-//                        mediaPlayer.start()
-//                        mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-                    }
-//                    else if (!mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
-//                        mp.start()
-//                        //mp.setOnCompletionListener(MediaPlayer::release)
-//                    }
-                    tempMsg = " # # 69"
-                }
-            }
-
-            override fun onCancelled(error: DatabaseError) {}
-        })
+        arguments?.let{
+            key = it.getString("key").orEmpty()
+            playerId = it.getString("playerId").orEmpty()
+        }
+        binding.showMsgList.adapter = msgListAdapter
+        viewModel.fetchFriendlyChat(key)
         return binding.root
     }
 
@@ -102,25 +65,22 @@ class ChatFragmentFriendly : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.chatBoxFriendly.requestFocus()
-        binding.showMsgList.adapter = msgListAdapter
-        myRef.addChildEventListener(object : ChildEventListener {
-            override fun onChildAdded(dataSnapshot: DataSnapshot, s: String?) {
-                val ms = dataSnapshot.getValue<MsgStore>()
-                ms?.let {
-                    msList.add(ms)
-                    msgListAdapter.submitList(msList)
-                    if(isAdded) {
-                        activity.findViewById<View>(R.id.newMsgBoltu).show()
-                        binding.showMsgList.scrollToPosition(msList.size - 1)
-                    }
-                }
+        val mp = MediaPlayer.create(activity, R.raw.pop)
+        val mDrawerLayout = activity.findViewById<DrawerLayout>(R.id.drawer_layout)
+        viewModel.friendsChatList.collectWithLifecycle {
+            msgListAdapter.submitList(it)
+            val lastMsg = it.lastOrNull()?.msgData
+            if (lastMsg != null) {
+                if (lastMsg == "🤣") emojiRunner(R.drawable.emoji_haha, R.raw.haha)
+                else if (lastMsg == "😭") emojiRunner(R.drawable.emoji_cry, R.raw.cry)
+                else if (lastMsg == "😱") emojiRunner(R.drawable.emoji_scream, R.raw.scream)
+                else if (lastMsg == "😘") emojiRunner(R.drawable.emoji_kiss, R.raw.kiss)
+                else if (lastMsg == "🥱") emojiRunner(R.drawable.emoji_yawn, R.raw.yawn)
+                else if (lastMsg == tempMsg || !mDrawerLayout.isDrawerOpen(GravityCompat.START))
+                    mp.start()
+                tempMsg = " # # 69"
             }
-
-            override fun onChildChanged(dataSnapshot: DataSnapshot, s: String?) {}
-            override fun onChildRemoved(dataSnapshot: DataSnapshot) {}
-            override fun onChildMoved(dataSnapshot: DataSnapshot, s: String?) {}
-            override fun onCancelled(databaseError: DatabaseError) {}
-        })
+        }
         msgListAdapter.onClickListener = { msg ->
             //presentationEco str = (presentationEco)o; //As you are using Default String Adapter
             if (!pref.getBoolean("muted", false)) {
@@ -185,17 +145,15 @@ class ChatFragmentFriendly : Fragment() {
             true
         }
         binding.msgSendBtn.setBounceClickListener {
-            val txt = binding.chatBoxFriendly.text.toString()
-            if (txt.isNotEmpty()) {
-                sendThisMsg(txt)
+            viewModel.sendMessage2FriendlyChat(matchKey = key, text = binding.chatBoxFriendly.text.toString())?.also{
                 binding.chatBoxFriendly.setText("")
-            } else toast("Write Something..")
+            } ?: toast("Write Something..")
         }
-        binding.sendHaha.setBounceClickListener { sendThisMsg("🤣") }
-        binding.sendCry.setBounceClickListener { sendThisMsg("😭") }
-        binding.sendKiss.setBounceClickListener { sendThisMsg("😘") }
-        binding.sendScream.setBounceClickListener { sendThisMsg("😱") }
-        binding.sendYawn.setBounceClickListener { sendThisMsg("🥱") }
+        binding.sendHaha.setBounceClickListener { viewModel.sendMessage2FriendlyChat(matchKey = key, text = "🤣") }
+        binding.sendCry.setBounceClickListener { viewModel.sendMessage2FriendlyChat(matchKey = key, text = "😭") }
+        binding.sendKiss.setBounceClickListener { viewModel.sendMessage2FriendlyChat(matchKey = key, text = "😘") }
+        binding.sendScream.setBounceClickListener { viewModel.sendMessage2FriendlyChat(matchKey = key, text = "😱") }
+        binding.sendYawn.setBounceClickListener { viewModel.sendMessage2FriendlyChat(matchKey = key, text = "🥱") }
     }
 
     fun emojiRunner(gif: Int, sound: Int) {
@@ -226,12 +184,6 @@ class ChatFragmentFriendly : Fragment() {
         }
     }
 
-    private fun sendThisMsg(msg: String) {
-        val ms = GameProfile().toMessage(playerId = playerId, msg = msg)
-        tempMsg = msg
-        val key = myRef.push().key!!
-        myRef.child(key).setValue(ms)
-    }
 
     companion object {
         lateinit var key: String

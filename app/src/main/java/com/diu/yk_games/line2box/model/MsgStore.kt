@@ -1,13 +1,14 @@
 package com.diu.yk_games.line2box.model
 
 data class MsgStore (
+    val key : String = "",
     var playerId : String = "",
     var time : Long = 0L,
     var nmData : String = "",
     var msgData : String = "Blue",
     var lvlData : String = "1",
     val type : String = Type.Normal.name,
-    val gameId : String? = null
+    val gameId : String = ""
 ){
     enum class Type {
         Normal,

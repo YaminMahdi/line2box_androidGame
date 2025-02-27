@@ -8,13 +8,17 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.diu.yk_games.line2box.model.GameProfile
 import com.diu.yk_games.line2box.model.GameRoom
+import com.diu.yk_games.line2box.model.MsgStore
 import com.diu.yk_games.line2box.model.MsgStore.Type
 import com.diu.yk_games.line2box.model.toMessage
 import com.diu.yk_games.line2box.model.toPlayerInfo
 import com.diu.yk_games.line2box.pref
+import com.diu.yk_games.line2box.util.log
+import com.diu.yk_games.line2box.util.tryGet
 import com.google.firebase.Firebase
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.database
 import com.google.firebase.database.getValue
@@ -23,6 +27,7 @@ import com.google.firebase.firestore.toObject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -32,30 +37,125 @@ class MainViewModel(
 ) : ViewModel() {
 
     private val database by lazy { Firebase.database }
-    private val globalChatRef by lazy { database.getReference("globalChat") }
-    private val friendsChatRef by lazy { database.getReference("friendsChat") }
-    private val multiPlayerRef by lazy { database.getReference("MultiPlayer") }
+    val globalChatRef by lazy { database.getReference("globalChat") }
+    val multiPlayerRef by lazy { database.getReference("MultiPlayer") }
     lateinit var gameProfile: GameProfile
+
+    val globalChatList = savedStateHandle.getStateFlow("globalChatList", emptyList<MsgStore>())
+    val friendsChatList = savedStateHandle.getStateFlow("friendsChatList", emptyList<MsgStore>())
+
+    var matchKeys = mutableListOf<String>()
+
+    var gameId
+        get() = savedStateHandle["gameId"] ?: ""
+        set(value) { savedStateHandle["gameId"] = value }
+
+    var playerId
+        get() = savedStateHandle["playerId"] ?: ""
+        set(value) { savedStateHandle["playerId"] = value }
+
+    val tempKeys
+        get() = savedStateHandle.get<List<String>>("tempKeys") ?: emptyList()
+
+    fun addTempKey(key: String?) {
+        if (key.isNullOrEmpty()) return
+        savedStateHandle["tempKeys"] = tempKeys + key
+        pref.edit { putString("tmpKey", key) }
+        tempKeys.log("tempKeys")
+    }
+
+    fun clearTempMatches() {
+        viewModelScope.launch(Dispatchers.IO) {
+            tempKeys.log("tempKeys")
+            tempKeys.forEach{
+                tryGet { multiPlayerRef.child(it).removeValue().await() }
+                savedStateHandle["tempKeys"] = tempKeys - it
+                pref.getString("tmpKey", null)?.let { tmp ->
+                    if(tmp == it) pref.edit { remove("tmpKey") }
+                }
+            }
+        }
+    }
+
+    fun removeTempMatch() {
+        viewModelScope.launch(Dispatchers.IO){
+            pref.getString("tmpKey", null)?.let {
+                multiPlayerRef.child(it).removeValue()
+                pref.edit { remove("tmpKey") }
+            }
+        }
+    }
 
     fun initGameProfile(playerId: String = this@MainViewModel.playerId) {
         this@MainViewModel.playerId = playerId
         gameProfile = GameProfile()
         gameProfile.playerId = playerId
+        fetchGlobalChat()
     }
 
-    var gameId
-        get() = savedStateHandle.get<String>("gameId")
-        set(value) {
-            savedStateHandle["gameId"] = value
+    fun fetchGlobalChat(){
+        viewModelScope.launch(Dispatchers.IO){
+            globalChatRef.limitToLast(100).addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val chatList = snapshot.children.mapNotNull {
+                        val key = it.key
+                        val ms = it.getValue<MsgStore>()
+                        if(key == null || ms == null) return@mapNotNull null
+                        ms.copy(key = key)
+                    }.reversed()
+                    savedStateHandle["globalChatList"] = chatList
+                }
+                override fun onCancelled(databaseError: DatabaseError) {}
+            })
         }
+    }
 
-    var playerId
-        get() = savedStateHandle.get<String>("playerId") ?: ""
-        set(value) {
-            savedStateHandle["playerId"] = value
+    var friendlyValueListener  : ValueEventListener? = null
+    var friendlyChatRef : DatabaseReference? = null
+    fun fetchFriendlyChat(matchKey: String){
+        viewModelScope.launch(Dispatchers.IO){
+            val friendsChatRef = multiPlayerRef.child(matchKey).child("friendlyChat")
+            friendlyValueListener?.also { friendlyChatRef?.removeEventListener(it) }
+            friendlyChatRef = friendsChatRef
+            friendlyValueListener = friendsChatRef.limitToLast(100).addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val chatList = snapshot.children.mapNotNull {
+                        val key = it.key
+                        val ms = it.getValue<MsgStore>()
+                        if(key == null || ms == null) return@mapNotNull null
+                        ms.copy(key = key)
+                    }.reversed()
+                    savedStateHandle["friendsChatList"] = chatList
+                }
+                override fun onCancelled(databaseError: DatabaseError) {}
+            })
         }
+    }
 
-    var matchKeys = mutableListOf<String>()
+    fun sendMessage2FriendlyChat(matchKey: String, text: String): Unit?{
+        if(text.isEmpty()) return null
+        val friendlyChatRef = multiPlayerRef.child(matchKey).child("friendlyChat")
+        viewModelScope.launch(Dispatchers.IO) {
+            friendlyChatRef.push().key?.let {
+                friendlyChatRef.child(it).setValue(
+                    gameProfile.toMessage(playerId = playerId, msg = text)
+                )
+            }
+        }
+        return Unit
+    }
+
+    fun sendMessage2GlobalChat(text: String): Unit?{
+        if(text.isEmpty()) return null
+        viewModelScope.launch(Dispatchers.IO) {
+            globalChatRef.push().key?.let {
+                globalChatRef.child(it).setValue(
+                    gameProfile.toMessage(playerId = playerId, msg = text)
+                )
+            }
+        }
+        return Unit
+    }
 
     fun sendInvitation2Chat(gameId: String?, text: String): Job? {
         if (gameId.isNullOrEmpty()) return null
@@ -104,11 +204,14 @@ class MainViewModel(
         }.uppercase()
     }
 
-    suspend fun getJoinBundle(shortKey: String) = withContext(Dispatchers.IO) {
-        val defError = Result.failure<Bundle>(Exception("Match expired."))
-        val fullKey = getValidKey(shortKey) ?: return@withContext defError
+    suspend fun getJoinBundle(msg: MsgStore): Result<Bundle> = withContext(Dispatchers.IO) {
+        fun defError(): Result<Bundle> {
+            globalChatRef.child(msg.key).removeValue()
+            return Result.failure<Bundle>(Exception("Match expired."))
+        }
+        if (msg.gameId.length != 4) return@withContext defError()
+        val fullKey = getValidKey(msg.gameId) ?: return@withContext defError()
         pref.edit { putString("tmpKey", fullKey) }
-        if (shortKey.length != 4) return@withContext defError
 
         val gameRoom = suspendCoroutine<GameRoom?> { cont ->
             multiPlayerRef.child(fullKey)
@@ -120,7 +223,7 @@ class MainViewModel(
                         cont.resume(null)
                     }
                 })
-        } ?: return@withContext defError
+        } ?: return@withContext defError()
 
         if (gameRoom.playerCount.toIntOrNull() != 1) return@withContext Result.failure(Exception("Match already started."))
         if (gameRoom.player1.id == playerId) return@withContext Result.failure(Exception("You are already in the match."))
@@ -134,9 +237,11 @@ class MainViewModel(
             child("playerInfo").child("lvl2").setValue(gameProfile.lvlByCal)
             //remove
         }
+        val friendsChatRef = multiPlayerRef.child(fullKey).child("friendlyChat")
+
         // Send join message
         friendsChatRef.push().key?.let { chatKey ->
-            friendsChatRef.child(chatKey).child("friendlyChat").push().setValue(
+            friendsChatRef.child(chatKey).push().setValue(
                 gameProfile.toMessage(
                     playerId = playerId,
                     msg = "Joined the match.",

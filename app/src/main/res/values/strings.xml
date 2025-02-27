@@ -52,4 +52,10 @@
     <string name="play_with_your_friend">Play with your friend..</string>
     <string name="join">JOIN</string>
     <string name="join_my_match">Join my match! 🎮 Let\'s play!</string>
+    <string name="emoji_haha">🤣</string>
+    <string name="emoji_cry">😭</string>
+    <string name="emoji_scream">😱</string>
+    <string name="emoji_kiss">😘</string>
+    <string name="emoji_yawn">🥱</string>
+    <string name="type_here">Type Here...</string>
 </resources>

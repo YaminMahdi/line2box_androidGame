@@ -15,7 +15,7 @@
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintBottom_toTopOf="@+id/lin"
         app:layout_constraintTop_toTopOf="parent"
-        app:stackFromEnd="true"
+        app:reverseLayout="true"
         tools:listitem="@layout/custom_msg_list_view" />
 
     <LinearLayout
@@ -37,14 +37,16 @@
             android:focusable="true"
             android:focusableInTouchMode="true"
             android:fontFamily="@font/sortie"
-            android:hint="Type Here..."
+            android:hint="@string/type_here"
+            android:importantForAutofill="no"
+            android:inputType="text"
             android:lineSpacingExtra="5sp"
             android:paddingHorizontal="20dp"
             android:textColor="@color/cocZz"
             android:textColorHint="@color/cocZ"
             android:textSize="20sp" />
 
-        <ImageButton
+        <androidx.appcompat.widget.AppCompatImageButton
             android:id="@+id/msgSendBtn"
             android:layout_width="0dp"
             android:layout_height="match_parent"

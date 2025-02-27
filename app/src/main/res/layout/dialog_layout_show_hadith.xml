@@ -98,7 +98,7 @@
         android:textColor="@color/whiteT"
         android:textSize="14sp"
         android:textStyle="bold"
-        android:background="@drawable/btn_special_bg"
+        android:background="@drawable/btn_special_wht_bg"
         />
 
     <androidx.appcompat.widget.AppCompatButton

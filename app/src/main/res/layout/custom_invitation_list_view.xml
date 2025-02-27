@@ -153,17 +153,17 @@
                 android:layout_weight="1" />
 
             <!-- Join Button -->
-            <com.google.android.material.button.MaterialButton
+            <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/btnJoin"
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/_30sdp"
                 android:layout_gravity="bottom"
                 android:background="@drawable/btn_grnx_bg"
                 android:fontFamily="@font/sortie"
+                android:textColor="@color/btn_white_state"
                 android:src="@drawable/icon_send"
                 android:text="@string/join"
-                android:textSize="@dimen/_13ssp"
-                app:backgroundTint="@color/greenY" />
+                android:textSize="@dimen/_13ssp" />
         </LinearLayout>
     </LinearLayout>
 
