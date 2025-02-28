@@ -58,4 +58,13 @@
     <string name="emoji_kiss">😘</string>
     <string name="emoji_yawn">🥱</string>
     <string name="type_here">Type Here..</string>
+    <string name="profile">Profile</string>
+    <string name="from">From:</string>
+    <string name="name_cln">Name:</string>
+    <string name="level">Level:</string>
+    <string name="match_won">Match Won:</string>
+    <string name="match_played">Match Played:</string>
+    <string name="themes">Themes:</string>
+    <string name="coming_later">Coming Later..</string>
+    <string name="save">Save</string>
 </resources>

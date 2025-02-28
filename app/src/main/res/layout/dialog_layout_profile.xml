@@ -16,7 +16,8 @@
         android:background="@drawable/box_chat"
         android:clickable="true"
         android:focusable="true"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        tools:ignore="UselessParent">
 
         <FrameLayout
             android:layout_width="match_parent"
@@ -26,11 +27,11 @@
                 android:id="@+id/profileTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center"
                 android:layout_margin="@dimen/_20sdp"
                 android:fontFamily="@font/sortie"
                 android:gravity="center"
-                android:layout_gravity="center"
-                android:text="Profile"
+                android:text="@string/profile"
                 android:textColor="@color/greenY"
                 android:textSize="30sp"
 
@@ -40,15 +41,14 @@
                 android:id="@+id/buttonChangeAccount"
                 android:layout_width="@dimen/_36sdp"
                 android:layout_height="@dimen/_36sdp"
-                android:visibility="gone"
-                tools:visibility="visible"
                 android:layout_gravity="end|center"
                 android:layout_marginEnd="@dimen/_12sdp"
                 android:background="@drawable/btn_grnx_bg"
                 android:fontFamily="@font/sortie"
-                android:src="@drawable/icon_switch_user" />
+                android:src="@drawable/icon_switch_user"
+                android:visibility="gone"
+                tools:visibility="visible" />
         </FrameLayout>
-
 
 
         <com.google.android.material.card.MaterialCardView
@@ -62,7 +62,7 @@
             app:strokeColor="@color/whiteY"
             app:strokeWidth="4dp">
 
-            <ImageView
+            <androidx.appcompat.widget.AppCompatImageView
                 android:id="@+id/profile_image"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -86,7 +86,7 @@
             android:layout_marginBottom="10sp"
             android:paddingHorizontal="20dp"
 
-            >
+            tools:ignore="UseCompoundDrawables">
 
             <TextView
                 android:id="@+id/coinHave"
@@ -94,11 +94,11 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8sp"
                 android:fontFamily="@font/sortie"
-                android:text="730"
                 android:textColor="@color/cocZz"
-                android:textSize="30sp" />
+                android:textSize="30sp"
+                tools:text="730" />
 
-            <ImageView
+            <androidx.appcompat.widget.AppCompatImageView
                 android:id="@+id/imageView"
                 android:layout_width="30sp"
                 android:layout_height="30sp"
@@ -110,19 +110,16 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:paddingHorizontal="20dp"
-
-
-            >
+            android:paddingHorizontal="20dp">
 
             <TextView
                 android:id="@+id/nmLTxt"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8sp"
+                android:layout_marginEnd="@dimen/_2ssp"
                 android:fontFamily="@font/sortie"
-                android:paddingStart="0dp"
-                android:text="Name: "
+                android:text="@string/name_cln"
                 android:textColor="@color/white"
                 android:textSize="24sp"
 
@@ -136,14 +133,15 @@
                 android:enabled="false"
                 android:fontFamily="@font/sortie"
                 android:hint="@string/name"
+                android:importantForAutofill="no"
                 android:inputType="text"
                 android:maxLength="8"
-                android:text="Noob35"
                 android:textColor="@color/white"
                 android:textColorHint="@color/whiteY"
-                android:textSize="24sp" />
+                android:textSize="24sp"
+                tools:text="Noob35" />
 
-            <ImageButton
+            <androidx.appcompat.widget.AppCompatImageButton
                 android:id="@+id/nmEditBtn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -171,8 +169,9 @@
                 android:id="@+id/countryLTxt"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/_2ssp"
                 android:fontFamily="@font/sortie"
-                android:text="From: "
+                android:text="@string/from"
                 android:textColor="@color/white"
                 android:textSize="20sp"
 
@@ -183,9 +182,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/sortie"
-                android:text="Bangladesh 🇧🇩"
                 android:textColor="@color/white"
                 android:textSize="20sp"
+                tools:text="Bangladesh 🇧🇩"
 
                 />
 
@@ -204,9 +203,9 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/_2ssp"
                 android:fontFamily="@font/sortie"
-                android:paddingStart="0dp"
-                android:text="Level: "
+                android:text="@string/level"
                 android:textColor="@color/white"
                 android:textSize="20sp"
 
@@ -217,7 +216,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/sortie"
-                android:text="1"
+                android:text="@string/_0"
                 android:textColor="@color/white"
                 android:textSize="20sp"
 
@@ -237,8 +236,9 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/_2ssp"
                 android:fontFamily="@font/sortie"
-                android:text="Match Played: "
+                android:text="@string/match_played"
                 android:textColor="@color/white"
                 android:textSize="20sp"
 
@@ -249,7 +249,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/sortie"
-                android:text="1"
+                android:text="@string/_0"
                 android:textColor="@color/white"
                 android:textSize="20sp"
 
@@ -271,8 +271,9 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/_2ssp"
                 android:fontFamily="@font/sortie"
-                android:text="Match Won: "
+                android:text="@string/match_won"
                 android:textColor="@color/white"
                 android:textSize="20sp"
 
@@ -284,7 +285,7 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/sortie"
                 android:maxLength="8"
-                android:text="1"
+                android:text="@string/_0"
                 android:textColor="@color/white"
                 android:textSize="20sp" />
 
@@ -306,7 +307,7 @@
                 android:layout_marginStart="20sp"
                 android:layout_marginTop="15sp"
                 android:fontFamily="@font/sortie"
-                android:text="Themes: "
+                android:text="@string/themes"
                 android:textColor="@color/whiteY"
                 android:textSize="17sp"
 
@@ -318,7 +319,7 @@
                 android:layout_gravity="center"
                 android:fontFamily="@font/sortie"
                 android:padding="30dp"
-                android:text="Coming Later.."
+                android:text="@string/coming_later"
                 android:textColor="@color/cocZz"
                 android:textSize="17sp" />
         </LinearLayout>
@@ -332,7 +333,7 @@
             android:layout_marginBottom="20dp"
             android:background="@drawable/btn_grn_bg"
             android:fontFamily="@font/sortie"
-            android:text="Save"
+            android:text="@string/save"
             android:textColor="@color/white"
             android:textSize="18sp"
             tools:ignore="ButtonStyle" />
