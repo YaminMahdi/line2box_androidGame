@@ -12,7 +12,7 @@ class GameProfile {
     var matchWinMulti = pref.getInt("matchWinMulti", 0)
     var coin = pref.getInt("coins", 100)
     var lvl = pref.getInt("lvl", lvlByCal)
-    var playerId = ""
+    var playerId = pref.getString("playerId", "")!!
     var countryEmoji = pref.getString("countryEmoji", "")!!
     var countryNm = pref.getString("countryNm", "")!!
 
@@ -24,6 +24,7 @@ class GameProfile {
             putInt("coins", coin)
             putInt("matchPlayed", matchPlayed)
             putInt("matchWinMulti", matchWinMulti)
+            putString("playerId", playerId)
             putString("countryEmoji", countryEmoji)
             putString("countryNm", countryNm)
         }

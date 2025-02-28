@@ -10,10 +10,8 @@ import android.media.MediaPlayer
 import android.os.Bundle
 import android.os.PersistableBundle
 import android.util.Log
-import android.view.LayoutInflater
 import android.view.View
 import android.view.inputmethod.InputMethodManager
-import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
@@ -30,7 +28,10 @@ import androidx.drawerlayout.widget.DrawerLayout.DrawerListener
 import androidx.lifecycle.lifecycleScope
 import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.ActivityGameMultiBinding
+import com.diu.yk_games.line2box.databinding.DialogLayoutAlertBinding
+import com.diu.yk_games.line2box.databinding.DialogLayoutInfoMulBinding
 import com.diu.yk_games.line2box.databinding.DialogLayoutProfileBinding
+import com.diu.yk_games.line2box.databinding.DialogLayoutUpdateBinding
 import com.diu.yk_games.line2box.model.GameRoom
 import com.diu.yk_games.line2box.model.MsgStore
 import com.diu.yk_games.line2box.model.PlayerInfoOld
@@ -401,17 +402,15 @@ class MultiplayerActivity : AppCompatActivity() {
             else if (scrBrdVisible) {
                 onGoBack()
             } else {
-                val builder = AlertDialog.Builder(this@MultiplayerActivity)
-                val view = LayoutInflater.from(this@MultiplayerActivity).inflate(
-                    R.layout.dialog_layout_alert, findViewById(R.id.layoutDialog)
-                )
-                builder.setView(view)
-                (view.findViewById<View>(R.id.textMessage) as TextView).text =
+                val dialogBinding = DialogLayoutAlertBinding.inflate(layoutInflater)
+                val alertDialog = AlertDialog.Builder(this@MultiplayerActivity)
+                    .setView(dialogBinding.root)
+                    .create()
+                dialogBinding.textMessage.text =
                     "Do you really want to go back?"
-                (view.findViewById<View>(R.id.buttonYes) as Button).text = "YES"
-                (view.findViewById<View>(R.id.buttonNo) as Button).text = "NO"
-                val alertDialog = builder.create()
-                view.findViewById<View>(R.id.buttonYes).setBounceClickListener {
+                dialogBinding.buttonYes.text = "YES"
+                dialogBinding.buttonNo.text = "NO"
+                dialogBinding.buttonYes.setBounceClickListener {
                     isNotMuted {
                         val mediaPlayer: MediaPlayer = MediaPlayer.create(this@MultiplayerActivity, R.raw.btn_click_ef)
                         mediaPlayer.start()
@@ -425,7 +424,7 @@ class MultiplayerActivity : AppCompatActivity() {
 //                startActivity(Intent(this, StartActivity::class.java))
 //                        finish()
                 }
-                view.findViewById<View>(R.id.buttonNo).setBounceClickListener {
+                dialogBinding.buttonNo.setBounceClickListener {
                     isNotMuted {
                         val mediaPlayer: MediaPlayer = MediaPlayer.create(this@MultiplayerActivity, R.raw.btn_click_ef)
                         mediaPlayer.start()
@@ -486,20 +485,18 @@ class MultiplayerActivity : AppCompatActivity() {
             Firebase.firestore.collection("gamerProfile").document((playerId))
                 .update("lvl", pf.lvlByCal)
             pref.edit{ putInt("tmpLvl", pf.lvlByCal) }
-            val builder = AlertDialog.Builder(this)
-            val v = LayoutInflater.from(this).inflate(
-                R.layout.dialog_layout_update, findViewById(R.id.updateLayoutDialog)
-            )
-            builder.setView(v)
-            builder.setCancelable(false)
-            val alertDialog = builder.create()
-            (v.findViewById<View>(R.id.warningMessage) as TextView).text = "Level Upgraded !"
-            val updateInfo = v.findViewById<TextView>(R.id.UpdateInfo)
-            updateInfo.text = tmpLvl.toString() + " --> " + pf.lvlByCal
-            updateInfo.typeface = resources.getFont(R.font.baloopaaji)
-            updateInfo.textSize = 25f
-            (v.findViewById<View>(R.id.buttonUpdate) as Button).text = "Continue"
-            v.findViewById<View>(R.id.buttonUpdate).setBounceClickListener {
+            val dialogBinding = DialogLayoutUpdateBinding.inflate(layoutInflater)
+            val alertDialog = AlertDialog.Builder(this)
+                .setView(dialogBinding.root)
+                .setCancelable(false)
+                .create()
+            dialogBinding.warningMessage.text = if (tmpLvl < pf.lvlByCal) "Level Upgraded !" else "Level Downgraded !"
+            dialogBinding.UpdateInfo.text =
+                "$tmpLvl${if (tmpLvl < pf.lvlByCal) " --> " else " <-- " + pf.lvlByCal}"
+            dialogBinding.UpdateInfo.typeface = resources.getFont(R.font.baloopaaji)
+            dialogBinding.UpdateInfo.textSize = 25f
+            dialogBinding.buttonUpdate.text = "Continue"
+            dialogBinding.buttonUpdate.setBounceClickListener {
                 isNotMuted {
                     val mediaPlayer: MediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
                     mediaPlayer.start()
@@ -510,8 +507,8 @@ class MultiplayerActivity : AppCompatActivity() {
             alertDialog.window?.setBackgroundDrawable(0.toDrawable())
             try {
                 alertDialog.show()
-            } catch (npe: NullPointerException) {
-                npe.printStackTrace()
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
     }
@@ -583,14 +580,13 @@ class MultiplayerActivity : AppCompatActivity() {
             mediaPlayer.start()
             mediaPlayer.setOnCompletionListener(MediaPlayer::release)
         }
+
+        val dialogBinding = DialogLayoutInfoMulBinding.inflate(layoutInflater)
         val builder = AlertDialog.Builder(this)
-        val view = LayoutInflater.from(this).inflate(
-            R.layout.dialog_layout_info_mul, findViewById(R.id.infoMultiLayoutDialog)
-        )
-        builder.setView(view)
+        builder.setView(dialogBinding.root)
         builder.setCancelable(false)
         val alertDialog = builder.create()
-        view.findViewById<View>(R.id.buttonOkey).setBounceClickListener {
+        dialogBinding.buttonOkey.setBounceClickListener {
             isNotMuted {
                 val mediaPlayer: MediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
                 mediaPlayer.start()
@@ -643,14 +639,14 @@ class MultiplayerActivity : AppCompatActivity() {
             mediaPlayer.start()
             mediaPlayer.setOnCompletionListener(MediaPlayer::release)
         }
-        val builder = AlertDialog.Builder(this@MultiplayerActivity)
-        val bindingProfileDialog = DialogLayoutProfileBinding.inflate(LayoutInflater.from(this))
+        val bindingProfileDialog = DialogLayoutProfileBinding.inflate(layoutInflater)
+        val alertDialog = AlertDialog.Builder(this@MultiplayerActivity)
+            .setView(bindingProfileDialog.root)
+            .create()
         onCreated.invoke(bindingProfileDialog)
 //        val viewProfileDialog = LayoutInflater.from(this@MultiplayerActivity).inflate(
 //            R.layout.dialog_layout_profile, findViewById(R.id.profileLayoutDialog)
 //        )
-        builder.setView(bindingProfileDialog.root)
-        val alertDialog = builder.create()
 
         //builder.setCancelable(false)
         val x = viewModel.gameProfile

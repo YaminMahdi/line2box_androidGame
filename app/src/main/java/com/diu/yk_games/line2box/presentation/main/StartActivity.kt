@@ -78,7 +78,6 @@ class StartActivity : AppCompatActivity() {
     private val isFirstRun: Boolean by lazy { pref.getBoolean("firstRun", true) }
     companion object {
         private const val TAG = "TAG: StartActivity"
-        lateinit var playerId: String
         private var showHadith = true
     }
 
@@ -155,7 +154,7 @@ class StartActivity : AppCompatActivity() {
         setContentView(binding.root)
         binding.root.setNavStatusPadding(binding.mainLayout, binding.globalScoreFrag)
         inAppUpdate.checkForUpdate()
-
+        viewModel.initGameProfile(loadGlobalChat = false)
         loadingUI = LoadingUI()
         loadingUI.start()
         //if (!isFirstRun)
@@ -266,28 +265,26 @@ class StartActivity : AppCompatActivity() {
                                     val user = firebaseAuth.currentUser
                                     if (isAuthenticated && user != null) {
                                         PlayGames.getPlayersClient(this@StartActivity).currentPlayer.addOnSuccessListener { player ->
-                                            playerId = player.playerId
-                                            playerId.log("playerId")
-                                            if (pref.getBoolean("needProfile", true)) {
+                                            val profileNeeded = viewModel.playerId != player.playerId
+                                            viewModel.playerId = player.playerId
+                                            player.playerId.log("playerId")
+                                            if (profileNeeded || pref.getBoolean("needProfile", true)) {
                                                 db.collection("gamerProfile")
-                                                    .document(playerId)
-                                                    .get().addOnCompleteListener { task ->
-                                                        if (task.isSuccessful) {
-                                                            val document = task.result
-                                                            if (document.exists()) {
-                                                                prefEditor.putBoolean("needProfile", false).apply()
-                                                                loadProfileFromServer()
-                                                                Log.d(TAG, "Profile exists!")
-                                                                toast( "Profile Exists and Loaded!")
-                                                            } else {
-                                                                Log.d(TAG, "Profile does not exist!")
-                                                                setupNewUserProfile()
-                                                            }
+                                                    .document(player.playerId)
+                                                    .get().addOnSuccessListener { document ->
+                                                        if (document.exists()) {
+                                                            prefEditor.putBoolean("needProfile", false).apply()
+                                                            loadProfileFromServer()
+                                                            Log.d(TAG, "Profile exists!")
+                                                            toast( "Profile Exists and Loaded!")
                                                         } else {
-                                                            Log.d(TAG, "Failed with: ", task.exception)
-                                                            onlineStatus = "needReload"
-                                                            loadingUI.stop()
+                                                            Log.d(TAG, "Profile does not exist!")
+                                                            setupNewUserProfile()
                                                         }
+                                                    }.addOnFailureListener {
+                                                        Log.d(TAG, "Failed with: ", it)
+                                                        onlineStatus = "needReload"
+                                                        loadingUI.stop()
                                                     }
                                             } else loadProfileFromServer()
                                         }
@@ -348,9 +345,12 @@ class StartActivity : AppCompatActivity() {
 
     private fun loadProfileFromServer() {
         db.collection("gamerProfile")
-            .document(playerId).get()
+            .document(viewModel.playerId).get()
             .addOnSuccessListener { 
-                it.toObject<GameProfile>()?.apply()
+                it.toObject<GameProfile>()?.let { profile ->
+                    viewModel.gameProfile = profile
+                    profile.apply()
+                }
             }
         onlineStatus = "pass"
         loadingUI.stop()
@@ -390,11 +390,11 @@ class StartActivity : AppCompatActivity() {
                 prefEditor.putString("countryNm", country).apply()
                 Log.d(TAG, "onCreate: emo " + pref.getString("countryEmoji", ""))
                 val upLoc = GameProfile()
-                upLoc.playerId = playerId
+                upLoc.playerId = viewModel.playerId
                 upLoc.countryEmoji = pref.getString("countryEmoji", "")!!
                 upLoc.countryNm = pref.getString("countryNm", "")!!
                 //if(!upLoc.countryNm.equals(""))
-                db.collection("gamerProfile").document(playerId).set(upLoc)
+                db.collection("gamerProfile").document(viewModel.playerId).set(upLoc)
                 //})
             } catch (e: Exception) {
                 //builder.append("Error : ").append(e.getMessage()).append("\n")
@@ -406,7 +406,7 @@ class StartActivity : AppCompatActivity() {
     private fun setupNewUserProfile() {
         CoroutineScope(Dispatchers.IO).launch {
             val gameProfile = GameProfile()
-            gameProfile.playerId = playerId
+            gameProfile.playerId = viewModel.playerId
             val countryPair =  tryGet {
                 val doc = Jsoup.connect(Constants.IP_INFO_URL).ignoreContentType(true).get()
                 Log.d(TAG, "getLocation: Success")
@@ -425,7 +425,7 @@ class StartActivity : AppCompatActivity() {
 
             gameProfile.apply()
 
-            db.collection("gamerProfile").document(playerId).set(gameProfile)
+            db.collection("gamerProfile").document(viewModel.playerId).set(gameProfile)
                 .addOnSuccessListener {
                     prefEditor.putBoolean("needProfile", false).apply()
                     onlineStatus = "pass"
@@ -787,7 +787,7 @@ class StartActivity : AppCompatActivity() {
         }
         if (binding.mode1.alpha < .5) {
             if (onlineStatus == "pass") {
-                startActivity(Intent(this, MultiplayerActivity::class.java).putExtra("playerId", playerId))
+                startActivity(Intent(this, MultiplayerActivity::class.java).putExtra("playerId", viewModel.playerId))
                 //finish()
             } else if (onlineStatus == "needReload") {
                 //updateUI()

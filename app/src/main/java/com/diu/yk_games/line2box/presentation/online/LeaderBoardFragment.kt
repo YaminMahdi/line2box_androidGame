@@ -97,7 +97,7 @@ class LeaderBoardFragment : Fragment() {
                 .get().addOnSuccessListener { documentSnapshot ->
                     val server2device = documentSnapshot.toObject<GameProfile>()
                     if (server2device != null) {
-                        val dialogBinding = DialogLayoutProfileBinding.inflate(layoutInflater, null, false)
+                        val dialogBinding = DialogLayoutProfileBinding.inflate(layoutInflater)
                         val alertDialog = AlertDialog.Builder(context)
                             .setView(dialogBinding.root)
                             .create()

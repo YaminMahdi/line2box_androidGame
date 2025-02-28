@@ -59,6 +59,18 @@ class MainViewModel(
     val tempKeys
         get() = savedStateHandle.get<List<String>>("tempKeys") ?: emptyList()
 
+    fun initGameProfile(playerId: String = this@MainViewModel.playerId, loadGlobalChat: Boolean = true) {
+        gameProfile = GameProfile()
+        if(playerId.isNotEmpty()) {
+            this@MainViewModel.playerId = playerId
+            gameProfile.playerId = playerId
+            gameProfile.apply()
+        }else
+            this@MainViewModel.playerId = gameProfile.playerId
+        if(loadGlobalChat)
+            fetchGlobalChat()
+    }
+
     fun addTempKey(key: String?) {
         if (key.isNullOrEmpty()) return
         savedStateHandle["tempKeys"] = tempKeys + key
@@ -88,12 +100,7 @@ class MainViewModel(
         }
     }
 
-    fun initGameProfile(playerId: String = this@MainViewModel.playerId) {
-        this@MainViewModel.playerId = playerId
-        gameProfile = GameProfile()
-        gameProfile.playerId = playerId
-        fetchGlobalChat()
-    }
+
 
     fun fetchGlobalChat(){
         viewModelScope.launch(Dispatchers.IO){

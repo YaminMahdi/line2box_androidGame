@@ -102,7 +102,7 @@ class DisplayFragment : Fragment() {
                     mediaPlayer.setOnCompletionListener(MediaPlayer::release)
                 }
                 val builder = AlertDialog.Builder(context)
-                val dialogBinding = DialogLayoutScrGlobeBinding.inflate(layoutInflater, null, false)
+                val dialogBinding = DialogLayoutScrGlobeBinding.inflate(layoutInflater)
                 builder.setView(dialogBinding.root)
                 Log.d(TAG, "onItemClick: 1id " + gamerPro.plr1Id)
                 Log.d(TAG, "onItemClick: 2id " + gamerPro.plr2Id)
@@ -166,7 +166,7 @@ class DisplayFragment : Fragment() {
             mediaPlayer.setOnCompletionListener(MediaPlayer::release)
         }
         val builder2 = AlertDialog.Builder(context)
-        val dBinding = DialogLayoutProfileBinding.inflate(layoutInflater, null, false)
+        val dBinding = DialogLayoutProfileBinding.inflate(layoutInflater)
 
         builder2.setView(dBinding.root)
         val params = LinearLayout.LayoutParams(

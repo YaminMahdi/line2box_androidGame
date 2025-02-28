@@ -79,7 +79,7 @@ class ChatFragmentGlobal : Fragment() {
                         if (server2device != null) {
                             val builder = AlertDialog.Builder(activity)
                             val binding =
-                                DialogLayoutProfileBinding.inflate(layoutInflater, null, false)
+                                DialogLayoutProfileBinding.inflate(layoutInflater)
                             builder.setView(binding.root)
                             val params = LinearLayout.LayoutParams(
                                 LinearLayout.LayoutParams.WRAP_CONTENT,
