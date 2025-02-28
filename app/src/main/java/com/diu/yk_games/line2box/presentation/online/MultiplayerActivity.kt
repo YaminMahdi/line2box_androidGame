@@ -3,10 +3,12 @@ package com.diu.yk_games.line2box.presentation.online
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.ActivityNotFoundException
+import android.content.ComponentName
 import android.content.Intent
 import android.graphics.Rect
 import android.media.MediaPlayer
 import android.os.Bundle
+import android.os.PersistableBundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -14,6 +16,7 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.addCallback
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -654,6 +657,7 @@ class MultiplayerActivity : AppCompatActivity() {
             matchPlayedTxt.text = "" + x.matchPlayed
             matchWonTxt.text = "" + x.matchWinMulti
             coinShow.gone()
+            buttonChangeAccount.show()
             val mgr = ImageManager.create(this@MultiplayerActivity)
             PlayGames.getPlayersClient(this@MultiplayerActivity).currentPlayer.addOnSuccessListener { player ->
                 Log.d("TAG", "profileBtn: " + player.displayName)
@@ -677,6 +681,14 @@ class MultiplayerActivity : AppCompatActivity() {
                 } catch (_: ActivityNotFoundException) {
                     showOnMarket(Constants.PLAY_GAMES)
                 }
+            }
+            buttonChangeAccount.setBounceClickListener {
+                isNotMuted {
+                    val mediaPlayer: MediaPlayer = MediaPlayer.create(this@MultiplayerActivity, R.raw.btn_click_ef)
+                    mediaPlayer.start()
+                    mediaPlayer.setOnCompletionListener(MediaPlayer::release)
+                }
+                openPlayGamesProfileChooser()
             }
             nmEditBtn.setBounceClickListener {
                 isNotMuted {
@@ -788,6 +800,28 @@ class MultiplayerActivity : AppCompatActivity() {
         startActivity(mIntent.putExtras(mBundle))
 //        finish()
     }
+
+    fun openPlayGamesProfileChooser() {
+        val intent = Intent(Intent.ACTION_MAIN).apply {
+            component = ComponentName(
+                applicationContext.packageName,
+                "com.google.android.gms.games.internal.v2.appshortcuts.PlayGamesAppShortcutsActivity"
+            )
+            // Adding required extras
+            putExtra("com.google.android.gms.games.EXTRA_APP_SHORTCUT_ID", playerId)
+            putExtra("com.google.android.gms.games.EXTRA_APP_SHORTCUT_EXTRAS", PersistableBundle().apply {
+                putBoolean("com.google.android.gms.games.EXTRA_SWITCH_ACCOUNT", true)
+            })
+        }
+
+        try {
+            startActivity(intent)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Toast.makeText(this, "Unable to open Play Games profile chooser", Toast.LENGTH_SHORT).show()
+        }
+    }
+
 
     companion object {
         var scrBrdVisible = false

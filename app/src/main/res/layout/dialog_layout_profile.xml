@@ -18,18 +18,38 @@
         android:focusable="true"
         android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/profileTitle"
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="20dp"
-            android:fontFamily="@font/sortie"
-            android:gravity="center"
-            android:text="Profile"
-            android:textColor="@color/greenY"
-            android:textSize="30sp"
+            android:layout_height="wrap_content">
 
-            />
+            <TextView
+                android:id="@+id/profileTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="@dimen/_20sdp"
+                android:fontFamily="@font/sortie"
+                android:gravity="center"
+                android:layout_gravity="center"
+                android:text="Profile"
+                android:textColor="@color/greenY"
+                android:textSize="30sp"
+
+                />
+
+            <androidx.appcompat.widget.AppCompatImageButton
+                android:id="@+id/buttonChangeAccount"
+                android:layout_width="@dimen/_36sdp"
+                android:layout_height="@dimen/_36sdp"
+                android:visibility="gone"
+                tools:visibility="visible"
+                android:layout_gravity="end|center"
+                android:layout_marginEnd="@dimen/_12sdp"
+                android:background="@drawable/btn_grnx_bg"
+                android:fontFamily="@font/sortie"
+                android:src="@drawable/icon_switch_user" />
+        </FrameLayout>
+
+
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/profileShapeLayout"
