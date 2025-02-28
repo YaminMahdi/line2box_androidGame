@@ -46,6 +46,8 @@ class MainViewModel(
 
     var matchKeys = mutableListOf<String>()
 
+    var ignoreDrawerClosesSound = false
+
     var gameId
         get() = savedStateHandle["gameId"] ?: ""
         set(value) { savedStateHandle["gameId"] = value }

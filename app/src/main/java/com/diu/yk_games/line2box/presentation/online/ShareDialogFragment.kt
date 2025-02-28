@@ -41,9 +41,7 @@ class ShareDialogFragment : BottomSheetDialogFragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        viewModel.gameId?.let {
-            binding.gameId.text = it
-        }
+        binding.gameId.text = viewModel.gameId
         val gameLink = "https://play.google.com/store/apps/details?id=${BuildConfig.APPLICATION_ID}"
 
         val message = "Hey there! \uD83C\uDFAE\n\n" +

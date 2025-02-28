@@ -25,8 +25,8 @@ import androidx.core.content.edit
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.GravityCompat
 import androidx.core.widget.doAfterTextChanged
+import androidx.customview.widget.ViewDragHelper
 import androidx.drawerlayout.widget.DrawerLayout.DrawerListener
-import androidx.fragment.app.FragmentTransaction
 import androidx.lifecycle.lifecycleScope
 import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.ActivityGameMultiBinding
@@ -116,9 +116,13 @@ class MultiplayerActivity : AppCompatActivity() {
             override fun onDrawerClosed(drawerView: View) {}
             override fun onDrawerStateChanged(newState: Int) {
                 Log.d("TAG", "onDrawerStateChanged: $newState")
-                if (newState == 2) {
+                if (newState == ViewDragHelper.STATE_SETTLING) {
                     closeKeyboard()
                     binding.newMsgBoltu.gone()
+                    if(viewModel.ignoreDrawerClosesSound) {
+                        viewModel.ignoreDrawerClosesSound = false
+                        return
+                    }
                     isNotMuted {
                         val mediaPlayer = MediaPlayer.create(this@MultiplayerActivity, R.raw.slide)
                         mediaPlayer.start()
@@ -186,13 +190,14 @@ class MultiplayerActivity : AppCompatActivity() {
                                             msg = "Joined the match.",
                                             type = MsgStore.Type.EnterText
                                         )
+                                        key = newKey
                                         val key2 = viewModel.multiPlayerRef.child(newKey).child("friendlyChat")
                                             .push().key!!
                                         viewModel.multiPlayerRef.child(newKey).child("friendlyChat")
                                             .child(key2).setValue(ms)
                                         bindingMain.bubbleTabBar.setSelected(1, true)
 //                                        fm.beginTransaction()
-//                                            .replace(R.id.chatFragment, ChatFragmentFriendly.newInstance(tmpKey, playerId))
+//                                            .replace(R.id.chatFragment, ChatFragmentFriendly.newInstance(newKey, playerId))
 //                                            .commit()
                                         viewModel.multiPlayerRef.child(newKey).child("playerInfo")
                                             .addValueEventListener(object : ValueEventListener {
@@ -379,16 +384,16 @@ class MultiplayerActivity : AppCompatActivity() {
             }
         }
         bindingMain.bubbleTabBar.addBubbleListener { id: Int ->
-            val ft2: FragmentTransaction = fm.beginTransaction()
+            val ft = fm.beginTransaction()
             if (id == R.id.globalChat) {
-                ft2.replace(R.id.chatFragment, ChatFragmentGlobal.newInstance(playerId))
+                ft.replace(R.id.chatFragment, ChatFragmentGlobal.newInstance(playerId))
             } else {
                 if (key != null)
-                    ft2.replace(R.id.chatFragment, ChatFragmentFriendly.newInstance(key, playerId)
+                    ft.replace(R.id.chatFragment, ChatFragmentFriendly.newInstance(key, playerId)
                 ) else
-                    ft2.replace(R.id.chatFragment, BlankChatFragment())
+                    ft.replace(R.id.chatFragment, BlankChatFragment())
             }
-            ft2.commit()
+            ft.commit()
         }
         onBackPressedDispatcher.addCallback{
             if(bindingMain.drawerLayout.isDrawerOpen(GravityCompat.START))
@@ -772,12 +777,12 @@ class MultiplayerActivity : AppCompatActivity() {
     private fun openNavBtn() {
         bindingMain.root.openDrawer(GravityCompat.START)
 
-        when(binding.stickySwitch.getDirection()){
-            StickySwitch.Direction.LEFT ->
-                bindingMain.bubbleTabBar.setSelected(0,true)
-            StickySwitch.Direction.RIGHT ->
-                bindingMain.bubbleTabBar.setSelected(1,true)
-        }
+//        when(binding.stickySwitch.getDirection()){
+//            StickySwitch.Direction.LEFT ->
+//                bindingMain.bubbleTabBar.setSelected(0,true)
+//            StickySwitch.Direction.RIGHT ->
+//                bindingMain.bubbleTabBar.setSelected(1,true)
+//        }
         binding.newMsgBoltu.gone()
     }
 
