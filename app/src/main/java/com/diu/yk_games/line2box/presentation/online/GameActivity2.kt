@@ -239,9 +239,7 @@ class GameActivity2 : AppCompatActivity() {
                         msg = "Left the match.",
                         type = MsgStore.Type.ExitText
                     )
-                    chatRef.push().key?.let {
-                        chatRef.child(it).setValue(ms)
-                    }
+                    chatRef.push().setValue(ms)
                 }
                 alertDialog.dismiss()
                 onBackPressedIgnoreCallback()
@@ -408,12 +406,10 @@ class GameActivity2 : AppCompatActivity() {
             }
             clickCount++
             if (plyr1 && clickCount % 2 == 1) {
-                val key = matchRef.child("plyr1").push().key!!
-                matchRef.child("plyr1").child(key)
+                matchRef.child("plyr1").push()
                     .setValue(view.resources.getResourceEntryName(view.id))
             } else if (!plyr1 && clickCount % 2 == 0) {
-                val key = matchRef.child("plyr2").push().key!!
-                matchRef.child("plyr2").child(key)
+                matchRef.child("plyr2").push()
                     .setValue(view.resources.getResourceEntryName(view.id))
             }
             if (clickCount % 2 == 1) {
@@ -666,9 +662,7 @@ class GameActivity2 : AppCompatActivity() {
                         type = MsgStore.Type.EnterText.name
                     )
 
-                    chatRef.push().key?.let {
-                        chatRef.child(it).setValue(ms)
-                    }
+                    chatRef.push().setValue(ms)
                 }
 
                 fun handleLoss() {

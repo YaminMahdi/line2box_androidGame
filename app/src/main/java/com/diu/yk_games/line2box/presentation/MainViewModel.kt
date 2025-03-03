@@ -152,11 +152,9 @@ class MainViewModel(
         if(text.isEmpty()) return null
         val friendlyChatRef = multiPlayerRef.child(matchKey).child("friendlyChat")
         viewModelScope.launch(Dispatchers.IO) {
-            friendlyChatRef.push().key?.let {
-                friendlyChatRef.child(it).setValue(
-                    gameProfile.toMessage(playerId = playerId, msg = text)
-                )
-            }
+            friendlyChatRef.push().setValue(
+                gameProfile.toMessage(playerId = playerId, msg = text)
+            )
         }
         return Unit
     }
@@ -164,11 +162,9 @@ class MainViewModel(
     fun sendMessage2GlobalChat(text: String): Unit?{
         if(text.isEmpty()) return null
         viewModelScope.launch(Dispatchers.IO) {
-            globalChatRef.push().key?.let {
-                globalChatRef.child(it).setValue(
-                    gameProfile.toMessage(playerId = playerId, msg = text)
-                )
-            }
+            globalChatRef.push().setValue(
+                gameProfile.toMessage(playerId = playerId, msg = text)
+            )
         }
         return Unit
     }
@@ -176,14 +172,12 @@ class MainViewModel(
     fun sendInvitation2Chat(gameId: String?, text: String): Job? {
         if (gameId.isNullOrEmpty()) return null
         return viewModelScope.launch(Dispatchers.IO) {
-            globalChatRef.push().key?.let {
-                globalChatRef.child(it).setValue(
-                    gameProfile.toMessage(playerId = playerId, msg = text).copy(
-                        gameId = gameId,
-                        type = Type.Invitation.name
-                    )
+            globalChatRef.push().setValue(
+                gameProfile.toMessage(playerId = playerId, msg = text).copy(
+                    gameId = gameId,
+                    type = Type.Invitation.name
                 )
-            }
+            )
         }
     }
 
@@ -256,15 +250,13 @@ class MainViewModel(
         val friendsChatRef = multiPlayerRef.child(fullKey).child("friendlyChat")
 
         // Send join message
-        friendsChatRef.push().key?.let { chatKey ->
-            friendsChatRef.child(chatKey).push().setValue(
-                gameProfile.toMessage(
-                    playerId = playerId,
-                    msg = "Joined the match.",
-                    type = Type.EnterText
-                )
+        friendsChatRef.push().setValue(
+            gameProfile.toMessage(
+                playerId = playerId,
+                msg = "Joined the match.",
+                type = Type.EnterText
             )
-        }
+        )
         // Return the bundle
         Result.success(
             bundleOf(

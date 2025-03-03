@@ -207,10 +207,8 @@ class MultiplayerActivity : AppCompatActivity() {
                                 type = MsgStore.Type.EnterText
                             )
                             key = newKey
-                            val key2 = viewModel.multiPlayerRef.child(newKey).child("friendlyChat")
-                                .push().key!!
                             viewModel.multiPlayerRef.child(newKey).child("friendlyChat")
-                                .child(key2).setValue(ms)
+                                .push().setValue(ms)
                             bindingMain.bubbleTabBar.setSelected(1, true)
 //                                        fm.beginTransaction()
 //                                            .replace(R.id.chatFragment, ChatFragmentFriendly.newInstance(newKey, playerId))
@@ -284,10 +282,9 @@ class MultiplayerActivity : AppCompatActivity() {
                                 playerInfo = PlayerInfoOld(nm1 = viewModel.gameProfile.nm, lvl1 = viewModel.gameProfile.lvlByCal, plr1Id = playerId)
                             )
                             viewModel.multiPlayerRef.child(key!!).setValue(gameRoom)
-                            val key2 = viewModel.multiPlayerRef.child(key!!).child("friendlyChat").push().key!!
                             viewModel.multiPlayerRef.child(key!!)
                                 .child("friendlyChat")
-                                .child(key2)
+                                .push()
                                 .setValue(viewModel.gameProfile.toMessage(
                                     playerId = playerId,
                                     msg = "Created the match.",
