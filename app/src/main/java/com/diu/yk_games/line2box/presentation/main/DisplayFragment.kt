@@ -77,7 +77,7 @@ class DisplayFragment : Fragment() {
                 }
             }
         db.collection("ScoreBoard")
-            .orderBy("time")
+//            .orderBy("time")
             .limitToLast(100)
             .get()
             .addOnSuccessListener { task ->
@@ -101,9 +101,9 @@ class DisplayFragment : Fragment() {
                     mediaPlayer.start()
                     mediaPlayer.setOnCompletionListener(MediaPlayer::release)
                 }
-                val builder = AlertDialog.Builder(context)
                 val dialogBinding = DialogLayoutScrGlobeBinding.inflate(layoutInflater)
-                builder.setView(dialogBinding.root)
+                val alertDialog = AlertDialog.Builder(context)
+                    .setView(dialogBinding.root).create()
                 Log.d(TAG, "onItemClick: 1id " + gamerPro.plr1Id)
                 Log.d(TAG, "onItemClick: 2id " + gamerPro.plr2Id)
                 db.collection("gamerProfile").document(gamerPro.plr1Id)
@@ -141,7 +141,6 @@ class DisplayFragment : Fragment() {
                             dialogBinding.plr2Nm.text = p2Pro.nm
                             dialogBinding.plr2Lvl.text = "" + p2Pro.lvl
                         }
-                        val alertDialog = builder.create()
                         alertDialog.window?.setBackgroundDrawable(0.toDrawable())
                         try { alertDialog.show() }
                         catch (e: Exception) { e.printStackTrace() }

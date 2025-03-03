@@ -12,6 +12,7 @@ import com.diu.yk_games.line2box.model.MsgStore
 import com.diu.yk_games.line2box.model.MsgStore.Type
 import com.diu.yk_games.line2box.model.toMessage
 import com.diu.yk_games.line2box.model.toPlayerInfo
+import com.diu.yk_games.line2box.model.typeEnum
 import com.diu.yk_games.line2box.pref
 import com.diu.yk_games.line2box.util.log
 import com.diu.yk_games.line2box.util.tryGet
@@ -36,9 +37,12 @@ class MainViewModel(
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val database by lazy { Firebase.database }
+    val database by lazy { Firebase.database }
     val globalChatRef by lazy { database.getReference("globalChat") }
     val multiPlayerRef by lazy { database.getReference("MultiPlayer") }
+    val scoreBoardKey  //fake key
+        get() = database.getReference("ScoreBoard").child("allScore").key.orEmpty()
+
     lateinit var gameProfile: GameProfile
 
     val globalChatList = savedStateHandle.getStateFlow("globalChatList", emptyList<MsgStore>())
@@ -47,6 +51,7 @@ class MainViewModel(
     var matchKeys = mutableListOf<String>()
 
     var ignoreDrawerClosesSound = false
+    var localPlayerCount = 2
 
     var gameId
         get() = savedStateHandle["gameId"] ?: ""
@@ -132,6 +137,8 @@ class MainViewModel(
                         val key = it.key
                         val ms = it.getValue<MsgStore>()
                         if(key == null || ms == null) return@mapNotNull null
+                        if(ms.type.typeEnum == Type.ExitText)
+                            localPlayerCount--
                         ms.copy(key = key)
                     }.reversed()
                     savedStateHandle["friendsChatList"] = chatList
@@ -234,7 +241,7 @@ class MainViewModel(
                 })
         } ?: return@withContext defError()
 
-        if (gameRoom.playerCount.toIntOrNull() != 1) return@withContext Result.failure(Exception("Match already started."))
+        if (gameRoom.playerCount != "1") return@withContext Result.failure(Exception("Match already started."))
         if (gameRoom.player1.id == playerId) return@withContext Result.failure(Exception("You are already in the match."))
 
         // Update player2 and player count

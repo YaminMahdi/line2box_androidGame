@@ -86,7 +86,7 @@ public class GameActivity3 extends AppCompatActivity {
         hideSystemBars(getWindow());
         binding = ActivityGame3Binding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-        setNavStatusPadding(binding.getRoot(), new ViewGroup[]{binding.linearLayout},0);
+        setNavStatusPadding(this, new ViewGroup[]{binding.linearLayout},0);
         scoreRedView = findViewById(R.id.scoreRed);
         scoreBlueView = findViewById(R.id.scoreBlue);
         redTxt = findViewById(R.id.red);

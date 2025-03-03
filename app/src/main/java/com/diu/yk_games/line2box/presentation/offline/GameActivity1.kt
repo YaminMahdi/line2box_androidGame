@@ -93,7 +93,7 @@ class GameActivity1 : AppCompatActivity() {
         window.hideSystemBars()
         binding = ActivityGame1Binding.inflate(layoutInflater)
         setContentView(binding.root)
-        binding.root.setNavStatusPadding(binding.linearLayout)
+        setNavStatusPadding(binding.linearLayout)
         PACKAGE_NAME = applicationContext.packageName
         scoreRedView = binding.scoreRed
         scoreBlueView = binding.scoreBlue

@@ -1927,15 +1927,15 @@
 
     </RelativeLayout>
 
-    <ImageView
+    <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/emojiPlay"
-        android:layout_width="wrap_content"
+        android:layout_width="@dimen/_65sdp"
         android:layout_height="@dimen/_65sdp"
         android:layout_gravity="end"
-        android:layout_marginBottom="@dimen/_10sdp"
-        android:src="@drawable/emoji_haha"
+        android:layout_margin="@dimen/_15sdp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:src="@drawable/emoji_haha" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

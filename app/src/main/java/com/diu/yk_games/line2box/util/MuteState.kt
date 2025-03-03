@@ -4,11 +4,11 @@ package com.diu.yk_games.line2box.util
 
 import android.media.MediaPlayer
 import android.widget.ImageButton
+import androidx.core.content.edit
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.pref
-import com.diu.yk_games.line2box.prefEditor
 import kotlinx.coroutines.launch
 import kotlin.coroutines.coroutineContext
 
@@ -28,27 +28,24 @@ context(FragmentActivity)
 fun ImageButton.performOnClick() {
     setBounceClickListener {
         lifecycleScope.launch {
-            val isMuted = IO { pref.getBoolean("muted", false) }
-            applyState(isMuted)
-            if(!isMuted) {
-                IO { prefEditor.putBoolean("muted", true).apply() }
-            } else {
+            val isMuted = isMuted()
+            applyState(!isMuted)
+            if(isMuted) {
                 runCatching {
                     val mediaPlayer = MediaPlayer.create(this@FragmentActivity, R.raw.btn_click_ef)
                     mediaPlayer.start()
                     mediaPlayer.setOnCompletionListener(MediaPlayer::release)
                 }
-                IO { prefEditor.putBoolean("muted", false).apply() }
             }
+            IO { pref.edit { putBoolean("muted", !isMuted) } }
         }
     }
 }
 
-inline fun FragmentActivity.isNotMuted(crossinline ifTrue: () -> Unit = {}, crossinline ifNotTrue: () -> Unit) {
+inline fun FragmentActivity.isNotMuted(crossinline ifMuted: () -> Unit = {}, crossinline ifNotMuted: () -> Unit) {
     lifecycleScope.launch {
         runCatching {
-            val isMuted = IO { pref.getBoolean("muted", false) }
-            if(!isMuted) ifNotTrue() else ifTrue()
+            if(isMuted()) ifMuted() else ifNotMuted()
         }
     }
 }

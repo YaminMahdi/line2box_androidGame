@@ -15,6 +15,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.addCallback
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
@@ -26,6 +27,7 @@ import androidx.lifecycle.lifecycleScope
 import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.ActivityGame2Binding
 import com.diu.yk_games.line2box.databinding.ContentGame2Binding
+import com.diu.yk_games.line2box.databinding.DialogLayoutAlertBinding
 import com.diu.yk_games.line2box.databinding.DialogLayoutInfoBinding
 import com.diu.yk_games.line2box.model.DataStore
 import com.diu.yk_games.line2box.model.GameProfile
@@ -33,6 +35,7 @@ import com.diu.yk_games.line2box.model.MsgStore
 import com.diu.yk_games.line2box.model.toMessage
 import com.diu.yk_games.line2box.pref
 import com.diu.yk_games.line2box.prefEditor
+import com.diu.yk_games.line2box.presentation.MainViewModel
 import com.diu.yk_games.line2box.util.applyState
 import com.diu.yk_games.line2box.util.closeKeyboard
 import com.diu.yk_games.line2box.util.getSystemBars
@@ -56,9 +59,7 @@ import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
-import com.google.firebase.database.database
 import com.google.firebase.database.getValue
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.firestore
@@ -72,6 +73,7 @@ import kotlin.random.Random
 class GameActivity2 : AppCompatActivity() {
     private lateinit var bindingRoot: ActivityGame2Binding
     private lateinit var binding: ContentGame2Binding
+    private val viewModel: MainViewModel by viewModels()
 
     private var lvl1: Int = 0
     private var lvl2: Int = 0
@@ -83,6 +85,8 @@ class GameActivity2 : AppCompatActivity() {
     private var redY = 0
     private var blueX = 0
     private var blueY = 0
+    lateinit var matchRef: DatabaseReference
+    lateinit var chatRef: DatabaseReference
 
     private fun ifMuted() {
         lifecycleScope.launch {
@@ -97,7 +101,7 @@ class GameActivity2 : AppCompatActivity() {
         bindingRoot = ActivityGame2Binding.inflate(layoutInflater)
         binding = bindingRoot.appBarGame2
         setContentView(bindingRoot.root)
-        binding.root.setNavStatusPadding(binding.linearLayout)
+        setNavStatusPadding(binding.linearLayout)
 
         redX = ContextCompat.getColor(applicationContext, R.color.redX)
         redY = ContextCompat.getColor(applicationContext, R.color.redY)
@@ -110,7 +114,7 @@ class GameActivity2 : AppCompatActivity() {
 //        NavigationView navigationView = binding.navView;
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
-        lifecycleScope.launch { 
+        lifecycleScope.launch {
             delay(200)
             if (isFirstRun) infoShow()
         }
@@ -125,6 +129,7 @@ class GameActivity2 : AppCompatActivity() {
             plr1Id = it.getString("plr1Id")!!
             plr2Id = it.getString("plr2Id")!!
             playerId = if(plyr1) plr1Id else plr2Id
+            viewModel.initGameProfile()
         }
         plyrTurn = plyr1
         binding.nm1Id.text = "($nm1)"
@@ -189,42 +194,10 @@ class GameActivity2 : AppCompatActivity() {
                 layout2.setPadding(0, 0, 0, systemBars.bottom)
             }
         }
-        database = FirebaseDatabase.getInstance()
-        myRef = database.getReference("MultiPlayer").child(gameKey).child("matchInfo")
-        myRef.child("plyr2").addChildEventListener(object : ChildEventListener {
-            override fun onChildAdded(dataSnapshot: DataSnapshot, s: String?) {
-                if (dataSnapshot.exists() && plyr1) {
-                    val viewIdFromServer = dataSnapshot.getValue(String::class.java)!!
-                    plyrTurn = true
-                    lineClick(findViewById(resources.getIdentifier(viewIdFromServer, "id", packageName)))
-//                    Log.d(TAG, "onChildAdded (view): "+getResources().getResourceEntryName(viewIdFromServer)+" "+plyrTurn)
-                }
-            }
-            override fun onChildChanged(dataSnapshot: DataSnapshot, s: String?) {}
-            override fun onChildRemoved(dataSnapshot: DataSnapshot) {}
-            override fun onChildMoved(dataSnapshot: DataSnapshot, s: String?) {}
-            override fun onCancelled(databaseError: DatabaseError) {
-                Log.w(TAG, "Failed to read value.", databaseError.toException())
-            }
-        })
-        myRef.child("plyr1").addChildEventListener(object : ChildEventListener {
-            override fun onChildAdded(dataSnapshot: DataSnapshot, s: String?) {
-                if (dataSnapshot.exists() && !plyr1) {
-                    val viewIdFromServer = Objects.requireNonNull(dataSnapshot.getValue(String::class.java))
-                    plyrTurn = true
-                    lineClick(findViewById(resources.getIdentifier(viewIdFromServer, "id", packageName)))
-//                    Log.d(TAG, "onChildAdded (view): "+getResources().getResourceEntryName(viewFromServer)+" "+plyrTurn)
-                }
-            }
-            override fun onChildChanged(dataSnapshot: DataSnapshot, s: String?) {}
-            override fun onChildRemoved(dataSnapshot: DataSnapshot) {}
-            override fun onChildMoved(dataSnapshot: DataSnapshot, s: String?) {}
-            override fun onCancelled(databaseError: DatabaseError) {
-                Log.w(TAG, "Failed to read value.", databaseError.toException())
-            }
-        })
-        
-        binding.ideaBtn.setBounceClickListener { 
+
+        performServerLineClick(plyr1)
+
+        binding.ideaBtn.setBounceClickListener {
             ideaBtn()
         }
         binding.backBtn.setBounceClickListener {
@@ -239,39 +212,41 @@ class GameActivity2 : AppCompatActivity() {
             bindingRoot.drawerLayout.closeDrawer(GravityCompat.START)
             findViewById<View>(R.id.newMsgBoltu).gone()
         }
-        onBackPressedDispatcher.addCallback{
+        val dialogBinding = DialogLayoutAlertBinding.inflate(layoutInflater)
+        val alertDialog = AlertDialog.Builder(this)
+            .setView(dialogBinding.root).create()
+        onBackPressedDispatcher.addCallback(this){
             if(bindingRoot.drawerLayout.isDrawerOpen(GravityCompat.START)) {
                 bindingRoot.drawerLayout.closeDrawer(GravityCompat.START)
                 return@addCallback
             }
-            val builder = AlertDialog.Builder(this@GameActivity2)
-            val view = LayoutInflater.from(this@GameActivity2).inflate(
-                R.layout.dialog_layout_alert, findViewById(R.id.layoutDialog)
-            )
-            builder.setView(view)
-            (view.findViewById<View>(R.id.textMessage) as TextView).text =
+            dialogBinding.textMessage.text =
                 "Do you really want to QUIT the match?"
-            (view.findViewById<View>(R.id.buttonYes) as Button).text = "YES"
-            (view.findViewById<View>(R.id.buttonNo) as Button).text = "NO"
-            val alertDialog = builder.create()
-            view.findViewById<View>(R.id.buttonYes).setBounceClickListener {
+            dialogBinding.buttonYes.text = "YES"
+            dialogBinding.buttonNo.text = "NO"
+            dialogBinding.buttonYes.setBounceClickListener {
                 isNotMuted {
                     val mediaPlayer = MediaPlayer.create(this@GameActivity2, R.raw.btn_click_ef)
                     mediaPlayer.start()
                     mediaPlayer.setOnCompletionListener(MediaPlayer::release)
                 }
-                val ms = GameProfile().toMessage(
-                    playerId = playerId,
-                    msg = "Left the match.",
-                    type = MsgStore.Type.ExitText
-                )
-                val key = myRef.child(gameKey).child("friendlyChat").push().key!!
-                myRef.child(gameKey).child("friendlyChat").child(key).setValue(ms)
+
+                if(viewModel.localPlayerCount != 2)
+                    viewModel.multiPlayerRef.child(gameKey).removeValue()
+                else {
+                    val ms = GameProfile().toMessage(
+                        playerId = playerId,
+                        msg = "Left the match.",
+                        type = MsgStore.Type.ExitText
+                    )
+                    chatRef.push().key?.let {
+                        chatRef.child(it).setValue(ms)
+                    }
+                }
                 alertDialog.dismiss()
-                database.getReference("MultiPlayer").child(gameKey).removeValue()
                 onBackPressedIgnoreCallback()
             }
-            view.findViewById<View>(R.id.buttonNo).setBounceClickListener {
+            dialogBinding.buttonNo.setBounceClickListener {
                 isNotMuted {
                     val mediaPlayer = MediaPlayer.create(this@GameActivity2, R.raw.btn_click_ef)
                     mediaPlayer.start()
@@ -282,8 +257,8 @@ class GameActivity2 : AppCompatActivity() {
             alertDialog.window?.setBackgroundDrawable(0.toDrawable())
             try {
                 alertDialog.show()
-            } catch (npe: Exception) {
-                npe.printStackTrace()
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
         val index = StringBuilder()
@@ -396,6 +371,25 @@ class GameActivity2 : AppCompatActivity() {
         }
     }
 
+    private fun performServerLineClick(plyr1: Boolean) {
+        matchRef = viewModel.multiPlayerRef.child(gameKey).child("matchInfo")
+        chatRef = viewModel.multiPlayerRef.child(gameKey).child("friendlyChat")
+        matchRef.child(if(plyr1) "plyr2" else "plyr1").addChildEventListener(object : ChildEventListener {
+            override fun onChildAdded(dataSnapshot: DataSnapshot, s: String?) {
+                val viewIdFromServer = dataSnapshot.getValue<String>() ?: return
+                plyrTurn = true
+                lineClick(findViewById(resources.getIdentifier(viewIdFromServer, "id", packageName)))
+            }
+
+            override fun onChildChanged(dataSnapshot: DataSnapshot, s: String?) {}
+            override fun onChildRemoved(dataSnapshot: DataSnapshot) {}
+            override fun onChildMoved(dataSnapshot: DataSnapshot, s: String?) {}
+            override fun onCancelled(databaseError: DatabaseError) {
+                Log.w(TAG, "Failed to read value.", databaseError.toException())
+            }
+        })
+    }
+
     @SuppressLint("SetTextI18n")
     fun lineClick(view: View) {
         Log.d(TAG, "After lineClick (plyrTurn): $plyrTurn")
@@ -414,12 +408,12 @@ class GameActivity2 : AppCompatActivity() {
             }
             clickCount++
             if (plyr1 && clickCount % 2 == 1) {
-                val key = myRef.child("plyr1").push().key!!
-                myRef.child("plyr1").child(key)
+                val key = matchRef.child("plyr1").push().key!!
+                matchRef.child("plyr1").child(key)
                     .setValue(view.resources.getResourceEntryName(view.id))
             } else if (!plyr1 && clickCount % 2 == 0) {
-                val key = myRef.child("plyr2").push().key!!
-                myRef.child("plyr2").child(key)
+                val key = matchRef.child("plyr2").push().key!!
+                matchRef.child("plyr2").child(key)
                     .setValue(view.resources.getResourceEntryName(view.id))
             }
             if (clickCount % 2 == 1) {
@@ -672,8 +666,9 @@ class GameActivity2 : AppCompatActivity() {
                         type = MsgStore.Type.EnterText.name
                     )
 
-                    val key = myRef.child(gameKey).child("friendlyChat").push().key!!
-                    myRef.child(gameKey).child("friendlyChat").child(key).setValue(ms)
+                    chatRef.push().key?.let {
+                        chatRef.child(it).setValue(ms)
+                    }
                 }
 
                 fun handleLoss() {
@@ -741,7 +736,7 @@ class GameActivity2 : AppCompatActivity() {
         view.findViewById<Button>(R.id.buttonNo).text = "Exit"
         view.findViewById<Button>(R.id.buttonYes).text = "Chat"
         val alertDialog = builder.create()
-        view.findViewById<View>(R.id.buttonYes).setBounceClickListener { 
+        view.findViewById<View>(R.id.buttonYes).setBounceClickListener {
             isNotMuted {
                 val mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
                 mediaPlayer.start()
@@ -753,9 +748,9 @@ class GameActivity2 : AppCompatActivity() {
                 request.addOnCompleteListener { task: Task<ReviewInfo?> ->
                     if (task.isSuccessful) {
                         // We can get the ReviewInfo object
-                        val reviewInfo = task.result
-                        val flow = manager.launchReviewFlow(this, reviewInfo!!)
-                        flow.addOnCompleteListener { 
+                        val reviewInfo = task.result ?: return@addOnCompleteListener
+                        val flow = manager.launchReviewFlow(this, reviewInfo)
+                        flow.addOnCompleteListener {
                             bindingRoot.drawerLayout.openDrawer(GravityCompat.START)
                         }
                     } else {
@@ -768,14 +763,14 @@ class GameActivity2 : AppCompatActivity() {
             //recreate()
             alertDialog.dismiss()
         }
-        view.findViewById<View>(R.id.buttonNo).setBounceClickListener { 
+        view.findViewById<View>(R.id.buttonNo).setBounceClickListener {
             isNotMuted {
                 val mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
                 mediaPlayer.start()
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release)
             }
             alertDialog.dismiss()
-            database.getReference("MultiPlayer").child(gameKey).removeValue()
+            viewModel.multiPlayerRef.child(gameKey).removeValue()
             if (updatePro.matchWinMulti > 2) {
                 val manager = ReviewManagerFactory.create(this)
                 val request = manager.requestReviewFlow()
@@ -784,7 +779,7 @@ class GameActivity2 : AppCompatActivity() {
                         // We can get the ReviewInfo object
                         val reviewInfo = task.result
                         val flow = manager.launchReviewFlow(this, reviewInfo!!)
-                        flow.addOnCompleteListener { 
+                        flow.addOnCompleteListener {
 //                            startActivity(Intent(this, MultiplayerActivity::class.java).putExtra("playerId", playerId))
                             finish()
                         }
@@ -823,9 +818,8 @@ class GameActivity2 : AppCompatActivity() {
     }
 
     private fun saveToFirebase(plr1Cup: String, plr2Cup: String) {
-        val db = Firebase.firestore
-        val plr2CupRef = Firebase.database.getReference("MultiPlayer").child(gameKey).child("plr2Cup") //he he
-        val key = Firebase.database.getReference("ScoreBoard").child("allScore").push().key!!
+        val firestore = Firebase.firestore
+        val plr2CupRef = viewModel.multiPlayerRef.child(gameKey).child("plr2Cup") //he he
         if (!plyr1) {
             plr2CupRef.setValue(plr2Cup)
             return
@@ -840,7 +834,7 @@ class GameActivity2 : AppCompatActivity() {
             plr1Cup = plr1Cup,
             plr2Cup = "0"
         )
-        db.collection("LastBestPlayer").document("LastBestPlayer").get()
+        firestore.collection("LastBestPlayer").document("LastBestPlayer").get()
             .addOnSuccessListener { document ->
                 Log.d("TAG", "Cached document data: ${document.data}")
                 val bestScore = document.data?.get("info")
@@ -853,14 +847,14 @@ class GameActivity2 : AppCompatActivity() {
                     else -> null
                 }
                 data?.let {
-                    db.collection("LastBestPlayer").document("LastBestPlayer")
+                    firestore.collection("LastBestPlayer").document("LastBestPlayer")
                         .update("info", it)
                 }
             }
         plr2CupRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 ds.plr2Cup = snapshot.getValue<String>() ?: "0"
-                db.collection("ScoreBoard").document(key).set(ds)
+                firestore.collection("ScoreBoard").document(viewModel.scoreBoardKey).set(ds)
             }
             override fun onCancelled(error: DatabaseError) {}
         })
@@ -925,9 +919,7 @@ class GameActivity2 : AppCompatActivity() {
                 binding.playGif.loadDrawable(gifs[i])
             }
         }
-        if (alertDialog.window != null) {
-            alertDialog.window!!.setBackgroundDrawable(0.toDrawable())
-        }
+        alertDialog.window?.setBackgroundDrawable(0.toDrawable())
         try {
             alertDialog.show()
         } catch (npe: NullPointerException) {
@@ -962,8 +954,7 @@ class GameActivity2 : AppCompatActivity() {
         var isFirstRun = false
         var plyr1 = false
         var plyrTurn = false
-        var database = Firebase.database
-        lateinit var myRef: DatabaseReference
+
         fun getIdNm(idNm: String?): Array<String?> {
             val idS = arrayOfNulls<String>(14)
             val id = StringBuilder()

@@ -22,7 +22,7 @@ data class GameRoom(
     val player2: PlayerInfo = PlayerInfo(),
     val playerInfo: PlayerInfoOld = PlayerInfoOld(), //remove
     val playerCount: String = "1",
-    val plr2Cup: String = "0",
+    val plr2Cup: String = "0"
 )
 
 fun GameProfile.toPlayerInfo()= PlayerInfo(

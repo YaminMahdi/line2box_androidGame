@@ -34,7 +34,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.findViewTreeLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import coil3.imageLoader
@@ -49,7 +48,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.nio.ByteBuffer
@@ -62,6 +60,7 @@ import java.util.Locale
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 /**Flow collect from Fragment with `repeatOnLifecycle` on` lifecycleScope` till `RESUMED` */
 context(Fragment)
@@ -339,28 +338,38 @@ fun Activity.closeKeyboard(nextFocus: View? = null) {
 
 var systemBarInsets: SystemBarInsets? = null
 
-data class SystemBarInsets(val top: Int = 0, val bottom: Int = 0)
+data class SystemBarInsets(val top: Int = 50, val bottom: Int = 0)
 
 fun getSystemBars(): SystemBarInsets {
     return systemBarInsets ?: SystemBarInsets()
 }
+fun View.getSystemBarsHeight(): SystemBarInsets {
+    val systemBars = ViewCompat.getRootWindowInsets(this)?.getInsets(WindowInsetsCompat.Type.systemBars())
+    return SystemBarInsets(systemBars?.top ?: 50, systemBars?.bottom ?: 30)
+}
 
-fun ViewGroup.setNavStatusPadding(vararg layout: ViewGroup, both: Int = 1) {
-    findViewTreeLifecycleOwner()?.lifecycleScope?.launch {
-        val insets = systemBarInsets ?: suspendCancellableCoroutine {
-            ViewCompat.setOnApplyWindowInsetsListener(this@setNavStatusPadding) { _, insets ->
-                val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-//                val bottomIme = insets.getInsets(WindowInsetsCompat.Type.ime()).bottom
 
-                val top = if (systemBars.top == 0) 30 else systemBars.top
-                val bottom = systemBars.bottom
-                if (it.isActive) {
-                    systemBarInsets = SystemBarInsets(top, bottom)
-                    it.resume(systemBarInsets!!)
-                }
-                Log.d("TAG", "setNavStatusPadding: top $top, bottom ${systemBars.bottom}")
-                ViewCompat.setOnApplyWindowInsetsListener(this@setNavStatusPadding, null)
-                insets
+fun FragmentActivity.setNavStatusPadding(vararg layout: ViewGroup, both: Int = 1) {
+    lifecycleScope.launch {
+        val insets = systemBarInsets ?: suspendCoroutine {
+            window.decorView.post {
+                systemBarInsets = window.decorView.getSystemBarsHeight()
+                it.resume(systemBarInsets!!)
+
+//                ViewCompat.setOnApplyWindowInsetsListener(window.decorView) { _, insets ->
+//                    val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+////                val bottomIme = insets.getInsets(WindowInsetsCompat.Type.ime()).bottom
+//
+//                    val top = if (systemBars.top == 0) window.decorView.getStatusBarHeight() else systemBars.top
+//                    val bottom = systemBars.bottom
+//                    if (it.isActive) {
+//                        systemBarInsets = SystemBarInsets(top, bottom)
+//                        it.resume(systemBarInsets!!)
+//                    }
+//                    Log.d("TAG", "setNavStatusPadding: top $top, bottom ${systemBars.bottom}")
+//                    ViewCompat.setOnApplyWindowInsetsListener(window.decorView, null)
+//                    insets
+//                }
             }
         }
         Log.d("TAG", "setNavStatusPadding: $systemBarInsets")

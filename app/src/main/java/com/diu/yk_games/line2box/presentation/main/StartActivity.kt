@@ -152,7 +152,7 @@ class StartActivity : AppCompatActivity() {
         context = this
         binding = ActivityStartBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        binding.root.setNavStatusPadding(binding.mainLayout, binding.globalScoreFrag)
+        setNavStatusPadding(binding.mainLayout, binding.globalScoreFrag)
         inAppUpdate.checkForUpdate()
         viewModel.initGameProfile(loadGlobalChat = false)
         loadingUI = LoadingUI()

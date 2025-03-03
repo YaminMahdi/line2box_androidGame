@@ -50,6 +50,7 @@ import com.diu.yk_games.line2box.util.gone
 import com.diu.yk_games.line2box.util.hideSystemBars
 import com.diu.yk_games.line2box.util.isMuted
 import com.diu.yk_games.line2box.util.isNotMuted
+import com.diu.yk_games.line2box.util.performOnClick
 import com.diu.yk_games.line2box.util.setBounceClickListener
 import com.diu.yk_games.line2box.util.setNavStatusPadding
 import com.diu.yk_games.line2box.util.show
@@ -75,10 +76,10 @@ class MultiplayerActivity : AppCompatActivity() {
     private lateinit var bindingMain: ActivityGameMultiBinding
     private val binding by lazy { bindingMain.appBarGame2 }
     private val viewModel: MainViewModel by viewModels()
-    var nm1: String =""
-    var nm2: String =""
-    var lvl1: Int = 0
-    var lvl2: Int = 0
+//    var nm1: String =""
+//    var nm2: String =""
+//    var lvl1: Int = 0
+//    var lvl2: Int = 0
     private var editing = false
     var mBundle = Bundle()
     lateinit var playerId: String
@@ -97,10 +98,14 @@ class MultiplayerActivity : AppCompatActivity() {
         bindingMain = ActivityGameMultiBinding.inflate(layoutInflater)
         //getWindow().addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
         setContentView(bindingMain.root)
-        bindingMain.root.setNavStatusPadding(binding.multiConstraintLyt, binding.globalScoreFrag)
+        setNavStatusPadding(binding.multiConstraintLyt, binding.globalScoreFrag)
         intent.extras?.getString("playerId")?.let {
             playerId = it
             viewModel.initGameProfile(it)
+            mBundle.putString("plr2Id", playerId)
+            mBundle.putString("nm2", viewModel.gameProfile.nm)
+            mBundle.putInt("lvl2", viewModel.gameProfile.lvlByCal)
+            mBundle.putBoolean("plyr1", false)
         }
         Log.d("TAG", "onCreate: local" + viewModel.gameProfile.coin)
         binding.trophyTextId.text = ""+viewModel.gameProfile.coin
@@ -138,7 +143,7 @@ class MultiplayerActivity : AppCompatActivity() {
             .replace(R.id.chatFragment, ChatFragmentGlobal.newInstance(playerId))
             .commit()
         lvlUpgrade()
-        mBundle.putString("playerId", playerId)
+//        mBundle.putString("playerId", playerId)
         binding.copyPastBtn.setImageResource(R.drawable.icon_paste)
         binding.copyPastBtn.tag = R.drawable.icon_paste
         binding.startMatchBtn.isEnabled = false
@@ -159,85 +164,73 @@ class MultiplayerActivity : AppCompatActivity() {
             }
         })
         binding.joinInputId.doAfterTextChanged { txt->
-            if (txt?.length == 4) {
-                val newKey = viewModel.getValidKey(txt.toString())
-                Log.d("getKey", "afterTextChanged: " + newKey + " " + binding.joinInputId.text.toString().length)
-                closeKeyboard()
-                if (!newKey.isNullOrEmpty()) {
-                    mBundle.putString("gameKey", newKey)
-                    viewModel.multiPlayerRef.child(newKey).child("playerCount")
-                        .addListenerForSingleValueEvent(object : ValueEventListener {
-                            @SuppressLint("SetTextI18n")
-                            override fun onDataChange(dataSnapshot: DataSnapshot) {
-                                if (dataSnapshot.exists()) {
-                                    val playerCount = dataSnapshot.getValue<String>()?.toIntOrNull()
-                                    if (playerCount == 1) {
-                                        amiThePayer = true
-                                        viewModel.multiPlayerRef.child(newKey).child("playerCount")
-                                            .setValue("2")
-                                        //playerCountLocal=2;
-                                        binding.startMatchBtn.isEnabled = true
-                                        viewModel.addTempKey(newKey)
-                                        //remove
-                                        viewModel.multiPlayerRef.child(newKey).child("playerInfo").child("nm2")
-                                            .setValue(viewModel.gameProfile.nm)
-                                        viewModel.multiPlayerRef.child(newKey).child("playerInfo")
-                                            .child("lvl2").setValue(viewModel.gameProfile.lvlByCal)
-                                        //remove
-                                        viewModel.multiPlayerRef.child(newKey).child("player2")
-                                            .setValue(viewModel.gameProfile.toPlayerInfo())
-                                        val ms = viewModel.gameProfile.toMessage(
-                                            playerId = playerId,
-                                            msg = "Joined the match.",
-                                            type = MsgStore.Type.EnterText
-                                        )
-                                        key = newKey
-                                        val key2 = viewModel.multiPlayerRef.child(newKey).child("friendlyChat")
-                                            .push().key!!
-                                        viewModel.multiPlayerRef.child(newKey).child("friendlyChat")
-                                            .child(key2).setValue(ms)
-                                        bindingMain.bubbleTabBar.setSelected(1, true)
+            if (txt?.length != 4) return@doAfterTextChanged
+            val newKey = viewModel.getValidKey(txt.toString()) ?: run {
+                toast("Invalid Key")
+                return@doAfterTextChanged
+            }
+            Log.d("getKey", "afterTextChanged: " + newKey + " " + binding.joinInputId.text.toString().length)
+            closeKeyboard()
+            mBundle.putString("gameKey", newKey)
+            viewModel.multiPlayerRef.child(newKey)
+                .addListenerForSingleValueEvent(object : ValueEventListener {
+                    @SuppressLint("SetTextI18n")
+                    override fun onDataChange(dataSnapshot: DataSnapshot) {
+                        val gameRoom = dataSnapshot.getValue<GameRoom>() ?: run {
+                            binding.startMatchBtn.isEnabled = false
+                            toast("Invalid Key")
+                            return
+                        }
+                        if (gameRoom.playerCount == "1") {
+                            amiThePayer = true
+                            viewModel.multiPlayerRef.child(newKey).child("playerCount")
+                                .setValue("2")
+                            //playerCountLocal=2;
+                            binding.startMatchBtn.isEnabled = true
+                            viewModel.addTempKey(newKey)
+                            //remove
+                            viewModel.multiPlayerRef.child(newKey).child("playerInfo").child("nm2")
+                                .setValue(viewModel.gameProfile.nm)
+                            viewModel.multiPlayerRef.child(newKey).child("playerInfo")
+                                .child("lvl2").setValue(viewModel.gameProfile.lvlByCal)
+                            //remove
+                            viewModel.multiPlayerRef.child(newKey).child("player2")
+                                .setValue(viewModel.gameProfile.toPlayerInfo())
+//                                    nm1 = gameRoom.player1.nm
+//                                    lvl1 = gameRoom.player1.lvl
+                            mBundle.putString("plr1Id", gameRoom.player1.id.ifEmpty { gameRoom.playerInfo.plr1Id }) // remove ifEmpty someday
+                            mBundle.putString("nm1", gameRoom.player1.nm.ifEmpty { gameRoom.playerInfo.nm1 })
+                            mBundle.putInt("lvl1", if(gameRoom.player1.lvl == 0) gameRoom.playerInfo.lvl1 else gameRoom.player1.lvl)
+                            val ms = viewModel.gameProfile.toMessage(
+                                playerId = playerId,
+                                msg = "Joined the match.",
+                                type = MsgStore.Type.EnterText
+                            )
+                            key = newKey
+                            val key2 = viewModel.multiPlayerRef.child(newKey).child("friendlyChat")
+                                .push().key!!
+                            viewModel.multiPlayerRef.child(newKey).child("friendlyChat")
+                                .child(key2).setValue(ms)
+                            bindingMain.bubbleTabBar.setSelected(1, true)
 //                                        fm.beginTransaction()
 //                                            .replace(R.id.chatFragment, ChatFragmentFriendly.newInstance(newKey, playerId))
 //                                            .commit()
-                                        viewModel.multiPlayerRef.child(newKey).child("playerInfo")
-                                            .addValueEventListener(object : ValueEventListener {
-                                                override fun onDataChange(dataSnapshot: DataSnapshot) {
-                                                    if (dataSnapshot.exists()) {
-                                                        nm1 = dataSnapshot.child("nm1").getValue<String>() ?: "No Name"
-                                                        lvl1 = dataSnapshot.child("lvl1").getValue<Int>() ?: 0
-                                                        mBundle.putString("nm1", nm1)
-                                                        mBundle.putInt("lvl1", lvl1)
-                                                    }
-                                                }
-                                                override fun onCancelled(error: DatabaseError) {}
-                                            })
-                                    }else if(!amiThePayer){
-                                        binding.startMatchBtn.isEnabled = false
-                                        toast("Match already started")
-                                    }
-                                } else{
-                                    binding.startMatchBtn.isEnabled = false
-                                    toast("Invalid Key")
-                                }
-                            }
-                            override fun onCancelled(error: DatabaseError) {
-                                Log.w("TAG", "Failed to read value.", error.toException())
-                                toast("Server Error")
-                            }
-                        })
-                }
-                else toast("Invalid Key")
-            }
+                        } else if(!amiThePayer){
+                            binding.startMatchBtn.isEnabled = false
+                            toast("Match already started")
+                        }
+                    }
+                    override fun onCancelled(error: DatabaseError) {
+                        Log.w("TAG", "Failed to read value.", error.toException())
+                        toast("Server Error")
+                    }
+                })
         }
-        viewModel.gameProfile.let {
-            nm2 = it.nm
-            lvl2 = it.lvlByCal
-        }
-        Log.d("TAG left", "ver: $nm1 $lvl1")
-        mBundle.putString("nm2", nm2)
-        mBundle.putInt("lvl2", lvl2)
-        mBundle.putBoolean("plyr1", false)
+//        viewModel.gameProfile.let {
+//            nm2 = it.nm
+//            lvl2 = it.lvlByCal
+//        }
+//        Log.d("TAG left", "ver: $nm1 $lvl1")
         val stickySwitch = findViewById<StickySwitch>(R.id.sticky_switch)
         stickySwitch.onSelectedChangeListener =
             object : OnSelectedChangeListener {
@@ -250,13 +243,13 @@ class MultiplayerActivity : AppCompatActivity() {
                             binding.joinInputId.hint = ""
                             binding.joinInputId.setText("")
                             mBundle.putBoolean("plyr1", false)
-                            viewModel.gameProfile.let {
-                                nm2 = it.nm
-                                lvl2 = it.lvlByCal
-                            }
-                            Log.d("TAG left", "ver: $nm1 $lvl1")
-                            mBundle.putString("nm2", nm2)
-                            mBundle.putInt("lvl2", lvl2)
+//                            viewModel.gameProfile.let {
+//                                nm2 = it.nm
+//                                lvl2 = it.lvlByCal
+//                            }
+//                            Log.d("TAG left", "ver: $nm1 $lvl1")
+//                            mBundle.putString("nm2", nm2)
+//                            mBundle.putInt("lvl2", lvl2)
                             fm.beginTransaction()
                                 .replace(R.id.chatFragment, ChatFragmentGlobal.newInstance(playerId))
                                 .commit()
@@ -276,31 +269,29 @@ class MultiplayerActivity : AppCompatActivity() {
                             binding.joinInputId.hint = ""
                             binding.joinInputId.setText("")
                             mBundle.putBoolean("plyr1", true)
-                            nm1 = viewModel.gameProfile.nm
-                            lvl1 = viewModel.gameProfile.lvlByCal
-                            Log.d("TAG", "ver: $nm1 $lvl1")
-                            mBundle.putString("nm1", nm1)
-                            mBundle.putInt("lvl1", lvl1)
+//                            nm1 = viewModel.gameProfile.nm
+//                            lvl1 = viewModel.gameProfile.lvlByCal
+//                            Log.d("TAG", "ver: $nm1 $lvl1")
+                            mBundle.putString("plr1Id", playerId)
+                            mBundle.putString("nm1", viewModel.gameProfile.nm)
+                            mBundle.putInt("lvl1", viewModel.gameProfile.lvlByCal)
                             key = viewModel.multiPlayerRef.push().key
                             viewModel.addTempKey(key)
                             Log.d("TAG", "onCreate key: $key")
                             mBundle.putString("gameKey", key)
                             val gameRoom = GameRoom(
                                 player1 = viewModel.gameProfile.toPlayerInfo(),
-                                playerInfo = PlayerInfoOld(nm1 = nm1, lvl1 = lvl1, plr1Id = playerId)
+                                playerInfo = PlayerInfoOld(nm1 = viewModel.gameProfile.nm, lvl1 = viewModel.gameProfile.lvlByCal, plr1Id = playerId)
                             )
                             viewModel.multiPlayerRef.child(key!!).setValue(gameRoom)
                             val key2 = viewModel.multiPlayerRef.child(key!!).child("friendlyChat").push().key!!
                             viewModel.multiPlayerRef.child(key!!)
                                 .child("friendlyChat")
                                 .child(key2)
-                                .setValue(MsgStore(
+                                .setValue(viewModel.gameProfile.toMessage(
                                     playerId = playerId,
-                                    nmData = nm1,
-                                    lvlData = lvl1.toString(),
-                                    time = System.currentTimeMillis(),
-                                    msgData = "Created the match.",
-                                    type = MsgStore.Type.EnterText.name
+                                    msg = "Created the match.",
+                                    type = MsgStore.Type.EnterText
                                 ))
                             bindingMain.bubbleTabBar.setSelected(1, true)
 //                            fm.beginTransaction()
@@ -309,23 +300,21 @@ class MultiplayerActivity : AppCompatActivity() {
                             viewModel.multiPlayerRef.child(key!!)
                                 .addValueEventListener(object : ValueEventListener {
                                     override fun onDataChange(dataSnapshot: DataSnapshot) {
-                                        if (dataSnapshot.exists()) {
-//                                            Log.d("TAG -int key", "onDataChange: $key $validKey ${dataSnapshot.child("playerCount").getValue(String::class.java)}")
-                                            try {
-                                                val playerCount = dataSnapshot.child("playerCount").getValue(String::class.java)?.toInt()!!
-                                                nm2 = dataSnapshot.child("playerInfo").child("nm2").getValue(String::class.java).orEmpty()
-                                                lvl2 = dataSnapshot.child("playerInfo").child("lvl2").getValue(Int::class.java) ?: 0
-                                                Log.d("TAG", "ver2: $nm2 $lvl2")
-                                                mBundle.putString("nm2", nm2)
-                                                mBundle.putInt("lvl2", lvl2)
-                                                if (playerCount == 2) {
-                                                    binding.startMatchBtn.isEnabled = true
-                                                    //playerCountLocal=2;
-                                                }
-                                            } catch (npe: NullPointerException) {
-                                                npe.printStackTrace()
-                                            }
-                                        } else binding.startMatchBtn.isEnabled = false
+                                        val gameRoom = dataSnapshot.getValue<GameRoom>() ?: run {
+                                            binding.startMatchBtn.isEnabled = false
+                                            return
+                                        }
+//                                        Log.d("TAG -int key", "onDataChange: $key $validKey ${dataSnapshot.child("playerCount").getValue(String::class.java)}")
+//                                        nm2 = dataSnapshot.child("playerInfo").child("nm2").getValue(String::class.java).orEmpty()
+//                                        lvl2 = dataSnapshot.child("playerInfo").child("lvl2").getValue(Int::class.java) ?: 0
+//                                        Log.d("TAG", "ver2: $nm2 $lvl2")
+                                        mBundle.putString("plr2Id", gameRoom.player2.id.ifEmpty { gameRoom.playerInfo.plr2Id })  // remove ifEmpty someday
+                                        mBundle.putString("nm2", gameRoom.player2.nm.ifEmpty { gameRoom.playerInfo.nm2 })
+                                        mBundle.putInt("lvl2", if(gameRoom.player2.lvl == 0) gameRoom.playerInfo.lvl2 else gameRoom.player2.lvl)
+                                        if (gameRoom.playerCount == "2") {
+                                            binding.startMatchBtn.isEnabled = true
+                                            //playerCountLocal=2;
+                                        }
                                     }
 
                                     override fun onCancelled(error: DatabaseError) {
@@ -396,7 +385,7 @@ class MultiplayerActivity : AppCompatActivity() {
             }
             ft.commit()
         }
-        onBackPressedDispatcher.addCallback{
+        onBackPressedDispatcher.addCallback(this){
             if(bindingMain.drawerLayout.isDrawerOpen(GravityCompat.START))
                 bindingMain.drawerLayout.closeDrawer(GravityCompat.START)
             else if (scrBrdVisible) {
@@ -435,8 +424,8 @@ class MultiplayerActivity : AppCompatActivity() {
                 alertDialog.window?.setBackgroundDrawable(0.toDrawable())
                 try {
                     alertDialog.show()
-                } catch (npe: NullPointerException) {
-                    npe.printStackTrace()
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
             }
         }
@@ -452,9 +441,7 @@ class MultiplayerActivity : AppCompatActivity() {
         binding.leaderBoardBtn.setBounceClickListener{
             leaderBoard()
         }
-        binding.volBtn.setBounceClickListener{
-            volButton()
-        }
+        binding.volBtn.performOnClick()
         binding.ideaBtn.setBounceClickListener{
             ideaBtn()
         }
@@ -492,7 +479,7 @@ class MultiplayerActivity : AppCompatActivity() {
                 .create()
             dialogBinding.warningMessage.text = if (tmpLvl < pf.lvlByCal) "Level Upgraded !" else "Level Downgraded !"
             dialogBinding.UpdateInfo.text =
-                "$tmpLvl${if (tmpLvl < pf.lvlByCal) " --> " else " <-- " + pf.lvlByCal}"
+                "$tmpLvl${if (tmpLvl < pf.lvlByCal) " --> " else " <-- "}${pf.lvlByCal}"
             dialogBinding.UpdateInfo.typeface = resources.getFont(R.font.baloopaaji)
             dialogBinding.UpdateInfo.textSize = 25f
             dialogBinding.buttonUpdate.text = "Continue"
@@ -557,21 +544,6 @@ class MultiplayerActivity : AppCompatActivity() {
             .commit()
         binding.multiConstraintLyt.show()
         binding.globalScoreFrag.gone()
-    }
-
-    private fun volButton() {
-        isNotMuted( ifTrue = {
-            val mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
-            mediaPlayer.start()
-            mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-            binding.volBtn.setBackgroundResource(R.drawable.btn_ylw_bg)
-            binding.volBtn.setImageResource(R.drawable.icon_vol_unmute)
-            pref.edit { putBoolean("muted", false) }
-        }, ifNotTrue = {
-            binding.volBtn.setBackgroundResource(R.drawable.btn_gry_bg)
-            binding.volBtn.setImageResource(R.drawable.icon_vol_mute)
-            pref.edit { putBoolean("muted", true) }
-        })
     }
 
     fun ideaBtn() {
