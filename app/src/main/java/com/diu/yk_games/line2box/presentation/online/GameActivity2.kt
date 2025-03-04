@@ -21,9 +21,11 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.GravityCompat
+import androidx.customview.widget.ViewDragHelper
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.drawerlayout.widget.DrawerLayout.DrawerListener
 import androidx.lifecycle.lifecycleScope
+import androidx.viewpager2.widget.ViewPager2
 import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.ActivityGame2Binding
 import com.diu.yk_games.line2box.databinding.ContentGame2Binding
@@ -36,6 +38,7 @@ import com.diu.yk_games.line2box.model.toMessage
 import com.diu.yk_games.line2box.pref
 import com.diu.yk_games.line2box.prefEditor
 import com.diu.yk_games.line2box.presentation.MainViewModel
+import com.diu.yk_games.line2box.presentation.ViewPagerAdapter
 import com.diu.yk_games.line2box.util.applyState
 import com.diu.yk_games.line2box.util.closeKeyboard
 import com.diu.yk_games.line2box.util.getSystemBars
@@ -130,6 +133,7 @@ class GameActivity2 : AppCompatActivity() {
             plr2Id = it.getString("plr2Id")!!
             playerId = if(plyr1) plr1Id else plr2Id
             viewModel.initGameProfile()
+            viewModel.matchKey = gameKey
         }
         plyrTurn = plyr1
         binding.nm1Id.text = "($nm1)"
@@ -148,7 +152,7 @@ class GameActivity2 : AppCompatActivity() {
             override fun onDrawerClosed(drawerView: View) {}
             override fun onDrawerStateChanged(newState: Int) {
                 Log.d("TAG", "onDrawerStateChanged: $newState")
-                if (newState == 2) {
+                if (newState == ViewDragHelper.STATE_SETTLING) {
                     closeKeyboard()
                     isNotMuted {
                         val mediaPlayer = MediaPlayer.create(this@GameActivity2, R.raw.slide)
@@ -158,21 +162,30 @@ class GameActivity2 : AppCompatActivity() {
                 }
             }
         })
-        bindingRoot.bubbleTabBar.setSelected(1, true)
-        val fm = supportFragmentManager
-        val ft = fm.beginTransaction()
-        ft.replace(R.id.chatFragment, ChatFragmentFriendly.newInstance(gameKey, playerId))
-        ft.commit()
+        bindingRoot.chatPager.isUserInputEnabled = false
+        bindingRoot.chatPager.adapter = ViewPagerAdapter(
+            listOf(
+                ChatFragmentGlobal(),
+                ChatFragmentFriendly()
+            ), this
+        )
         bindingRoot.bubbleTabBar.addBubbleListener { id: Int ->
-            val fm2 = supportFragmentManager
-            val ft2 = fm2.beginTransaction()
-            if (id == R.id.globalChat) {
-                ft2.replace(R.id.chatFragment, ChatFragmentGlobal.newInstance(playerId))
-            } else {
-                ft2.replace(R.id.chatFragment, ChatFragmentFriendly.newInstance(gameKey, playerId))
-            }
-            ft2.commit()
+            if (id == R.id.globalChat)
+                bindingRoot.chatPager.currentItem = 0
+            else
+                bindingRoot.chatPager.currentItem = 1
         }
+        bindingRoot.bubbleTabBar.setSelected(1, true)
+        bindingRoot.chatPager.registerOnPageChangeCallback(object :
+            ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                super.onPageSelected(position)
+                when (position) {
+                    0 -> bindingRoot.bubbleTabBar.setSelected(0, true)
+                    1 -> bindingRoot.bubbleTabBar.setSelected(1, true)
+                }
+            }
+        })
         val activityRootView = window.decorView
         activityRootView.viewTreeObserver.addOnGlobalLayoutListener {
             val r = Rect()

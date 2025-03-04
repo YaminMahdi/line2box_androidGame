@@ -61,6 +61,14 @@ class MainViewModel(
         get() = savedStateHandle["playerId"] ?: ""
         set(value) { savedStateHandle["playerId"] = value }
 
+    var matchKey
+        get() = savedStateHandle["matchKey"] ?: ""
+        set(value) {
+            savedStateHandle["matchKey"] = value
+            if (value.isNotEmpty())
+                fetchFriendlyChat()
+        }
+
     val tempKeys
         get() = savedStateHandle.get<List<String>>("tempKeys") ?: emptyList()
 
@@ -87,6 +95,8 @@ class MainViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             tempKeys.log("tempKeys")
             tempKeys.forEach{
+                if(it == matchKey)
+                    matchKey = ""
                 tryGet { multiPlayerRef.child(it).removeValue().await() }
                 savedStateHandle["tempKeys"] = tempKeys - it
                 pref.getString("tmpKey", null)?.let { tmp ->
@@ -126,7 +136,7 @@ class MainViewModel(
 
     var friendlyValueListener  : ValueEventListener? = null
     var friendlyChatRef : DatabaseReference? = null
-    fun fetchFriendlyChat(matchKey: String){
+    private fun fetchFriendlyChat(){
         viewModelScope.launch(Dispatchers.IO){
             val friendsChatRef = multiPlayerRef.child(matchKey).child("friendlyChat")
             friendlyValueListener?.also { friendlyChatRef?.removeEventListener(it) }
@@ -148,7 +158,7 @@ class MainViewModel(
         }
     }
 
-    fun sendMessage2FriendlyChat(matchKey: String, text: String): Unit?{
+    fun sendMessage2FriendlyChat(text: String): Unit?{
         if(text.isEmpty()) return null
         val friendlyChatRef = multiPlayerRef.child(matchKey).child("friendlyChat")
         viewModelScope.launch(Dispatchers.IO) {

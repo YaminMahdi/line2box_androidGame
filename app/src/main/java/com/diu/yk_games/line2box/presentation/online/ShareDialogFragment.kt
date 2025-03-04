@@ -68,9 +68,9 @@ class ShareDialogFragment : BottomSheetDialogFragment() {
                 dismiss()
                 activity?.findViewById<DrawerLayout>(R.id.drawer_layout)?.openDrawer(GravityCompat.START)
                 activity?.findViewById<BubbleTabBar>(R.id.bubbleTabBar)?.setSelected(1, true)
-                activity?.supportFragmentManager?.beginTransaction()
-                    ?.replace(R.id.chatFragment, ChatFragmentGlobal.newInstance(viewModel.playerId))
-                    ?.commit()
+//                activity?.supportFragmentManager?.beginTransaction()
+//                    ?.replace(R.id.chatFragment, ChatFragmentGlobal.newInstance(viewModel.playerId))
+//                    ?.commit()
             }
             btnSend2WhatsApp.setBounceClickListener {
                 try {

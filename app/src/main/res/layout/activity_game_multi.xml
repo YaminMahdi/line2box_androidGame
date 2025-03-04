@@ -5,8 +5,8 @@
     android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:openDrawer="start"
-    tools:context=".presentation.online.MultiplayerActivity">
+    tools:context=".presentation.online.MultiplayerActivity"
+    tools:openDrawer="start">
 
     <include
         android:id="@+id/app_bar_game2"
@@ -23,9 +23,7 @@
         android:background="#0000"
         android:outlineProvider="none"
         android:scrollIndicators="none"
-        app:subheaderColor="@color/white"
-
-        >
+        app:subheaderColor="@color/white">
 
         <LinearLayout
             android:id="@+id/navCloseButtonLayout"
@@ -33,9 +31,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
             android:layout_marginBottom="@dimen/_16sdp"
-            android:orientation="vertical"
-
-            >
+            android:orientation="vertical">
 
             <ImageButton
                 android:id="@+id/closeNavBtn"
@@ -43,12 +39,12 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="end"
                 android:background="@drawable/btn_chat_bg"
+                android:contentDescription="@string/logo"
                 android:paddingVertical="@dimen/_30sdp"
                 android:paddingStart="30dp"
                 android:paddingEnd="8dp"
                 android:src="@drawable/icon_backword"
-                app:tint="@color/cocZz"
-                android:contentDescription="@string/logo" />
+                app:tint="@color/cocZz" />
         </LinearLayout>
 
         <LinearLayout
@@ -58,7 +54,6 @@
             android:layout_marginEnd="25dp"
             android:layout_marginBottom="-20dp"
             android:background="@drawable/btn_box_chat">
-
 
         </LinearLayout>
 
@@ -93,26 +88,6 @@
             android:fitsSystemWindows="true"
             android:orientation="vertical">
 
-            <!--            <com.google.android.material.tabs.TabLayout-->
-            <!--                android:layout_width="match_parent"-->
-            <!--                android:layout_height="wrap_content"-->
-            <!--                app:tabMode="fixed"-->
-            <!--                app:tabTextColor="@color/white">-->
-
-            <!--                <com.google.android.material.tabs.TabItem-->
-            <!--                    android:layout_width="wrap_content"-->
-            <!--                    android:layout_height="wrap_content"-->
-            <!--                    android:text="Global"-->
-
-            <!--                    />-->
-
-            <!--                <com.google.android.material.tabs.TabItem-->
-            <!--                    android:layout_width="wrap_content"-->
-            <!--                    android:layout_height="wrap_content"-->
-            <!--                    android:checked="true"-->
-            <!--                    android:text="In Game" />-->
-
-            <!--            </com.google.android.material.tabs.TabLayout>-->
             <io.ak1.BubbleTabBar
                 android:id="@+id/bubbleTabBar"
                 android:layout_width="match_parent"
@@ -128,27 +103,21 @@
                 app:bubbletab_menuResource="@menu/chat_list_menu"
                 app:bubbletab_tab_corner_radius="12dp"
                 app:bubbletab_title_size="16sp"
-                app:bubbletab_vertical_padding="10dp"
-
-                />
+                app:bubbletab_vertical_padding="10dp" />
 
             <LinearLayout
                 android:id="@+id/chatFragmentLinerLayout"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
-                <androidx.fragment.app.FragmentContainerView
-                    android:id="@+id/chatFragment"
-                    android:name="com.diu.yk_games.line2box.presentation.BlankFragment"
+                <androidx.viewpager2.widget.ViewPager2
+                    android:id="@+id/chatPager"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    tools:layout="@layout/fragment_chat_global"
-                    />
+                    android:layout_height="match_parent" />
+
             </LinearLayout>
 
-
         </LinearLayout>
-
 
     </com.google.android.material.navigation.NavigationView>
 </androidx.drawerlayout.widget.DrawerLayout>

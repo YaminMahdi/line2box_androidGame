@@ -11,7 +11,6 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.LinearLayout
 import androidx.core.graphics.drawable.toDrawable
-import androidx.core.os.bundleOf
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
@@ -41,8 +40,9 @@ class ChatFragmentFriendly : Fragment() {
     private lateinit var binding: FragmentChatFriendlyBinding
     private val viewModel by activityViewModels<MainViewModel>()
     private lateinit var activity: Activity
-    private lateinit var playerId: String
-    private val msgListAdapter by lazy { MsgListAdapter(playerId) }
+//    private lateinit var key: String
+//    private lateinit var playerId: String
+    private val msgListAdapter by lazy { MsgListAdapter(viewModel.playerId) }
     private val drawerLayout by lazy { activity.findViewById<DrawerLayout>(R.id.drawer_layout) }
 
     override fun onCreateView(
@@ -51,12 +51,11 @@ class ChatFragmentFriendly : Fragment() {
     ): View {
         binding = FragmentChatFriendlyBinding.inflate(inflater, container, false)
         activity = requireActivity()
-        arguments?.let{
-            key = it.getString("key").orEmpty()
-            playerId = it.getString("playerId").orEmpty()
-        }
+//        arguments?.let{
+//            key = it.getString("key").orEmpty()
+//            playerId = it.getString("playerId").orEmpty()
+//        }
         binding.showMsgList.adapter = msgListAdapter
-        viewModel.fetchFriendlyChat(key)
         val mp = MediaPlayer.create(activity, R.raw.pop)
         viewModel.friendsChatList.collectWithLifecycle {
             msgListAdapter.submitList(it)
@@ -149,7 +148,7 @@ class ChatFragmentFriendly : Fragment() {
             true
         }
         binding.msgSendBtn.setBounceClickListener {
-            viewModel.sendMessage2FriendlyChat(matchKey = key, text = binding.chatBoxFriendly.text.toString())?.also{
+            viewModel.sendMessage2FriendlyChat(binding.chatBoxFriendly.text.toString())?.also{
                 binding.chatBoxFriendly.setText("")
             } ?: toast("Write Something..")
         }
@@ -161,7 +160,7 @@ class ChatFragmentFriendly : Fragment() {
     }
 
     private fun sendEmoji(emoji: String) {
-        viewModel.sendMessage2FriendlyChat(matchKey = key, text = emoji)
+        viewModel.sendMessage2FriendlyChat(text = emoji)
         viewModel.ignoreDrawerClosesSound = true
         drawerLayout.closeDrawer(GravityCompat.START)
     }
@@ -195,12 +194,11 @@ class ChatFragmentFriendly : Fragment() {
 
 
     companion object {
-        lateinit var key: String
         var lastMsgKey = ""
-        fun newInstance(key: String?, playerId: String?): ChatFragmentFriendly {
-            val fragment = ChatFragmentFriendly()
-            fragment.arguments = bundleOf("key" to key, "playerId" to playerId)
-            return fragment
-        }
+//        fun newInstance(key: String?, playerId: String?): ChatFragmentFriendly {
+//            val fragment = ChatFragmentFriendly()
+//            fragment.arguments = bundleOf("key" to key, "playerId" to playerId)
+//            return fragment
+//        }
     }
 }
