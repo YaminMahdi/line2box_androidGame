@@ -11,7 +11,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.core.graphics.drawable.toDrawable
-import androidx.core.os.bundleOf
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
@@ -60,7 +59,9 @@ class ChatFragmentGlobal : Fragment() {
         binding.showMsgList.adapter = msgListAdapter
         binding.chatBoxGlobal.requestFocus()
         viewModel.globalChatList.collectWithLifecycle {
-            msgListAdapter.submitList(it)
+            msgListAdapter.submitList(it){
+                binding.showMsgList.scrollToPosition(0)
+            }
         }
 
         msgListAdapter.onClickListener = { msg ->
@@ -145,11 +146,11 @@ class ChatFragmentGlobal : Fragment() {
         }
     }
 
-    companion object {
-        fun newInstance(playerId: String?): ChatFragmentGlobal {
-            val fragment = ChatFragmentGlobal()
-            fragment.arguments = bundleOf("playerId" to playerId)
-            return fragment
-        }
-    }
+//    companion object {
+//        fun newInstance(playerId: String?): ChatFragmentGlobal {
+//            val fragment = ChatFragmentGlobal()
+//            fragment.arguments = bundleOf("playerId" to playerId)
+//            return fragment
+//        }
+//    }
 }

@@ -246,7 +246,7 @@ class MainViewModel(
         } ?: return@withContext defError()
 
         if (gameRoom.playerCount != "1") return@withContext Result.failure(Exception("Match already started."))
-        if (gameRoom.player1.id == playerId) return@withContext Result.failure(Exception("You are already in the match."))
+        if (gameRoom.player1.id == playerId || gameRoom.player2.id == playerId) return@withContext Result.failure(Exception("You are already in the match."))
 
         // Update player2 and player count
         multiPlayerRef.child(fullKey).apply {

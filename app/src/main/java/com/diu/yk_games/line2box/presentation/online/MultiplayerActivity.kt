@@ -148,7 +148,7 @@ class MultiplayerActivity : AppCompatActivity() {
                 BlankChatFragment()
             ), this
         )
-        bindingMain.bubbleTabBar.addBubbleListener { id: Int ->
+        bindingMain.bubbleTabBar.addBubbleListener { id ->
             if (id == R.id.globalChat)
                 bindingMain.chatPager.currentItem = 0
             else

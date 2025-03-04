@@ -58,7 +58,9 @@ class ChatFragmentFriendly : Fragment() {
         binding.showMsgList.adapter = msgListAdapter
         val mp = MediaPlayer.create(activity, R.raw.pop)
         viewModel.friendsChatList.collectWithLifecycle {
-            msgListAdapter.submitList(it)
+            msgListAdapter.submitList(it){
+                binding.showMsgList.scrollToPosition(0)
+            }
             val lastMsg = it.firstOrNull()
             if(lastMsg?.key == lastMsgKey) return@collectWithLifecycle
             when(lastMsg?.msgData){

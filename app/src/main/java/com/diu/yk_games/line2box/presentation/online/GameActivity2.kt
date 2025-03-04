@@ -169,7 +169,7 @@ class GameActivity2 : AppCompatActivity() {
                 ChatFragmentFriendly()
             ), this
         )
-        bindingRoot.bubbleTabBar.addBubbleListener { id: Int ->
+        bindingRoot.bubbleTabBar.addBubbleListener { id  ->
             if (id == R.id.globalChat)
                 bindingRoot.chatPager.currentItem = 0
             else
