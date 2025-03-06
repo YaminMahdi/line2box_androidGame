@@ -32,10 +32,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.withContext
 import java.util.UUID
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 class MainViewModel(
     private val savedStateHandle: SavedStateHandle
@@ -53,6 +50,7 @@ class MainViewModel(
     val friendsChatList = savedStateHandle.getStateFlow("friendsChatList", emptyList<MsgStore>())
 
     private var matchKeys = mutableListOf<String>()
+    private var matches = mutableListOf<GameRoom>()
 
     var ignoreDrawerClosesSound = false
     var localPlayerCount = 2
@@ -136,23 +134,6 @@ class MainViewModel(
 
             override fun onChildChanged(dataSnapshot: DataSnapshot, s: String?) {}
             override fun onChildRemoved(dataSnapshot: DataSnapshot) {}
-            override fun onChildMoved(dataSnapshot: DataSnapshot, s: String?) {}
-            override fun onCancelled(databaseError: DatabaseError) {
-                Log.w("TAG", "Failed to read value.", databaseError.toException())
-            }
-        })
-    }
-
-    fun fetchActiveMatches(){
-        multiPlayerRef.limitToLast(100).addChildEventListener(object : ChildEventListener {
-            override fun onChildAdded(dataSnapshot: DataSnapshot, s: String?) {
-                Log.d("addList", "onChildAdded: " + dataSnapshot.key)
-                dataSnapshot.key?.let { matchKeys.add(it) }
-            }
-            override fun onChildChanged(dataSnapshot: DataSnapshot, s: String?) {}
-            override fun onChildRemoved(dataSnapshot: DataSnapshot) {
-                dataSnapshot.key?.let { matchKeys.remove(it) }
-            }
             override fun onChildMoved(dataSnapshot: DataSnapshot, s: String?) {}
             override fun onCancelled(databaseError: DatabaseError) {
                 Log.w("TAG", "Failed to read value.", databaseError.toException())
@@ -252,7 +233,31 @@ class MainViewModel(
             }
     }
 
+    fun fetchActiveMatches(){
+        multiPlayerRef.limitToLast(100).addChildEventListener(object : ChildEventListener {
+            override fun onChildAdded(dataSnapshot: DataSnapshot, s: String?) {
+                Log.d("addList", "onChildAdded: " + dataSnapshot.key)
+                dataSnapshot.key?.let { matchKeys.add(it) }
+                dataSnapshot.getValue<GameRoom>()?.let {
+                    matches.add(it.copy(key= dataSnapshot.key ?: ""))
+                }
+            }
+            override fun onChildChanged(dataSnapshot: DataSnapshot, s: String?) {}
+            override fun onChildRemoved(dataSnapshot: DataSnapshot) {
+                dataSnapshot.key?.let { key ->
+                    matchKeys.remove(key)
+                    matches.removeIf { it.key == key }
+                }
+            }
+            override fun onChildMoved(dataSnapshot: DataSnapshot, s: String?) {}
+            override fun onCancelled(databaseError: DatabaseError) {
+                Log.w("TAG", "Failed to read value.", databaseError.toException())
+            }
+        })
+    }
+
     fun getValidKey(shortKey: String): String? = matchKeys.find { getKey4(it) == shortKey }
+    fun getValidMatch(shortKey: String): GameRoom? = matches.find { getKey4(it.key) == shortKey }
 
     fun getKey4(key: String?): String {
         if (key.isNullOrEmpty()) return ""
@@ -268,29 +273,30 @@ class MainViewModel(
         }.uppercase()
     }
 
-    suspend fun getJoinBundle(msg: MsgStore): Result<Bundle> = withContext(Dispatchers.IO) {
+    fun getJoinBundle(msg: MsgStore): Result<Bundle> {
         fun defError(): Result<Bundle> {
             globalChatRef.child(msg.key).removeValue()
             return Result.failure<Bundle>(Exception("Match expired."))
         }
-        if (msg.gameId.length != 4) return@withContext defError()
-        val fullKey = getValidKey(msg.gameId) ?: return@withContext defError()
+        if (msg.gameId.length != 4) return defError()
+        val gameRoom = getValidMatch(msg.gameId) ?: return defError()
+        val fullKey = gameRoom.key
         pref.edit { putString("tmpKey", fullKey) }
 
-        val gameRoom = suspendCoroutine<GameRoom?> { cont ->
-            multiPlayerRef.child(fullKey)
-                .addListenerForSingleValueEvent(object : ValueEventListener {
-                    override fun onDataChange(snapshot: DataSnapshot) {
-                        cont.resume(snapshot.getValue<GameRoom>())
-                    }
-                    override fun onCancelled(error: DatabaseError) {
-                        cont.resume(null)
-                    }
-                })
-        } ?: return@withContext defError()
+//        val gameRoom = suspendCoroutine<GameRoom?> { cont ->
+//            multiPlayerRef.child(fullKey)
+//                .addListenerForSingleValueEvent(object : ValueEventListener {
+//                    override fun onDataChange(snapshot: DataSnapshot) {
+//                        cont.resume(snapshot.getValue<GameRoom>())
+//                    }
+//                    override fun onCancelled(error: DatabaseError) {
+//                        cont.resume(null)
+//                    }
+//                })
+//        } ?: return@withContext defError()
 
-        if (gameRoom.player1.id == playerId || gameRoom.player2.id == playerId) return@withContext Result.failure(Exception("You are already in the match."))
-        if (gameRoom.playerCount != "1") return@withContext Result.failure(Exception("Match already started."))
+        if (gameRoom.player1.id == playerId || gameRoom.player2.id == playerId) return Result.failure(Exception("You are already in the match."))
+        if (gameRoom.playerCount != "1") return Result.failure(Exception("Match already started."))
 
         // Update player2 and player count
         multiPlayerRef.child(fullKey).apply {
@@ -312,7 +318,7 @@ class MainViewModel(
             )
         )
         // Return the bundle
-        Result.success(
+        return Result.success(
             bundleOf(
                 "gameKey" to fullKey,
                 "plyr1" to false,

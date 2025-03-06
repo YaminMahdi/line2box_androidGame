@@ -15,7 +15,6 @@ import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.lifecycleScope
 import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.DialogLayoutProfileBinding
 import com.diu.yk_games.line2box.databinding.FragmentChatGlobalBinding
@@ -31,7 +30,6 @@ import com.diu.yk_games.line2box.util.toast
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import com.google.firebase.firestore.toObject
-import kotlinx.coroutines.launch
 
 class ChatFragmentGlobal : Fragment() {
     private lateinit var binding: FragmentChatGlobalBinding
@@ -126,13 +124,11 @@ class ChatFragmentGlobal : Fragment() {
         }
 
         msgListAdapter.onJoinClickListener = { msg ->
-            lifecycleScope.launch {
-                viewModel.getJoinBundle(msg).onSuccess {
-                    activity.findViewById<DrawerLayout>(R.id.drawer_layout)?.closeDrawer(GravityCompat.START)
-                    activity.startActivity(Intent(activity, GameActivity2::class.java).putExtras(it))
-                }.onFailure {
-                    toast(it.message.toString())
-                }
+            viewModel.getJoinBundle(msg).onSuccess {
+                activity.findViewById<DrawerLayout>(R.id.drawer_layout)?.closeDrawer(GravityCompat.START)
+                activity.startActivity(Intent(activity, GameActivity2::class.java).putExtras(it))
+            }.onFailure {
+                toast(it.message.toString())
             }
         }
 
