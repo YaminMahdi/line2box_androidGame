@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.CustomListViewBinding
 import com.diu.yk_games.line2box.model.DataStore
+import com.diu.yk_games.line2box.util.setBounceClickListener
 import com.diu.yk_games.line2box.util.toDateTime
 
 class ScoreListAdapter : ListAdapter<DataStore, ScoreListAdapter.ViewHolder>(DataStoreDiffCallback()) {
@@ -37,7 +38,7 @@ class ScoreListAdapter : ListAdapter<DataStore, ScoreListAdapter.ViewHolder>(Dat
                 timeId.text = "Time:  ${item.time.toDateTime()}"
                 redShow.text = item.redData
                 blueShow.text = item.blueData
-                root.setOnClickListener {
+                root.setBounceClickListener {
                     onClickListener?.invoke(item)
                 }
 

@@ -90,10 +90,14 @@ class DisplayFragment : Fragment() {
                 Log.d(TAG, "isSuccessful: ${dsList.size}")
                 scoreListAdapter.submitList(dsList)
             }
-        scoreListAdapter.onClickListener = { gamerPro ->
+
+        var itemClicked = false
+        scoreListAdapter.onClickListener = run@{ gamerPro ->
+            if(itemClicked) return@run
+            itemClicked = true
             gamerPro.log("scoreListAdapter")
             if ((gamerPro.plr1Id == "offline"))
-                toast("Offline match doesn't have Profile Info.")
+                toast("Offline matches don't have match details.")
             else {
                 if (!pref.getBoolean("muted", false)) {
                     val mediaPlayer =
@@ -104,70 +108,78 @@ class DisplayFragment : Fragment() {
                 val dialogBinding = DialogLayoutScrGlobeBinding.inflate(layoutInflater)
                 val alertDialog = AlertDialog.Builder(context)
                     .setView(dialogBinding.root).create()
+                alertDialog.setOnDismissListener {
+                    itemClicked = false
+                }
                 Log.d(TAG, "onItemClick: 1id " + gamerPro.plr1Id)
                 Log.d(TAG, "onItemClick: 2id " + gamerPro.plr2Id)
                 db.collection("gamerProfile").document(gamerPro.plr1Id)
                     .get()
                     .addOnSuccessListener { documentSnapshot ->
-                        val gp = documentSnapshot.toObject<GameProfile>()
-                        if (gp != null) {
-                            val scr = gamerPro.redData.split(" ".toRegex())
-                                .dropLastWhile { it.isEmpty() }
-                                .toTypedArray()
-                            Log.d(TAG, "onSuccess: scr " + scr[scr.size - 1])
-                            dialogBinding.plr1Score.text = scr[scr.size - 1]
-                            dialogBinding.plr1Cup.text = gamerPro.plr1Cup
-                            Log.d(TAG, "onSuccess: cup " + gamerPro.plr1Cup)
-                            p1Pro = gp
-                            if (p1Pro.countryEmoji != "")
-                                dialogBinding.plr1Flag.text = p1Pro.countryEmoji
-                            dialogBinding.plr1Nm.text = p1Pro.nm
-                            Log.d(TAG, "onSuccess: nm " + p1Pro.nm)
-                            dialogBinding.plr1Lvl.text = "" + p1Pro.lvl
-                        }
+                        val gp = documentSnapshot.toObject<GameProfile>() ?: return@addOnSuccessListener
+                        val scr = gamerPro.redData.split(" ").dropLastWhile { it.isEmpty() }
+                        Log.d(TAG, "onSuccess: scr " + scr[scr.size - 1])
+                        dialogBinding.plr1Score.text = scr[scr.size - 1]
+                        dialogBinding.plr1Cup.text = gamerPro.plr1Cup
+                        Log.d(TAG, "onSuccess: cup " + gamerPro.plr1Cup)
+                        p1Pro = gp
+                        if (p1Pro.countryEmoji != "")
+                            dialogBinding.plr1Flag.text = p1Pro.countryEmoji
+                        dialogBinding.plr1Nm.text = p1Pro.nm
+                        Log.d(TAG, "onSuccess: nm " + p1Pro.nm)
+                        dialogBinding.plr1Lvl.text = "" + p1Pro.lvl
                     }
                 db.collection("gamerProfile").document(gamerPro.plr2Id)
                     .get().addOnSuccessListener { documentSnapshot ->
-                        val gp = documentSnapshot.toObject<GameProfile>()
-                        if (gp != null) {
-                            val scr = gamerPro.blueData.split(" ".toRegex())
-                                .dropLastWhile { it.isEmpty() }
-                                .toTypedArray()
-                            dialogBinding.plr2Score.text = scr[scr.size - 1]
-                            dialogBinding.plr2Cup.text = gamerPro.plr2Cup
-                            p2Pro = gp
-                            if (p2Pro.countryEmoji != "")
-                                dialogBinding.plr2Flag.text = p2Pro.countryEmoji
-                            dialogBinding.plr2Nm.text = p2Pro.nm
-                            dialogBinding.plr2Lvl.text = "" + p2Pro.lvl
-                        }
+                        val gp = documentSnapshot.toObject<GameProfile>() ?: return@addOnSuccessListener
+                        val scr = gamerPro.blueData.split(" ").dropLastWhile { it.isEmpty() }
+                        dialogBinding.plr2Score.text = scr[scr.size - 1]
+                        dialogBinding.plr2Cup.text = gamerPro.plr2Cup
+                        p2Pro = gp
+                        if (p2Pro.countryEmoji != "")
+                            dialogBinding.plr2Flag.text = p2Pro.countryEmoji
+                        dialogBinding.plr2Nm.text = p2Pro.nm
+                        dialogBinding.plr2Lvl.text = "" + p2Pro.lvl
                         alertDialog.window?.setBackgroundDrawable(0.toDrawable())
                         try { alertDialog.show() }
                         catch (e: Exception) { e.printStackTrace() }
                     }
+                var itemClicked2 =false
+                var itemClicked3 =false
                 dialogBinding.linLayoutPlr1
                     .setBounceClickListener {
-                        onPlayerProfileClick(p1Pro)
+                        if(itemClicked2) return@setBounceClickListener
+                        itemClicked2 = true
+                        onPlayerProfileClick(p1Pro, 60){
+                            itemClicked2 = false
+                        }
                     }
                 dialogBinding.linLayoutPlr2
                     .setBounceClickListener {
-                        onPlayerProfileClick(p2Pro, 420)
+                        if(itemClicked3) return@setBounceClickListener
+                        itemClicked3 = true
+                        onPlayerProfileClick(p2Pro, 420){
+                            itemClicked3 = false
+                        }
                     }
             }
         }
     }
 
     @SuppressLint("SetTextI18n")
-    private fun onPlayerProfileClick(profile: GameProfile, marginLeft: Int = 60) {
+    private fun onPlayerProfileClick(profile: GameProfile, marginLeft: Int, onDismissed: () -> Unit) {
         if (!pref.getBoolean("muted", false)) {
             val mediaPlayer = MediaPlayer.create(context, R.raw.btn_click_ef)
             mediaPlayer.start()
             mediaPlayer.setOnCompletionListener(MediaPlayer::release)
         }
-        val builder2 = AlertDialog.Builder(context)
         val dBinding = DialogLayoutProfileBinding.inflate(layoutInflater)
-
-        builder2.setView(dBinding.root)
+        val alertDialog = AlertDialog.Builder(context)
+            .setView(dBinding.root)
+            .create()
+        alertDialog.setOnDismissListener{
+            onDismissed()
+        }
         val params = LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.WRAP_CONTENT,
             LinearLayout.LayoutParams.WRAP_CONTENT
@@ -197,7 +209,6 @@ class DisplayFragment : Fragment() {
             countryLTxt.gone()
             buttonSaveInfo.gone()
         }
-        val alertDialog = builder2.create()
         alertDialog.window?.setBackgroundDrawable(0.toDrawable())
         dBinding.root.setOnClickListener {
             alertDialog.dismiss()

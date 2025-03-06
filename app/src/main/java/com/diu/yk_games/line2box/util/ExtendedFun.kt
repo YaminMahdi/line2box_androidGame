@@ -159,7 +159,7 @@ fun View.setBounceClickListener(onClick: ((View) -> Unit)? = null) {
     var delay = 0L
     setOnClickListener {
         mainScope.launch {
-            delay(200L)
+            delay(150L)
             onClick?.invoke(it)
         }
     }
@@ -167,8 +167,8 @@ fun View.setBounceClickListener(onClick: ((View) -> Unit)? = null) {
         mainScope.launch {
             if (event.action == MotionEvent.ACTION_DOWN) {
                 delay(delay)
-                val scaleDownX = ObjectAnimator.ofFloat(v, "scaleX", 0.85f)
-                val scaleDownY = ObjectAnimator.ofFloat(v, "scaleY", 0.85f)
+                val scaleDownX = ObjectAnimator.ofFloat(v, "scaleX", 0.90f)
+                val scaleDownY = ObjectAnimator.ofFloat(v, "scaleY", 0.90f)
                 scaleDownX.duration = 140L
                 scaleDownY.duration = 140L
 

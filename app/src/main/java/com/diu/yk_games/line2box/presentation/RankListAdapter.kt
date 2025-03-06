@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.CustomRankListViewBinding
 import com.diu.yk_games.line2box.model.GameProfile
+import com.diu.yk_games.line2box.util.setBounceClickListener
 
 class RankListAdapter(
     private var playerId: String
@@ -44,7 +45,7 @@ class RankListAdapter(
                 nmId.text = item.nm.split("\n")[0]
                 coinId.text = item.coin.toString()
                 lvlId.text = item.lvl.toString()
-                root.setOnClickListener {
+                root.setBounceClickListener {
                     if (item.playerId.isNotEmpty())
                         onClickListener?.invoke(item)
                 }

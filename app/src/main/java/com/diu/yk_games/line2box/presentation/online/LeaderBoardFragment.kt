@@ -86,7 +86,10 @@ class LeaderBoardFragment : Fragment() {
                     binding.playerCount.text = "%,d".format(it.count)
                 }
             }
-        rankListAdapter.onClickListener = { gamerPro ->
+        var itemClicked = false
+        rankListAdapter.onClickListener = run@{ gamerPro ->
+            if(itemClicked) return@run
+            itemClicked = true
             if (!pref.getBoolean("muted", false)) {
                 val mediaPlayer =
                     MediaPlayer.create(context, R.raw.btn_click_ef)
@@ -101,6 +104,9 @@ class LeaderBoardFragment : Fragment() {
                         val alertDialog = AlertDialog.Builder(context)
                             .setView(dialogBinding.root)
                             .create()
+                        alertDialog.setOnDismissListener {
+                            itemClicked = false
+                        }
                         val params = LinearLayout.LayoutParams(
                             LinearLayout.LayoutParams.WRAP_CONTENT,
                             LinearLayout.LayoutParams.WRAP_CONTENT
