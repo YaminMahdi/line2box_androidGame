@@ -340,6 +340,7 @@ class MultiplayerActivity : AppCompatActivity() {
                                         mBundle.putInt("lvl2", if(gameRoom.player2.lvl == 0) gameRoom.playerInfo.lvl2 else gameRoom.player2.lvl)
                                         if (gameRoom.playerCount == "2") {
                                             binding.startMatchBtn.isEnabled = true
+                                            bindingMain.bubbleTabBar.setSelected(1, true)
                                             //playerCountLocal=2;
                                         }
                                     }

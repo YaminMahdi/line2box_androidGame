@@ -30,6 +30,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import java.util.UUID
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
@@ -41,7 +42,7 @@ class MainViewModel(
     val globalChatRef by lazy { database.getReference("globalChat") }
     val multiPlayerRef by lazy { database.getReference("MultiPlayer") }
     val scoreBoardKey  //fake key
-        get() = database.getReference("ScoreBoard").child("allScore").key.orEmpty()
+        get() = UUID.randomUUID().toString()
 
     lateinit var gameProfile: GameProfile
 
@@ -203,6 +204,7 @@ class MainViewModel(
             .addSnapshotListener { qs, ex ->
                 qs?.documents?.mapNotNull { it?.toObject<GameProfile>() }?.forEach {
                     it.countryEmoji = "🇵🇸"
+                    it.countryNm = "Palestina"
                     Firebase.firestore.collection("gamerProfile").document(it.playerId).set(it)
                 }
             }

@@ -52,8 +52,7 @@ class MsgListAdapter(private val playerId: String) : ListAdapter<MsgStore, Recyc
                 lvlId.text = item.lvlData
                 msgId.text = item.msgData.split("Match ID").firstOrNull()?.trim() ?: item.msgData
                 gameId.text = item.gameId
-                if(item.playerId == playerId)
-                    btnJoin.isEnabled = false
+                btnJoin.isEnabled = if(item.playerId == playerId) false else true
                 btnJoin.setBounceClickListener {
                     if(item.gameId.isNotEmpty())
                         onJoinClickListener?.invoke(item)

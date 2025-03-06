@@ -24,6 +24,7 @@ import com.diu.yk_games.line2box.model.GameProfile
 import com.diu.yk_games.line2box.pref
 import com.diu.yk_games.line2box.presentation.ScoreListAdapter
 import com.diu.yk_games.line2box.util.gone
+import com.diu.yk_games.line2box.util.log
 import com.diu.yk_games.line2box.util.setBounceClickListener
 import com.diu.yk_games.line2box.util.toast
 import com.google.firebase.Firebase
@@ -77,7 +78,7 @@ class DisplayFragment : Fragment() {
                 }
             }
         db.collection("ScoreBoard")
-//            .orderBy("time")
+            .orderBy("time")
             .limitToLast(100)
             .get()
             .addOnSuccessListener { task ->
@@ -90,10 +91,9 @@ class DisplayFragment : Fragment() {
                 scoreListAdapter.submitList(dsList)
             }
         scoreListAdapter.onClickListener = { gamerPro ->
+            gamerPro.log("scoreListAdapter")
             if ((gamerPro.plr1Id == "offline"))
                 toast("Offline match doesn't have Profile Info.")
-            else if ((gamerPro.plr1Id == ""))
-                toast("Old match doesn't have Profile Info.")
             else {
                 if (!pref.getBoolean("muted", false)) {
                     val mediaPlayer =

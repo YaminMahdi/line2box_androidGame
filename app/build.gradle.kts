@@ -89,7 +89,7 @@ dependencies {
     implementation("com.google.android.gms:play-services-auth:21.3.0")
 
     implementation("com.google.code.gson:gson:2.12.1")
-    implementation("org.jsoup:jsoup:1.18.3")
+    implementation("org.jsoup:jsoup:1.19.1")
 
     implementation("io.ak1:bubbletabbar:1.0.8")
     implementation("com.github.GwonHyeok:StickySwitch:0.0.16")

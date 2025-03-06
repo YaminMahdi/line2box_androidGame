@@ -37,17 +37,13 @@ import com.diu.yk_games.line2box.util.setBounceClickListener
 import com.diu.yk_games.line2box.util.setNavStatusPadding
 import com.diu.yk_games.line2box.util.show
 import com.diu.yk_games.line2box.util.toast
-import com.google.android.gms.tasks.Task
 import com.google.android.play.core.review.ReviewManagerFactory
 import com.google.firebase.Firebase
-import com.google.firebase.database.database
-import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import java.util.Objects
+import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
 
 
@@ -884,9 +880,6 @@ class GameActivity1 : AppCompatActivity() {
 
         fun saveToFirebase(): Boolean {
             val success = AtomicBoolean(false)
-            val dtf = DateTimeFormatter.ofPattern("dd MMM, hh:mm a")
-            val now = LocalDateTime.now()
-            val timeData = dtf.format(now)
             val starData = "friendly"
             val redData = "$nm1: $scoreRed"
             val blueData = "$nm2: $scoreBlue"
@@ -941,28 +934,27 @@ class GameActivity1 : AppCompatActivity() {
             val db = Firebase.firestore
             //Source source = Source.CACHE;
             db.collection("LastBestPlayer").document("LastBestPlayer")
-                .get().addOnCompleteListener { task: Task<DocumentSnapshot> ->
-                    if (task.isSuccessful) {
-                        val document = task.result
-                        Log.d("TAG", "Cached document data: " + document.getData())
-                        val bestScoreData =
-                            Objects.requireNonNull(Objects.requireNonNull(document.data)["info"])
-                                .toString()
-                        val arrOfStr =
-                            bestScoreData.split(" ".toRegex()).dropLastWhile { it.isEmpty() }
-                                .toTypedArray()
-                        bestScore = arrOfStr[arrOfStr.size - 1].toInt()
-                        if (bestScore <= scoreRed) db.collection("LastBestPlayer")
-                            .document("LastBestPlayer")
-                            .update("info", redData) else if (bestScore <= scoreBlue) db.collection(
-                            "LastBestPlayer"
-                        ).document("LastBestPlayer").update("info", blueData)
+                .get().addOnSuccessListener {
+                    val map = it.data ?: return@addOnSuccessListener
+                    Log.d("TAG", "Cached document data: $map")
+                    val bestScore = map["info"]
+                        .toString()
+                        .substringAfterLast(": ")
+                        .toIntOrNull() ?: 0
+                    val data = when {
+                        bestScore <= scoreRed -> ds.redData
+                        bestScore <= scoreBlue -> ds.blueData
+                        else -> null
+                    }
+                    data?.let {
+                        db.collection("LastBestPlayer").document("LastBestPlayer")
+                            .update("info", it)
                     }
                 }
             //multiple
-            val myRef =
-                Firebase.database.getReference("ScoreBoard").child("allScore") //he he
-            val key = myRef.push().key!!
+//            val myRef =
+//                Firebase.database.getReference("ScoreBoard").child("allScore") //he he
+            val key = UUID.randomUUID().toString()
             db.collection("ScoreBoard").document(key).set(ds)
                 .addOnCompleteListener { success.set(true) }
             return success.get()

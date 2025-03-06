@@ -8,9 +8,7 @@ import android.graphics.drawable.GradientDrawable
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
 import android.view.View
-import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
@@ -30,6 +28,7 @@ import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.ActivityGame2Binding
 import com.diu.yk_games.line2box.databinding.ContentGame2Binding
 import com.diu.yk_games.line2box.databinding.DialogLayoutAlertBinding
+import com.diu.yk_games.line2box.databinding.DialogLayoutGameOverBinding
 import com.diu.yk_games.line2box.databinding.DialogLayoutInfoBinding
 import com.diu.yk_games.line2box.model.DataStore
 import com.diu.yk_games.line2box.model.GameProfile
@@ -634,7 +633,7 @@ class GameActivity2 : AppCompatActivity() {
                     if (!plyr1) plyrTurn = false
                 }
             }
-            if (scoreRed + scoreBlue == 36) {
+            if (scoreRed + scoreBlue == 5) {
                 val db = Firebase.firestore
                 val doc = db.collection("gamerProfile").document(playerId)
                 doc.update("matchPlayed", FieldValue.increment(1))
@@ -733,17 +732,15 @@ class GameActivity2 : AppCompatActivity() {
         val coin = winCoin.toInt()
         val win = coin > -1
 
-        val builder = AlertDialog.Builder(this@GameActivity2)
-        val view = LayoutInflater.from(this@GameActivity2).inflate(
-            R.layout.dialog_layout_game_over, findViewById(R.id.layoutDialogGameOver)
-        )
-        builder.setView(view)
-        builder.setCancelable(false)
-        view.findViewById<TextView>(R.id.textMessage).text = winMsg
-        view.findViewById<Button>(R.id.buttonNo).text = "Exit"
-        view.findViewById<Button>(R.id.buttonYes).text = "Chat"
-        val alertDialog = builder.create()
-        view.findViewById<View>(R.id.buttonYes).setBounceClickListener {
+        val dialogBinding = DialogLayoutGameOverBinding.inflate(layoutInflater)
+        val alertDialog = AlertDialog.Builder(this@GameActivity2)
+            .setView(dialogBinding.root)
+            .setCancelable(false)
+            .create()
+        dialogBinding.textMessage.text = winMsg
+        dialogBinding.buttonNo.text = "Exit"
+        dialogBinding.buttonYes.text = "Chat"
+        dialogBinding.buttonYes.setBounceClickListener {
             isNotMuted {
                 val mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
                 mediaPlayer.start()
@@ -770,18 +767,19 @@ class GameActivity2 : AppCompatActivity() {
             //recreate()
             alertDialog.dismiss()
         }
-        view.findViewById<View>(R.id.buttonNo).setBounceClickListener {
+        dialogBinding.buttonNo.setBounceClickListener {
             isNotMuted {
                 val mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
                 mediaPlayer.start()
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release)
             }
             alertDialog.dismiss()
-            viewModel.multiPlayerRef.child(gameKey).removeValue()
+            if(plyr1)
+                viewModel.multiPlayerRef.child(gameKey).removeValue()
             if (updatePro.matchWinMulti > 2) {
                 val manager = ReviewManagerFactory.create(this)
                 val request = manager.requestReviewFlow()
-                request.addOnCompleteListener { task: Task<ReviewInfo?> ->
+                request.addOnCompleteListener { task->
                     if (task.isSuccessful) {
                         // We can get the ReviewInfo object
                         val reviewInfo = task.result
@@ -807,16 +805,16 @@ class GameActivity2 : AppCompatActivity() {
                 if(win) {
                     for (i in 0 .. coin step 4) {
                         delay(100)
-                        (view.findViewById<View>(R.id.coinWin) as TextView).text = "+$i"
+                        dialogBinding.coinWin.text = "+$i"
                     }
-                    (view.findViewById<View>(R.id.coinWin) as TextView).text = "+$coin"
+                    dialogBinding.coinWin.text = "+$coin"
                 }
                 else{
                     for (i in 0 downTo  coin step 4) {
                         delay(100)
-                        (view.findViewById<View>(R.id.coinWin) as TextView).text = "$i"
+                        dialogBinding.coinWin.text = "$i"
                     }
-                    (view.findViewById<View>(R.id.coinWin) as TextView).text = "$coin"
+                    dialogBinding.coinWin.text = "$coin"
                 }
             }
         } catch (e: Exception) {
@@ -833,8 +831,8 @@ class GameActivity2 : AppCompatActivity() {
         }
         val ds = DataStore(
             time = System.currentTimeMillis(),
-            redData = "${nm1.split("\n").firstOrNull()}: $scoreRed",
-            blueData = "${nm2.split("\n").firstOrNull()}: $scoreBlue",
+            redData = "${nm1.split("\n", " ").firstOrNull()}: $scoreRed",
+            blueData = "${nm2.split("\n", " ").firstOrNull()}: $scoreBlue",
             starData = "globe",
             plr1Id = plr1Id,
             plr2Id = plr2Id,
@@ -842,12 +840,13 @@ class GameActivity2 : AppCompatActivity() {
             plr2Cup = "0"
         )
         firestore.collection("LastBestPlayer").document("LastBestPlayer").get()
-            .addOnSuccessListener { document ->
-                Log.d("TAG", "Cached document data: ${document.data}")
-                val bestScore = document.data?.get("info")
-                    ?.toString()
-                    ?.substringAfterLast(": ")
-                    ?.toIntOrNull() ?: 0
+            .addOnSuccessListener {
+                val map = it.data ?: return@addOnSuccessListener
+                Log.d("TAG", "Cached document data: $map")
+                val bestScore = map["info"]
+                    .toString()
+                    .substringAfterLast(": ")
+                    .toIntOrNull() ?: 0
                 val data = when {
                     bestScore <= scoreRed -> ds.redData
                     bestScore <= scoreBlue -> ds.blueData
@@ -858,10 +857,11 @@ class GameActivity2 : AppCompatActivity() {
                         .update("info", it)
                 }
             }
-        plr2CupRef.addListenerForSingleValueEvent(object : ValueEventListener {
+        val key = viewModel.scoreBoardKey
+        plr2CupRef.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                ds.plr2Cup = snapshot.getValue<String>() ?: "0"
-                firestore.collection("ScoreBoard").document(viewModel.scoreBoardKey).set(ds)
+                ds.plr2Cup = snapshot.getValue<String>() ?: return
+                firestore.collection("ScoreBoard").document(key).set(ds)
             }
             override fun onCancelled(error: DatabaseError) {}
         })
