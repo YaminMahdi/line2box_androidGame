@@ -11,6 +11,7 @@ import android.os.Bundle
 import android.os.PersistableBundle
 import android.util.Log
 import android.view.View
+import android.view.animation.AnticipateInterpolator
 import android.view.inputmethod.InputMethodManager
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -18,6 +19,8 @@ import android.widget.Toast
 import androidx.activity.addCallback
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import androidx.core.graphics.drawable.toDrawable
@@ -26,6 +29,8 @@ import androidx.core.widget.doAfterTextChanged
 import androidx.customview.widget.ViewDragHelper
 import androidx.drawerlayout.widget.DrawerLayout.DrawerListener
 import androidx.lifecycle.lifecycleScope
+import androidx.transition.ChangeBounds
+import androidx.transition.TransitionManager
 import androidx.viewpager2.widget.ViewPager2
 import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.ActivityGameMultiBinding
@@ -394,10 +399,12 @@ class MultiplayerActivity : AppCompatActivity() {
                 Log.d("TAG", "onGlobalLayout: here")
                 layout1.setPadding(0, 0, 0, heightDiff)
                 layout2.setPadding(0, 0, 0, heightDiff)
+                binding.centerBox.animateCenterBox(400)
             } else {
                 val systemBars = getSystemBars()
                 layout1.setPadding(0, 0, 0, systemBars.bottom)
                 layout2.setPadding(0, 0, 0, systemBars.bottom)
+                binding.centerBox.animateCenterBox(0)
             }
         }
 //        bindingMain.bubbleTabBar.addBubbleListener { id: Int ->
@@ -486,8 +493,25 @@ class MultiplayerActivity : AppCompatActivity() {
         }
     }
 
+    private fun View.animateCenterBox(bottomMargin: Int) {
+        if(bindingMain.drawerLayout.isDrawerOpen(GravityCompat.START)) return
+        val parent = parent as? ConstraintLayout ?: return
+        val constraintSet = ConstraintSet()
+        constraintSet.clone(parent)
+        constraintSet.setMargin(id, ConstraintSet.BOTTOM, bottomMargin)
+
+        // Create a ChangeBounds transition to animate layout changes (like margin updates)
+        val transition = ChangeBounds().apply {
+            interpolator = AnticipateInterpolator(1F) // Smooth effect
+            duration = 3000L // Custom duration (duration works now)
+        }
+        TransitionManager.beginDelayedTransition(parent, transition) // Begin the delayed transition
+        constraintSet.applyTo(parent) // Apply the new margin to the layout
+    }
+
+
     @SuppressLint("SetTextI18n")
-    fun lvlUpgrade() {
+    private fun lvlUpgrade() {
         val pf = viewModel.gameProfile
         val tmpLvl = pref.getInt("tmpLvl", 1)
         if (tmpLvl != pf.lvlByCal) {
