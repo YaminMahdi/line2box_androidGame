@@ -1,6 +1,7 @@
 package com.diu.yk_games.line2box.presentation
 
 import android.os.Bundle
+import android.util.Log
 import androidx.core.content.edit
 import androidx.core.os.bundleOf
 import androidx.lifecycle.SavedStateHandle
@@ -17,6 +18,7 @@ import com.diu.yk_games.line2box.pref
 import com.diu.yk_games.line2box.util.log
 import com.diu.yk_games.line2box.util.tryGet
 import com.google.firebase.Firebase
+import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
@@ -27,6 +29,7 @@ import com.google.firebase.firestore.firestore
 import com.google.firebase.firestore.toObject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
@@ -49,7 +52,7 @@ class MainViewModel(
     val globalChatList = savedStateHandle.getStateFlow("globalChatList", emptyList<MsgStore>())
     val friendsChatList = savedStateHandle.getStateFlow("friendsChatList", emptyList<MsgStore>())
 
-    var matchKeys = mutableListOf<String>()
+    private var matchKeys = mutableListOf<String>()
 
     var ignoreDrawerClosesSound = false
     var localPlayerCount = 2
@@ -81,8 +84,10 @@ class MainViewModel(
             gameProfile.apply()
         }else
             this@MainViewModel.playerId = gameProfile.playerId
-        if(loadGlobalChat)
+        if(loadGlobalChat) {
             fetchGlobalChat()
+            fetchActiveMatches()
+        }
     }
 
     fun addTempKey(key: String?) {
@@ -116,7 +121,44 @@ class MainViewModel(
         }
     }
 
+    val viewIdFromServer = MutableSharedFlow<String>()
 
+    fun fetchServerLineClick(gameKey: String, isPlyr1: Boolean) {
+        matchKey = gameKey
+        val matchRef = multiPlayerRef.child(gameKey).child("matchInfo")
+        matchRef.child(if(isPlyr1) "plyr2" else "plyr1").addChildEventListener(object : ChildEventListener {
+            override fun onChildAdded(dataSnapshot: DataSnapshot, s: String?) {
+                val idFromServer = dataSnapshot.getValue<String>() ?: return
+                viewModelScope.launch {
+                    viewIdFromServer.emit(idFromServer)
+                }
+            }
+
+            override fun onChildChanged(dataSnapshot: DataSnapshot, s: String?) {}
+            override fun onChildRemoved(dataSnapshot: DataSnapshot) {}
+            override fun onChildMoved(dataSnapshot: DataSnapshot, s: String?) {}
+            override fun onCancelled(databaseError: DatabaseError) {
+                Log.w("TAG", "Failed to read value.", databaseError.toException())
+            }
+        })
+    }
+
+    fun fetchActiveMatches(){
+        multiPlayerRef.limitToLast(100).addChildEventListener(object : ChildEventListener {
+            override fun onChildAdded(dataSnapshot: DataSnapshot, s: String?) {
+                Log.d("addList", "onChildAdded: " + dataSnapshot.key)
+                dataSnapshot.key?.let { matchKeys.add(it) }
+            }
+            override fun onChildChanged(dataSnapshot: DataSnapshot, s: String?) {}
+            override fun onChildRemoved(dataSnapshot: DataSnapshot) {
+                dataSnapshot.key?.let { matchKeys.remove(it) }
+            }
+            override fun onChildMoved(dataSnapshot: DataSnapshot, s: String?) {}
+            override fun onCancelled(databaseError: DatabaseError) {
+                Log.w("TAG", "Failed to read value.", databaseError.toException())
+            }
+        })
+    }
 
     fun fetchGlobalChat(){
         viewModelScope.launch(Dispatchers.IO){
@@ -247,8 +289,8 @@ class MainViewModel(
                 })
         } ?: return@withContext defError()
 
-        if (gameRoom.playerCount != "1") return@withContext Result.failure(Exception("Match already started."))
         if (gameRoom.player1.id == playerId || gameRoom.player2.id == playerId) return@withContext Result.failure(Exception("You are already in the match."))
+        if (gameRoom.playerCount != "1") return@withContext Result.failure(Exception("Match already started."))
 
         // Update player2 and player count
         multiPlayerRef.child(fullKey).apply {

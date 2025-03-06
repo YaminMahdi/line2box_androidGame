@@ -192,9 +192,9 @@
                     android:layout_width="@dimen/_36sdp"
                     android:layout_height="@dimen/_36sdp"
                     android:layout_gravity="end"
-                    android:background="@drawable/btn_box_chat"
+                    android:background="@drawable/btn_coc_bg"
                     android:fontFamily="@font/sortie"
-                    android:src="@drawable/icon_human" />
+                    android:src="@drawable/icon_profile" />
 
 
             </FrameLayout>

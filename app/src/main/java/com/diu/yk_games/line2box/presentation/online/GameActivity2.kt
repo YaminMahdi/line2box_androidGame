@@ -40,6 +40,7 @@ import com.diu.yk_games.line2box.presentation.MainViewModel
 import com.diu.yk_games.line2box.presentation.ViewPagerAdapter
 import com.diu.yk_games.line2box.util.applyState
 import com.diu.yk_games.line2box.util.closeKeyboard
+import com.diu.yk_games.line2box.util.collectWithLifecycle
 import com.diu.yk_games.line2box.util.getSystemBars
 import com.diu.yk_games.line2box.util.gone
 import com.diu.yk_games.line2box.util.hideSystemBars
@@ -57,7 +58,6 @@ import com.google.android.gms.tasks.Task
 import com.google.android.play.core.review.ReviewInfo
 import com.google.android.play.core.review.ReviewManagerFactory
 import com.google.firebase.Firebase
-import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
@@ -132,7 +132,7 @@ class GameActivity2 : AppCompatActivity() {
             plr2Id = it.getString("plr2Id")!!
             playerId = if(plyr1) plr1Id else plr2Id
             viewModel.initGameProfile()
-            viewModel.matchKey = gameKey
+            viewModel.fetchServerLineClick(gameKey = gameKey, isPlyr1 = plyr1)
         }
         plyrTurn = plyr1
         binding.nm1Id.text = "($nm1)"
@@ -207,7 +207,13 @@ class GameActivity2 : AppCompatActivity() {
             }
         }
 
-        performServerLineClick(plyr1)
+        matchRef = viewModel.multiPlayerRef.child(gameKey).child("matchInfo")
+        chatRef = viewModel.multiPlayerRef.child(gameKey).child("friendlyChat")
+        viewModel.viewIdFromServer.collectWithLifecycle {viewId->
+            plyrTurn = true
+            lineClick(findViewById(resources.getIdentifier(viewId, "id", packageName)))
+        }
+//        performServerLineClick(plyr1)
 
         binding.ideaBtn.setBounceClickListener {
             ideaBtn()
@@ -379,25 +385,6 @@ class GameActivity2 : AppCompatActivity() {
                 }
             }
         }
-    }
-
-    private fun performServerLineClick(plyr1: Boolean) {
-        matchRef = viewModel.multiPlayerRef.child(gameKey).child("matchInfo")
-        chatRef = viewModel.multiPlayerRef.child(gameKey).child("friendlyChat")
-        matchRef.child(if(plyr1) "plyr2" else "plyr1").addChildEventListener(object : ChildEventListener {
-            override fun onChildAdded(dataSnapshot: DataSnapshot, s: String?) {
-                val viewIdFromServer = dataSnapshot.getValue<String>() ?: return
-                plyrTurn = true
-                lineClick(findViewById(resources.getIdentifier(viewIdFromServer, "id", packageName)))
-            }
-
-            override fun onChildChanged(dataSnapshot: DataSnapshot, s: String?) {}
-            override fun onChildRemoved(dataSnapshot: DataSnapshot) {}
-            override fun onChildMoved(dataSnapshot: DataSnapshot, s: String?) {}
-            override fun onCancelled(databaseError: DatabaseError) {
-                Log.w(TAG, "Failed to read value.", databaseError.toException())
-            }
-        })
     }
 
     @SuppressLint("SetTextI18n")
@@ -633,7 +620,7 @@ class GameActivity2 : AppCompatActivity() {
                     if (!plyr1) plyrTurn = false
                 }
             }
-            if (scoreRed + scoreBlue == 5) {
+            if (scoreRed + scoreBlue == 36) {
                 val db = Firebase.firestore
                 val doc = db.collection("gamerProfile").document(playerId)
                 doc.update("matchPlayed", FieldValue.increment(1))

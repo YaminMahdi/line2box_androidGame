@@ -66,7 +66,7 @@ import kotlin.coroutines.suspendCoroutine
 context(Fragment)
 fun <T> Flow<T?>.collectWithLifecycle(
     context: CoroutineContext = EmptyCoroutineContext,
-    minActiveState: Lifecycle.State = Lifecycle.State.RESUMED,
+    minActiveState: Lifecycle.State = Lifecycle.State.STARTED,
     block: suspend CoroutineScope.(T) -> Unit,
 ) {
     lifecycleScope.launch(context) {
@@ -83,7 +83,7 @@ fun <T> Flow<T?>.collectWithLifecycle(
 context(Fragment)
 fun <T> Flow<T?>.collectWithLifecycleStateIn(
     context: CoroutineContext = EmptyCoroutineContext,
-    minActiveState: Lifecycle.State = Lifecycle.State.RESUMED,
+    minActiveState: Lifecycle.State = Lifecycle.State.STARTED,
     block: suspend CoroutineScope.(T) -> Unit,
 ) {
     lifecycleScope.launch(context) {
@@ -100,7 +100,7 @@ fun <T> Flow<T?>.collectWithLifecycleStateIn(
 context(LifecycleOwner)
 fun <T> Flow<T?>.collectWithLifecycle(
     context: CoroutineContext = EmptyCoroutineContext,
-    minActiveState: Lifecycle.State = Lifecycle.State.RESUMED,
+    minActiveState: Lifecycle.State = Lifecycle.State.STARTED,
     block: suspend CoroutineScope.(T) -> Unit,
 ) {
     lifecycleScope.launch(context) {

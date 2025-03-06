@@ -56,7 +56,7 @@ class DisplayFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = FragmentDisplayBinding.inflate(layoutInflater)
+        binding = FragmentDisplayBinding.inflate(inflater, container, false)
         return binding.root
     }
 

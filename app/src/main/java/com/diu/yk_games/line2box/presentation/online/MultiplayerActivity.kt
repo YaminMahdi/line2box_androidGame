@@ -66,7 +66,6 @@ import com.diu.yk_games.line2box.util.toast
 import com.google.android.gms.common.images.ImageManager
 import com.google.android.gms.games.PlayGames
 import com.google.firebase.Firebase
-import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ValueEventListener
@@ -180,20 +179,7 @@ class MultiplayerActivity : AppCompatActivity() {
         binding.startMatchBtn.isEnabled = false
         ifMuted()
         viewModel.removeTempMatch()
-        viewModel.multiPlayerRef.limitToLast(100).addChildEventListener(object : ChildEventListener {
-            override fun onChildAdded(dataSnapshot: DataSnapshot, s: String?) {
-                Log.d("addList", "onChildAdded: " + dataSnapshot.key)
-                dataSnapshot.key?.let { viewModel.matchKeys.add(it) }
-            }
-            override fun onChildChanged(dataSnapshot: DataSnapshot, s: String?) {}
-            override fun onChildRemoved(dataSnapshot: DataSnapshot) {
-                dataSnapshot.key?.let { viewModel.matchKeys.remove(it) }
-            }
-            override fun onChildMoved(dataSnapshot: DataSnapshot, s: String?) {}
-            override fun onCancelled(databaseError: DatabaseError) {
-                Log.w("TAG", "Failed to read value.", databaseError.toException())
-            }
-        })
+
         binding.joinInputId.doAfterTextChanged { txt->
             if (txt?.length != 4) return@doAfterTextChanged
             val newKey = viewModel.getValidKey(txt.toString()) ?: run {

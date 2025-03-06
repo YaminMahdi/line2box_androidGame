@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ripple xmlns:android="http://schemas.android.com/apk/res/android"
-    android:color="@color/greenY"> <!-- Ripple effect color -->
+    android:color="@color/cocZ"> <!-- Ripple effect color -->
 
     <!-- Default button shape states -->
     <item>
         <shape android:shape="rectangle">
             <corners android:radius="@dimen/_18sdp" />
-            <stroke android:width="@dimen/_2sdp" android:color="@color/greenY" />
-            <solid android:color="@color/greenX"/>
+            <stroke android:width="@dimen/_2sdp" android:color="@color/cocZz" />
+            <solid android:color="#807B5B"/>
         </shape>
     </item>
 
