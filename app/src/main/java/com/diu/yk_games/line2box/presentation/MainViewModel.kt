@@ -122,27 +122,29 @@ class MainViewModel(
     val viewIdFromServer = MutableSharedFlow<String>()
 
     fun fetchServerLineClick(gameKey: String, isPlyr1: Boolean) {
-        matchKey = gameKey
-        val matchRef = multiPlayerRef.child(gameKey).child("matchInfo")
-        matchRef.child(if(isPlyr1) "plyr2" else "plyr1").addChildEventListener(object : ChildEventListener {
-            override fun onChildAdded(dataSnapshot: DataSnapshot, s: String?) {
-                val idFromServer = dataSnapshot.getValue<String>() ?: return
-                viewModelScope.launch {
-                    viewIdFromServer.emit(idFromServer)
+        viewModelScope.launch {
+            matchKey = gameKey
+            val matchRef = multiPlayerRef.child(gameKey).child("matchInfo")
+            matchRef.child(if(isPlyr1) "plyr2" else "plyr1").addChildEventListener(object : ChildEventListener {
+                override fun onChildAdded(dataSnapshot: DataSnapshot, s: String?) {
+                    val idFromServer = dataSnapshot.getValue<String>() ?: return
+                    viewModelScope.launch {
+                        viewIdFromServer.emit(idFromServer)
+                    }
                 }
-            }
 
-            override fun onChildChanged(dataSnapshot: DataSnapshot, s: String?) {}
-            override fun onChildRemoved(dataSnapshot: DataSnapshot) {}
-            override fun onChildMoved(dataSnapshot: DataSnapshot, s: String?) {}
-            override fun onCancelled(databaseError: DatabaseError) {
-                Log.w("TAG", "Failed to read value.", databaseError.toException())
-            }
-        })
+                override fun onChildChanged(dataSnapshot: DataSnapshot, s: String?) {}
+                override fun onChildRemoved(dataSnapshot: DataSnapshot) {}
+                override fun onChildMoved(dataSnapshot: DataSnapshot, s: String?) {}
+                override fun onCancelled(databaseError: DatabaseError) {
+                    Log.w("TAG", "Failed to read value.", databaseError.toException())
+                }
+            })
+        }
     }
 
     fun fetchGlobalChat(){
-        viewModelScope.launch(Dispatchers.IO){
+        viewModelScope.launch {
             globalChatRef.limitToLast(100).addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     val chatList = snapshot.children.mapNotNull {
@@ -161,7 +163,7 @@ class MainViewModel(
     var friendlyValueListener  : ValueEventListener? = null
     var friendlyChatRef : DatabaseReference? = null
     private fun fetchFriendlyChat(){
-        viewModelScope.launch(Dispatchers.IO){
+        viewModelScope.launch {
             val friendsChatRef = multiPlayerRef.child(matchKey).child("friendlyChat")
             friendlyValueListener?.also { friendlyChatRef?.removeEventListener(it) }
             friendlyChatRef = friendsChatRef
@@ -234,26 +236,28 @@ class MainViewModel(
     }
 
     fun fetchActiveMatches(){
-        multiPlayerRef.limitToLast(100).addChildEventListener(object : ChildEventListener {
-            override fun onChildAdded(dataSnapshot: DataSnapshot, s: String?) {
-                Log.d("addList", "onChildAdded: " + dataSnapshot.key)
-                dataSnapshot.key?.let { matchKeys.add(it) }
-                dataSnapshot.getValue<GameRoom>()?.let {
-                    matches.add(it.copy(key= dataSnapshot.key ?: ""))
+        viewModelScope.launch(Dispatchers.IO){
+            multiPlayerRef.limitToLast(100).addChildEventListener(object : ChildEventListener {
+                override fun onChildAdded(dataSnapshot: DataSnapshot, s: String?) {
+                    Log.d("addList", "onChildAdded: " + dataSnapshot.key)
+                    dataSnapshot.key?.let { matchKeys.add(it) }
+                    dataSnapshot.getValue<GameRoom>()?.let {
+                        matches.add(it.copy(key= dataSnapshot.key ?: ""))
+                    }
                 }
-            }
-            override fun onChildChanged(dataSnapshot: DataSnapshot, s: String?) {}
-            override fun onChildRemoved(dataSnapshot: DataSnapshot) {
-                dataSnapshot.key?.let { key ->
-                    matchKeys.remove(key)
-                    matches.removeIf { it.key == key }
+                override fun onChildChanged(dataSnapshot: DataSnapshot, s: String?) {}
+                override fun onChildRemoved(dataSnapshot: DataSnapshot) {
+                    dataSnapshot.key?.let { key ->
+                        matchKeys.remove(key)
+                        matches.removeIf { it.key == key }
+                    }
                 }
-            }
-            override fun onChildMoved(dataSnapshot: DataSnapshot, s: String?) {}
-            override fun onCancelled(databaseError: DatabaseError) {
-                Log.w("TAG", "Failed to read value.", databaseError.toException())
-            }
-        })
+                override fun onChildMoved(dataSnapshot: DataSnapshot, s: String?) {}
+                override fun onCancelled(databaseError: DatabaseError) {
+                    Log.w("TAG", "Failed to read value.", databaseError.toException())
+                }
+            })
+        }
     }
 
     fun getValidKey(shortKey: String): String? = matchKeys.find { getKey4(it) == shortKey }
@@ -275,7 +279,8 @@ class MainViewModel(
 
     fun getJoinBundle(msg: MsgStore): Result<Bundle> {
         fun defError(): Result<Bundle> {
-            globalChatRef.child(msg.key).removeValue()
+            if(matches.isNotEmpty())
+                globalChatRef.child(msg.key).removeValue()
             return Result.failure<Bundle>(Exception("Match expired."))
         }
         if (msg.gameId.length != 4) return defError()
