@@ -71,7 +71,7 @@ class ChatFragmentFriendly : Fragment() {
                 "🥱" -> emojiRunner(R.drawable.emoji_yawn, R.raw.yawn)
                 else -> {
                     mp.start()
-                    activity.findViewById<View>(R.id.newMsgBoltu).show()
+                    viewModel.setNewMsgBoltVisible(true)
                 }
             }
             lastMsg?.key?.let {
@@ -182,7 +182,7 @@ class ChatFragmentFriendly : Fragment() {
             loadDrawable(gif)
             show()
         }
-        activity.findViewById<View>(R.id.newMsgBoltu).gone()
+        viewModel.setNewMsgBoltVisible(false)
         lifecycleScope.launch {
             delay(2500)
             activity.findViewById<View>(R.id.emojiPlay).gone()

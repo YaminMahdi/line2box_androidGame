@@ -67,12 +67,26 @@ class MainViewModel(
         get() = savedStateHandle["matchKey"] ?: ""
         set(value) {
             savedStateHandle["matchKey"] = value
-            if (value.isNotEmpty())
+            if (value.isNotEmpty()) {
                 fetchFriendlyChat()
+                addTempKey(value)
+            }
         }
+
+    var matchBundle = savedStateHandle.getStateFlow("matchBundle", Bundle())
 
     val tempKeys
         get() = savedStateHandle.get<List<String>>("tempKeys") ?: emptyList()
+
+    var isStickySwitchRight
+        get() = savedStateHandle.get<Boolean>("isStickySwitchRight") == true
+        set(value) { savedStateHandle["isStickySwitchRight"] = value }
+
+    val isNewMsgBoltVisible = savedStateHandle.getStateFlow("isNewMsgBoltVisible", false)
+
+    fun setNewMsgBoltVisible(value: Boolean) {
+        savedStateHandle["isNewMsgBoltVisible"] = value
+    }
 
     fun initGameProfile(playerId: String = this@MainViewModel.playerId, loadGlobalChat: Boolean = true) {
         gameProfile = GameProfile()
@@ -162,7 +176,7 @@ class MainViewModel(
 
     var friendlyValueListener  : ValueEventListener? = null
     var friendlyChatRef : DatabaseReference? = null
-    private fun fetchFriendlyChat(){
+    fun fetchFriendlyChat(){
         viewModelScope.launch {
             val friendsChatRef = multiPlayerRef.child(matchKey).child("friendlyChat")
             friendlyValueListener?.also { friendlyChatRef?.removeEventListener(it) }
@@ -260,11 +274,10 @@ class MainViewModel(
         }
     }
 
-    fun getValidKey(shortKey: String): String? = matchKeys.find { getKey4(it) == shortKey }
     fun getValidMatch(shortKey: String): GameRoom? = matches.find { getKey4(it.key) == shortKey }
 
-    fun getKey4(key: String?): String {
-        if (key.isNullOrEmpty()) return ""
+    fun getKey4(key: String = matchKey): String {
+        if (key.isEmpty()) return ""
         return buildString {
             for (i in 4..key.length) {
                 if(length == 4) break

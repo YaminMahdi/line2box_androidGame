@@ -1,4 +1,4 @@
-@file:Suppress("CONTEXT_RECEIVERS_DEPRECATED")
+@file:Suppress("CONTEXT_RECEIVERS_DEPRECATED", "unused")
 
 package com.diu.yk_games.line2box.util
 
@@ -66,7 +66,7 @@ import kotlin.coroutines.suspendCoroutine
 context(Fragment)
 fun <T> Flow<T?>.collectWithLifecycle(
     context: CoroutineContext = EmptyCoroutineContext,
-    minActiveState: Lifecycle.State = Lifecycle.State.STARTED,
+    minActiveState: Lifecycle.State = Lifecycle.State.RESUMED,
     block: suspend CoroutineScope.(T) -> Unit,
 ) {
     lifecycleScope.launch(context) {
@@ -83,7 +83,7 @@ fun <T> Flow<T?>.collectWithLifecycle(
 context(Fragment)
 fun <T> Flow<T?>.collectWithLifecycleStateIn(
     context: CoroutineContext = EmptyCoroutineContext,
-    minActiveState: Lifecycle.State = Lifecycle.State.STARTED,
+    minActiveState: Lifecycle.State = Lifecycle.State.RESUMED,
     block: suspend CoroutineScope.(T) -> Unit,
 ) {
     lifecycleScope.launch(context) {
@@ -100,7 +100,7 @@ fun <T> Flow<T?>.collectWithLifecycleStateIn(
 context(LifecycleOwner)
 fun <T> Flow<T?>.collectWithLifecycle(
     context: CoroutineContext = EmptyCoroutineContext,
-    minActiveState: Lifecycle.State = Lifecycle.State.STARTED,
+    minActiveState: Lifecycle.State = Lifecycle.State.RESUMED,
     block: suspend CoroutineScope.(T) -> Unit,
 ) {
     lifecycleScope.launch(context) {
@@ -109,6 +109,21 @@ fun <T> Flow<T?>.collectWithLifecycle(
                 if (lifecycle.currentState.isAtLeast(minActiveState))
                     block(value)
             }
+        }
+    }
+}
+
+/**Flow collect from Fragment on` lifecycleScope` if `isAdded` and `RESUMED` */
+context(LifecycleOwner)
+fun <T> Flow<T?>.collectWithLifecycleNoRepeat(
+    context: CoroutineContext = EmptyCoroutineContext,
+    minActiveState: Lifecycle.State = Lifecycle.State.CREATED,
+    block: suspend CoroutineScope.(T) -> Unit,
+) {
+    lifecycleScope.launch(context) {
+        filterNotNull().collect { value ->
+            if (lifecycle.currentState.isAtLeast(minActiveState))
+                block(value)
         }
     }
 }
@@ -296,6 +311,10 @@ fun Context?.showOnMarket(packageName: String) {
     runCatching {
         startActivity(Intent(Intent.ACTION_VIEW).setData("market://details?id=$packageName".toUri()))
     }
+}
+
+fun View.changeVisibility(isVisible: Boolean, useGone: Boolean = true) {
+    visibility = if (isVisible) View.VISIBLE else if (useGone) View.GONE else View.INVISIBLE
 }
 
 fun View.show() {

@@ -22,6 +22,7 @@ import androidx.core.view.GravityCompat
 import androidx.customview.widget.ViewDragHelper
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.drawerlayout.widget.DrawerLayout.DrawerListener
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.viewpager2.widget.ViewPager2
 import com.diu.yk_games.line2box.R
@@ -39,6 +40,7 @@ import com.diu.yk_games.line2box.prefEditor
 import com.diu.yk_games.line2box.presentation.MainViewModel
 import com.diu.yk_games.line2box.presentation.ViewPagerAdapter
 import com.diu.yk_games.line2box.util.applyState
+import com.diu.yk_games.line2box.util.changeVisibility
 import com.diu.yk_games.line2box.util.closeKeyboard
 import com.diu.yk_games.line2box.util.collectWithLifecycle
 import com.diu.yk_games.line2box.util.getSystemBars
@@ -142,7 +144,9 @@ class GameActivity2 : AppCompatActivity() {
         scoreBlue = 0
         bestScore = 9999
         one = true
-        binding.newMsgBoltu.gone()
+        viewModel.isNewMsgBoltVisible.collectWithLifecycle {
+            binding.newMsgBoltu.changeVisibility(it)
+        }
         binding.emojiPlay.gone()
         bindingRoot.root.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
         bindingRoot.root.addDrawerListener(object : DrawerListener {
@@ -209,7 +213,7 @@ class GameActivity2 : AppCompatActivity() {
 
         matchRef = viewModel.multiPlayerRef.child(gameKey).child("matchInfo")
         chatRef = viewModel.multiPlayerRef.child(gameKey).child("friendlyChat")
-        viewModel.viewIdFromServer.collectWithLifecycle {viewId->
+        viewModel.viewIdFromServer.collectWithLifecycle(minActiveState = Lifecycle.State.CREATED) {viewId->
             plyrTurn = true
             lineClick(findViewById(resources.getIdentifier(viewId, "id", packageName)))
         }
@@ -228,7 +232,7 @@ class GameActivity2 : AppCompatActivity() {
         bindingRoot.closeNavBtn.setBounceClickListener {
             closeKeyboard()
             bindingRoot.drawerLayout.closeDrawer(GravityCompat.START)
-            findViewById<View>(R.id.newMsgBoltu).gone()
+            viewModel.setNewMsgBoltVisible(false)
         }
         val dialogBinding = DialogLayoutAlertBinding.inflate(layoutInflater)
         val alertDialog = AlertDialog.Builder(this)

@@ -134,6 +134,7 @@ class StartActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         inAppUpdate.onResume()
+        viewModel.removeTempMatch()
     }
 
     override fun onDestroy() {
