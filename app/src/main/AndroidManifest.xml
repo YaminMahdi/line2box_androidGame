@@ -14,6 +14,7 @@
         android:name=".Line2BoxApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
+        android:enableOnBackInvokedCallback="true"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -23,7 +24,7 @@
         android:theme="@style/Theme.Line2Box"
         android:usesCleartextTraffic="true"
         tools:ignore="DiscouragedApi"
-        tools:targetApi="31">
+        tools:targetApi="33">
         <activity
             android:name=".presentation.bot.GameActivity3"
             android:exported="false"

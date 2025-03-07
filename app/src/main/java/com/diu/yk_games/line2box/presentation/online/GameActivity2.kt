@@ -228,6 +228,7 @@ class GameActivity2 : AppCompatActivity() {
         binding.volBtn.performOnClick()
         binding.openNavBtn.setBounceClickListener {
             bindingRoot.drawerLayout.openDrawer(GravityCompat.START)
+            viewModel.setNewMsgBoltVisible(false)
         }
         bindingRoot.closeNavBtn.setBounceClickListener {
             closeKeyboard()
@@ -262,6 +263,8 @@ class GameActivity2 : AppCompatActivity() {
                         type = MsgStore.Type.ExitText
                     )
                     chatRef.push().setValue(ms)
+                    viewModel.multiPlayerRef.child(gameKey).child("playerCount")
+                        .setValue("-1")
                 }
                 alertDialog.dismiss()
                 onBackPressedIgnoreCallback()

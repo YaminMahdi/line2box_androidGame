@@ -94,9 +94,7 @@ class ChatFragmentFriendly : Fragment() {
                 mediaPlayer.start()
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release)
             }
-            if (msg.playerId != "") {
-                toast("Long Press To Copy Text/ID")
-
+            if (msg.playerId.isNotEmpty()) {
                 val db = Firebase.firestore
                 db.collection("gamerProfile").document(msg.playerId)
                     .get()

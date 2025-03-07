@@ -59,6 +59,7 @@ import com.diu.yk_games.line2box.util.gone
 import com.diu.yk_games.line2box.util.hideSystemBars
 import com.diu.yk_games.line2box.util.isMuted
 import com.diu.yk_games.line2box.util.isNotMuted
+import com.diu.yk_games.line2box.util.log
 import com.diu.yk_games.line2box.util.performOnClick
 import com.diu.yk_games.line2box.util.setBounceClickListener
 import com.diu.yk_games.line2box.util.setNavStatusPadding
@@ -98,21 +99,33 @@ class MultiplayerActivity : AppCompatActivity() {
         viewModel.initGameProfile()
         binding.trophyTextId.text = ""+viewModel.gameProfile.coin
         lvlUpgrade()
+        viewModel.fetchFriendlyChat()
         if(viewModel.isStickySwitchRight){
+            viewModel.matchBundle.value.putBoolean("plyr1", true)
             fetchJoiningPlayerInfo()
-            viewModel.fetchFriendlyChat()
             binding.apply {
                 stickySwitch.setDirection(StickySwitch.Direction.RIGHT, false, false)
 //                bindingMain.bubbleTabBar.setSelected(1, true)
                 joinInputId.isEnabled = false
                 startMatchBtn.isEnabled = false
-                joinInputId.setText("")
+//                joinInputId.setText("")
                 joinInputId.hint = viewModel.getKey4()
                 copyPastBtn.setImageResource(R.drawable.icon_share)
                 copyPastBtn.tag = R.drawable.icon_share
                 stickySwitch.switchColor = ContextCompat.getColor(applicationContext, R.color.greenY)
             }
         }
+//        else{
+//            binding.joinInputId.setText(viewModel.getKey4())
+//            binding.startMatchBtn.isEnabled = false
+//        }
+//        viewModel.matches.collectWithLifecycle {
+//            if (it.isEmpty() || binding.stickySwitch.getDirection() == StickySwitch.Direction.LEFT) return@collectWithLifecycle
+//            it.map { it.key }.log("matches ${viewModel.matchKey}")
+//            if (it.none { it.key == viewModel.matchKey }) {
+//                binding.stickySwitch.setDirection(StickySwitch.Direction.LEFT)
+//            }
+//        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -177,7 +190,7 @@ class MultiplayerActivity : AppCompatActivity() {
             if (id == R.id.globalChat)
                 bindingMain.chatPager.currentItem = 0
             else
-                bindingMain.chatPager.currentItem = if (viewModel.matchKey.isNotEmpty()) 1 else 2
+                bindingMain.chatPager.currentItem = if (viewModel.matchKey.isNotEmpty() || viewModel.friendsChatList.value.isNotEmpty()) 1 else 2
         }
         bindingMain.chatPager.registerOnPageChangeCallback(object :
             ViewPager2.OnPageChangeCallback() {
@@ -215,12 +228,12 @@ class MultiplayerActivity : AppCompatActivity() {
                     .setValue("2")
                 //playerCountLocal=2;
                 binding.startMatchBtn.isEnabled = true
-//                            viewModel.addTempKey(newKey)
+//                viewModel.addTempKey(newKey)
                 //remove
                 viewModel.multiPlayerRef.child(gameRoom.key).child("playerInfo").child("nm2")
                     .setValue(viewModel.gameProfile.nm)
-                viewModel.multiPlayerRef.child(gameRoom.key).child("playerInfo")
-                    .child("lvl2").setValue(viewModel.gameProfile.lvlByCal)
+                viewModel.multiPlayerRef.child(gameRoom.key).child("playerInfo").child("lvl2")
+                    .setValue(viewModel.gameProfile.lvlByCal)
                 //remove
                 viewModel.multiPlayerRef.child(gameRoom.key).child("player2")
                     .setValue(viewModel.gameProfile.toPlayerInfo())
@@ -316,7 +329,12 @@ class MultiplayerActivity : AppCompatActivity() {
                             binding.startMatchBtn.isEnabled = false
                             binding.joinInputId.hint = ""
                             binding.joinInputId.setText("")
-                            viewModel.matchBundle.value.putBoolean("plyr1", false)
+                            viewModel.matchBundle.value.apply {
+                                putString("plr2Id", playerId)
+                                putString("nm2", viewModel.gameProfile.nm)
+                                putInt("lvl2", viewModel.gameProfile.lvlByCal)
+                                putBoolean("plyr1", false)
+                            }
 //                            viewModel.gameProfile.let {
 //                                nm2 = it.nm
 //                                lvl2 = it.lvlByCal
@@ -330,8 +348,7 @@ class MultiplayerActivity : AppCompatActivity() {
 
                             bindingMain.bubbleTabBar.setSelected(0, true)
                             viewModel.setNewMsgBoltVisible(false)
-                            
-                            viewModel.clearTempMatches()
+                            viewModel.isStickySwitchRight = false
                             lifecycleScope.launch {
                                 delay(400)
                                 binding.joinInputId.hint = "Game ID"
@@ -345,7 +362,9 @@ class MultiplayerActivity : AppCompatActivity() {
                             binding.startMatchBtn.isEnabled = false
                             binding.joinInputId.hint = ""
                             binding.joinInputId.setText("")
+                            viewModel.clearTempMatches()
                             viewModel.matchKey = viewModel.multiPlayerRef.push().key!!
+                            viewModel.matchKey.log("matches start")
 //                            nm1 = viewModel.gameProfile.nm
 //                            lvl1 = viewModel.gameProfile.lvlByCal
 //                            Log.d("TAG", "ver: $nm1 $lvl1")
@@ -517,6 +536,7 @@ class MultiplayerActivity : AppCompatActivity() {
     }
 
     private fun fetchJoiningPlayerInfo() {
+        val key = viewModel.matchKey
         viewModel.multiPlayerRef.child(viewModel.matchKey)
             .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(dataSnapshot: DataSnapshot) {
@@ -529,19 +549,21 @@ class MultiplayerActivity : AppCompatActivity() {
     //                lvl2 = dataSnapshot.child("playerInfo").child("lvl2").getValue(Int::class.java) ?: 0
     //                Log.d("TAG", "ver2: $nm2 $lvl2")
                     viewModel.matchBundle.value.apply {
-                        putString(
-                            "plr2Id",
-                            gameRoom.player2.id.ifEmpty { gameRoom.playerInfo.plr2Id })  // remove ifEmpty someday
+                        if (binding.stickySwitch.getDirection() == StickySwitch.Direction.LEFT) return@apply
+                        putString("plr2Id", gameRoom.player2.id.ifEmpty { gameRoom.playerInfo.plr2Id })  // remove ifEmpty someday
                         putString("nm2", gameRoom.player2.nm.ifEmpty { gameRoom.playerInfo.nm2 })
-                        putInt(
-                            "lvl2",
-                            if (gameRoom.player2.lvl == 0) gameRoom.playerInfo.lvl2 else gameRoom.player2.lvl
-                        )
+                        putInt("lvl2", if (gameRoom.player2.lvl == 0) gameRoom.playerInfo.lvl2 else gameRoom.player2.lvl)
                     }
-                    if (gameRoom.playerCount == "2") {
-                        binding.startMatchBtn.isEnabled = true
-                        bindingMain.bubbleTabBar.setSelected(1, true)
-                        //playerCountLocal=2;
+                    when (gameRoom.playerCount) {
+                        "2" -> {
+                            binding.startMatchBtn.isEnabled = true
+                            bindingMain.bubbleTabBar.setSelected(1, true)
+                            //playerCountLocal=2;
+                        }
+                        "-1" -> {
+                            viewModel.multiPlayerRef.child(key).removeEventListener(this)
+                            binding.stickySwitch.setDirection(StickySwitch.Direction.LEFT)
+                        }
                     }
                 }
 
@@ -854,7 +876,8 @@ class MultiplayerActivity : AppCompatActivity() {
 
     private fun openNavBtn() {
         bindingMain.root.openDrawer(GravityCompat.START)
-
+        if(viewModel.friendsChatList.value.isEmpty())
+            bindingMain.bubbleTabBar.setSelected(0, true)
 //        when(binding.stickySwitch.getDirection()){
 //            StickySwitch.Direction.LEFT ->
 //                bindingMain.bubbleTabBar.setSelected(0,true)
@@ -881,6 +904,7 @@ class MultiplayerActivity : AppCompatActivity() {
         }
         val mIntent = Intent(this, GameActivity2::class.java)
         startActivity(mIntent.putExtras(viewModel.matchBundle.value))
+        binding.startMatchBtn.isEnabled = false
 //        finish()
     }
 
