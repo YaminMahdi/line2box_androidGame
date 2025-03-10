@@ -93,10 +93,10 @@ class DisplayFragment : Fragment() {
 
         var itemClicked = false
         scoreListAdapter.onClickListener = run@{ gamerPro ->
-            if(itemClicked) return@run
+            if(itemClicked && gamerPro.plr1Id == "offline") return@run
             itemClicked = true
             gamerPro.log("scoreListAdapter")
-            if ((gamerPro.plr1Id == "offline"))
+            if (gamerPro.plr1Id == "offline")
                 toast("Offline matches don't have match details.")
             else {
                 if (!pref.getBoolean("muted", false)) {

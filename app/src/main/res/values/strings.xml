@@ -65,4 +65,11 @@
     <string name="themes">Themes:</string>
     <string name="coming_later">Coming Later..</string>
     <string name="save">Save</string>
+    <string name="change_name">Change Name</string>
+    <string name="_1st_player_name">1st Player Name:</string>
+    <string name="second_player_name">2nd Player Name:</string>
+    <string name="remember_players_name">Remember players name</string>
+    <string name="multi_info">1. Click the CREATE button to start a new match.\n\t• Press the SHARE button to invite someone.\n\t• Send the ID to your friend.\n2. Stay on or click the JOIN button to join a match.\n\t• Get an ID from your friend.\n\t• Type or paste the ID to join the match.\n\t• You can also type the ID using the keyboard.\n3. When you or your friend enter the correct ID, \n \t the \"START MATCH\" button will turn GREEN.</string>
+    <string name="info">Info !</string>
+    <string name="okay">Okay</string>
 </resources>

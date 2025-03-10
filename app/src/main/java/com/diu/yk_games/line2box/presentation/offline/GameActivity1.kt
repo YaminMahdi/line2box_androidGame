@@ -62,6 +62,8 @@ class GameActivity1 : AppCompatActivity() {
     private var isFirstRun = false
 
     fun onStopFragment() {
+        flag = false
+        binding.nmFragment.gone()
         binding.relativeLayout.show()
         binding.txtLayout.show()
         binding.nmLayout.show()
@@ -106,14 +108,14 @@ class GameActivity1 : AppCompatActivity() {
         ifMuted()
         isFirstRun = pref.getBoolean("firstRun", true)
         if (flag) {
-            val fm = supportFragmentManager
-            val ft = fm.beginTransaction()
-            ft.replace(R.id.nmFragment, NameInfoFragment())
-            ft.commit()
-            binding.relativeLayout.invisible()
-            binding.txtLayout.gone()
-            binding.nmLayout.invisible()
-            flag = false
+            binding.nmFragment.show()
+//            val fm = supportFragmentManager
+//            val ft = fm.beginTransaction()
+//            ft.replace(R.id.nmFragment, NameInfoFragment())
+//            ft.commit()
+//            binding.relativeLayout.invisible()
+//            binding.txtLayout.gone()
+//            binding.nmLayout.invisible()
         } else onStopFragment()
         val index = StringBuilder()
         for(i in 1..6) {

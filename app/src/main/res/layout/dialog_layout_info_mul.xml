@@ -8,9 +8,7 @@
     android:layout_marginTop="150dp"
     android:layout_marginRight="20dp"
     android:background="@drawable/box"
-    android:orientation="vertical"
-
-    >
+    android:orientation="vertical">
 
     <TextView
         android:id="@+id/warningMessage"
@@ -19,32 +17,31 @@
         android:layout_margin="20dp"
         android:fontFamily="@font/sortie"
         android:gravity="center"
-        android:text="Info !"
+        android:text="@string/info"
         android:textColor="@color/greenY"
         android:textSize="@dimen/_24ssp" />
+
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center"
-        android:text="1. Click on CREATE button to START a new match.\n• Press on COPY button to copy the ID.\n• Now send the ID to your friend.\n2. Stay/click on the JOIN button to join a match.\n•Take a ID from your friend.\n• Press the PASTE button to join the match.\n• You can also type ID using keyboard.\n3. When you or your friend puts the correct ID,\n  the 'START MATCH' button will be enabled."
-        android:lineSpacingExtra="10sp"
-        android:textColor="@color/whiteY"
-        android:fontFamily="@font/sortie"
         android:layout_marginHorizontal="@dimen/_18ssp"
-        />
+        android:fontFamily="@font/sortie"
+        android:gravity="start"
+        android:lineSpacingExtra="10sp"
+        android:text="@string/multi_info"
+        android:textColor="@color/whiteY" />
 
     <androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/buttonOkey"
+        android:id="@+id/btnConfirm"
         android:layout_width="100dp"
         android:layout_height="40dp"
-        android:layout_marginBottom="20dp"
+        android:layout_gravity="center"
         android:layout_marginTop="30dp"
-        android:text="Okay"
+        android:layout_marginBottom="20dp"
         android:background="@drawable/btn_grn_bg"
         android:fontFamily="@font/sortie"
+        android:text="@string/okay"
         android:textColor="@color/white"
-        android:layout_gravity="center"
-        android:textSize="18sp"
-        tools:ignore="ButtonStyle" />
+        android:textSize="18sp" />
 
 </LinearLayout>

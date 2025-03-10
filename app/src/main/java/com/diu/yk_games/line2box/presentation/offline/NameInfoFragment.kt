@@ -57,7 +57,7 @@ class NameInfoFragment : Fragment() {
                 GameActivity1.nm1 = nm1
                 GameActivity1.nm2 = nm2
                 (activity as? GameActivity1)?.apply {
-                    supportFragmentManager.beginTransaction().remove(this@NameInfoFragment).commit()
+//                    supportFragmentManager.beginTransaction().remove(this@NameInfoFragment).commit()
                     onStopFragment()
                 }
             }

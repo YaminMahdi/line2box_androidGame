@@ -690,7 +690,7 @@ class MultiplayerActivity : AppCompatActivity() {
         builder.setView(dialogBinding.root)
         builder.setCancelable(false)
         val alertDialog = builder.create()
-        dialogBinding.buttonOkey.setBounceClickListener {
+        dialogBinding.btnConfirm.setBounceClickListener {
             isNotMuted {
                 val mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
                 mediaPlayer.start()
