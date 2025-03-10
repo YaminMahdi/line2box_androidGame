@@ -701,8 +701,8 @@ class MultiplayerActivity : AppCompatActivity() {
         alertDialog.window?.setBackgroundDrawable(0.toDrawable())
         try {
             alertDialog.show()
-        } catch (npe: NullPointerException) {
-            npe.printStackTrace()
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
@@ -863,8 +863,8 @@ class MultiplayerActivity : AppCompatActivity() {
 
         try {
             alertDialog.show()
-        } catch (npe: NullPointerException) {
-            npe.printStackTrace()
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 

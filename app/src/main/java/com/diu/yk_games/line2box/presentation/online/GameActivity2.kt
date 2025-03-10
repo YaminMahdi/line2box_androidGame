@@ -923,8 +923,8 @@ class GameActivity2 : AppCompatActivity() {
         alertDialog.window?.setBackgroundDrawable(0.toDrawable())
         try {
             alertDialog.show()
-        } catch (npe: NullPointerException) {
-            npe.printStackTrace()
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 

@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Intent
 import android.graphics.Paint
-import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.GradientDrawable
 import android.media.MediaPlayer
 import android.os.Bundle
@@ -121,7 +120,7 @@ class BotActivity : AppCompatActivity() {
             }
             alertDialog.window?.setBackgroundDrawable(0.toDrawable())
             try { alertDialog.show() }
-            catch (npe: Exception) { npe.printStackTrace() }
+            catch (e: Exception) { e.printStackTrace() }
         }
 
         val index = StringBuilder()
