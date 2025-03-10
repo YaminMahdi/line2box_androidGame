@@ -91,7 +91,11 @@ class MsgListAdapter(private val playerId: String) : ListAdapter<MsgStore, Recyc
                 msgId.text = item.msgData
                 val messageColor = when (item.type.typeEnum) {
                     MsgStore.Type.EnterText -> enter
-                    MsgStore.Type.ExitText -> exit
+                    MsgStore.Type.ExitText -> {
+                        if(item.playerId != playerId)
+                            binding.root.context.toast("${item.nmData} ${item.msgData.lowercase()}")
+                        exit
+                    }
                     else -> white
                 }
                 msgId.setTextColor(messageColor)

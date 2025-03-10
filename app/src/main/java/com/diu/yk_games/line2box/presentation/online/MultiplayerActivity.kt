@@ -190,7 +190,7 @@ class MultiplayerActivity : AppCompatActivity() {
             if (id == R.id.globalChat)
                 bindingMain.chatPager.currentItem = 0
             else
-                bindingMain.chatPager.currentItem = if (viewModel.matchKey.isNotEmpty() || viewModel.friendsChatList.value.isNotEmpty()) 1 else 2
+                bindingMain.chatPager.currentItem = if (viewModel.friendsChatList.value.isNotEmpty()) 1 else 2
         }
         bindingMain.chatPager.registerOnPageChangeCallback(object :
             ViewPager2.OnPageChangeCallback() {
@@ -347,6 +347,7 @@ class MultiplayerActivity : AppCompatActivity() {
 //                                .commit()
 
                             bindingMain.bubbleTabBar.setSelected(0, true)
+                            viewModel.clearFriendlyChat()
                             viewModel.setNewMsgBoltVisible(false)
                             viewModel.isStickySwitchRight = false
                             lifecycleScope.launch {

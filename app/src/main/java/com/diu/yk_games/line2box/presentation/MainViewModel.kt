@@ -101,20 +101,31 @@ class MainViewModel(
 
     fun addTempKey(key: String?) {
         if (key.isNullOrEmpty()) return
-        savedStateHandle["tempKeys"] = (tempKeys + key).distinct()
-        pref.edit { putString("tmpKey", key) }
-        tempKeys.log("tempKeys")
+        viewModelScope.launch(Dispatchers.IO){
+            savedStateHandle["tempKeys"] = (tempKeys + key).distinct()
+            pref.edit { putString("tmpKey", key) }
+            tempKeys.log("tempKeys")
+        }
+    }
+
+    fun clearFriendlyChat() {
+        viewModelScope.launch(Dispatchers.IO){
+            savedStateHandle["friendsChatList"] = emptyList<MsgStore>()
+            friendlyValueListener?.also { friendlyChatRef?.removeEventListener(it) }
+        }
     }
 
     fun clearTempMatches() {
-        tempKeys.log("tempKeys")
-        tempKeys.forEach{
-            if(it == matchKey)
-                matchKey = ""
-            multiPlayerRef.child(it).removeValue()
-            savedStateHandle["tempKeys"] = tempKeys - it
-            pref.getString("tmpKey", null)?.let { tmp ->
-                if(tmp == it) pref.edit { remove("tmpKey") }
+        viewModelScope.launch(Dispatchers.IO){
+            savedStateHandle["friendsChatList"] = emptyList<MsgStore>()
+            tempKeys.forEach{
+                if(it == matchKey)
+                    matchKey = ""
+                multiPlayerRef.child(it).removeValue()
+                savedStateHandle["tempKeys"] = tempKeys - it
+                pref.getString("tmpKey", null)?.let { tmp ->
+                    if(tmp == it) pref.edit { remove("tmpKey") }
+                }
             }
         }
     }
