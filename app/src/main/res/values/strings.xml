@@ -72,4 +72,11 @@
     <string name="multi_info">1. Click the CREATE button to start a new match.\n\t• Press the SHARE button to invite someone.\n\t• Send the ID to your friend.\n2. Stay on or click the JOIN button to join a match.\n\t• Get an ID from your friend.\n\t• Type or paste the ID to join the match.\n\t• You can also type the ID using the keyboard.\n3. When you or your friend enter the correct ID, \n \t the \"START MATCH\" button will turn GREEN.</string>
     <string name="info">Info !</string>
     <string name="okay">Okay</string>
+    <string name="plus0">+0</string>
+    <string name="read_a_hadith">Read a Hadith</string>
+    <string name="en">EN</string>
+    <string name="done">Done</string>
+    <string name="retry">Retry</string>
+    <string name="no_internet">No Internet !</string>
+    <string name="you_must_have_internet_connection_for_the_first_time_to_run_the_game">You must have INTERNET connection for the first time to run the game</string>
 </resources>

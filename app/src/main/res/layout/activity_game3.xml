@@ -7,7 +7,7 @@
     android:orientation="vertical"
     tools:context=".presentation.bot.GameActivity3">
 
-    <ImageView
+    <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/background_image_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -43,7 +43,7 @@
 
                 >
 
-                <ImageButton
+                <androidx.appcompat.widget.AppCompatImageButton
                     android:id="@+id/homeBtn"
                     android:layout_width="@dimen/_36sdp"
                     android:layout_height="@dimen/_36sdp"
@@ -62,7 +62,7 @@
 
                 >
 
-                <ImageButton
+                <androidx.appcompat.widget.AppCompatImageButton
                     android:id="@+id/volBtn"
                     android:layout_width="@dimen/_36sdp"
                     android:layout_height="@dimen/_36sdp"
@@ -74,7 +74,7 @@
                     android:src="@drawable/icon_vol_unmute"
                     tools:ignore="SmallSp" />
 
-                <ImageButton
+                <androidx.appcompat.widget.AppCompatImageButton
                     android:id="@+id/ideaBtn"
                     android:layout_width="@dimen/_36sdp"
                     android:layout_height="@dimen/_36sdp"
@@ -137,7 +137,7 @@
             </LinearLayout>
 
 
-            <ImageView
+            <androidx.appcompat.widget.AppCompatImageView
                 android:layout_width="0dp"
                 android:layout_height="@dimen/_80sdp"
                 android:layout_weight=".6"

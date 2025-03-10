@@ -8,7 +8,7 @@
     android:layout_gravity="center"
     android:gravity="center"
     >
-    <ImageView
+    <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/loader"
         android:layout_width="220dp"
         android:layout_height="220dp"

@@ -20,7 +20,7 @@
         android:fontFamily="@font/sortie"
         android:gravity="center"
         android:paddingBottom="@dimen/_14sdp"
-        android:text="No Internet !"
+        android:text="@string/no_internet"
         android:textColor="@color/redY"
         android:textSize="@dimen/_22sdp" />
 
@@ -33,7 +33,7 @@
         android:gravity="center"
         android:lineSpacingExtra="5sp"
         android:paddingBottom="@dimen/_5sdp"
-        android:text="You must have INTERNET connection for the first time to run the game"
+        android:text="@string/you_must_have_internet_connection_for_the_first_time_to_run_the_game"
         android:textColor="@color/whiteY"
         android:textSize="@dimen/_14ssp" />
 
@@ -103,7 +103,7 @@
         android:layout_marginBottom="20dp"
         android:background="@drawable/btn_grn_bg"
         android:fontFamily="@font/sortie"
-        android:text="Retry"
+        android:text="@string/retry"
         android:textColor="@color/white"
         android:textSize="18sp"
         tools:ignore="ButtonStyle" />

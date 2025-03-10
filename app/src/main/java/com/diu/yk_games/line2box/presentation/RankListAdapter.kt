@@ -36,7 +36,7 @@ class RankListAdapter(
         fun bind(item: GameProfile, position: Int) {
             binding.apply {
                 // Highlight current player's item
-                rankListItemBg.setBackgroundResource(
+                binding.root.setBackgroundResource(
                     if (item.playerId == playerId) R.drawable.box_chat_fill
                     else R.drawable.btn_rank_bg
                 )

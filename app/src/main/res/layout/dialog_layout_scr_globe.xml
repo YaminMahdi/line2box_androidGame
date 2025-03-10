@@ -232,7 +232,7 @@
                         android:textColor="@color/cocZz"
                         android:textSize="@dimen/_16ssp" />
 
-                    <ImageView
+                    <androidx.appcompat.widget.AppCompatImageView
                         android:layout_width="@dimen/_18ssp"
                         android:layout_height="@dimen/_18ssp"
                         android:src="@drawable/icon_trophy" />
@@ -298,7 +298,7 @@
                         android:textColor="@color/cocZz"
                         android:textSize="@dimen/_16ssp" />
 
-                    <ImageView
+                    <androidx.appcompat.widget.AppCompatImageView
                         android:layout_width="@dimen/_18ssp"
                         android:layout_height="@dimen/_18ssp"
                         android:src="@drawable/icon_trophy" />

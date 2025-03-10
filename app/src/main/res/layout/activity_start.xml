@@ -8,7 +8,7 @@
     tools:context=".presentation.main.StartActivity">
 
 
-    <ImageView
+    <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/background_image_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -96,7 +96,7 @@
 
                     >
 
-                    <ImageButton
+                    <androidx.appcompat.widget.AppCompatImageButton
                         android:id="@+id/scrBrdBtn"
                         android:layout_width="@dimen/_36sdp"
                         android:layout_height="@dimen/_36sdp"
@@ -113,7 +113,7 @@
 
                     >
 
-                    <ImageButton
+                    <androidx.appcompat.widget.AppCompatImageButton
                         android:id="@+id/volBtn"
                         android:layout_width="@dimen/_36sdp"
                         android:layout_height="@dimen/_36sdp"
@@ -124,7 +124,7 @@
                         android:paddingVertical="10dp"
                         android:src="@drawable/icon_vol_unmute" />
 
-                    <ImageButton
+                    <androidx.appcompat.widget.AppCompatImageButton
                         android:id="@+id/ideaBtn"
                         android:layout_width="@dimen/_36sdp"
                         android:layout_height="@dimen/_36sdp"
@@ -137,7 +137,7 @@
             </LinearLayout>
 
 
-            <ImageView
+            <androidx.appcompat.widget.AppCompatImageView
                 android:id="@+id/logo"
                 android:layout_width="@dimen/_210sdp"
                 android:layout_height="@dimen/_210sdp"
@@ -160,7 +160,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/linearLayoutStart1">
 
-            <ImageView
+            <androidx.appcompat.widget.AppCompatImageView
                 android:id="@+id/mode1"
                 android:layout_width="@dimen/_80sdp"
                 android:layout_height="@dimen/_80sdp"
@@ -180,7 +180,7 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
-            <ImageView
+            <androidx.appcompat.widget.AppCompatImageView
                 android:id="@+id/mode3"
                 android:layout_width="@dimen/_80sdp"
                 android:layout_height="@dimen/_80sdp"
@@ -200,7 +200,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
-            <ImageView
+            <androidx.appcompat.widget.AppCompatImageView
                 android:id="@+id/mode2"
                 android:layout_width="@dimen/_140sdp"
                 android:layout_height="@dimen/_140sdp"

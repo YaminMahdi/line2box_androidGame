@@ -29,7 +29,7 @@
             android:layout_height="wrap_content"
             android:fontFamily="@font/sortie"
             android:gravity="center"
-            android:text="Read a Hadith"
+            android:text="@string/read_a_hadith"
             android:textColor="@color/greenY"
             android:textSize="@dimen/_24sdp"
             app:layout_constraintBottom_toBottomOf="@+id/langBtn"
@@ -44,7 +44,7 @@
             android:background="@drawable/btn_gry_bg"
             android:fontFamily="@font/sortie"
             android:gravity="center"
-            android:text="EN"
+            android:text="@string/en"
             android:textColor="@color/white"
             android:textSize="18sp"
             app:layout_constraintEnd_toEndOf="parent"
@@ -58,7 +58,7 @@
         android:layout_marginHorizontal="24dp"
         android:fontFamily="@font/paapri"
         android:paddingVertical="5dp"
-        android:text="لَخَلْقُ ٱلسَّمَـٰوَٰتِ وَٱلْأَرْضِ أَكْبَرُ مِنْ خَلْقِ ٱلنَّاسِ وَلَـٰكِنَّ أَكْثَرَ ٱلنَّاسِ لَا يَعْلَمُونَ ٥٧"
+        tools:text="لَخَلْقُ ٱلسَّمَـٰوَٰتِ وَٱلْأَرْضِ أَكْبَرُ مِنْ خَلْقِ ٱلنَّاسِ وَلَـٰكِنَّ أَكْثَرَ ٱلنَّاسِ لَا يَعْلَمُونَ ٥٧"
         android:textColor="@color/blueZ"
         android:textSize="16sp" />
 
@@ -69,7 +69,7 @@
         android:layout_marginHorizontal="24dp"
         android:fontFamily="@font/comfortaa"
         android:justificationMode="inter_word"
-        android:text="রাসূলুল্লাহ সাল্লাল্লাহু আলাইহি ওয়াসাল্লাম যখন সালাত (নামায/নামাজ) শুরু করতেন, তখন উভয় হাত তাঁর কাঁধ বরাবর উঠাতেন। আর রুকুতে যাওয়ার জন্য তাকবীর বলতেন এবং যখন রুকু থেকে মাথা উঠাতেন তখনও অনুরূপভাবে দু’হাত উঠাতেন এবং سَمِعَ اللَّهُ لِمَنْ حَمِدَهُ ও رَبَّنَا وَلَكَ الْحَمْدُ বলতেন। কিন্তু সিজদার সময় এরূপ করতেন না।"         android:textColor="@color/white"
+        tools:text="রাসূলুল্লাহ সাল্লাল্লাহু আলাইহি ওয়াসাল্লাম যখন সালাত (নামায/নামাজ) শুরু করতেন, তখন উভয় হাত তাঁর কাঁধ বরাবর উঠাতেন। আর রুকুতে যাওয়ার জন্য তাকবীর বলতেন এবং যখন রুকু থেকে মাথা উঠাতেন তখনও অনুরূপভাবে দু’হাত উঠাতেন এবং سَمِعَ اللَّهُ لِمَنْ حَمِدَهُ ও رَبَّنَا وَلَكَ الْحَمْدُ বলতেন। কিন্তু সিজদার সময় এরূপ করতেন না।"         android:textColor="@color/white"
         android:textSize="19sp" />
 
     <TextView
@@ -79,7 +79,7 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="24dp"
         android:fontFamily="@font/sortie"
-        android:text="Surah An-Nahl (16:79)"
+        tools:text="Surah An-Nahl (16:79)"
         android:textColor="@color/blueZ"
         android:textSize="22sp"
         />
@@ -110,7 +110,7 @@
         android:layout_marginBottom="20dp"
         android:background="@drawable/btn_grn_bg"
         android:fontFamily="@font/sortie"
-        android:text="Done"
+        android:text="@string/done"
         android:textColor="@color/white"
         android:textSize="18sp"
         tools:ignore="ButtonStyle" />
