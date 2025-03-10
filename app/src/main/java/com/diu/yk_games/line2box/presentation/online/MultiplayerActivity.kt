@@ -60,6 +60,7 @@ import com.diu.yk_games.line2box.util.hideSystemBars
 import com.diu.yk_games.line2box.util.isMuted
 import com.diu.yk_games.line2box.util.isNotMuted
 import com.diu.yk_games.line2box.util.log
+import com.diu.yk_games.line2box.util.onBackPressedIgnoreCallback
 import com.diu.yk_games.line2box.util.performOnClick
 import com.diu.yk_games.line2box.util.setBounceClickListener
 import com.diu.yk_games.line2box.util.setNavStatusPadding
@@ -483,9 +484,7 @@ class MultiplayerActivity : AppCompatActivity() {
                         mediaPlayer.setOnCompletionListener (MediaPlayer::release)
                     }
                     alertDialog.dismiss()
-                    isEnabled = false
-                    onBackPressedDispatcher.onBackPressed()
-                    isEnabled = true
+                    onBackPressedIgnoreCallback()
 //                super.onBackPressed()
 //                startActivity(Intent(this, StartActivity::class.java))
 //                        finish()

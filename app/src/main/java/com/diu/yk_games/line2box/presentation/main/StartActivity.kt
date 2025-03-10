@@ -8,7 +8,7 @@ import android.media.MediaPlayer
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
-import androidx.activity.OnBackPressedCallback
+import androidx.activity.addCallback
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.drawable.toDrawable
@@ -44,6 +44,7 @@ import com.diu.yk_games.line2box.util.isMuted
 import com.diu.yk_games.line2box.util.isNotMuted
 import com.diu.yk_games.line2box.util.loadDrawable
 import com.diu.yk_games.line2box.util.log
+import com.diu.yk_games.line2box.util.onBackPressedIgnoreCallback
 import com.diu.yk_games.line2box.util.performOnClick
 import com.diu.yk_games.line2box.util.setBounceClickListener
 import com.diu.yk_games.line2box.util.setNavStatusPadding
@@ -199,46 +200,40 @@ class StartActivity : AppCompatActivity() {
                 viewModel.clearMultiPlayerDB()
             }
         }
-        onBackPressedDispatcher.addCallback(this, object: OnBackPressedCallback(true) {
-            @SuppressLint("SetTextI18n")
-            override fun handleOnBackPressed() {
-                if (scrBrdVisible) {
-                    onGoBack()
-                } else
-                {
-                    val builder= AlertDialog.Builder(this@StartActivity)
-                    val dialogBinding = DialogLayoutAlertBinding.inflate(LayoutInflater.from(this@StartActivity))
-                    builder.setView(dialogBinding.root)
-                    val alertDialog = builder.create()
+        onBackPressedDispatcher.addCallback(this){
+            if (scrBrdVisible) {
+                onGoBack()
+            } else {
+                val builder= AlertDialog.Builder(this@StartActivity)
+                val dialogBinding = DialogLayoutAlertBinding.inflate(LayoutInflater.from(this@StartActivity))
+                builder.setView(dialogBinding.root)
+                val alertDialog = builder.create()
 
-                    dialogBinding.textMessage.text ="Do you really want to exit?"
-                    dialogBinding.buttonYes.text = "YES"
-                    dialogBinding.buttonNo.text = "NO"
-                    alertDialog.window?.setBackgroundDrawable(0.toDrawable())
-                    dialogBinding.buttonYes.setBounceClickListener {
-                        isNotMuted {
-                            val mediaPlayer = MediaPlayer.create(this@StartActivity, R.raw.btn_click_ef)
-                            mediaPlayer?.start()
-                            mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
-                        }
-                        alertDialog.dismiss()
-                        isEnabled = false
-                        onBackPressedDispatcher.onBackPressed()
-                        isEnabled = true
+                dialogBinding.textMessage.text ="Do you really want to exit?"
+                dialogBinding.buttonYes.text = "YES"
+                dialogBinding.buttonNo.text = "NO"
+                alertDialog.window?.setBackgroundDrawable(0.toDrawable())
+                dialogBinding.buttonYes.setBounceClickListener {
+                    isNotMuted {
+                        val mediaPlayer = MediaPlayer.create(this@StartActivity, R.raw.btn_click_ef)
+                        mediaPlayer?.start()
+                        mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
                     }
-                    dialogBinding.buttonNo.setBounceClickListener {
-                        isNotMuted {
-                            val mediaPlayer = MediaPlayer.create(this@StartActivity, R.raw.btn_click_ef)
-                            mediaPlayer?.start()
-                            mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
-                        }
-                        alertDialog.dismiss()
-                    }
-                    try { alertDialog.show() }
-                    catch (npe: NullPointerException) { npe.printStackTrace() }
+                    alertDialog.dismiss()
+                    onBackPressedIgnoreCallback()
                 }
+                dialogBinding.buttonNo.setBounceClickListener {
+                    isNotMuted {
+                        val mediaPlayer = MediaPlayer.create(this@StartActivity, R.raw.btn_click_ef)
+                        mediaPlayer?.start()
+                        mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
+                    }
+                    alertDialog.dismiss()
+                }
+                try { alertDialog.show() }
+                catch (npe: NullPointerException) { npe.printStackTrace() }
             }
-        })
+        }
 
         if (showHadith && !isFirstRun) {
             showAHadith()

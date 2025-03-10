@@ -33,8 +33,8 @@ android {
         applicationId = "com.diu.yk_games.line2box"
         minSdk = 27
         targetSdk = 35
-        versionCode = 14
-        versionName = "1.14"
+        versionCode = 15
+        versionName = "1.15"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

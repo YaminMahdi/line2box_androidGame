@@ -12,7 +12,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
-import androidx.activity.OnBackPressedCallback
+import androidx.activity.addCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
@@ -32,6 +32,7 @@ import com.diu.yk_games.line2box.util.invisible
 import com.diu.yk_games.line2box.util.isMuted
 import com.diu.yk_games.line2box.util.isNotMuted
 import com.diu.yk_games.line2box.util.loadDrawable
+import com.diu.yk_games.line2box.util.onBackPressedIgnoreCallback
 import com.diu.yk_games.line2box.util.performOnClick
 import com.diu.yk_games.line2box.util.setBounceClickListener
 import com.diu.yk_games.line2box.util.setNavStatusPadding
@@ -212,42 +213,38 @@ class GameActivity1 : AppCompatActivity() {
                 }
             }
         }
-        onBackPressedDispatcher.addCallback(this, object: OnBackPressedCallback(true){
-            override fun handleOnBackPressed() {
-                val builder = AlertDialog.Builder(this@GameActivity1)
-                val dialogBinding = DialogLayoutAlertBinding.inflate(layoutInflater)
-                builder.setView(dialogBinding.root)
-                dialogBinding.textMessage.text =
-                    getString(R.string.do_you_really_want_to_quit_the_match)
-                dialogBinding.buttonYes.text = getString(R.string.yes)
-                dialogBinding.buttonNo.text = getString(R.string.no)
-                val alertDialog = builder.create()
-                dialogBinding.buttonYes.setBounceClickListener {
-                    isNotMuted {
-                        val mediaPlayer = MediaPlayer.create(this@GameActivity1, R.raw.btn_click_ef)
-                        mediaPlayer.start()
-                        mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-                    }
-                    alertDialog.dismiss()
-                    flag = true
+        onBackPressedDispatcher.addCallback(this){
+            val builder = AlertDialog.Builder(this@GameActivity1)
+            val dialogBinding = DialogLayoutAlertBinding.inflate(layoutInflater)
+            builder.setView(dialogBinding.root)
+            dialogBinding.textMessage.text =
+                getString(R.string.do_you_really_want_to_quit_the_match)
+            dialogBinding.buttonYes.text = getString(R.string.yes)
+            dialogBinding.buttonNo.text = getString(R.string.no)
+            val alertDialog = builder.create()
+            dialogBinding.buttonYes.setBounceClickListener {
+                isNotMuted {
+                    val mediaPlayer = MediaPlayer.create(this@GameActivity1, R.raw.btn_click_ef)
+                    mediaPlayer.start()
+                    mediaPlayer.setOnCompletionListener(MediaPlayer::release)
+                }
+                alertDialog.dismiss()
+                flag = true
 //            onBackPressedDispatcher.onBackPressed()
 //            startActivity(Intent(this@GameActivity1, StartActivity::class.java))
-                    isEnabled = false
-                    onBackPressedDispatcher.onBackPressed()
-                    isEnabled = true
-                }
-                dialogBinding.buttonNo.setBounceClickListener {
-                    isNotMuted {
-                        val mediaPlayer = MediaPlayer.create(this@GameActivity1, R.raw.btn_click_ef)
-                        mediaPlayer.start()
-                        mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-                    }
-                    alertDialog.dismiss()
-                }
-                alertDialog.window?.setBackgroundDrawable(0.toDrawable())
-                try { alertDialog.show() } catch (npe: NullPointerException) { npe.printStackTrace() }
+                onBackPressedIgnoreCallback()
             }
-        })
+            dialogBinding.buttonNo.setBounceClickListener {
+                isNotMuted {
+                    val mediaPlayer = MediaPlayer.create(this@GameActivity1, R.raw.btn_click_ef)
+                    mediaPlayer.start()
+                    mediaPlayer.setOnCompletionListener(MediaPlayer::release)
+                }
+                alertDialog.dismiss()
+            }
+            alertDialog.window?.setBackgroundDrawable(0.toDrawable())
+            try { alertDialog.show() } catch (npe: NullPointerException) { npe.printStackTrace() }
+        }
 
         binding.volBtn.performOnClick()
         binding.ideaBtn.setBounceClickListener { ideaBtn() }
