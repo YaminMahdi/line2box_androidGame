@@ -679,10 +679,10 @@ class GameActivity1 : AppCompatActivity() {
                 mediaPlayer.start()
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release)
             }
-            i++
+            if (i <= 4) i++
             if (!isFirstRun && i == 4) i++
             if (i == 1) binding.buttonPre.show()
-            if (i == 5) alertDialog.dismiss() else {
+            if (i >= 5) alertDialog.dismiss() else {
                 binding.textMessage.text = msg[i]
                 binding.playGif.loadDrawable(gifs[i])
             }

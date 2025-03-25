@@ -345,7 +345,6 @@ class StartActivity : AppCompatActivity() {
             .addOnSuccessListener { 
                 it.toObject<GameProfile>()?.let { profile ->
                     viewModel.gameProfile = profile
-                    profile.apply()
                 }
             }
         onlineStatus = "pass"
@@ -761,10 +760,10 @@ class StartActivity : AppCompatActivity() {
                 mediaPlayer?.start()
                 mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
             }
-            i++
+            if (i <= 4) i++
             if (!isFirstRun && i == 4) i++
             if (i == 1) dialogBinding.buttonPre.show()
-            if (i == 5) alertDialog.dismiss() else {
+            if (i >= 5) alertDialog.dismiss() else {
                 dialogBinding.textMessage.text = msg[i]
                 dialogBinding.playGif.loadDrawable(gifs[i])
             }

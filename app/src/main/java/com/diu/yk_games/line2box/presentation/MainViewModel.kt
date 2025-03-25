@@ -42,7 +42,13 @@ class MainViewModel(
     val scoreBoardKey  //fake key
         get() = UUID.randomUUID().toString()
 
-    lateinit var gameProfile: GameProfile
+    var gameProfile
+        get() = _gameProfile ?: GameProfile()
+        set(value) {
+            _gameProfile = value
+            value.apply()
+        }
+    private var _gameProfile: GameProfile? = null
 
     val globalChatList = savedStateHandle.getStateFlow("globalChatList", emptyList<MsgStore>())
     val friendsChatList = savedStateHandle.getStateFlow("friendsChatList", emptyList<MsgStore>())
@@ -86,13 +92,13 @@ class MainViewModel(
     }
 
     fun initGameProfile(playerId: String = this@MainViewModel.playerId, loadGlobalChat: Boolean = true) {
-        gameProfile = GameProfile()
+        _gameProfile = GameProfile()
         if(playerId.isNotEmpty()) {
             this@MainViewModel.playerId = playerId
             gameProfile.playerId = playerId
             gameProfile.apply()
-        }else
-            this@MainViewModel.playerId = gameProfile.playerId
+        }
+        else this@MainViewModel.playerId = gameProfile.playerId
         if(loadGlobalChat) {
             fetchGlobalChat()
             fetchActiveMatches()
@@ -258,38 +264,39 @@ class MainViewModel(
 
     fun fetchActiveMatches(){
         viewModelScope.launch(Dispatchers.IO){
-            multiPlayerRef.limitToLast(100).addChildEventListener(object : ChildEventListener {
-                override fun onChildAdded(dataSnapshot: DataSnapshot, s: String?) {
-                    Log.d("addList", "onChildAdded: " + dataSnapshot.key)
-                    dataSnapshot.getValue<GameRoom>()?.let { game ->
-                        savedStateHandle["matches"] = (matches.value + game.copy(key= dataSnapshot.key ?: "")).distinctBy { it.key }
-//                        matches.add(it.copy(key= dataSnapshot.key ?: ""))
-                    }
-                }
-                override fun onChildChanged(dataSnapshot: DataSnapshot, s: String?) {
-                    removeByKey(dataSnapshot.key)
-                    dataSnapshot.getValue<GameRoom>()?.let { game ->
-                        savedStateHandle["matches"] = (matches.value + game.copy(key= dataSnapshot.key ?: ""))
-                    }
-                }
-                override fun onChildRemoved(dataSnapshot: DataSnapshot) {
-                    removeByKey(dataSnapshot.key)
-                }
-
-                private fun removeByKey(key: String?) {
-                    key?.let { key ->
-                        matches.value.toMutableList().apply {
-                            if (removeIf { it.key == key })
-                                savedStateHandle["matches"] = toList()
+            runCatching {
+                multiPlayerRef.limitToLast(100).addChildEventListener(object : ChildEventListener {
+                    override fun onChildAdded(dataSnapshot: DataSnapshot, s: String?) {
+                        Log.d("addList", "onChildAdded: " + dataSnapshot.key)
+                        dataSnapshot.getValue<GameRoom>()?.let { game ->
+                            savedStateHandle["matches"] = (matches.value + game.copy(key= dataSnapshot.key.orEmpty())).distinctBy { it.key }
                         }
                     }
-                }
+                    override fun onChildChanged(dataSnapshot: DataSnapshot, s: String?) {
+                        removeByKey(dataSnapshot.key)
+                        dataSnapshot.getValue<GameRoom>()?.let { game ->
+                            savedStateHandle["matches"] = (matches.value + game.copy(key= dataSnapshot.key.orEmpty()))
+                        }
+                    }
+                    override fun onChildRemoved(dataSnapshot: DataSnapshot) {
+                        removeByKey(dataSnapshot.key)
+                    }
 
-                override fun onChildMoved(dataSnapshot: DataSnapshot, s: String?) {}
-                override fun onCancelled(databaseError: DatabaseError) {
-                    Log.w("TAG", "Failed to read value.", databaseError.toException())
-                }
-            })
+                    private fun removeByKey(key: String?) {
+                        key?.let { key ->
+                            matches.value.toMutableList().apply {
+                                if (removeIf { it.key == key })
+                                    savedStateHandle["matches"] = toList()
+                            }
+                        }
+                    }
+
+                    override fun onChildMoved(dataSnapshot: DataSnapshot, s: String?) {}
+                    override fun onCancelled(databaseError: DatabaseError) {
+                        Log.w("TAG", "Failed to read value.", databaseError.toException())
+                    }
+                })
+            }
         }
     }
 

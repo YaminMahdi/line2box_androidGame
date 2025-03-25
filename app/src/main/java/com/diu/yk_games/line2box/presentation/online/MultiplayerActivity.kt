@@ -77,6 +77,7 @@ import com.google.firebase.database.getValue
 import com.google.firebase.firestore.firestore
 import io.ghyeok.stickyswitch.widget.StickySwitch
 import io.ghyeok.stickyswitch.widget.StickySwitch.OnSelectedChangeListener
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -220,6 +221,10 @@ class MultiplayerActivity : AppCompatActivity() {
                 toast("Invalid Key")
                 return@doAfterTextChanged
             }
+            if(gameRoom.key.isEmpty()) {
+                toast("Invalid Key")
+                return@doAfterTextChanged
+            }
             Log.d("getKey", "afterTextChanged: " + gameRoom.key + " " + binding.joinInputId.text.toString().length)
             closeKeyboard()
             viewModel.matchBundle.value.putString("gameKey", gameRoom.key)
@@ -254,7 +259,11 @@ class MultiplayerActivity : AppCompatActivity() {
                 viewModel.matchKey = gameRoom.key
                 viewModel.multiPlayerRef.child(gameRoom.key).child("friendlyChat")
                     .push().setValue(ms)
-                bindingMain.bubbleTabBar.setSelected(1, true)
+                viewModel.friendsChatList.collectWithLifecycle {
+                    if (it.isEmpty()) return@collectWithLifecycle
+                    bindingMain.bubbleTabBar.setSelected(1, true)
+                    cancel()
+                }
 //                fm.beginTransaction()
 //                    .replace(R.id.chatFragment, ChatFragmentFriendly.newInstance(newKey, playerId))
 //                    .commit()
@@ -384,6 +393,7 @@ class MultiplayerActivity : AppCompatActivity() {
                                 player1 = viewModel.gameProfile.toPlayerInfo(),
                                 playerInfo = PlayerInfoOld(nm1 = viewModel.gameProfile.nm, lvl1 = viewModel.gameProfile.lvlByCal, plr1Id = playerId)
                             )
+                            if(viewModel.matchKey.isEmpty()) return
                             viewModel.multiPlayerRef.child(viewModel.matchKey).setValue(gameRoom)
                             viewModel.multiPlayerRef.child(viewModel.matchKey)
                                 .child("friendlyChat")

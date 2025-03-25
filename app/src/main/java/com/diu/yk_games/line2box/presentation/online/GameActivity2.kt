@@ -123,16 +123,18 @@ class GameActivity2 : AppCompatActivity() {
             if (isFirstRun) infoShow()
         }
         PACKAGE_NAME = applicationContext.packageName
+        intent.extras.let {
+            gameKey = it?.getString("gameKey").orEmpty()
+            plr1Id = it?.getString("plr1Id").orEmpty()
+            plr2Id = it?.getString("plr2Id").orEmpty()
+            playerId = if(plyr1) plr1Id else plr2Id
+        }
         intent.extras?.let{
-            gameKey = it.getString("gameKey")!!
-            nm1 = it.getString("nm1")!!
-            nm2 = it.getString("nm2")!!
+            it.getString("nm1")?.let { nm1 = it }
+            it.getString("nm2")?.let { nm2 = it }
             lvl1 = it.getInt("lvl1")
             lvl2 = it.getInt("lvl2")
             plyr1 = it.getBoolean("plyr1")
-            plr1Id = it.getString("plr1Id")!!
-            plr2Id = it.getString("plr2Id")!!
-            playerId = if(plyr1) plr1Id else plr2Id
             viewModel.initGameProfile()
             viewModel.fetchServerLineClick(gameKey = gameKey, isPlyr1 = plyr1)
         }
@@ -912,10 +914,10 @@ class GameActivity2 : AppCompatActivity() {
                 mediaPlayer.start()
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release)
             }
-            i++
+            if (i <= 4) i++
             if (!isFirstRun && i == 4) i++
             if (i == 1) binding.buttonPre.show()
-            if (i == 5) alertDialog.dismiss() else {
+            if (i >= 5) alertDialog.dismiss() else {
                 binding.textMessage.text = msg[i]
                 binding.playGif.loadDrawable(gifs[i])
             }
