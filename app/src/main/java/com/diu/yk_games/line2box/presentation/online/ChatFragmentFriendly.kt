@@ -23,7 +23,7 @@ import com.diu.yk_games.line2box.model.GameProfile
 import com.diu.yk_games.line2box.pref
 import com.diu.yk_games.line2box.presentation.MainViewModel
 import com.diu.yk_games.line2box.presentation.MsgListAdapter
-import com.diu.yk_games.line2box.util.collectWithLifecycle
+import com.diu.yk_games.line2box.util.collectWithLifecycleF
 import com.diu.yk_games.line2box.util.gone
 import com.diu.yk_games.line2box.util.loadDrawable
 import com.diu.yk_games.line2box.util.setBounceClickListener
@@ -57,12 +57,12 @@ class ChatFragmentFriendly : Fragment() {
 //        }
         binding.showMsgList.adapter = msgListAdapter
         val mp = MediaPlayer.create(activity, R.raw.pop)
-        viewModel.friendsChatList.collectWithLifecycle {
+        viewModel.friendsChatList.collectWithLifecycleF {
             msgListAdapter.submitList(it){
                 binding.showMsgList.scrollToPosition(0)
             }
             val lastMsg = it.firstOrNull()
-            if(lastMsg?.key == lastMsgKey) return@collectWithLifecycle
+            if(lastMsg?.key == lastMsgKey) return@collectWithLifecycleF
             when(lastMsg?.msgData){
                 "🤣" -> emojiRunner(R.drawable.emoji_haha, R.raw.haha)
                 "😭" -> emojiRunner(R.drawable.emoji_cry, R.raw.cry)

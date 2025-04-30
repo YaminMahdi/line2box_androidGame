@@ -1,4 +1,4 @@
-@file:Suppress("CONTEXT_RECEIVERS_DEPRECATED", "unused")
+@file:Suppress("unused")
 
 package com.diu.yk_games.line2box.util
 
@@ -63,16 +63,16 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 /**Flow collect from Fragment with `repeatOnLifecycle` on` lifecycleScope` till `RESUMED` */
-context(Fragment)
-fun <T> Flow<T?>.collectWithLifecycle(
+context(fragment: Fragment)
+fun <T> Flow<T?>.collectWithLifecycleF(
     context: CoroutineContext = EmptyCoroutineContext,
     minActiveState: Lifecycle.State = Lifecycle.State.RESUMED,
     block: suspend CoroutineScope.(T) -> Unit,
 ) {
-    lifecycleScope.launch(context) {
-        repeatOnLifecycle(minActiveState) {
+    fragment.lifecycleScope.launch(context) {
+        fragment.repeatOnLifecycle(minActiveState) {
             filterNotNull().collect { value ->
-                if (isAdded && lifecycle.currentState.isAtLeast(minActiveState))
+                if (fragment.isAdded && fragment.lifecycle.currentState.isAtLeast(minActiveState))
                     block(value)
             }
         }
@@ -80,16 +80,16 @@ fun <T> Flow<T?>.collectWithLifecycle(
 }
 
 /**Flow collect from Fragment with `repeatOnLifecycle` on` lifecycleScope` till `RESUMED` */
-context(Fragment)
+context(fragment: Fragment)
 fun <T> Flow<T?>.collectWithLifecycleStateIn(
     context: CoroutineContext = EmptyCoroutineContext,
     minActiveState: Lifecycle.State = Lifecycle.State.RESUMED,
     block: suspend CoroutineScope.(T) -> Unit,
 ) {
-    lifecycleScope.launch(context) {
-        repeatOnLifecycle(minActiveState) {
+    fragment.lifecycleScope.launch(context) {
+        fragment.repeatOnLifecycle(minActiveState) {
             filterNotNull().stateIn(this).collect { value ->
-                if (isAdded && lifecycle.currentState.isAtLeast(minActiveState))
+                if (fragment.isAdded && fragment.lifecycle.currentState.isAtLeast(minActiveState))
                     block(value)
             }
         }
@@ -97,16 +97,16 @@ fun <T> Flow<T?>.collectWithLifecycleStateIn(
 }
 
 /**Flow collect from Activity with `repeatOnLifecycle` on` lifecycleScope` till `RESUMED` */
-context(LifecycleOwner)
+context(owner: LifecycleOwner)
 fun <T> Flow<T?>.collectWithLifecycle(
     context: CoroutineContext = EmptyCoroutineContext,
     minActiveState: Lifecycle.State = Lifecycle.State.RESUMED,
     block: suspend CoroutineScope.(T) -> Unit,
 ) {
-    lifecycleScope.launch(context) {
-        repeatOnLifecycle(minActiveState) {
+    owner.lifecycleScope.launch(context) {
+        owner.repeatOnLifecycle(minActiveState) {
             filterNotNull().collect { value ->
-                if (lifecycle.currentState.isAtLeast(minActiveState))
+                if (owner.lifecycle.currentState.isAtLeast(minActiveState))
                     block(value)
             }
         }
@@ -114,15 +114,15 @@ fun <T> Flow<T?>.collectWithLifecycle(
 }
 
 /**Flow collect from Fragment on` lifecycleScope` if `isAdded` and `RESUMED` */
-context(LifecycleOwner)
+context(owner: LifecycleOwner)
 fun <T> Flow<T?>.collectWithLifecycleNoRepeat(
     context: CoroutineContext = EmptyCoroutineContext,
     minActiveState: Lifecycle.State = Lifecycle.State.CREATED,
     block: suspend CoroutineScope.(T) -> Unit,
 ) {
-    lifecycleScope.launch(context) {
+    owner.lifecycleScope.launch(context) {
         filterNotNull().collect { value ->
-            if (lifecycle.currentState.isAtLeast(minActiveState))
+            if (owner.lifecycle.currentState.isAtLeast(minActiveState))
                 block(value)
         }
     }
@@ -428,18 +428,18 @@ fun ImageView.loadDrawable(data: Any?) {
     context.imageLoader.enqueue(request)
 }
 
-context(Fragment)
+context(fragment: Fragment)
 fun OnBackPressedCallback.onBackPressedIgnoreCallback() {
-    activity?.closeKeyboard()
+    fragment.activity?.closeKeyboard()
     isEnabled = false
-    activity?.onBackPressedDispatcher?.onBackPressed()
+    fragment.activity?.onBackPressedDispatcher?.onBackPressed()
     isEnabled = true
 }
 
-context(FragmentActivity)
+context(activity: FragmentActivity)
 fun OnBackPressedCallback.onBackPressedIgnoreCallback() {
-    closeKeyboard()
+    activity.closeKeyboard()
     isEnabled = false
-    onBackPressedDispatcher.onBackPressed()
+    activity.onBackPressedDispatcher.onBackPressed()
     isEnabled = true
 }

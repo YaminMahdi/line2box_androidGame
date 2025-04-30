@@ -22,7 +22,7 @@ import com.diu.yk_games.line2box.model.GameProfile
 import com.diu.yk_games.line2box.pref
 import com.diu.yk_games.line2box.presentation.MainViewModel
 import com.diu.yk_games.line2box.presentation.MsgListAdapter
-import com.diu.yk_games.line2box.util.collectWithLifecycle
+import com.diu.yk_games.line2box.util.collectWithLifecycleF
 import com.diu.yk_games.line2box.util.gone
 import com.diu.yk_games.line2box.util.setBounceClickListener
 import com.diu.yk_games.line2box.util.setClipBoardData
@@ -56,7 +56,7 @@ class ChatFragmentGlobal : Fragment() {
 //        }
         binding.showMsgList.adapter = msgListAdapter
         binding.chatBoxGlobal.requestFocus()
-        viewModel.globalChatList.collectWithLifecycle {
+        viewModel.globalChatList.collectWithLifecycleF {
             msgListAdapter.submitList(it){
                 binding.showMsgList.scrollToPosition(0)
             }

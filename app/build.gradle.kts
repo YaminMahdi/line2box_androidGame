@@ -6,7 +6,7 @@ plugins {
     id("com.google.firebase.crashlytics")
 }
 
-val secrets = org.jetbrains.kotlin.konan.properties.loadProperties("${rootDir}/local.properties")
+val secrets = org.jetbrains.kotlin.konan.properties.loadProperties("$rootDir/local.properties")
 
 android {
     signingConfigs {
@@ -27,14 +27,14 @@ android {
         }
     }
     namespace = "com.diu.yk_games.line2box"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.diu.yk_games.line2box"
         minSdk = 27
-        targetSdk = 35
-        versionCode = 16
-        versionName = "1.16"
+        targetSdk = 36
+        versionCode = 17
+        versionName = "1.17"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -61,7 +61,7 @@ android {
     kotlin {
         jvmToolchain(23)
         compilerOptions {
-            freeCompilerArgs.addAll("-Xcontext-receivers", "-Xwhen-guards", "-Xnon-local-break-continue")
+            freeCompilerArgs.addAll("-Xcontext-parameters", "-Xwhen-guards", "-Xnon-local-break-continue")
         }
     }
     buildFeatures {
@@ -71,14 +71,14 @@ android {
 }
 
 dependencies {
-    implementation("androidx.core:core-ktx:1.15.0")
+    implementation("androidx.core:core-ktx:1.16.0")
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("com.google.android.material:material:1.12.0")
     implementation("androidx.constraintlayout:constraintlayout:2.2.1")
     implementation("androidx.activity:activity-ktx:1.10.1")
     implementation("androidx.fragment:fragment-ktx:1.8.6")
 
-    implementation(platform("com.google.firebase:firebase-bom:33.11.0"))
+    implementation(platform("com.google.firebase:firebase-bom:33.13.0"))
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-crashlytics")
@@ -88,8 +88,8 @@ dependencies {
     implementation("com.google.android.gms:play-services-games-v2:20.1.2")
     implementation("com.google.android.gms:play-services-auth:21.3.0")
 
-    implementation("com.google.code.gson:gson:2.12.1")
-    implementation("org.jsoup:jsoup:1.19.1")
+    implementation("com.google.code.gson:gson:2.13.1")
+    implementation("org.jsoup:jsoup:1.20.1")
 
     implementation("io.ak1:bubbletabbar:1.0.8")
     implementation("com.github.GwonHyeok:StickySwitch:0.0.16")

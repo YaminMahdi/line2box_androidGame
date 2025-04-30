@@ -1,5 +1,3 @@
-@file:Suppress("unused", "CONTEXT_RECEIVERS_DEPRECATED")
-
 package com.diu.yk_games.line2box.util
 
 import android.media.MediaPlayer
@@ -24,15 +22,15 @@ fun ImageButton.applyState(isMuted: Boolean) {
 }
 
 
-context(FragmentActivity)
+context(activity: FragmentActivity)
 fun ImageButton.performOnClick() {
     setBounceClickListener {
-        lifecycleScope.launch {
+        activity.lifecycleScope.launch {
             val isMuted = isMuted()
             applyState(!isMuted)
             if(isMuted) {
                 runCatching {
-                    val mediaPlayer = MediaPlayer.create(this@FragmentActivity, R.raw.btn_click_ef)
+                    val mediaPlayer = MediaPlayer.create(activity, R.raw.btn_click_ef)
                     mediaPlayer.start()
                     mediaPlayer.setOnCompletionListener(MediaPlayer::release)
                 }
