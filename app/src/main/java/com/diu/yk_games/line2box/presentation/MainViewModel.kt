@@ -264,39 +264,41 @@ class MainViewModel(
 
     fun fetchActiveMatches(){
         viewModelScope.launch(Dispatchers.IO){
-            runCatching {
-                multiPlayerRef.limitToLast(100).addChildEventListener(object : ChildEventListener {
-                    override fun onChildAdded(dataSnapshot: DataSnapshot, s: String?) {
-                        Log.d("addList", "onChildAdded: " + dataSnapshot.key)
+            multiPlayerRef.limitToLast(100).addChildEventListener(object : ChildEventListener {
+                override fun onChildAdded(dataSnapshot: DataSnapshot, s: String?) {
+                    Log.d("addList", "onChildAdded: " + dataSnapshot.key)
+                    runCatching {
                         dataSnapshot.getValue<GameRoom>()?.let { game ->
                             savedStateHandle["matches"] = (matches.value + game.copy(key= dataSnapshot.key.orEmpty())).distinctBy { it.key }
                         }
                     }
-                    override fun onChildChanged(dataSnapshot: DataSnapshot, s: String?) {
-                        removeByKey(dataSnapshot.key)
+                }
+                override fun onChildChanged(dataSnapshot: DataSnapshot, s: String?) {
+                    removeByKey(dataSnapshot.key)
+                    runCatching {
                         dataSnapshot.getValue<GameRoom>()?.let { game ->
                             savedStateHandle["matches"] = (matches.value + game.copy(key= dataSnapshot.key.orEmpty()))
                         }
                     }
-                    override fun onChildRemoved(dataSnapshot: DataSnapshot) {
-                        removeByKey(dataSnapshot.key)
-                    }
+                }
+                override fun onChildRemoved(dataSnapshot: DataSnapshot) {
+                    removeByKey(dataSnapshot.key)
+                }
 
-                    private fun removeByKey(key: String?) {
-                        key?.let { key ->
-                            matches.value.toMutableList().apply {
-                                if (removeIf { it.key == key })
-                                    savedStateHandle["matches"] = toList()
-                            }
+                private fun removeByKey(key: String?) {
+                    key?.let { key ->
+                        matches.value.toMutableList().apply {
+                            if (removeIf { it.key == key })
+                                savedStateHandle["matches"] = toList()
                         }
                     }
+                }
 
-                    override fun onChildMoved(dataSnapshot: DataSnapshot, s: String?) {}
-                    override fun onCancelled(databaseError: DatabaseError) {
-                        Log.w("TAG", "Failed to read value.", databaseError.toException())
-                    }
-                })
-            }
+                override fun onChildMoved(dataSnapshot: DataSnapshot, s: String?) {}
+                override fun onCancelled(databaseError: DatabaseError) {
+                    Log.w("TAG", "Failed to read value.", databaseError.toException())
+                }
+            })
         }
     }
 

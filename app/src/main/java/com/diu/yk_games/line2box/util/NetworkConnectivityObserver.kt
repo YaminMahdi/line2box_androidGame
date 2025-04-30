@@ -11,20 +11,25 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import java.util.concurrent.atomic.AtomicBoolean
 
 object ConnectivityObserver {
     var isConnected = false
-    fun initialize(context: Context){
-        CoroutineScope(Dispatchers.Main).launch{
+    private var isCallbackRegistered = AtomicBoolean(false)
+    private var callback: ConnectivityManager.NetworkCallback? = null
+
+    fun initialize(context: Context) {
+        CoroutineScope(Dispatchers.Main).launch {
             observer(context).collect()
         }
     }
 
-    fun observer(context: Context): Flow<Status> {
+    fun observer(context: Context): Flow<Status> = callbackFlow {
         val connectivityManager =
             context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        return callbackFlow {
-            val callback = object : ConnectivityManager.NetworkCallback() {
+
+        if (isCallbackRegistered.compareAndSet(false, true)) {
+            callback = object : ConnectivityManager.NetworkCallback() {
                 override fun onAvailable(network: Network) {
                     super.onAvailable(network)
                     launch { send(Status.Available) }
@@ -53,12 +58,18 @@ object ConnectivityObserver {
                 }
             }
 
-            connectivityManager.registerDefaultNetworkCallback(callback)
-            awaitClose {
-                connectivityManager.unregisterNetworkCallback(callback)
+            connectivityManager.registerDefaultNetworkCallback(callback!!)
+        }
+        awaitClose {
+            if (isCallbackRegistered.compareAndSet(true, false)) {
+                callback?.let {
+                    connectivityManager.unregisterNetworkCallback(it)
+                    callback = null
+                }
             }
-        }//.distinctUntilChanged()
+        }
     }
+
     enum class Status {
         Available, Unavailable, Losing, Lost
     }

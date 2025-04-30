@@ -521,7 +521,9 @@ class StartActivity : AppCompatActivity() {
                 mediaPlayer?.start()
                 mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
             }
-            alertDialog.dismiss()
+            runCatching {
+                if(alertDialog.isShowing) alertDialog.dismiss()
+            }
             if (pref.getBoolean("needProfile", true))
                 recreate()
         }
