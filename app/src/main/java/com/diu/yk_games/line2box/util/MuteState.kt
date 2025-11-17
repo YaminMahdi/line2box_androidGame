@@ -9,8 +9,8 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.pref
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.launch
-import kotlin.coroutines.coroutineContext
 
 enum class MuteState(val backgroundRes: Int, val imageRes: Int) {
     MUTED(R.drawable.btn_gry_bg, R.drawable.icon_vol_mute),
@@ -24,15 +24,15 @@ fun ImageButton.applyState(isMuted: Boolean) {
 }
 
 
-context(FragmentActivity)
+context(f: FragmentActivity)
 fun ImageButton.performOnClick() {
     setBounceClickListener {
-        lifecycleScope.launch {
+        f.lifecycleScope.launch {
             val isMuted = isMuted()
             applyState(!isMuted)
             if(isMuted) {
                 runCatching {
-                    val mediaPlayer = MediaPlayer.create(this@FragmentActivity, R.raw.btn_click_ef)
+                    val mediaPlayer = MediaPlayer.create(f, R.raw.btn_click_ef)
                     mediaPlayer.start()
                     mediaPlayer.setOnCompletionListener(MediaPlayer::release)
                 }
@@ -51,5 +51,5 @@ inline fun FragmentActivity.isNotMuted(crossinline ifMuted: () -> Unit = {}, cro
 }
 
 suspend fun isMuted(): Boolean {
-    return coroutineContext.IO { pref.getBoolean("muted", false) }
+    return currentCoroutineContext().IO { pref.getBoolean("muted", false) }
 }

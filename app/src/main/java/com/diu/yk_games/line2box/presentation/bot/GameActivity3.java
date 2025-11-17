@@ -206,7 +206,7 @@ public class GameActivity3 extends AppCompatActivity {
                     bgTop.setColor(ContextCompat.getColor(getApplicationContext(), R.color.whiteX));
                     bgCircle.setColor(ContextCompat.getColor(getApplicationContext(), R.color.white));
                     bgCircle.setStroke(14, ContextCompat.getColor(getApplicationContext(), R.color.whiteY));
-                    ////Log.d("TAG", "onDestroy: " + top + " " + circle);
+                    //Log.d("TAG", "onDestroy: " + top + " " + circle);
                 }
                 index.setLength(0);
                 index.append(top);

@@ -1,8 +1,15 @@
+buildscript {
+    dependencies {
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin") {
+            version { strictly("2.3.0-Beta2") }
+        }
+    }
+}
 plugins {
-    id("com.android.application") version "8.9.0" apply false
-    id("org.jetbrains.kotlin.android") version "2.1.20" apply false
-    id("com.google.gms.google-services") version "4.4.2" apply false
-    id("com.google.firebase.crashlytics") version "3.0.3" apply false
+    id("com.android.application") version "9.0.0-beta01" apply false // -> kotlin 2.2.10
+//    id("org.jetbrains.kotlin.android") version "2.2.21" apply false
+    id("com.google.gms.google-services") version "4.4.4" apply false
+    id("com.google.firebase.crashlytics") version "3.0.6" apply false
 }
 
 
