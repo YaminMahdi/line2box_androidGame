@@ -3,6 +3,7 @@ plugins {
     id("kotlin-parcelize")
     id("com.google.gms.google-services")
     id("com.google.firebase.crashlytics")
+    id("org.jetbrains.kotlin.plugin.serialization")
 }
 
 val secrets = org.jetbrains.kotlin.konan.properties.loadProperties("${rootDir}/local.properties")

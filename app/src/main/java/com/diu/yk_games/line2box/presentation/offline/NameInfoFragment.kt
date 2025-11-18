@@ -9,8 +9,7 @@ import androidx.fragment.app.Fragment
 import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.FragmentNminfoBinding
 import com.diu.yk_games.line2box.model.GameProfile
-import com.diu.yk_games.line2box.pref
-import com.diu.yk_games.line2box.prefEditor
+import com.diu.yk_games.line2box.util.pref
 import com.diu.yk_games.line2box.util.setBounceClickListener
 
 class NameInfoFragment : Fragment() {
@@ -33,13 +32,13 @@ class NameInfoFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         binding.apply {
-            val tmpNm1 = pref.getString("plrNm1", "")
-            val tmpNm2 = pref.getString("plrNm2", "")
+            val tmpNm1 = pref.read("plrNm1", "")
+            val tmpNm2 = pref.read("plrNm2", "")
             val prfNm = GameProfile().nm
             palyerRed.setText(if (tmpNm1 != "") tmpNm1 else prfNm)
             if (tmpNm2 != "") palyerBlue.setText(tmpNm2)
             playBtn.setBounceClickListener {
-                if (!pref.getBoolean("muted", false)) {
+                if (!pref.read("muted", false)) {
                     val mediaPlayer = MediaPlayer.create(context, R.raw.btn_click_ef)
                     mediaPlayer.start()
                     mediaPlayer.setOnCompletionListener(MediaPlayer::release)
@@ -50,9 +49,9 @@ class NameInfoFragment : Fragment() {
 
                 if (binding.nmSaveBox.isChecked) {
                     if (binding.palyerRed.text.toString() != "")
-                        prefEditor.putString("plrNm1", nm1).apply()
+                        pref.save("plrNm1", nm1)
                     if (binding.palyerBlue.text.toString() != "")
-                        prefEditor.putString("plrNm2", nm2).apply()
+                        pref.save("plrNm2", nm2)
                 }
                 GameActivity1.nm1 = nm1
                 GameActivity1.nm2 = nm2
@@ -62,7 +61,7 @@ class NameInfoFragment : Fragment() {
                 }
             }
             nmSwanBtn.setBounceClickListener {
-                if (!pref.getBoolean("muted", false)) {
+                if (!pref.read("muted", false)) {
                     val mediaPlayer = MediaPlayer.create(context, R.raw.btn_click_ef)
                     mediaPlayer.start()
                     mediaPlayer.setOnCompletionListener(MediaPlayer::release)

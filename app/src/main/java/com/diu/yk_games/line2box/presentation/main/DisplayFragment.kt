@@ -15,24 +15,27 @@ import android.widget.LinearLayout
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toDrawable
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.DialogLayoutProfileBinding
 import com.diu.yk_games.line2box.databinding.DialogLayoutScrGlobeBinding
 import com.diu.yk_games.line2box.databinding.FragmentDisplayBinding
 import com.diu.yk_games.line2box.model.DataStore
 import com.diu.yk_games.line2box.model.GameProfile
-import com.diu.yk_games.line2box.pref
+import com.diu.yk_games.line2box.presentation.MainViewModel
 import com.diu.yk_games.line2box.presentation.ScoreListAdapter
 import com.diu.yk_games.line2box.util.gone
 import com.diu.yk_games.line2box.util.log
+import com.diu.yk_games.line2box.util.onBackPressed
+import com.diu.yk_games.line2box.util.pref
 import com.diu.yk_games.line2box.util.setBounceClickListener
 import com.diu.yk_games.line2box.util.toast
-import com.google.firebase.Firebase
-import com.google.firebase.firestore.firestore
 import com.google.firebase.firestore.toObject
 
 class DisplayFragment : Fragment() {
     lateinit var binding: FragmentDisplayBinding
+    private val viewModel: MainViewModel by activityViewModels()
+
     private var dsList= mutableListOf<DataStore>()
     private var bestScore = "\n\n\nNetwork Error"
     private lateinit var p1Pro: GameProfile
@@ -64,9 +67,8 @@ class DisplayFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.showScoreList.adapter = scoreListAdapter
-        val db = Firebase.firestore
         //Source source = Source.CACHE;
-        db.collection("LastBestPlayer").document("LastBestPlayer")
+        viewModel.firestore.collection("LastBestPlayer").document("LastBestPlayer")
             .get().addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     val document = task.result
@@ -77,7 +79,7 @@ class DisplayFragment : Fragment() {
                     Log.d(TAG, "Cached get failed: ", task.exception)
                 }
             }
-        db.collection("ScoreBoard")
+        viewModel.firestore.collection("ScoreBoard")
             .orderBy("time")
             .limitToLast(100)
             .get()
@@ -92,6 +94,8 @@ class DisplayFragment : Fragment() {
             }
 
         var itemClicked = false
+        binding.btnBack.setBounceClickListener(::onBackPressed)
+
         scoreListAdapter.onClickListener = run@{ gamerPro ->
             if(itemClicked && gamerPro.plr1Id == "offline") return@run
             itemClicked = true
@@ -99,7 +103,7 @@ class DisplayFragment : Fragment() {
             if (gamerPro.plr1Id == "offline")
                 toast("Offline matches don't have match details.")
             else {
-                if (!pref.getBoolean("muted", false)) {
+                if (!pref.read("muted", false)) {
                     val mediaPlayer =
                         MediaPlayer.create(context, R.raw.btn_click_ef)
                     mediaPlayer.start()
@@ -113,7 +117,7 @@ class DisplayFragment : Fragment() {
                 }
                 Log.d(TAG, "onItemClick: 1id " + gamerPro.plr1Id)
                 Log.d(TAG, "onItemClick: 2id " + gamerPro.plr2Id)
-                db.collection("gamerProfile").document(gamerPro.plr1Id)
+                viewModel.firestore.collection("gamerProfile").document(gamerPro.plr1Id)
                     .get()
                     .addOnSuccessListener { documentSnapshot ->
                         val gp = documentSnapshot.toObject<GameProfile>() ?: return@addOnSuccessListener
@@ -129,7 +133,7 @@ class DisplayFragment : Fragment() {
                         Log.d(TAG, "onSuccess: nm " + p1Pro.nm)
                         dialogBinding.plr1Lvl.text = "" + p1Pro.lvl
                     }
-                db.collection("gamerProfile").document(gamerPro.plr2Id)
+                viewModel.firestore.collection("gamerProfile").document(gamerPro.plr2Id)
                     .get().addOnSuccessListener { documentSnapshot ->
                         val gp = documentSnapshot.toObject<GameProfile>() ?: return@addOnSuccessListener
                         val scr = gamerPro.blueData.split(" ").dropLastWhile { it.isEmpty() }
@@ -168,7 +172,7 @@ class DisplayFragment : Fragment() {
 
     @SuppressLint("SetTextI18n")
     private fun onPlayerProfileClick(profile: GameProfile, marginLeft: Int, onDismissed: () -> Unit) {
-        if (!pref.getBoolean("muted", false)) {
+        if (!pref.read("muted", false)) {
             val mediaPlayer = MediaPlayer.create(context, R.raw.btn_click_ef)
             mediaPlayer.start()
             mediaPlayer.setOnCompletionListener(MediaPlayer::release)

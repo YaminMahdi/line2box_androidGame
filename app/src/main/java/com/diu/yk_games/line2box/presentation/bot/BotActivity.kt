@@ -21,8 +21,6 @@ import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.ActivityGame3Binding
 import com.diu.yk_games.line2box.databinding.DialogLayoutAlertBinding
 import com.diu.yk_games.line2box.databinding.DialogLayoutInfoBinding
-import com.diu.yk_games.line2box.pref
-import com.diu.yk_games.line2box.prefEditor
 import com.diu.yk_games.line2box.presentation.main.StartActivity
 import com.diu.yk_games.line2box.util.applyState
 import com.diu.yk_games.line2box.util.hideSystemBars
@@ -31,6 +29,7 @@ import com.diu.yk_games.line2box.util.isMuted
 import com.diu.yk_games.line2box.util.isNotMuted
 import com.diu.yk_games.line2box.util.loadDrawable
 import com.diu.yk_games.line2box.util.performOnClick
+import com.diu.yk_games.line2box.util.pref
 import com.diu.yk_games.line2box.util.setBounceClickListener
 import com.diu.yk_games.line2box.util.show
 import com.diu.yk_games.line2box.util.toast
@@ -77,7 +76,7 @@ class BotActivity : AppCompatActivity() {
         bestScore = 9999
 
         ifMuted()
-        isFirstRun = pref.getBoolean("firstRun", true)
+        isFirstRun = pref.read("firstRun", true)
 
         binding.volBtn.performOnClick()
         binding.ideaBtn.setBounceClickListener {
@@ -579,7 +578,7 @@ class BotActivity : AppCompatActivity() {
                             if (getColorGrad(bgDownR) != white) countColoredDn++
                         }
                         if ((countColoredUp > 1 || countColoredDn > 1) && !(countColoredUp == 3 || countColoredDn == 3)) {
-                            Log.d("TAG", "lineClick: AI in random countColored u d. clk cnt: "+clickCount)
+                            Log.d("TAG", "lineClick: AI in random countColored u d. clk cnt: $clickCount")
                             if (lineIdTemp.size == 1) {
                                 randLineIdNm = lineIdTemp[0]
                                 break
@@ -592,7 +591,7 @@ class BotActivity : AppCompatActivity() {
                         } else break
                     }
 
-                    Log.d("TAG", "AiLineClick: "+randLineIdNm+" Up- "+countColoredUp+" Dn- "+countColoredDn)
+                    Log.d("TAG", "AiLineClick: $randLineIdNm Up- $countColoredUp Dn- $countColoredDn")
                     val lineId = resources.getIdentifier(randLineIdNm, "id", packageName)
                     delay(800)
                     clickEnabled = true
@@ -666,7 +665,7 @@ class BotActivity : AppCompatActivity() {
     }
 
     private fun infoShow(finish: (() -> Unit)? = null) {
-        if (isFirstRun) prefEditor.putBoolean("firstRun", false).apply()
+        if (isFirstRun) pref.save("firstRun", false)
         var i = 0
         val gifs = intArrayOf(
             R.drawable.g0,

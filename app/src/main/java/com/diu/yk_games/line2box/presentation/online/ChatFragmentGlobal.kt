@@ -19,11 +19,11 @@ import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.DialogLayoutProfileBinding
 import com.diu.yk_games.line2box.databinding.FragmentChatGlobalBinding
 import com.diu.yk_games.line2box.model.GameProfile
-import com.diu.yk_games.line2box.pref
 import com.diu.yk_games.line2box.presentation.MainViewModel
 import com.diu.yk_games.line2box.presentation.MsgListAdapter
 import com.diu.yk_games.line2box.util.collectWithLifecycle
 import com.diu.yk_games.line2box.util.gone
+import com.diu.yk_games.line2box.util.pref
 import com.diu.yk_games.line2box.util.setBounceClickListener
 import com.diu.yk_games.line2box.util.setClipBoardData
 import com.diu.yk_games.line2box.util.toast
@@ -64,7 +64,7 @@ class ChatFragmentGlobal : Fragment() {
 
         msgListAdapter.onClickListener = { msg ->
             //presentationEco str = (presentationEco)o; //As you are using Default String Adapter
-            if (!pref.getBoolean("muted", false)) {
+            if (!pref.read("muted", false)) {
                 val mediaPlayer =
                     MediaPlayer.create(activity, R.raw.btn_click_ef)
                 mediaPlayer.start()

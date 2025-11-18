@@ -2,7 +2,6 @@ package com.diu.yk_games.line2box.presentation
 
 import android.os.Bundle
 import android.util.Log
-import androidx.core.content.edit
 import androidx.core.os.bundleOf
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -14,9 +13,10 @@ import com.diu.yk_games.line2box.model.MsgStore.Type
 import com.diu.yk_games.line2box.model.toMessage
 import com.diu.yk_games.line2box.model.toPlayerInfo
 import com.diu.yk_games.line2box.model.typeEnum
-import com.diu.yk_games.line2box.pref
 import com.diu.yk_games.line2box.util.log
+import com.diu.yk_games.line2box.util.pref
 import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
 import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -36,7 +36,9 @@ class MainViewModel(
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
+    val firebaseAuth by lazy { Firebase.auth }
     val database by lazy { Firebase.database }
+    val firestore by lazy { Firebase.firestore }
     val globalChatRef by lazy { database.getReference("globalChat") }
     val multiPlayerRef by lazy { database.getReference("MultiPlayer") }
     val scoreBoardKey  //fake key
@@ -49,7 +51,9 @@ class MainViewModel(
             value.apply()
         }
     private var _gameProfile: GameProfile? = null
+    var onlineStatus =""
 
+    val isLoading = savedStateHandle.getStateFlow("isLoading", true)
     val globalChatList = savedStateHandle.getStateFlow("globalChatList", emptyList<MsgStore>())
     val friendsChatList = savedStateHandle.getStateFlow("friendsChatList", emptyList<MsgStore>())
 
@@ -87,8 +91,13 @@ class MainViewModel(
 
     val isNewMsgBoltVisible = savedStateHandle.getStateFlow("isNewMsgBoltVisible", false)
 
+
     fun setNewMsgBoltVisible(value: Boolean) {
         savedStateHandle["isNewMsgBoltVisible"] = value
+    }
+
+    fun setLoading(value: Boolean) {
+        savedStateHandle["isLoading"] = value
     }
 
     fun initGameProfile(playerId: String = this@MainViewModel.playerId, loadGlobalChat: Boolean = true) {
@@ -109,7 +118,7 @@ class MainViewModel(
         if (key.isNullOrEmpty()) return
         viewModelScope.launch(Dispatchers.IO){
             savedStateHandle["tempKeys"] = (tempKeys + key).distinct()
-            pref.edit { putString("tmpKey", key) }
+            pref.save("tmpKey", key)
             tempKeys.log("tempKeys")
         }
     }
@@ -124,13 +133,13 @@ class MainViewModel(
     fun clearTempMatches() {
         viewModelScope.launch(Dispatchers.IO){
             savedStateHandle["friendsChatList"] = emptyList<MsgStore>()
-            tempKeys.forEach{
+            tempKeys.forEach {
                 if(it == matchKey)
                     matchKey = ""
                 multiPlayerRef.child(it).removeValue()
                 savedStateHandle["tempKeys"] = tempKeys - it
-                pref.getString("tmpKey", null)?.let { tmp ->
-                    if(tmp == it) pref.edit { remove("tmpKey") }
+                pref.read<String?>("tmpKey", null)?.let { tmp ->
+                    if(tmp == it) pref.remove("tmpKey")
                 }
             }
         }
@@ -138,9 +147,9 @@ class MainViewModel(
 
     fun removeTempMatch() {
         viewModelScope.launch(Dispatchers.IO){
-            pref.getString("tmpKey", null)?.let {
+            pref.read<String?>("tmpKey", null)?.let {
                 multiPlayerRef.child(it).removeValue()
-                pref.edit { remove("tmpKey") }
+                pref.remove("tmpKey")
             }
         }
     }
@@ -325,7 +334,7 @@ class MainViewModel(
         if (msg.gameId.length != 4) return defError()
         val gameRoom = getValidMatch(msg.gameId) ?: return defError()
         val fullKey = gameRoom.key
-        pref.edit { putString("tmpKey", fullKey) }
+        pref.save("tmpKey", fullKey)
 
 //        val gameRoom = suspendCoroutine<GameRoom?> { cont ->
 //            multiPlayerRef.child(fullKey)
@@ -379,5 +388,49 @@ class MainViewModel(
         )
 
     }
+
+
+
+    val countryEmojis = ArrayList(
+        listOf(
+            "🇦🇫", "🇦🇱", "🇩🇿", "🇦🇩", "🇦🇴", "🇦🇬", "🇦🇷", "🇦🇲", "🇦🇺", "🇦🇹", "🇦🇿", "🇧🇸", "🇧🇭", "🇧🇩", "🇧🇧", "🇧🇾", "🇧🇪",
+            "🇧🇿", "🇧🇯", "🇧🇹", "🇧🇴", "🇧🇦", "🇧🇼", "🇧🇷", "🇧🇳", "🇧🇬", "🇧🇫", "🇧🇮", "🇨🇻", "🇰🇭", "🇨🇲", "🇨🇦", "🇨🇫", "🇹🇩",
+            "🇨🇱", "🇨🇳", "🇨🇴", "🇰🇲", "🇨🇩", "🇨🇷", "🇭🇷", "🇨🇺", "🇨🇾", "🇨🇿", "🇨🇮", "🇩🇰", "🇩🇯", "🇩🇲", "🇩🇴", "🇨🇩", "🇪🇨",
+            "🇪🇬", "🇸🇻", "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "🇬🇶", "🇪🇷", "🇪🇪", "🇸🇿", "🇪🇹", "🇫🇯", "🇫🇮", "🇫🇷", "🇬🇦", "🇬🇲", "🇬🇪", "🇩🇪", "🇬🇭", "🇬🇷",
+            "🇬🇩", "🇬🇹", "🇬🇳", "🇬🇼", "🇬🇾", "🇭🇹", "🇭🇳", "🇭🇰", "🇭🇺", "🇮🇸", "🇮🇳", "🇮🇩", "🇮🇷", "🇮🇶", "🇮🇪", "🇮🇱", "🇮🇹",
+            "🇯🇲", "🇯🇵", "🇯🇴", "🇰🇿", "🇰🇪", "🇰🇮", "🇰🇼", "🇰🇬", "🇱🇦", "🇱🇻", "🇱🇧", "🇱🇸", "🇱🇷", "🇱🇾", "🇱🇮", "🇱🇹", "🇱🇺",
+            "🇲🇬", "🇲🇼", "🇲🇾", "🇲🇻", "🇲🇱", "🇲🇹", "🇲🇭", "🇲🇶", "🇲🇺", "🇲🇽", "🇫🇲", "🇲🇩", "🇲🇨", "🇲🇳", "🇲🇪", "🇲🇦", "🇲🇿",
+            "🇲🇲", "🇳🇦", "🇳🇷", "🇳🇵", "🇳🇱", "🇳🇿", "🇳🇮", "🇳🇪", "🇳🇬", "🇰🇵", "🇲🇰", "🇳🇴", "🇴🇲", "🇵🇰", "🇵🇼", "🇵🇸", "🇵🇦",
+            "🇵🇬", "🇵🇾", "🇵🇪", "🇵🇭", "🇵🇱", "🇵🇹", "🇶🇦", "🇷🇴", "🇷🇺", "🇷🇼", "🇰🇳", "🇱🇨", "🇻🇨", "🇼🇸", "🇸🇲", "🇸🇹", "🇸🇦",
+            "🏴󠁧󠁢󠁳󠁣󠁴󠁿", "🇸🇳", "🇷🇸", "🇸🇨", "🇸🇱", "🇸🇬", "🇸🇰", "🇸🇮", "🇸🇧", "🇸🇴", "🇿🇦", "🇰🇷", "🇸🇸", "🇪🇸", "🇱🇰", "🇸🇩", "🇸🇷",
+            "🇸🇪", "🇨🇭", "🇸🇾", "🇹🇼", "🇹🇯", "🇹🇿", "🇹🇭", "🇹🇱", "🇹🇬", "🇹🇴", "🇹🇹", "🇹🇳", "🇹🇷", "🇹🇲", "🇹🇻", "🇺🇬", "🇺🇦",
+            "🇦🇪", "🇬🇧", "🇺🇸", "🇺🇾", "🇺🇿", "🇻🇺", "🇻🇪", "🇻🇳", "🇾🇪", "🇿🇲", "🇿🇼"
+        )
+    )
+    val countryNm = ArrayList(
+        listOf(
+            "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei",
+            "Bulgaria", "Burkina Faso", "Burundi", "Cabo Verde", "Cambodia", "Cameroon", "Canada", "Central African Republic", "Chad", "Chile", "China", "Colombia", "Comoros", "Congo", "Costa Rica", "Croatia", "Cuba", "Cyprus", "Czechia", "Côte d'Ivoire", "Denmark", "Djibouti", "Dominica", "Dominican Republic", "DR Congo",
+            "Ecuador", "Egypt", "El Salvador", "England", "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini (Swaziland)", "Ethiopia", "Fiji", "Finland", "France", "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana", "Haiti", "Honduras", "Hong Kong", "Hungary",
+            "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy", "Jamaica", "Japan", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Kuwait", "Kyrgyzstan", "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein", "Lithuania", "Luxembourg", "Madagascar", "Malawi", "Malaysia", "Maldives",
+            "Mali", "Malta", "Marshall Islands", "Martinique", "Mauritius", "Mexico", "Micronesia", "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar", "Namibia", "Nauru", "Nepal", "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", "North Korea", "North Macedonia", "Norway", "Oman",
+            "Pakistan", "Palau", "Palestine", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Poland", "Portugal", "Qatar", "Romania", "Russia", "Rwanda", "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent", "Samoa", "San Marino", "São Tomé and Príncipe", "Saudi Arabia", "Scotland", "Senegal", "Serbia",
+            "Seychelles", "Sierra Leone", "Singapore", "Slovakia", "Slovenia", "Solomon Islands", "Somalia", "South Africa", "South Korea", "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", "Switzerland", "Syria", "Taiwan", "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo", "Tonga",
+            "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan", "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "United States", "Uruguay", "Uzbekistan", "Vanuatu", "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"
+        )
+    )
+
+    val countryList = listOf(
+        "Afghanistan" to "🇦🇫", "Albania" to "🇦🇱", "Algeria" to "🇩🇿", "Andorra" to "🇦🇩", "Angola" to "🇦🇴", "Antigua and Barbuda" to "🇦🇬", "Argentina" to "🇦🇷", "Armenia" to "🇦🇲", "Australia" to "🇦🇺", "Austria" to "🇦🇹", "Azerbaijan" to "🇦🇿", "Bahamas" to "🇧🇸", "Bahrain" to "🇧🇭", "Bangladesh" to "🇧🇩", "Barbados" to "🇧🇧", "Belarus" to "🇧🇾",
+        "Belgium" to "🇧🇪", "Belize" to "🇧🇿", "Benin" to "🇧🇯", "Bhutan" to "🇧🇹", "Bolivia" to "🇧🇴", "Bosnia and Herzegovina" to "🇧🇦", "Botswana" to "🇧🇼", "Brazil" to "🇧🇷", "Brunei" to "🇧🇳", "Bulgaria" to "🇧🇬", "Burkina Faso" to "🇧🇫", "Burundi" to "🇧🇮", "Cabo Verde" to "🇨🇻", "Cambodia" to "🇰🇭", "Cameroon" to "🇨🇲", "Canada" to "🇨🇦",
+        "Central African Republic" to "🇨🇫", "Chad" to "🇹🇩", "Chile" to "🇨🇱", "China" to "🇨🇳", "Colombia" to "🇨🇴", "Comoros" to "🇰🇲", "Congo" to "🇨🇩", "Costa Rica" to "🇨🇷", "Croatia" to "🇭🇷", "Cuba" to "🇨🇺", "Cyprus" to "🇨🇾", "Czechia" to "🇨🇿", "Côte d'Ivoire" to "🇨🇮", "Denmark" to "🇩🇰", "Djibouti" to "🇩🇯", "Dominica" to "🇩🇲",
+        "Dominican Republic" to "🇩🇴", "DR Congo" to "🇨🇩", "Ecuador" to "🇪🇨", "Egypt" to "🇪🇬", "El Salvador" to "🇸🇻", "England" to "🏴", "Equatorial Guinea" to "🇬🇶", "Eritrea" to "🇪🇷", "Estonia" to "🇪🇪", "Eswatini (Swaziland)" to "🇸🇿", "Ethiopia" to "🇪🇹", "Fiji" to "🇫🇯", "Finland" to "🇫🇮", "France" to "🇫🇷", "Gabon" to "🇬🇦", "Gambia" to "🇬🇲",
+        "Georgia" to "🇬🇪", "Germany" to "🇩🇪", "Ghana" to "🇬🇭", "Greece" to "🇬🇷", "Grenada" to "🇬🇩", "Guatemala" to "🇬🇹", "Guinea" to "🇬🇳", "Guinea-Bissau" to "🇬🇼", "Guyana" to "🇬🇾", "Haiti" to "🇭🇹", "Honduras" to "🇭🇳", "Hong Kong" to "🇭🇰", "Hungary" to "🇭🇺", "Iceland" to "🇮🇸", "India" to "🇮🇳", "Indonesia" to "🇮🇩", "Iran" to "🇮🇷",
+        "Iraq" to "🇮🇶", "Ireland" to "🇮🇪", "Italy" to "🇮🇹", "Jamaica" to "🇯🇲", "Japan" to "🇯🇵", "Jordan" to "🇯🇴", "Kazakhstan" to "🇰🇿", "Kenya" to "🇰🇪", "Kiribati" to "🇰🇮", "Kuwait" to "🇰🇼", "Kyrgyzstan" to "🇰🇬", "Laos" to "🇱🇦", "Latvia" to "🇱🇻", "Lebanon" to "🇱🇧", "Lesotho" to "🇱🇸", "Liberia" to "🇱🇷", "Libya" to "🇱🇾", "Liechtenstein" to "🇱🇮",
+        "Lithuania" to "🇱🇹", "Luxembourg" to "🇱🇺", "Madagascar" to "🇲🇬", "Malawi" to "🇲🇼", "Malaysia" to "🇲🇾", "Maldives" to "🇲🇻", "Mali" to "🇲🇱", "Malta" to "🇲🇹", "Marshall Islands" to "🇲🇭", "Mexico" to "🇲🇽", "Moldova" to "🇲🇩", "Monaco" to "🇲🇨", "Mongolia" to "🇲🇳", "Montenegro" to "🇲🇪", "Morocco" to "🇲🇦", "Mozambique" to "🇲🇿",
+        "Myanmar" to "🇲🇲", "Namibia" to "🇳🇦", "Nauru" to "🇳🇷", "Nepal" to "🇳🇵", "Netherlands" to "🇳🇱", "New Zealand" to "🇳🇿", "Nicaragua" to "🇳🇮", "Niger" to "🇳🇪", "Nigeria" to "🇳🇬", "North Korea" to "🇰🇵", "North Macedonia" to "🇲🇰", "Norway" to "🇳🇴", "Oman" to "🇴🇲", "Pakistan" to "🇵🇰", "Palestine" to "🇵🇸", "Panama" to "🇵🇦", "Papua New Guinea" to "🇵🇬",
+        "Paraguay" to "🇵🇾", "Peru" to "🇵🇪", "Philippines" to "🇵🇭", "Poland" to "🇵🇱", "Portugal" to "🇵🇹", "Qatar" to "🇶🇦", "Romania" to "🇷🇴", "Russia" to "🇷🇺", "Rwanda" to "🇷🇼", "Saudi Arabia" to "🇸🇦", "Scotland" to "🏴", "Serbia" to "🇷🇸", "South Korea" to "🇰🇷", "Spain" to "🇪🇸", "Sri Lanka" to "🇱🇰", "Turkey" to "🇹🇷", "United Arab Emirates" to "🇦🇪",
+        "United Kingdom" to "🇬🇧", "United States" to "🇺🇸", "Uruguay" to "🇺🇾", "Uzbekistan" to "🇺🇿", "Vanuatu" to "🇻🇺", "Venezuela" to "🇻🇪", "Vietnam" to "🇻🇳", "Yemen" to "🇾🇪", "Zambia" to "🇿🇲", "Zimbabwe" to "🇿🇼"
+    )
 
 }

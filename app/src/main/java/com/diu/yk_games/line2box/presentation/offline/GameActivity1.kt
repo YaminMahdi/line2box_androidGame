@@ -23,8 +23,6 @@ import com.diu.yk_games.line2box.databinding.ActivityGame1Binding
 import com.diu.yk_games.line2box.databinding.DialogLayoutAlertBinding
 import com.diu.yk_games.line2box.databinding.DialogLayoutInfoBinding
 import com.diu.yk_games.line2box.model.DataStore
-import com.diu.yk_games.line2box.pref
-import com.diu.yk_games.line2box.prefEditor
 import com.diu.yk_games.line2box.util.applyState
 import com.diu.yk_games.line2box.util.gone
 import com.diu.yk_games.line2box.util.hideSystemBars
@@ -34,6 +32,7 @@ import com.diu.yk_games.line2box.util.isNotMuted
 import com.diu.yk_games.line2box.util.loadDrawable
 import com.diu.yk_games.line2box.util.onBackPressedIgnoreCallback
 import com.diu.yk_games.line2box.util.performOnClick
+import com.diu.yk_games.line2box.util.pref
 import com.diu.yk_games.line2box.util.setBounceClickListener
 import com.diu.yk_games.line2box.util.setNavStatusPadding
 import com.diu.yk_games.line2box.util.show
@@ -106,7 +105,7 @@ class GameActivity1 : AppCompatActivity() {
         bestScore = 9999
         one = true
         ifMuted()
-        isFirstRun = pref.getBoolean("firstRun", true)
+        isFirstRun = pref.read("firstRun", true)
         if (flag) {
             binding.nmFragment.show()
 //            val fm = supportFragmentManager
@@ -541,8 +540,8 @@ class GameActivity1 : AppCompatActivity() {
                 }
             }
             if (scoreRed + scoreBlue == 36) {
-                var winOffline = pref.getInt("winOffline", 0)
-                prefEditor.putInt("winOffline", ++winOffline).apply()
+                var winOffline = pref.read("winOffline", 0)
+                pref.save("winOffline", ++winOffline)
                 val handler = Handler()
                 handler.postDelayed({
                     isNotMuted {
@@ -638,7 +637,7 @@ class GameActivity1 : AppCompatActivity() {
     }
 
     private fun infoShow() {
-        if (isFirstRun) prefEditor.putBoolean("firstRun", false).apply()
+        if (isFirstRun) pref.save("firstRun", false)
         var i = 0
         val gifs = intArrayOf(
             R.drawable.g0,
@@ -945,9 +944,9 @@ class GameActivity1 : AppCompatActivity() {
                         bestScore <= scoreBlue -> ds.blueData
                         else -> null
                     }
-                    data?.let {
+                    data?.let { info ->
                         db.collection("LastBestPlayer").document("LastBestPlayer")
-                            .update("info", it)
+                            .update("info", info)
                     }
                 }
             //multiple

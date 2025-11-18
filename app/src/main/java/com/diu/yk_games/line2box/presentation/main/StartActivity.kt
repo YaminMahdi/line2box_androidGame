@@ -26,8 +26,6 @@ import com.diu.yk_games.line2box.model.ErrorType
 import com.diu.yk_games.line2box.model.GameProfile
 import com.diu.yk_games.line2box.model.HadithStore
 import com.diu.yk_games.line2box.model.msg
-import com.diu.yk_games.line2box.pref
-import com.diu.yk_games.line2box.prefEditor
 import com.diu.yk_games.line2box.presentation.BlankFragment
 import com.diu.yk_games.line2box.presentation.MainViewModel
 import com.diu.yk_games.line2box.presentation.bot.GameActivity3
@@ -46,6 +44,7 @@ import com.diu.yk_games.line2box.util.loadDrawable
 import com.diu.yk_games.line2box.util.log
 import com.diu.yk_games.line2box.util.onBackPressedIgnoreCallback
 import com.diu.yk_games.line2box.util.performOnClick
+import com.diu.yk_games.line2box.util.pref
 import com.diu.yk_games.line2box.util.setBounceClickListener
 import com.diu.yk_games.line2box.util.setNavStatusPadding
 import com.diu.yk_games.line2box.util.show
@@ -76,7 +75,7 @@ class StartActivity : AppCompatActivity() {
     private lateinit var binding: ActivityStartBinding
     private val viewModel: MainViewModel by viewModels()
     private var scrBrdVisible = false
-    private val isFirstRun: Boolean by lazy { pref.getBoolean("firstRun", true) }
+    private val isFirstRun: Boolean by lazy { pref.read("firstRun", true) }
     companion object {
         private const val TAG = "TAG: StartActivity"
         private var showHadith = true
@@ -164,7 +163,7 @@ class StartActivity : AppCompatActivity() {
         //if(isFirstRun)
 
 //        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_GAMES_SIGN_IN)
-//                .requestServerAuthCode(getString(R.string.default_web_client_id))
+//                .requestServerAuthCode(read(R.string.default_web_client_id))
 //                .build()
         //window.insetsController?.hide(WindowInsets.Type.statusBars())
 //        WindowInsetsControllerCompat(window, binding.root).let { controller ->
@@ -264,12 +263,12 @@ class StartActivity : AppCompatActivity() {
                                             val profileNeeded = viewModel.playerId != player.playerId
                                             viewModel.playerId = player.playerId
                                             player.playerId.log("playerId")
-                                            if (profileNeeded || pref.getBoolean("needProfile", true)) {
+                                            if (profileNeeded || pref.read("needProfile", true)) {
                                                 db.collection("gamerProfile")
                                                     .document(player.playerId)
                                                     .get().addOnSuccessListener { document ->
                                                         if (document.exists()) {
-                                                            prefEditor.putBoolean("needProfile", false).apply()
+                                                            pref.save("needProfile", false)
                                                             loadProfileFromServer()
                                                             Log.d(TAG, "Profile exists!")
                                                             toast( "Profile Exists and Loaded!")
@@ -277,8 +276,8 @@ class StartActivity : AppCompatActivity() {
                                                             Log.d(TAG, "Profile does not exist!")
                                                             setupNewUserProfile()
                                                         }
-                                                    }.addOnFailureListener {
-                                                        Log.d(TAG, "Failed with: ", it)
+                                                    }.addOnFailureListener { t ->
+                                                        Log.d(TAG, "Failed with: ", t)
                                                         onlineStatus = "needReload"
                                                         loadingUI.stop()
                                                     }
@@ -368,8 +367,8 @@ class StartActivity : AppCompatActivity() {
                 val je = g.fromJson(bodyTxt, JsonElement::class.java)
                 val jd = je.asJsonObject
                 Log.d(TAG, "JsonData.class ip: $jd")
-                prefEditor.putString("cityNm", jd["city"].asString).apply()
-                prefEditor.putString("query", jd["query"].asString).apply()
+                pref.save("cityNm", jd["city"].asString)
+                pref.save("query", jd["query"].asString)
                 var country = jd["country"].asString
                 var tmp = 0
                 if (country == "Israel") {
@@ -379,15 +378,15 @@ class StartActivity : AppCompatActivity() {
                 val index = countryNm.indexOf(jd["country"].asString)
                 Log.d(TAG, "onCreate: index $index")
                 if (index != -1)
-                    prefEditor.putString("countryEmoji", countryEmojis[index]).apply()
+                    pref.save("countryEmoji", countryEmojis[index])
                 if (tmp == 1)
                     country = "Palestina"
-                prefEditor.putString("countryNm", country).apply()
-                Log.d(TAG, "onCreate: emo " + pref.getString("countryEmoji", ""))
+                pref.save("countryNm", country)
+                Log.d(TAG, "onCreate: emo " + pref.read("countryEmoji", ""))
                 val upLoc = GameProfile()
                 upLoc.playerId = viewModel.playerId
-                upLoc.countryEmoji = pref.getString("countryEmoji", "")!!
-                upLoc.countryNm = pref.getString("countryNm", "")!!
+                upLoc.countryEmoji = pref.read("countryEmoji", "")
+                upLoc.countryNm = pref.read("countryNm", "")
                 //if(!upLoc.countryNm.equals(""))
                 db.collection("gamerProfile").document(viewModel.playerId).set(upLoc)
                 //})
@@ -422,7 +421,7 @@ class StartActivity : AppCompatActivity() {
 
             db.collection("gamerProfile").document(viewModel.playerId).set(gameProfile)
                 .addOnSuccessListener {
-                    prefEditor.putBoolean("needProfile", false).apply()
+                    pref.save("needProfile", false)
                     onlineStatus = "pass"
                     loadingUI.stop()
                     Log.d(TAG, "onSuccess: Profile Created")
@@ -500,7 +499,7 @@ class StartActivity : AppCompatActivity() {
         val alertDialog = builder.create()
         dialogBinding.googlePlayWarning.gone()
         dialogBinding.warningMessage.text = errorType.msg
-        val needProfile = pref.getBoolean("needProfile", true)
+        val needProfile = pref.read("needProfile", true)
         when(errorType){
             ErrorType.NoInternet -> {
                 if (!needProfile) {
@@ -522,7 +521,7 @@ class StartActivity : AppCompatActivity() {
                 mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
             }
             alertDialog.dismiss()
-            if (pref.getBoolean("needProfile", true))
+            if (pref.read("needProfile", true))
                 recreate()
         }
         dialogBinding.playSvLink.setBounceClickListener {
@@ -589,7 +588,7 @@ class StartActivity : AppCompatActivity() {
                         if (hadith.t == "h") headTxt.text =
                             "Read a Hadith" else if (hadith.t == "q") headTxt.text =
                             "Read from Quran"
-                        if (pref.getString("lang", "bn") == "bn") {
+                        if (pref.read("lang", "bn") == "bn") {
                             narratorInfo.text = hadith.b
                             hadithTxt.text = hadith.bn
                             narratorInfo.typeface = resources.getFont(R.font.paapri)
@@ -619,7 +618,7 @@ class StartActivity : AppCompatActivity() {
                                 narratorInfo.typeface = resources.getFont(R.font.comfortaa)
                                 hadithTxt.typeface = resources.getFont(R.font.comfortaa)
                                 hadithTxt.setLineSpacing(7f, 1f)
-                                prefEditor.putString("lang", "en").apply()
+                                pref.save("lang", "en")
                                 langBtn.text = "BN"
                             } else {
                                 narratorInfo.text = hadith.b
@@ -627,7 +626,7 @@ class StartActivity : AppCompatActivity() {
                                 narratorInfo.typeface = resources.getFont(R.font.paapri)
                                 hadithTxt.typeface = resources.getFont(R.font.paapri)
                                 hadithTxt.setLineSpacing(0f, 1f)
-                                prefEditor.putString("lang", "bn").apply()
+                                pref.save("lang", "bn")
                                 langBtn.text = "EN"
                             }
                         }

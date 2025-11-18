@@ -3,20 +3,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context=".presentation.main.StartActivity">
-
-
-    <androidx.appcompat.widget.AppCompatImageView
-        android:id="@+id/background_image_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:contentDescription="@string/background"
-        android:scaleType="centerCrop"
-        android:src="@drawable/bg1"
-        app:tint="#650D1C67"
-        app:tintMode="src_atop" />
 
     <LinearLayout
         android:id="@+id/globalScoreFrag"

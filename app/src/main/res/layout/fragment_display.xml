@@ -4,52 +4,88 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginHorizontal="20dp"
-    android:layout_marginTop="50dp"
-    android:layout_marginBottom="20dp"
-    android:background="@drawable/box"
     android:orientation="vertical"
-    android:padding="20dp"
     tools:context=".presentation.main.DisplayFragment">
+
+    <TextView
+        android:id="@+id/FragLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/_14sdp"
+        android:fontFamily="@font/sortie"
+        android:gravity="center"
+        android:maxLines="1"
+        android:text="Global Score Board"
+        android:textColor="@color/white"
+        android:textSize="@dimen/_28ssp"
+        tools:ignore="HardcodedText" />
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="5dp"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="50dp"
+        android:background="@drawable/box"
+        android:orientation="vertical"
+        android:padding="20dp">
 
-        >
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
-            android:fontFamily="@font/sortie"
-            android:text="@string/last_best_score"
-            android:textColor="@color/white"
-            android:textSize="18sp"
-
-            />
-
-        <TextView
-            android:id="@+id/lastBestScore"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="9dp"
-            android:fontFamily="@font/sortie"
-            android:gravity="end"
-            android:paddingVertical="3sp"
-            android:text=""
-            android:textColor="@color/white"
-            android:textSize="18sp"
+            android:layout_marginBottom="5dp"
 
-            />
+            >
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:fontFamily="@font/sortie"
+                android:text="@string/last_best_score"
+                android:textColor="@color/white"
+                android:textSize="18sp"
+
+                />
+
+            <TextView
+                android:id="@+id/lastBestScore"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="9dp"
+                android:fontFamily="@font/sortie"
+                android:gravity="end"
+                android:paddingVertical="3sp"
+                android:text=""
+                android:textColor="@color/white"
+                android:textSize="18sp"
+
+                />
+        </LinearLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/showScoreList"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            tools:listitem="@layout/custom_list_view" />
+
     </LinearLayout>
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/showScoreList"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        tools:listitem="@layout/custom_list_view" />
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btnBack"
+        android:layout_width="wrap_content"
+        android:layout_height="45dp"
+        android:layout_gravity="end"
+        android:layout_margin="@dimen/_25sdp"
+        android:background="@drawable/btn_grnx_bg"
+        android:drawableStart="@drawable/icon_backword"
+        android:fontFamily="@font/sortie"
+        android:paddingHorizontal="14dp"
+        android:text="  Go Back "
+        android:textColor="@color/white"
+        android:textSize="14sp"
+        tools:ignore="HardcodedText" />
+
 
 </LinearLayout>

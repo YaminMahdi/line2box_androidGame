@@ -12,10 +12,8 @@
         android:contentDescription="@string/background"
         android:scaleType="centerCrop"
         android:src="@drawable/bg1"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:tint="#650D1C67"
+        app:tintMode="src_atop" />
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/mainNavHost"
@@ -59,9 +57,9 @@
         android:id="@+id/loadingLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="#80000000"
         android:clickable="true"
         android:focusable="true"
-        android:background="#4D000000"
         android:visibility="invisible">
 
         <androidx.appcompat.widget.AppCompatImageView
@@ -70,8 +68,7 @@
             android:layout_height="220dp"
             android:layout_gravity="center"
             android:contentDescription="@string/logo"
-            android:src="@drawable/g_loading"
-            />
+            android:src="@drawable/g_loading" />
     </FrameLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

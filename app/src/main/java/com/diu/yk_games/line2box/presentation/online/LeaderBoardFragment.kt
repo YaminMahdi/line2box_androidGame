@@ -17,9 +17,9 @@ import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.DialogLayoutProfileBinding
 import com.diu.yk_games.line2box.databinding.FragmentLeaderBoardBinding
 import com.diu.yk_games.line2box.model.GameProfile
-import com.diu.yk_games.line2box.pref
 import com.diu.yk_games.line2box.presentation.RankListAdapter
 import com.diu.yk_games.line2box.util.gone
+import com.diu.yk_games.line2box.util.pref
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.AggregateSource
 import com.google.firebase.firestore.Query
@@ -90,7 +90,7 @@ class LeaderBoardFragment : Fragment() {
         rankListAdapter.onClickListener = run@{ gamerPro ->
             if(itemClicked) return@run
             itemClicked = true
-            if (!pref.getBoolean("muted", false)) {
+            if (!pref.read("muted", false)) {
                 val mediaPlayer =
                     MediaPlayer.create(context, R.raw.btn_click_ef)
                 mediaPlayer.start()

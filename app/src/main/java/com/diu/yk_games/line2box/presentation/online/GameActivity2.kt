@@ -35,8 +35,6 @@ import com.diu.yk_games.line2box.model.DataStore
 import com.diu.yk_games.line2box.model.GameProfile
 import com.diu.yk_games.line2box.model.MsgStore
 import com.diu.yk_games.line2box.model.toMessage
-import com.diu.yk_games.line2box.pref
-import com.diu.yk_games.line2box.prefEditor
 import com.diu.yk_games.line2box.presentation.MainViewModel
 import com.diu.yk_games.line2box.presentation.ViewPagerAdapter
 import com.diu.yk_games.line2box.util.applyState
@@ -52,6 +50,7 @@ import com.diu.yk_games.line2box.util.isNotMuted
 import com.diu.yk_games.line2box.util.loadDrawable
 import com.diu.yk_games.line2box.util.onBackPressedIgnoreCallback
 import com.diu.yk_games.line2box.util.performOnClick
+import com.diu.yk_games.line2box.util.pref
 import com.diu.yk_games.line2box.util.setBounceClickListener
 import com.diu.yk_games.line2box.util.setNavStatusPadding
 import com.diu.yk_games.line2box.util.show
@@ -113,7 +112,7 @@ class GameActivity2 : AppCompatActivity() {
         blueY = ContextCompat.getColor(applicationContext, R.color.blueY)
 
         ifMuted()
-        isFirstRun = pref.getBoolean("firstRun", true)
+        isFirstRun = pref.read("firstRun", true)
         //        DrawerLayout drawer = binding.drawerLayout;
 //        NavigationView navigationView = binding.navView;
         // Passing each menu ID as a set of Ids because each
@@ -873,7 +872,7 @@ class GameActivity2 : AppCompatActivity() {
     }
 
     private fun infoShow() {
-        if (isFirstRun) prefEditor.putBoolean("firstRun", false).apply()
+        if (isFirstRun) pref.save("firstRun", false)
         var i = 0
         val gifs = intArrayOf(
             R.drawable.g0,
