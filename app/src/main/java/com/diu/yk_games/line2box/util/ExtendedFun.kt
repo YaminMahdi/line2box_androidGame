@@ -31,7 +31,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.net.toUri
 import androidx.core.os.bundleOf
-import androidx.core.view.OnApplyWindowInsetsListener
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
@@ -41,6 +40,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.NavOptionsBuilder
 import androidx.navigation.fragment.findNavController
 import coil3.imageLoader
 import coil3.request.ImageRequest
@@ -67,7 +67,6 @@ import java.util.Locale
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 ///**Flow collect from Fragment with `repeatOnLifecycle` on` lifecycleScope` till `RESUMED` */
 //context(f: Fragment)
@@ -586,11 +585,13 @@ fun ImageView.loadDrawable(data: Any?) {
 
 
 fun <T: Any> Fragment.navigateSafe(
-    route: T
+    route: T,
+    builder: NavOptionsBuilder.() -> Unit = {}
 ): Unit? {
     return try {
         closeKeyboard()
         findNavController().navigate(route){
+            builder()
             launchSingleTop = true
         }
     } catch (e: Exception) {
@@ -603,6 +604,13 @@ fun Fragment?.navigateUpSafe(): Unit? {
     return tryGet {
         closeKeyboard()
         findNavController().navigateUp().toUnitOrNull()
+    }
+}
+fun Fragment?.popBackSafe(): Unit? {
+    if(this == null) return null
+    return tryGet {
+        closeKeyboard()
+        findNavController().popBackStack().toUnitOrNull()
     }
 }
 

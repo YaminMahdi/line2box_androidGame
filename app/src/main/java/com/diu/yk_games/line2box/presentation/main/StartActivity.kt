@@ -218,7 +218,7 @@ class StartActivity : AppCompatActivity() {
                         mediaPlayer?.start()
                         mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
                     }
-                    alertDialog.dismiss()
+                    runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
                     onBackPressedIgnoreCallback()
                 }
                 dialogBinding.buttonNo.setBounceClickListener {
@@ -227,10 +227,10 @@ class StartActivity : AppCompatActivity() {
                         mediaPlayer?.start()
                         mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
                     }
-                    alertDialog.dismiss()
+                    runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
                 }
-                try { alertDialog.show() }
-                catch (e: Exception) { e.printStackTrace() }
+                runCatching { alertDialog.show() }
+                
             }
         }
 
@@ -481,7 +481,7 @@ class StartActivity : AppCompatActivity() {
         fun stop() {
             if(alertDialog.isShowing) {
                 try {
-                    alertDialog.dismiss()
+                    runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
                 } catch (ex: Exception) {
                     ex.printStackTrace()
                 }
@@ -521,7 +521,7 @@ class StartActivity : AppCompatActivity() {
                 mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
             }
             runCatching {
-                if(alertDialog.isShowing) alertDialog.dismiss()
+                if(alertDialog.isShowing) runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
             }
             if (pref.read("needProfile", true))
                 recreate()
@@ -554,8 +554,8 @@ class StartActivity : AppCompatActivity() {
             showCustomTab(Constants.RESTART_YOUTUBE_URL)
         }
         alertDialog.window?.setBackgroundDrawable(0.toDrawable())
-        try { alertDialog.show() }
-        catch (ex: Exception) { ex.printStackTrace() }
+        runCatching { alertDialog.show() }
+        
     }
 
     fun addSomeBlankHadith(db: FirebaseFirestore, x: Int) {
@@ -641,7 +641,7 @@ class StartActivity : AppCompatActivity() {
                                 mediaPlayer?.start()
                                 mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
                             }
-                            alertDialog.dismiss()
+                            runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
                         }
                         dialogBinding.srcLink.setBounceClickListener {
                             dialogBinding.srcLink.setTextColor(getColor(R.color.teal_700))
@@ -764,14 +764,14 @@ class StartActivity : AppCompatActivity() {
             if (i <= 4) i++
             if (!isFirstRun && i == 4) i++
             if (i == 1) dialogBinding.buttonPre.show()
-            if (i >= 5) alertDialog.dismiss() else {
+            if (i >= 5) runCatching { if (alertDialog.isShowing) alertDialog.dismiss() } else {
                 dialogBinding.textMessage.text = msg[i]
                 dialogBinding.playGif.loadDrawable(gifs[i])
             }
         }
         alertDialog.window?.setBackgroundDrawable(0.toDrawable())
-        try { alertDialog.show() }
-        catch (e: Exception) { e.printStackTrace() }
+        runCatching { alertDialog.show() }
+        
     }
 
     @SuppressLint("SetTextI18n")
@@ -802,11 +802,11 @@ class StartActivity : AppCompatActivity() {
                         mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
                     }
                     recreate()
-                    alertDialog.dismiss()
+                    runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
                 }
                 alertDialog.window?.setBackgroundDrawable(0.toDrawable())
-                try { alertDialog.show() }
-                catch (ex: Exception) { ex.printStackTrace() }
+                runCatching { alertDialog.show() }
+                
             }
         } else if (binding.mode3.alpha < .5){
             startActivity(Intent(this, GameActivity1::class.java))

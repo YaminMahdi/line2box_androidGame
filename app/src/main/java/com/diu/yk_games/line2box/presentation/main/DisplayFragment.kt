@@ -145,8 +145,8 @@ class DisplayFragment : Fragment() {
                         dialogBinding.plr2Nm.text = p2Pro.nm
                         dialogBinding.plr2Lvl.text = "" + p2Pro.lvl
                         alertDialog.window?.setBackgroundDrawable(0.toDrawable())
-                        try { alertDialog.show() }
-                        catch (e: Exception) { e.printStackTrace() }
+                        runCatching { alertDialog.show() }
+                        
                     }
                 var itemClicked2 =false
                 var itemClicked3 =false
@@ -215,12 +215,8 @@ class DisplayFragment : Fragment() {
         }
         alertDialog.window?.setBackgroundDrawable(0.toDrawable())
         dBinding.root.setOnClickListener {
-            alertDialog.dismiss()
+            runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
         }
-        try {
-            alertDialog.show()
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+        runCatching { alertDialog.show() }
     }
 }

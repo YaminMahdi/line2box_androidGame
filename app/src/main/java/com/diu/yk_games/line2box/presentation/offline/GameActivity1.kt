@@ -6,7 +6,6 @@ import android.graphics.Paint
 import android.graphics.drawable.GradientDrawable
 import android.media.MediaPlayer
 import android.os.Bundle
-import android.os.Handler
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -70,8 +69,6 @@ class GameActivity1 : AppCompatActivity() {
         nm2Txt.text = nm2
         if (nm1 == "Red") nm1Txt.gone()
         if (nm2 == "Blue") nm2Txt.gone()
-//        val handler = Handler()
-//        handler.postDelayed({ if (isFirstRun) infoShow() }, 200)
         lifecycleScope.launch {
             delay(200)
             if (isFirstRun) infoShow()
@@ -229,7 +226,7 @@ class GameActivity1 : AppCompatActivity() {
                     mediaPlayer.start()
                     mediaPlayer.setOnCompletionListener(MediaPlayer::release)
                 }
-                alertDialog.dismiss()
+                runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
                 flag = true
 //            onBackPressedDispatcher.onBackPressed()
 //            startActivity(Intent(this@GameActivity1, StartActivity::class.java))
@@ -241,10 +238,10 @@ class GameActivity1 : AppCompatActivity() {
                     mediaPlayer.start()
                     mediaPlayer.setOnCompletionListener(MediaPlayer::release)
                 }
-                alertDialog.dismiss()
+                runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
             }
             alertDialog.window?.setBackgroundDrawable(0.toDrawable())
-            try { alertDialog.show() } catch (npe: NullPointerException) { npe.printStackTrace() }
+            runCatching { alertDialog.show() }
         }
 
         binding.volBtn.performOnClick()
@@ -542,10 +539,10 @@ class GameActivity1 : AppCompatActivity() {
             if (scoreRed + scoreBlue == 36) {
                 var winOffline = pref.read("winOffline", 0)
                 pref.save("winOffline", ++winOffline)
-                val handler = Handler()
-                handler.postDelayed({
+                lifecycleScope.launch {
+                    delay(800)
                     isNotMuted {
-                        val mediaPlayer = MediaPlayer.create(this, R.raw.win_ef)
+                        val mediaPlayer = MediaPlayer.create(this@GameActivity1, R.raw.win_ef)
                         mediaPlayer.start()
                         mediaPlayer.setOnCompletionListener(MediaPlayer::release)
                     }
@@ -559,7 +556,7 @@ class GameActivity1 : AppCompatActivity() {
                         onGameOver("Player BLUE won the match.", winOffline)
                     else 
                         onGameOver("Match Draw.", winOffline)
-                }, 800)
+                }
             }
         }
     }
@@ -606,7 +603,7 @@ class GameActivity1 : AppCompatActivity() {
             } else {
                 recreate()
             }
-            alertDialog.dismiss()
+            runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
         }
         view.findViewById<View>(R.id.buttonNo).setBounceClickListener {
             isNotMuted {
@@ -614,17 +611,13 @@ class GameActivity1 : AppCompatActivity() {
                 mediaPlayer.start()
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release)
             }
-            alertDialog.dismiss()
+            runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
             finish()
             flag = true
             toast("Score Saved to Online Score Board")
         }
         alertDialog.window?.setBackgroundDrawable(0.toDrawable())
-        try {
-            alertDialog.show()
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+        runCatching { alertDialog.show() }
     }
 
     private fun ideaBtn() {
@@ -681,7 +674,7 @@ class GameActivity1 : AppCompatActivity() {
             if (i <= 4) i++
             if (!isFirstRun && i == 4) i++
             if (i == 1) binding.buttonPre.show()
-            if (i >= 5) alertDialog.dismiss() else {
+            if (i >= 5) runCatching { if (alertDialog.isShowing) alertDialog.dismiss() } else {
                 binding.textMessage.text = msg[i]
                 binding.playGif.loadDrawable(gifs[i])
             }

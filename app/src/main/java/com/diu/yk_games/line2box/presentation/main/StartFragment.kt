@@ -2,7 +2,6 @@ package com.diu.yk_games.line2box.presentation.main
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
-import android.content.Context
 import android.content.Intent
 import android.media.MediaPlayer
 import android.os.Bundle
@@ -12,6 +11,7 @@ import android.view.ViewGroup
 import androidx.core.app.ActivityCompat.recreate
 import androidx.core.graphics.drawable.toDrawable
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import com.diu.yk_games.line2box.BuildConfig
@@ -22,7 +22,6 @@ import com.diu.yk_games.line2box.databinding.DialogLayoutUpdateuiBinding
 import com.diu.yk_games.line2box.presentation.MainViewModel
 import com.diu.yk_games.line2box.presentation.bot.GameActivity3
 import com.diu.yk_games.line2box.presentation.navigation.Routes
-import com.diu.yk_games.line2box.presentation.offline.GameActivity1
 import com.diu.yk_games.line2box.presentation.online.MultiplayerActivity
 import com.diu.yk_games.line2box.util.applyState
 import com.diu.yk_games.line2box.util.gone
@@ -43,7 +42,7 @@ class StartFragment : Fragment() {
     private val viewModel: MainViewModel by activityViewModels()
     private val isFirstRun: Boolean by lazy { pref.read("firstRun", true) }
 
-    lateinit var safeContext: Context
+    lateinit var parentActivity: FragmentActivity
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -53,6 +52,14 @@ class StartFragment : Fragment() {
         return binding.root
     }
 
+    override fun onResume() {
+        super.onResume()
+        when (viewModel.motionProgress){
+            -1 -> binding.motionLayout.jumpToState(R.id.previous)
+            1 -> binding.motionLayout.jumpToState(R.id.next)
+        }
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupUI()
@@ -60,7 +67,7 @@ class StartFragment : Fragment() {
         setupObserver()
     }
     private fun setupUI() {
-        safeContext = requireActivity()
+        parentActivity = requireActivity()
         ifMuted()
     }
 
@@ -96,7 +103,7 @@ class StartFragment : Fragment() {
 
     private fun navigateToScoreBoard() {
         isNotMuted {
-            val mediaPlayer = MediaPlayer.create(safeContext, R.raw.btn_click_ef)
+            val mediaPlayer = MediaPlayer.create(parentActivity, R.raw.btn_click_ef)
             mediaPlayer?.start()
             mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
         }
@@ -114,7 +121,7 @@ class StartFragment : Fragment() {
 
     fun ideaBtn() {
         isNotMuted {
-            val mediaPlayer = MediaPlayer.create(safeContext, R.raw.btn_click_ef)
+            val mediaPlayer = MediaPlayer.create(parentActivity, R.raw.btn_click_ef)
             mediaPlayer?.start()
             mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
         }
@@ -137,8 +144,8 @@ class StartFragment : Fragment() {
             "Take a bonus TURN after making a BOX.",
             "Click on this button anytime to see the rules again."
         )
-        val builder = AlertDialog.Builder(safeContext)
-        val dialogBinding = DialogLayoutInfoBinding.inflate(LayoutInflater.from(safeContext))
+        val builder = AlertDialog.Builder(parentActivity)
+        val dialogBinding = DialogLayoutInfoBinding.inflate(LayoutInflater.from(parentActivity))
         builder.setView(dialogBinding.root)
         builder.setCancelable(false)
 
@@ -148,7 +155,7 @@ class StartFragment : Fragment() {
         val alertDialog = builder.create()
         dialogBinding.buttonPre.setBounceClickListener {
             isNotMuted {
-                val mediaPlayer = MediaPlayer.create(safeContext, R.raw.btn_click_ef)
+                val mediaPlayer = MediaPlayer.create(parentActivity, R.raw.btn_click_ef)
                 mediaPlayer?.start()
                 mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
             }
@@ -159,38 +166,37 @@ class StartFragment : Fragment() {
         }
         dialogBinding.buttonNext.setBounceClickListener {
             isNotMuted {
-                val mediaPlayer = MediaPlayer.create(safeContext, R.raw.btn_click_ef)
+                val mediaPlayer = MediaPlayer.create(parentActivity, R.raw.btn_click_ef)
                 mediaPlayer?.start()
                 mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
             }
             if (i <= 4) i++
             if (!isFirstRun && i == 4) i++
             if (i == 1) dialogBinding.buttonPre.show()
-            if (i >= 5) alertDialog.dismiss() else {
+            if (i >= 5) runCatching { if (alertDialog.isShowing) alertDialog.dismiss() } else {
                 dialogBinding.textMessage.text = msg[i]
                 dialogBinding.playGif.loadDrawable(gifs[i])
             }
         }
         alertDialog.window?.setBackgroundDrawable(0.toDrawable())
-        try { alertDialog.show() }
-        catch (e: Exception) { e.printStackTrace() }
+        runCatching { alertDialog.show() }
     }
 
     @SuppressLint("SetTextI18n")
     fun startBtn() {
         isNotMuted {
-            val mediaPlayer = MediaPlayer.create(safeContext, R.raw.btn_click_ef)
+            val mediaPlayer = MediaPlayer.create(parentActivity, R.raw.btn_click_ef)
             mediaPlayer?.start()
             mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
         }
         if (binding.mode1.alpha < .5) {
             if (viewModel.onlineStatus == "pass") {
-                startActivity(Intent(safeContext, MultiplayerActivity::class.java).putExtra("playerId", viewModel.playerId))
+                startActivity(Intent(parentActivity, MultiplayerActivity::class.java).putExtra("playerId", viewModel.playerId))
                 //finish()
             } else if (viewModel.onlineStatus == "needReload") {
                 //updateUI()
-                val builder = AlertDialog.Builder(safeContext)
-                val dialogBinding = DialogLayoutUpdateuiBinding.inflate(LayoutInflater.from(safeContext))
+                val builder = AlertDialog.Builder(parentActivity)
+                val dialogBinding = DialogLayoutUpdateuiBinding.inflate(LayoutInflater.from(parentActivity))
 
                 builder.setView(dialogBinding.root)
                 builder.setCancelable(false)
@@ -199,22 +205,23 @@ class StartFragment : Fragment() {
                 val alertDialog = builder.create()
                 dialogBinding.buttonUpdate.setBounceClickListener {
                     isNotMuted {
-                        val mediaPlayer = MediaPlayer.create(safeContext, R.raw.btn_click_ef)
+                        val mediaPlayer = MediaPlayer.create(parentActivity, R.raw.btn_click_ef)
                         mediaPlayer?.start()
                         mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
                     }
                     recreate(requireActivity())
-                    alertDialog.dismiss()
+                    runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
                 }
                 alertDialog.window?.setBackgroundDrawable(0.toDrawable())
-                try { alertDialog.show() }
-                catch (ex: Exception) { ex.printStackTrace() }
+                runCatching { alertDialog.show() }
             }
         } else if (binding.mode3.alpha < .5){
-            startActivity(Intent(safeContext, GameActivity1::class.java))
+            navigateSafe(Routes.ChangeName)
+            viewModel.motionProgress = -1
+//            startActivity(Intent(parentActivity, GameActivity1::class.java))
             //finish()
         } else{
-            startActivity(Intent(safeContext, GameActivity3::class.java))
+            startActivity(Intent(parentActivity, GameActivity3::class.java))
             //finish()
         }
     }

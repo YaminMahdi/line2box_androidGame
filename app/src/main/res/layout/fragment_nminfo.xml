@@ -4,100 +4,152 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="30dp"
-    android:background="@drawable/box"
     android:orientation="vertical"
-    android:padding="30dp"
     tools:context=".presentation.offline.NameInfoFragment">
 
-    <TextView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp"
-        android:fontFamily="@font/sortie"
-        android:gravity="center"
-        android:text="@string/change_name"
-        android:textColor="@color/white"
-        android:textSize="20sp" />
+        android:layout_marginHorizontal="@dimen/_16sdp"
+        android:layout_marginTop="@dimen/_5sdp"
+        android:baselineAligned="false">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="4dp"
-        android:layout_marginTop="10dp"
-        android:fontFamily="@font/sortie"
-        android:text="@string/_1st_player_name"
-        android:textColor="@color/white" />
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="horizontal">
 
-    <EditText
-        android:id="@+id/palyerRed"
+            <androidx.appcompat.widget.AppCompatImageButton
+                android:id="@+id/backBtn"
+                android:layout_width="@dimen/_36sdp"
+                android:layout_height="@dimen/_36sdp"
+                android:layout_gravity="end"
+                android:background="@drawable/btn_grn_bg"
+                android:fontFamily="@font/sortie"
+                android:paddingVertical="@dimen/_8sdp"
+                android:src="@drawable/icon_home"
+                tools:ignore="SmallSp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end">
+
+            <androidx.appcompat.widget.AppCompatImageButton
+                android:id="@+id/volBtn"
+                android:layout_width="@dimen/_36sdp"
+                android:layout_height="@dimen/_36sdp"
+                android:layout_gravity="end"
+                android:background="@drawable/btn_ylw_bg"
+                android:fontFamily="@font/sortie"
+                android:paddingVertical="@dimen/_8sdp"
+                android:src="@drawable/icon_vol_unmute"
+                tools:ignore="SmallSp" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:autofillHints="Red"
-        android:fontFamily="@font/sortie"
-        android:hint="@string/red"
-        android:inputType="text"
-        android:maxLength="8"
-        android:textColor="@color/white"
-        android:textColorHint="#CCE8E8E8" />
+        android:layout_margin="30dp"
+        android:background="@drawable/box"
+        android:orientation="vertical"
+        android:padding="30dp">
 
-    <androidx.appcompat.widget.AppCompatImageButton
-        android:id="@+id/nmSwanBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:background="@drawable/btn_special_bg"
-        android:padding="8dp"
-        android:src="@drawable/icon_swap" />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="4dp"
-        android:layout_marginTop="-15dp"
-        android:fontFamily="@font/sortie"
-        android:text="@string/second_player_name"
-        android:textColor="@color/white" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:fontFamily="@font/sortie"
+            android:gravity="center"
+            android:text="@string/change_name"
+            android:textColor="@color/white"
+            android:textSize="20sp" />
 
-    <EditText
-        android:id="@+id/palyerBlue"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:autofillHints="Blue"
-        android:fontFamily="@font/sortie"
-        android:hint="@string/blue"
-        android:inputType="text"
-        android:maxLength="8"
-        android:textColor="@color/white"
-        android:textColorHint="#CCE8E8E8" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:layout_marginTop="10dp"
+            android:fontFamily="@font/sortie"
+            android:text="@string/_1st_player_name"
+            android:textColor="@color/white" />
 
-    <androidx.appcompat.widget.AppCompatCheckBox
-        android:id="@+id/nmSaveBox"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="-20dp"
-        android:layout_marginTop="12dp"
-        android:fontFamily="@font/sortie"
-        android:scaleX="0.80"
-        android:checked="true"
-        android:scaleY="0.80"
-        android:text="@string/remember_players_name"
-        android:textColor="@color/whiteY"
-        android:textSize="17sp"
-        app:buttonTint="@color/pinkY" />
+        <EditText
+            android:id="@+id/palyerRed"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:autofillHints="Red"
+            android:fontFamily="@font/sortie"
+            android:hint="@string/red"
+            android:inputType="text"
+            android:maxLength="8"
+            android:textColor="@color/white"
+            android:textColorHint="#CCE8E8E8" />
 
-    <androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/playBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_marginTop="20dp"
-        android:layout_marginBottom="10dp"
-        android:background="@drawable/btn_pink_bg"
-        android:fontFamily="@font/sortie"
-        android:paddingHorizontal="@dimen/_20sdp"
-        android:text="@string/start_match"
-        android:textColor="@color/white"
-        android:textSize="@dimen/_20ssp" />
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/nmSwanBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:background="@drawable/btn_special_bg"
+            android:padding="8dp"
+            android:src="@drawable/icon_swap" />
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:layout_marginTop="-15dp"
+            android:fontFamily="@font/sortie"
+            android:text="@string/second_player_name"
+            android:textColor="@color/white" />
+
+        <EditText
+            android:id="@+id/palyerBlue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:autofillHints="Blue"
+            android:fontFamily="@font/sortie"
+            android:hint="@string/blue"
+            android:inputType="text"
+            android:maxLength="8"
+            android:textColor="@color/white"
+            android:textColorHint="#CCE8E8E8" />
+
+        <androidx.appcompat.widget.AppCompatCheckBox
+            android:id="@+id/nmSaveBox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="-20dp"
+            android:layout_marginTop="12dp"
+            android:checked="true"
+            android:fontFamily="@font/sortie"
+            android:scaleX="0.80"
+            android:scaleY="0.80"
+            android:text="@string/remember_players_name"
+            android:textColor="@color/whiteY"
+            android:textSize="17sp"
+            app:buttonTint="@color/pinkY" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/playBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="10dp"
+            android:background="@drawable/btn_pink_bg"
+            android:fontFamily="@font/sortie"
+            android:paddingHorizontal="@dimen/_20sdp"
+            android:text="@string/start_match"
+            android:textColor="@color/white"
+            android:textSize="@dimen/_20ssp" />
+
+    </LinearLayout>
 </LinearLayout>

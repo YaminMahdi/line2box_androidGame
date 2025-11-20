@@ -22,7 +22,7 @@ import com.diu.yk_games.line2box.databinding.FragmentChatFriendlyBinding
 import com.diu.yk_games.line2box.model.GameProfile
 import com.diu.yk_games.line2box.presentation.MainViewModel
 import com.diu.yk_games.line2box.presentation.MsgListAdapter
-import com.diu.yk_games.line2box.util.collectWithLifecycleF
+import com.diu.yk_games.line2box.util.collectWithLifecycle
 import com.diu.yk_games.line2box.util.gone
 import com.diu.yk_games.line2box.util.loadDrawable
 import com.diu.yk_games.line2box.util.pref
@@ -57,12 +57,12 @@ class ChatFragmentFriendly : Fragment() {
 //        }
         binding.showMsgList.adapter = msgListAdapter
         val mp = MediaPlayer.create(activity, R.raw.pop)
-        viewModel.friendsChatList.collectWithLifecycleF {
+        viewModel.friendsChatList.collectWithLifecycle {
             msgListAdapter.submitList(it){
                 binding.showMsgList.scrollToPosition(0)
             }
             val lastMsg = it.firstOrNull()
-            if(lastMsg?.key == lastMsgKey) return@collectWithLifecycleF
+            if(lastMsg?.key == lastMsgKey) return@collectWithLifecycle
             when(lastMsg?.msgData){
                 "🤣" -> emojiRunner(R.drawable.emoji_haha, R.raw.haha)
                 "😭" -> emojiRunner(R.drawable.emoji_cry, R.raw.cry)
@@ -130,13 +130,9 @@ class ChatFragmentFriendly : Fragment() {
                             val alertDialog = builder.create()
                             alertDialog.window?.setBackgroundDrawable(0.toDrawable())
                             binding.root.setOnClickListener {
-                                alertDialog.dismiss()
+                                runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
                             }
-                            try {
-                                alertDialog.show()
-                            } catch (npe: Exception) {
-                                npe.printStackTrace()
-                            }
+                            runCatching { alertDialog.show() }
                         }
                     }
             } else

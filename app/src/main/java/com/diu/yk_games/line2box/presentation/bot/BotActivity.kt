@@ -100,7 +100,7 @@ class BotActivity : AppCompatActivity() {
                     mediaPlayer.start()
                     mediaPlayer.setOnCompletionListener(MediaPlayer::release)
                 }
-                alertDialog.dismiss()
+                runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
                 scoreRed = 0
                 scoreBlue = 0
                 clickCount = 0
@@ -115,11 +115,11 @@ class BotActivity : AppCompatActivity() {
                     mediaPlayer.start()
                     mediaPlayer.setOnCompletionListener(MediaPlayer::release)
                 }
-                alertDialog.dismiss()
+                runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
             }
             alertDialog.window?.setBackgroundDrawable(0.toDrawable())
-            try { alertDialog.show() }
-            catch (e: Exception) { e.printStackTrace() }
+            runCatching { alertDialog.show() }
+            
         }
 
         val index = StringBuilder()
@@ -633,7 +633,7 @@ class BotActivity : AppCompatActivity() {
                 mediaPlayer.start()
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release)
             }
-            alertDialog.dismiss()
+            runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
             startActivity(Intent(this@BotActivity, BotActivity::class.java))
             finish()
         }
@@ -643,7 +643,7 @@ class BotActivity : AppCompatActivity() {
                 mediaPlayer.start()
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release)
             }
-            alertDialog.dismiss()
+            runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
             startActivity(Intent(this, StartActivity::class.java))
             finish()
             flag = true
@@ -711,7 +711,7 @@ class BotActivity : AppCompatActivity() {
             if (!isFirstRun && i == 4) i++
             if (i == 1) dialogBinding.buttonPre.show()
             if (i == 5) {
-                alertDialog.dismiss()
+                runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
                 finish?.invoke()
             } else {
                 dialogBinding.textMessage.text = msg[i]

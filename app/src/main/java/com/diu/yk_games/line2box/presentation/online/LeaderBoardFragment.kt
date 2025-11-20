@@ -135,7 +135,7 @@ class LeaderBoardFragment : Fragment() {
                         }
                         alertDialog.window?.setBackgroundDrawable(0.toDrawable())
                         dialogBinding.root.setOnClickListener {
-                            alertDialog.dismiss()
+                            runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
                         }
                         try {
                             alertDialog.show()

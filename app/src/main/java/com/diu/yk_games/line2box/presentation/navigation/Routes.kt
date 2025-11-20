@@ -1,5 +1,6 @@
 package com.diu.yk_games.line2box.presentation.navigation
 
+import com.diu.yk_games.line2box.util.isTrue
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 
@@ -11,7 +12,7 @@ sealed class Routes {
 
     @Serializable data object MultiPlayer: Routes()
 
-    @Serializable data object GameDual: Routes()
+    @Serializable data class GameDual(val nm1: String="", val nm2: String=""): Routes()
     @Serializable data object GameBot: Routes()
     @Serializable data object GameOnline: Routes()
 }
@@ -26,8 +27,11 @@ val String?.asRoute : Routes?
         Routes.LeaderBoard.serializer().route -> Routes.LeaderBoard
         Routes.ChangeName.serializer().route -> Routes.ChangeName
         Routes.MultiPlayer.serializer().route -> Routes.MultiPlayer
-        Routes.GameDual.serializer().route -> Routes.GameDual
         Routes.GameBot.serializer().route -> Routes.GameBot
         Routes.GameOnline.serializer().route -> Routes.GameOnline
-        else -> null
+        else -> if
+                (this?.startsWith(Routes.GameDual.serializer().route).isTrue())
+            Routes.GameDual()
+        else
+            null
     }

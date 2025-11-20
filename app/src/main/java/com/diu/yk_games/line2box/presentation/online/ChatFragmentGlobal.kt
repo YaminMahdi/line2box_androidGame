@@ -21,7 +21,7 @@ import com.diu.yk_games.line2box.databinding.FragmentChatGlobalBinding
 import com.diu.yk_games.line2box.model.GameProfile
 import com.diu.yk_games.line2box.presentation.MainViewModel
 import com.diu.yk_games.line2box.presentation.MsgListAdapter
-import com.diu.yk_games.line2box.util.collectWithLifecycleF
+import com.diu.yk_games.line2box.util.collectWithLifecycle
 import com.diu.yk_games.line2box.util.gone
 import com.diu.yk_games.line2box.util.pref
 import com.diu.yk_games.line2box.util.setBounceClickListener
@@ -56,7 +56,7 @@ class ChatFragmentGlobal : Fragment() {
 //        }
         binding.showMsgList.adapter = msgListAdapter
         binding.chatBoxGlobal.requestFocus()
-        viewModel.globalChatList.collectWithLifecycleF {
+        viewModel.globalChatList.collectWithLifecycle {
             msgListAdapter.submitList(it){
                 binding.showMsgList.scrollToPosition(0)
             }
@@ -105,13 +105,9 @@ class ChatFragmentGlobal : Fragment() {
                             val alertDialog = builder.create()
                             alertDialog.window?.setBackgroundDrawable(0.toDrawable())
                             binding.root.setOnClickListener {
-                                alertDialog.dismiss()
+                                runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
                             }
-                            try {
-                                alertDialog.show()
-                            } catch (e: Exception) {
-                                e.printStackTrace()
-                            }
+                            runCatching { alertDialog.show() }
                         }
                     }
             } else

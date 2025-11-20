@@ -11,9 +11,7 @@ import androidx.activity.addCallback
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.drawable.toDrawable
-import androidx.navigation.createGraph
 import androidx.navigation.fragment.NavHostFragment
-import androidx.navigation.fragment.fragment
 import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.ActivityMainDrawerBinding
 import com.diu.yk_games.line2box.databinding.DialogLayoutAlertBinding
@@ -24,10 +22,9 @@ import com.diu.yk_games.line2box.model.ErrorType
 import com.diu.yk_games.line2box.model.GameProfile
 import com.diu.yk_games.line2box.model.HadithStore
 import com.diu.yk_games.line2box.model.msg
-import com.diu.yk_games.line2box.presentation.main.DisplayFragment
-import com.diu.yk_games.line2box.presentation.main.StartFragment
 import com.diu.yk_games.line2box.presentation.navigation.Routes
 import com.diu.yk_games.line2box.presentation.navigation.asRoute
+import com.diu.yk_games.line2box.presentation.navigation.setupNavGraph
 import com.diu.yk_games.line2box.presentation.online.GameActivity2.Companion.isFirstRun
 import com.diu.yk_games.line2box.util.ConnectivityObserver
 import com.diu.yk_games.line2box.util.Constants
@@ -81,7 +78,7 @@ class MainActivity : AppCompatActivity() {
         viewModel.initGameProfile(loadGlobalChat = false)
         window.hideSystemBars()
 
-        setupNavigation()
+        navController.setupNavGraph()
 
         setupUI()
         setupListener()
@@ -102,10 +99,8 @@ class MainActivity : AppCompatActivity() {
     private fun setupListener() {
         onBackPressedDispatcher.addCallback(this) {
             when (navController.currentBackStackEntry?.destination?.route.asRoute) {
-                Routes.Home -> {
-                    showBackPressDialog()
-                }
-
+                Routes.Home -> showBackPressDialog()
+                is Routes.GameDual -> showBackPressDialog(getString(R.string.do_you_really_want_to_quit_the_match))
                 else -> onBackPressedIgnoreCallback()
             }
         }
@@ -127,7 +122,7 @@ class MainActivity : AppCompatActivity() {
                 mediaPlayer?.start()
                 mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
             }
-            alertDialog.dismiss()
+            runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
             onBackPressedIgnoreCallback()
         }
         dialogBinding.buttonNo.setBounceClickListener {
@@ -136,27 +131,14 @@ class MainActivity : AppCompatActivity() {
                 mediaPlayer?.start()
                 mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
             }
-            alertDialog.dismiss()
+            runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
         }
-        try {
-            alertDialog.show()
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+        runCatching { alertDialog.show() }
     }
 
     private fun setupObserver() {
         viewModel.isLoading.collectWithLifecycle {
             binding.loadingLayout.changeVisibility(it)
-        }
-    }
-
-    fun setupNavigation() {
-        navController.graph = navController.createGraph(
-            startDestination = Routes.Home
-        ) {
-            fragment<StartFragment, Routes.Home>()
-            fragment<DisplayFragment, Routes.ScoreBoard>()
         }
     }
 
@@ -413,7 +395,7 @@ class MainActivity : AppCompatActivity() {
                                 mediaPlayer?.start()
                                 mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
                             }
-                            alertDialog.dismiss()
+                            runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
                         }
                         dialogBinding.srcLink.setBounceClickListener {
                             dialogBinding.srcLink.setTextColor(getColor(R.color.teal_700))
@@ -429,11 +411,7 @@ class MainActivity : AppCompatActivity() {
                             showCustomTab(url)
                         }
                         alertDialog.window?.setBackgroundDrawable(0.toDrawable())
-                        try {
-                            alertDialog.show()
-                        } catch (ex: Exception) {
-                            ex.printStackTrace()
-                        }
+                        runCatching { alertDialog.show() }
                     }
             }
     }
@@ -477,7 +455,7 @@ class MainActivity : AppCompatActivity() {
                 mediaPlayer?.start()
                 mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
             }
-            alertDialog.dismiss()
+            runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
             if (pref.read("needProfile", true))
                 recreate()
         }
@@ -509,11 +487,7 @@ class MainActivity : AppCompatActivity() {
             showCustomTab(Constants.RESTART_YOUTUBE_URL)
         }
         alertDialog.window?.setBackgroundDrawable(0.toDrawable())
-        try {
-            alertDialog.show()
-        } catch (ex: Exception) {
-            ex.printStackTrace()
-        }
+        runCatching { alertDialog.show() }
     }
 
     private fun backBtn() {

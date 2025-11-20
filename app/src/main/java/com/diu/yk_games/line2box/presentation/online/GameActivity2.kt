@@ -126,9 +126,9 @@ class GameActivity2 : AppCompatActivity() {
             gameKey = it?.getString("gameKey").orEmpty()
             plr1Id = it?.getString("plr1Id").orEmpty()
             plr2Id = it?.getString("plr2Id").orEmpty()
-            playerId = if(plyr1) plr1Id else plr2Id
+            playerId = if (plyr1) plr1Id else plr2Id
         }
-        intent.extras?.let{
+        intent.extras?.let {
             it.getString("nm1")?.let { nm1 = it }
             it.getString("nm2")?.let { nm2 = it }
             lvl1 = it.getInt("lvl1")
@@ -173,7 +173,7 @@ class GameActivity2 : AppCompatActivity() {
                 ChatFragmentFriendly()
             ), this
         )
-        bindingRoot.bubbleTabBar.addBubbleListener { id  ->
+        bindingRoot.bubbleTabBar.addBubbleListener { id ->
             if (id == R.id.globalChat)
                 bindingRoot.chatPager.currentItem = 0
             else
@@ -197,7 +197,7 @@ class GameActivity2 : AppCompatActivity() {
             activityRootView.getWindowVisibleDisplayFrame(r)
             val maxHight = activityRootView.height
             val heightDiff = maxHight - r.height()
-            Log.d("TAG", "onGlobalLayout: "+"heidiff: "+heightDiff+" "+r.height()+" "+maxHight)
+            Log.d("TAG", "onGlobalLayout: heidiff: $heightDiff ${r.height()} $maxHight")
             val layout1 = findViewById<LinearLayout>(R.id.chatFragmentLinerLayout)
             val layout2 = findViewById<LinearLayout>(R.id.navCloseButtonLayout)
             if (heightDiff > 0.25 * maxHight) {
@@ -214,7 +214,7 @@ class GameActivity2 : AppCompatActivity() {
 
         matchRef = viewModel.multiPlayerRef.child(gameKey).child("matchInfo")
         chatRef = viewModel.multiPlayerRef.child(gameKey).child("friendlyChat")
-        viewModel.viewIdFromServer.collectWithLifecycle(minActiveState = Lifecycle.State.CREATED) {viewId->
+        viewModel.viewIdFromServer.collectWithLifecycle(minActiveState = Lifecycle.State.CREATED) { viewId ->
             plyrTurn = true
             lineClick(findViewById(resources.getIdentifier(viewId, "id", packageName)))
         }
@@ -239,8 +239,8 @@ class GameActivity2 : AppCompatActivity() {
         val dialogBinding = DialogLayoutAlertBinding.inflate(layoutInflater)
         val alertDialog = AlertDialog.Builder(this)
             .setView(dialogBinding.root).create()
-        onBackPressedDispatcher.addCallback(this){
-            if(bindingRoot.drawerLayout.isDrawerOpen(GravityCompat.START)) {
+        onBackPressedDispatcher.addCallback(this) {
+            if (bindingRoot.drawerLayout.isDrawerOpen(GravityCompat.START)) {
                 bindingRoot.drawerLayout.closeDrawer(GravityCompat.START)
                 return@addCallback
             }
@@ -255,7 +255,7 @@ class GameActivity2 : AppCompatActivity() {
                     mediaPlayer.setOnCompletionListener(MediaPlayer::release)
                 }
 
-                if(viewModel.localPlayerCount != 2)
+                if (viewModel.localPlayerCount != 2)
                     viewModel.multiPlayerRef.child(gameKey).removeValue()
                 else {
                     val ms = GameProfile().toMessage(
@@ -267,7 +267,7 @@ class GameActivity2 : AppCompatActivity() {
                     viewModel.multiPlayerRef.child(gameKey).child("playerCount")
                         .setValue("-1")
                 }
-                alertDialog.dismiss()
+                runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
                 onBackPressedIgnoreCallback()
             }
             dialogBinding.buttonNo.setBounceClickListener {
@@ -276,14 +276,10 @@ class GameActivity2 : AppCompatActivity() {
                     mediaPlayer.start()
                     mediaPlayer.setOnCompletionListener(MediaPlayer::release)
                 }
-                alertDialog.dismiss()
+                runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
             }
             alertDialog.window?.setBackgroundDrawable(0.toDrawable())
-            try {
-                alertDialog.show()
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
+            runCatching { alertDialog.show() }
         }
         val index = StringBuilder()
         for (i in 1..6) {
@@ -575,7 +571,11 @@ class GameActivity2 : AppCompatActivity() {
                         bgDownC2.setStroke(14, redY)
                         if (one) {
                             one = false
-                            Toast.makeText(this, "Bonus TURN for " + binding.red.text, Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                this,
+                                "Bonus TURN for " + binding.red.text,
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     } else {
                         isNotMuted {
@@ -700,6 +700,7 @@ class GameActivity2 : AppCompatActivity() {
                             plr2Cup = "-$lostCoin"
                         }
                     }
+
                     scoreRed < scoreBlue -> {
                         if (!plyr1) {
                             handleWin()
@@ -709,6 +710,7 @@ class GameActivity2 : AppCompatActivity() {
                             plr1Cup = "-$lostCoin"
                         }
                     }
+
                     else -> handleDraw()
                 }
                 // Update level after match
@@ -760,7 +762,7 @@ class GameActivity2 : AppCompatActivity() {
                 bindingRoot.drawerLayout.openDrawer(GravityCompat.START)
             }
             //recreate()
-            alertDialog.dismiss()
+            runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
         }
         dialogBinding.buttonNo.setBounceClickListener {
             isNotMuted {
@@ -768,13 +770,13 @@ class GameActivity2 : AppCompatActivity() {
                 mediaPlayer.start()
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release)
             }
-            alertDialog.dismiss()
-            if(plyr1)
+            runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
+            if (plyr1)
                 viewModel.multiPlayerRef.child(gameKey).removeValue()
             if (updatePro.matchWinMulti > 2) {
                 val manager = ReviewManagerFactory.create(this)
                 val request = manager.requestReviewFlow()
-                request.addOnCompleteListener { task->
+                request.addOnCompleteListener { task ->
                     if (task.isSuccessful) {
                         // We can get the ReviewInfo object
                         val reviewInfo = task.result
@@ -797,15 +799,14 @@ class GameActivity2 : AppCompatActivity() {
         try {
             alertDialog.show()
             lifecycleScope.launch {
-                if(win) {
-                    for (i in 0 .. coin step 4) {
+                if (win) {
+                    for (i in 0..coin step 4) {
                         delay(100)
                         dialogBinding.coinWin.text = "+$i"
                     }
                     dialogBinding.coinWin.text = "+$coin"
-                }
-                else{
-                    for (i in 0 downTo  coin step 4) {
+                } else {
+                    for (i in 0 downTo coin step 4) {
                         delay(100)
                         dialogBinding.coinWin.text = "$i"
                     }
@@ -858,6 +859,7 @@ class GameActivity2 : AppCompatActivity() {
                 ds.plr2Cup = snapshot.getValue<String>() ?: return
                 firestore.collection("ScoreBoard").document(key).set(ds)
             }
+
             override fun onCancelled(error: DatabaseError) {}
         })
     }
@@ -903,7 +905,7 @@ class GameActivity2 : AppCompatActivity() {
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release)
             }
             if (i != 0) i--
-            if (i == 0)binding.buttonPre.invisible()
+            if (i == 0) binding.buttonPre.invisible()
             binding.textMessage.text = msg[i]
             binding.playGif.loadDrawable(gifs[i])
         }
@@ -916,17 +918,15 @@ class GameActivity2 : AppCompatActivity() {
             if (i <= 4) i++
             if (!isFirstRun && i == 4) i++
             if (i == 1) binding.buttonPre.show()
-            if (i >= 5) alertDialog.dismiss() else {
+            if (i >= 5) runCatching {
+                if (alertDialog.isShowing) alertDialog.dismiss()
+            } else {
                 binding.textMessage.text = msg[i]
                 binding.playGif.loadDrawable(gifs[i])
             }
         }
         alertDialog.window?.setBackgroundDrawable(0.toDrawable())
-        try {
-            alertDialog.show()
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+        runCatching { alertDialog.show() }
     }
 
     private fun backBtn() {

@@ -519,7 +519,7 @@ class MultiplayerActivity : AppCompatActivity() {
                         mediaPlayer.start()
                         mediaPlayer.setOnCompletionListener(MediaPlayer::release)
                     }
-                    alertDialog.dismiss()
+                    runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
                     onBackPressedIgnoreCallback()
 //                super.onBackPressed()
 //                startActivity(Intent(this, StartActivity::class.java))
@@ -532,7 +532,7 @@ class MultiplayerActivity : AppCompatActivity() {
                         mediaPlayer.start()
                         mediaPlayer.setOnCompletionListener(MediaPlayer::release)
                     }
-                    alertDialog.dismiss()
+                    runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
                 }
                 alertDialog.window?.setBackgroundDrawable(0.toDrawable())
                 try {
@@ -665,14 +665,10 @@ class MultiplayerActivity : AppCompatActivity() {
                     mediaPlayer.start()
                     mediaPlayer.setOnCompletionListener(MediaPlayer::release)
                 }
-                alertDialog.dismiss()
+                runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
             }
             alertDialog.window?.setBackgroundDrawable(0.toDrawable())
-            try {
-                alertDialog.show()
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
+            runCatching { alertDialog.show() }
         }
     }
 
@@ -680,9 +676,9 @@ class MultiplayerActivity : AppCompatActivity() {
     private fun changeNameNeeded() {
         toast("Change Your Name.")
         val muted = pref.read("muted", false)
-        if(!muted) pref.save("muted", true)
+        if (!muted) pref.save("muted", true)
         profileBtn { binding ->
-            if(!muted) pref.save("muted", false)
+            if (!muted) pref.save("muted", false)
             lifecycleScope.launch {
                 delay(250)
                 binding.nmTxt.isEnabled = true
@@ -745,14 +741,10 @@ class MultiplayerActivity : AppCompatActivity() {
                 mediaPlayer.start()
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release)
             }
-            alertDialog.dismiss()
+            runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
         }
         alertDialog.window?.setBackgroundDrawable(0.toDrawable())
-        try {
-            alertDialog.show()
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+        runCatching { alertDialog.show() }
     }
 
     private fun scoreBoard() {
@@ -914,17 +906,13 @@ class MultiplayerActivity : AppCompatActivity() {
                     nmEditBtn.setImageResource(R.drawable.icon_edit)
                     editing = false
                     pref.save("needName", false)
-                    alertDialog.dismiss()
+                    runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
                 }
             }
             alertDialog.window?.setBackgroundDrawable(0.toDrawable())
         }
 
-        try {
-            alertDialog.show()
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+        runCatching { alertDialog.show() }
     }
 
     private fun closeNavBtn() {
