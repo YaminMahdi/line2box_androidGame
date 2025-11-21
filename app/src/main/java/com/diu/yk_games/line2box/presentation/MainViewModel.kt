@@ -6,6 +6,7 @@ import androidx.core.os.bundleOf
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.diu.yk_games.line2box.databinding.FragmentGameDualBinding
 import com.diu.yk_games.line2box.model.GameProfile
 import com.diu.yk_games.line2box.model.GameRoom
 import com.diu.yk_games.line2box.model.MsgStore
@@ -391,6 +392,23 @@ class MainViewModel(
         )
 
     }
+
+
+    fun getLineViewGroups(binding: FragmentGameDualBinding) = listOf(
+        binding.rh1,
+        binding.rh2,
+        binding.rh3,
+        binding.rh4,
+        binding.rh5,
+        binding.rh6,
+        binding.rh7,
+        binding.rv1,
+        binding.rv2,
+        binding.rv3,
+        binding.rv4,
+        binding.rv5,
+        binding.rv6
+    )
 
     var lineIDs = listOf(
            "r1c1T", "r1c1L", "r1c2T", "r1c2L", "r1c3T", "r1c3L", "r1c4T", "r1c4L", "r1c5T", "r1c5L", "r1c6T", "r1c6L", "r1c7L",

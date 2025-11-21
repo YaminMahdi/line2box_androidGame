@@ -100,7 +100,9 @@ class MainActivity : AppCompatActivity() {
         onBackPressedDispatcher.addCallback(this) {
             when (navController.currentBackStackEntry?.destination?.route.asRoute) {
                 Routes.Home -> showBackPressDialog()
-                is Routes.GameDual -> showBackPressDialog(getString(R.string.do_you_really_want_to_quit_the_match))
+                is Routes.GameDual, is Routes.GameBot, is Routes.GameOnline -> showBackPressDialog(
+                    getString(R.string.do_you_really_want_to_quit_the_match)
+                )
                 else -> onBackPressedIgnoreCallback()
             }
         }

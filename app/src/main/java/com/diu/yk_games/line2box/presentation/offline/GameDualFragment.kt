@@ -122,9 +122,9 @@ class GameDualFragment : Fragment() {
                         var lineTop = binding.root.findViewById<View>(idTop)
                         var lineLeft = binding.root.findViewById<View>(idLeft)
                         var lineCircle = binding.root.findViewById<View>(idCircle)
-                        var bgTop = lineTop.background as GradientDrawable
-                        var bgLeft = lineLeft.background as GradientDrawable
-                        var bgCircle = lineCircle.background as GradientDrawable
+                        var bgTop = lineTop.background.mutate() as GradientDrawable
+                        var bgLeft = lineLeft.background.mutate() as GradientDrawable
+                        var bgCircle = lineCircle.background.mutate() as GradientDrawable
                         bgTop.setColor(ContextCompat.getColor(parentActivity, R.color.whiteX))
                         bgLeft.setColor(ContextCompat.getColor(parentActivity, R.color.whiteX))
                         bgCircle.setColor(ContextCompat.getColor(parentActivity, R.color.white))
@@ -143,8 +143,8 @@ class GameDualFragment : Fragment() {
                                 resources.getIdentifier(index.toString(), "id", parentActivity.packageName)
                             lineTop = binding.root.findViewById(idTop)
                             lineCircle = binding.root.findViewById(idCircle)
-                            bgTop = lineTop.background as GradientDrawable
-                            bgCircle = lineCircle.background as GradientDrawable
+                            bgTop = lineTop.background.mutate() as GradientDrawable
+                            bgCircle = lineCircle.background.mutate() as GradientDrawable
                             bgTop.setColor(ContextCompat.getColor(parentActivity, R.color.whiteX))
                             bgCircle.setColor(ContextCompat.getColor(parentActivity, R.color.white))
                             bgCircle.setStroke(14, ContextCompat.getColor(parentActivity, R.color.whiteY))
@@ -179,8 +179,8 @@ class GameDualFragment : Fragment() {
                             idCircle = resources.getIdentifier(circle, "id", parentActivity.packageName)
                             lineLeft = binding.root.findViewById(idLeft)
                             lineCircle = binding.root.findViewById(idCircle)
-                            bgLeft = lineLeft.background as GradientDrawable
-                            bgCircle = lineCircle.background as GradientDrawable
+                            bgLeft = lineLeft.background.mutate() as GradientDrawable
+                            bgCircle = lineCircle.background.mutate() as GradientDrawable
                             bgLeft.setColor(ContextCompat.getColor(parentActivity, R.color.whiteX))
                             bgCircle.setColor(ContextCompat.getColor(parentActivity, R.color.white))
                             bgCircle.setStroke(14, ContextCompat.getColor(parentActivity, R.color.whiteY))
@@ -192,7 +192,7 @@ class GameDualFragment : Fragment() {
                                 circle = index.toString()
                                 idCircle = resources.getIdentifier(circle, "id", parentActivity.packageName)
                                 lineCircle = binding.root.findViewById(idCircle)
-                                bgCircle = lineCircle.background as GradientDrawable
+                                bgCircle = lineCircle.background.mutate() as GradientDrawable
                                 bgCircle.setColor(ContextCompat.getColor(parentActivity, R.color.white))
                                 bgCircle.setStroke(14, ContextCompat.getColor(parentActivity, R.color.whiteY))
                             }
@@ -208,37 +208,16 @@ class GameDualFragment : Fragment() {
 //                    resources.getIdentifier(it, "id", parentActivity.packageName)
 //                binding.root.findViewById<View>(lineId).setOnClickListener(::lineClick)
 //            }
-            val lineViews = listOf(
-                binding.rh1,
-                binding.rh2,
-                binding.rh3,
-                binding.rh4,
-                binding.rh5,
-                binding.rh6,
-                binding.rh7,
-                binding.rv1,
-                binding.rv2,
-                binding.rv3,
-                binding.rv4,
-                binding.rv5,
-                binding.rv6
-            )
-            lineViews.forEach { viewGroup ->
+
+            viewModel.getLineViewGroups(binding).forEach { viewGroup ->
                 repeat(viewGroup.childCount) { i ->
                     viewGroup.getChildAt(i)?.setOnClickListener(::lineClick)
                 }
             }
         }
         binding.volBtn.performOnClickF()
-        binding.ideaBtn.setBounceClickListener { ideaBtn() }
-        binding.backBtn.setBounceClickListener {
-            isNotMuted {
-                val mediaPlayer = MediaPlayer.create(parentActivity, R.raw.btn_click_ef)
-                mediaPlayer.start()
-                mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-            }
-            onBackPressed()
-        }
+        binding.ideaBtn.setBounceClickListener(::ideaBtn)
+        binding.homeBtn.setBounceClickListener(::backBtn)
     }
 
     // Hide the status bar.
@@ -250,7 +229,7 @@ class GameDualFragment : Fragment() {
     fun lineClick(view: View) {
         //Toast.makeText(parentActivity, "clicked", Toast.LENGTH_SHORT).show()
         idNm = resources.getResourceEntryName(view.id)
-        val bg = view.background as GradientDrawable
+        val bg = view.background.mutate() as GradientDrawable
         val color = getColorGrad(bg)
         var change = false
         val red = resources.getColor(R.color.redX, parentActivity.theme)
@@ -288,9 +267,9 @@ class GameDualFragment : Fragment() {
                 val lineU = binding.root.findViewById<View>(idTopU)
                 val lineL = binding.root.findViewById<View>(idTopL)
                 val lineR = binding.root.findViewById<View>(idTopR)
-                val bgTopU = lineU.background as GradientDrawable
-                val bgTopL = lineL.background as GradientDrawable
-                val bgTopR = lineR.background as GradientDrawable
+                val bgTopU = lineU.background.mutate() as GradientDrawable
+                val bgTopL = lineL.background.mutate() as GradientDrawable
+                val bgTopR = lineR.background.mutate() as GradientDrawable
                 if ((getColorGrad(bgTopU) == red || getColorGrad(bgTopU) == blue) && (getColorGrad(
                         bgTopL
                     ) == red || getColorGrad(bgTopL) == blue) && (getColorGrad(bgTopR) == red || getColorGrad(
@@ -311,10 +290,10 @@ class GameDualFragment : Fragment() {
                     val crMid2 = binding.root.findViewById<View>(idMidC2)
                     val crUp1 = binding.root.findViewById<View>(idUpC1)
                     val crUp2 = binding.root.findViewById<View>(idUpC2)
-                    val bgMidC1 = crMid1.background as GradientDrawable
-                    val bgMidC2 = crMid2.background as GradientDrawable
-                    val bgUpC1 = crUp1.background as GradientDrawable
-                    val bgUpC2 = crUp2.background as GradientDrawable
+                    val bgMidC1 = crMid1.background.mutate() as GradientDrawable
+                    val bgMidC2 = crMid2.background.mutate() as GradientDrawable
+                    val bgUpC1 = crUp1.background.mutate() as GradientDrawable
+                    val bgUpC2 = crUp2.background.mutate() as GradientDrawable
                     val txt = binding.root.findViewById<TextView>(txtId)
                     if (clickCount % 2 == 1) {
                         isNotMuted {
@@ -407,9 +386,9 @@ class GameDualFragment : Fragment() {
                 val lineDownU = binding.root.findViewById<View>(idDownU)
                 val lineDownL = binding.root.findViewById<View>(idDownL)
                 val lineDownR = binding.root.findViewById<View>(idDownR)
-                val bgDownU = lineDownU.background as GradientDrawable
-                val bgDownL = lineDownL.background as GradientDrawable
-                val bgDownR = lineDownR.background as GradientDrawable
+                val bgDownU = lineDownU.background.mutate() as GradientDrawable
+                val bgDownL = lineDownL.background.mutate() as GradientDrawable
+                val bgDownR = lineDownR.background.mutate() as GradientDrawable
                 if ((getColorGrad(bgDownU) == red || getColorGrad(bgDownU) == blue) && (getColorGrad(
                         bgDownL
                     ) == red || getColorGrad(bgDownL) == blue) && (getColorGrad(bgDownR) == red || getColorGrad(
@@ -430,10 +409,10 @@ class GameDualFragment : Fragment() {
                     val crMid2 = binding.root.findViewById<View>(idMidC2)
                     val crDown1 = binding.root.findViewById<View>(idDownC1)
                     val crDown2 = binding.root.findViewById<View>(idDownC2)
-                    val bgMidC1 = crMid1.background as GradientDrawable
-                    val bgMidC2 = crMid2.background as GradientDrawable
-                    val bgDownC1 = crDown1.background as GradientDrawable
-                    val bgDownC2 = crDown2.background as GradientDrawable
+                    val bgMidC1 = crMid1.background.mutate() as GradientDrawable
+                    val bgMidC2 = crMid2.background.mutate() as GradientDrawable
+                    val bgDownC1 = crDown1.background.mutate() as GradientDrawable
+                    val bgDownC2 = crDown2.background.mutate() as GradientDrawable
                     val txt = binding.root.findViewById<TextView>(txtId)
                     if (clickCount % 2 == 1) {
                         isNotMuted {
@@ -605,13 +584,23 @@ class GameDualFragment : Fragment() {
         runCatching { alertDialog.show() }
     }
 
-    private fun ideaBtn() {
+    @Suppress("unused")
+    private fun ideaBtn(view: View) {
         isNotMuted {
             val mediaPlayer = MediaPlayer.create(parentActivity, R.raw.btn_click_ef)
             mediaPlayer.start()
             mediaPlayer.setOnCompletionListener(MediaPlayer::release)
         }
         infoShow()
+    }
+
+    private fun backBtn(view: View) {
+        isNotMuted {
+            val mediaPlayer = MediaPlayer.create(parentActivity, R.raw.btn_click_ef)
+            mediaPlayer.start()
+            mediaPlayer.setOnCompletionListener(MediaPlayer::release)
+        }
+        onBackPressed(view)
     }
 
     private fun infoShow() {
@@ -889,10 +878,8 @@ class GameDualFragment : Fragment() {
         var scoreBlue = 0
         var bestScore = 9999
         lateinit var idNm: String
-        var fst = "r1c1"
         lateinit var top: String
         lateinit var left: String
-        lateinit var circle: String
         var one = true
     }
 }

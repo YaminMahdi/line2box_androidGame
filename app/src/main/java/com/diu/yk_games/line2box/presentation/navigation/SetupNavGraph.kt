@@ -3,6 +3,7 @@ package com.diu.yk_games.line2box.presentation.navigation
 import androidx.navigation.NavController
 import androidx.navigation.createGraph
 import androidx.navigation.fragment.fragment
+import com.diu.yk_games.line2box.presentation.bot.GameBotFragment
 import com.diu.yk_games.line2box.presentation.main.DisplayFragment
 import com.diu.yk_games.line2box.presentation.main.StartFragment
 import com.diu.yk_games.line2box.presentation.offline.GameDualFragment
@@ -19,5 +20,6 @@ fun NavController.setupNavGraph() {
         fragment<NameInfoFragment, Routes.ChangeName>()
         fragment<StartFragment, Routes.MultiPlayer>()
         fragment<GameDualFragment, Routes.GameDual>()
+        fragment<GameBotFragment, Routes.GameBot>()
     }
 }

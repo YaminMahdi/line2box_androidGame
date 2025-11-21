@@ -2,7 +2,6 @@ package com.diu.yk_games.line2box.presentation.main
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
-import android.content.Intent
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -20,9 +19,7 @@ import com.diu.yk_games.line2box.databinding.ActivityStartBinding
 import com.diu.yk_games.line2box.databinding.DialogLayoutInfoBinding
 import com.diu.yk_games.line2box.databinding.DialogLayoutUpdateuiBinding
 import com.diu.yk_games.line2box.presentation.MainViewModel
-import com.diu.yk_games.line2box.presentation.bot.GameActivity3
 import com.diu.yk_games.line2box.presentation.navigation.Routes
-import com.diu.yk_games.line2box.presentation.online.MultiplayerActivity
 import com.diu.yk_games.line2box.util.applyState
 import com.diu.yk_games.line2box.util.gone
 import com.diu.yk_games.line2box.util.invisible
@@ -40,7 +37,7 @@ import kotlinx.coroutines.launch
 class StartFragment : Fragment() {
     private lateinit var binding: ActivityStartBinding
     private val viewModel: MainViewModel by activityViewModels()
-    private val isFirstRun: Boolean by lazy { pref.read("firstRun", true) }
+    private val isFirstRun by lazy { pref.read("firstRun", true) }
 
     lateinit var parentActivity: FragmentActivity
 
@@ -85,7 +82,7 @@ class StartFragment : Fragment() {
         binding.logo.setBounceClickListener {
             if(BuildConfig.DEBUG){
                 viewModel.clearMultiPlayerDB()
-                toast("MultiPlayer Database Cleared")
+                toast("MultiPlayer database cleared")
             }
         }
     }
@@ -108,15 +105,6 @@ class StartFragment : Fragment() {
             mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
         }
         navigateSafe(Routes.ScoreBoard)
-//        scrBrdVisible = true
-//        val fm = supportFragmentManager
-//        val ft = fm.beginTransaction()
-//        ft.replace(R.id.disFragment, DisplayFragment())
-//        ft.commit()
-//        binding.linearLayoutStart1.gone()
-//        binding.linearLayoutStart2.gone()
-//        binding.motionLayout.gone()
-//        binding.globalScoreFrag.show()
     }
 
     fun ideaBtn() {
@@ -191,8 +179,8 @@ class StartFragment : Fragment() {
         }
         if (binding.mode1.alpha < .5) {
             if (viewModel.onlineStatus == "pass") {
-                startActivity(Intent(parentActivity, MultiplayerActivity::class.java).putExtra("playerId", viewModel.playerId))
-                //finish()
+                navigateSafe(Routes.MultiPlayer)
+                viewModel.motionProgress = 1
             } else if (viewModel.onlineStatus == "needReload") {
                 //updateUI()
                 val builder = AlertDialog.Builder(parentActivity)
@@ -218,11 +206,9 @@ class StartFragment : Fragment() {
         } else if (binding.mode3.alpha < .5){
             navigateSafe(Routes.ChangeName)
             viewModel.motionProgress = -1
-//            startActivity(Intent(parentActivity, GameActivity1::class.java))
-            //finish()
         } else{
-            startActivity(Intent(parentActivity, GameActivity3::class.java))
-            //finish()
+            navigateSafe(Routes.GameBot)
+            viewModel.motionProgress = 0
         }
     }
 
