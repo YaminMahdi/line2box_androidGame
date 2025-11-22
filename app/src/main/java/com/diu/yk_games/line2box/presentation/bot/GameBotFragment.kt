@@ -24,6 +24,7 @@ import com.diu.yk_games.line2box.databinding.FragmentGameDualBinding
 import com.diu.yk_games.line2box.presentation.MainViewModel
 import com.diu.yk_games.line2box.presentation.main.StartActivity
 import com.diu.yk_games.line2box.util.applyState
+import com.diu.yk_games.line2box.util.cat
 import com.diu.yk_games.line2box.util.invisible
 import com.diu.yk_games.line2box.util.isMuted
 import com.diu.yk_games.line2box.util.isNotMuted
@@ -123,22 +124,23 @@ class GameBotFragment : Fragment() {
     @SuppressLint("SetTextI18n", "DiscouragedApi")
     fun performClick(view: View) {
         val idNm = resources.getResourceEntryName(view.id)
+        idNm.log()
         val aroundIds = getIdNm(idNm)
         val bg = view.background.mutate() as GradientDrawable
         val color = getColorGrad(bg)
         var extraTurn = false
 
         if (color == whiteX && clickEnabled && lineIDs.isNotEmpty()) {
-
+            cat("clickEnabled")
             playLineClickSound()
             lineIDs.remove(idNm)
             clickCount++
             bg.setColor(if (clickCount % 2 == 1) redX else blueX)
 
             if (shouldCheckTop(idNm))
-                extraTurn = handleTopBox(aroundIds)
+                extraTurn = handleBox(aroundIds, true)
             if (shouldCheckBottom(idNm))
-                extraTurn = handleBottomBox(aroundIds)
+                extraTurn = handleBox(aroundIds, false)
 
             if (extraTurn) {
                 clickCount--
@@ -169,23 +171,27 @@ class GameBotFragment : Fragment() {
     }
 
     private fun shouldCheckBottom(idNm: String): Boolean {
-        return ((idNm[1].digitToInt() < 7 && idNm[4] == 'T') ||
-                (idNm[3].digitToInt() < 7)) && idNm[4] == 'L'
+        return (idNm[1].digitToInt() < 7 && idNm[4] == 'T') ||
+                (idNm[3].digitToInt() < 7 && idNm[4] == 'L')
     }
 
-    private fun handleTopBox(aroundIds: List<String?>): Boolean {
-        val u = binding.root.findViewById<View>(idFromName(aroundIds[0]))
-        val l = binding.root.findViewById<View>(idFromName(aroundIds[1]))
-        val r = binding.root.findViewById<View>(idFromName(aroundIds[2]))
+    private fun handleBox(aroundIds: List<String?>, isTop: Boolean): Boolean {
+        cat("handleBox isTop $isTop")
+        val u = binding.root.findViewById<View>(idFromName(aroundIds[if(isTop) 0 else 3]
+            .also { it.log("handleBox") }))
+        val l = binding.root.findViewById<View>(idFromName(aroundIds[if(isTop) 1 else 4]
+            .also { it.log("handleBox") }))
+        val r = binding.root.findViewById<View>(idFromName(aroundIds[if(isTop) 2 else 5]
+            .also { it.log("handleBox") }))
 
         if (!isAllColored(u, l, r)) return false
 
-        val txt = binding.root.findViewById<TextView>(idFromName(aroundIds[6]))
+        val txt = binding.root.findViewById<TextView>(idFromName(aroundIds[if(isTop) 6 else 7]))
 
         val mid1 = binding.root.findViewById<View>(idFromName(aroundIds[8]))
         val mid2 = binding.root.findViewById<View>(idFromName(aroundIds[9]))
-        val up1 = binding.root.findViewById<View>(idFromName(aroundIds[10]))
-        val up2 = binding.root.findViewById<View>(idFromName(aroundIds[11]))
+        val up1 = binding.root.findViewById<View>(idFromName(aroundIds[if(isTop) 10 else 12])) //down1 ifTop
+        val up2 = binding.root.findViewById<View>(idFromName(aroundIds[if(isTop) 11 else 13]))
 
         colorCapturedBox(
             innerText = txt,
@@ -197,35 +203,6 @@ class GameBotFragment : Fragment() {
             circleUpLeft = up1,
             circleUpRight = up2
         )
-
-        return true
-    }
-
-    private fun handleBottomBox(aroundIds: List<String?>): Boolean {
-        val u = binding.root.findViewById<View>(idFromName(aroundIds[3]))
-        val l = binding.root.findViewById<View>(idFromName(aroundIds[4]))
-        val r = binding.root.findViewById<View>(idFromName(aroundIds[5]))
-
-        if (!isAllColored(u, l, r)) return false
-
-        val txt = binding.root.findViewById<TextView>(idFromName(aroundIds[7]))
-
-        val mid1 = binding.root.findViewById<View>(idFromName(aroundIds[8]))
-        val mid2 = binding.root.findViewById<View>(idFromName(aroundIds[9]))
-        val dn1 = binding.root.findViewById<View>(idFromName(aroundIds[12]))
-        val dn2 = binding.root.findViewById<View>(idFromName(aroundIds[13]))
-
-        colorCapturedBox(
-            innerText = txt,
-            lineUp = u,
-            lineLeft = l,
-            lineRight = r,
-            circleMidLeft = mid1,
-            circleMidRight = mid2,
-            circleUpLeft = dn1,
-            circleUpRight = dn2
-        )
-
         return true
     }
 
@@ -234,6 +211,8 @@ class GameBotFragment : Fragment() {
             val bg = it.background.mutate() as GradientDrawable
             val c = getColorGrad(bg)
             c == redX || c == blueX
+        }.also {
+            cat("isAllColored $it")
         }
     }
 

@@ -279,14 +279,21 @@ fun Context?.setClipBoardData(data: String?, toastData: String? = null) {
     }
 }
 
-fun Any?.log(tag: String = "TAG"): Any? {
+fun <T> T.getTag() = this?.javaClass?.simpleName ?: "TAG"
+
+fun Any.cat(message: String) {
+    message.log(getTag())
+}
+context(cls: Any)
+fun Any?.log(tag: String = cls.getTag()): Any? {
+    var finalTag = cls.getTag()
+    if (finalTag != tag)
+        finalTag = "$finalTag - $tag"
+
     if (this is Throwable)
-        Log.e("log> '$tag'", "$tag - $message", this)
+        Log.e("log> '$finalTag'", "$finalTag - $message", this)
     else
-        Log.i(
-            "log> '$tag'",
-            "$tag - $this : ${this?.javaClass?.name?.split('.')?.lastOrNull() ?: ""}"
-        )
+        Log.i("log> '$finalTag'", "$finalTag - $this : ${getTag()}")
     return this
 }
 

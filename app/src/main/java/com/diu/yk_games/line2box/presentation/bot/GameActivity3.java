@@ -2,8 +2,8 @@ package com.diu.yk_games.line2box.presentation.bot;
 
 import static com.diu.yk_games.line2box.util.ExtendedFunKt.hideSystemBars;
 import static com.diu.yk_games.line2box.util.ExtendedFunKt.loadDrawable;
-import static com.diu.yk_games.line2box.util.ExtendedFunKt.log;
 import static com.diu.yk_games.line2box.util.ExtendedFunKt.setNavStatusPadding;
+
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -15,6 +15,7 @@ import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -154,7 +155,7 @@ public class GameActivity3 extends AppCompatActivity {
                     alertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(0));
                 }
                 try {alertDialog.show();}
-                catch (Exception e) { log(e,"TAG"); }
+                catch (Exception e) { Log.d("TAG","",e); }
             }
         });
 
@@ -853,7 +854,8 @@ public class GameActivity3 extends AppCompatActivity {
             mFillPaint.setAccessible(true);
             Paint strokePaint = (Paint) mFillPaint.get(bg);
             color = Objects.requireNonNull(strokePaint).getColor();
-        } catch (Exception e) {log(e,"TAG");}
+        }
+        catch (Exception e) { Log.d("TAG","",e); }
         return color;
     }
 
@@ -926,7 +928,7 @@ public class GameActivity3 extends AppCompatActivity {
             alertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(0));
         }
         try {alertDialog.show();}
-        catch (Exception e) { log(e,"TAG"); }
+        catch (Exception e) { Log.d("TAG","",e); }
     }
 
 
@@ -1023,7 +1025,7 @@ public class GameActivity3 extends AppCompatActivity {
             alertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(0));
         }
         try {alertDialog.show();}
-        catch (Exception e) { log(e,"TAG"); }
+        catch (Exception e) { Log.d("TAG","",e); }
     }
 
     public void backBtn(View view) {
