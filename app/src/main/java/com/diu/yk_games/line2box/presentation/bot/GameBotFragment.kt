@@ -7,7 +7,6 @@ import android.graphics.Paint
 import android.graphics.drawable.GradientDrawable
 import android.media.MediaPlayer
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -29,6 +28,7 @@ import com.diu.yk_games.line2box.util.invisible
 import com.diu.yk_games.line2box.util.isMuted
 import com.diu.yk_games.line2box.util.isNotMuted
 import com.diu.yk_games.line2box.util.loadDrawable
+import com.diu.yk_games.line2box.util.log
 import com.diu.yk_games.line2box.util.onBackPressed
 import com.diu.yk_games.line2box.util.performOnClickF
 import com.diu.yk_games.line2box.util.pref
@@ -126,403 +126,287 @@ class GameBotFragment : Fragment() {
         val aroundIds = getIdNm(idNm)
         val bg = view.background.mutate() as GradientDrawable
         val color = getColorGrad(bg)
-        var change = false
+        var extraTurn = false
+
         if (color == whiteX && clickEnabled && lineIDs.isNotEmpty()) {
-            isNotMuted {
-                val mediaPlayer = MediaPlayer.create(parentActivity, R.raw.line_click_ef)
-                mediaPlayer.start()
-                mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-            }
+
+            playLineClickSound()
             lineIDs.remove(idNm)
             clickCount++
             bg.setColor(if (clickCount % 2 == 1) redX else blueX)
 
-            if (idNm[1].digitToInt() > 1 && idNm[4] == 'T' || idNm[3].digitToInt() > 1 && idNm[4] == 'L') {
-                val idTopU =
-                    resources.getIdentifier(aroundIds[0], "id", parentActivity.packageName)
-                val idTopL =
-                    resources.getIdentifier(aroundIds[1], "id", parentActivity.packageName)
-                val idTopR =
-                    resources.getIdentifier(aroundIds[2], "id", parentActivity.packageName)
-                val lineU = binding.root.findViewById<View>(idTopU)
-                val lineL = binding.root.findViewById<View>(idTopL)
-                val lineR = binding.root.findViewById<View>(idTopR)
-                val bgTopU = lineU.background.mutate() as GradientDrawable
-                val bgTopL = lineL.background.mutate() as GradientDrawable
-                val bgTopR = lineR.background.mutate() as GradientDrawable
-                if ((getColorGrad(bgTopU) == redX || getColorGrad(bgTopU) == blueX) &&
-                    (getColorGrad(bgTopL) == redX || getColorGrad(bgTopL) == blueX) &&
-                    (getColorGrad(bgTopR) == redX || getColorGrad(bgTopR) == blueX)
-                ) {
-                    val txtId =
-                        resources.getIdentifier(aroundIds[6], "id", parentActivity.packageName)
-                    val idMidC1 =
-                        resources.getIdentifier(aroundIds[8], "id", parentActivity.packageName)
-                    val idMidC2 =
-                        resources.getIdentifier(aroundIds[9], "id", parentActivity.packageName)
-                    val idUpC1 =
-                        resources.getIdentifier(aroundIds[10], "id", parentActivity.packageName)
-                    val idUpC2 =
-                        resources.getIdentifier(aroundIds[11], "id", parentActivity.packageName)
-                    val crMid1 = binding.root.findViewById<View>(idMidC1)
-                    val crMid2 = binding.root.findViewById<View>(idMidC2)
-                    val crUp1 = binding.root.findViewById<View>(idUpC1)
-                    val crUp2 = binding.root.findViewById<View>(idUpC2)
-                    val bgMidC1 = crMid1.background.mutate() as GradientDrawable
-                    val bgMidC2 = crMid2.background.mutate() as GradientDrawable
-                    val bgUpC1 = crUp1.background.mutate() as GradientDrawable
-                    val bgUpC2 = crUp2.background.mutate() as GradientDrawable
-                    val txt = binding.root.findViewById<TextView>(txtId)
-                    if (clickCount % 2 == 1) {
-                        isNotMuted {
-                            val mediaPlayer = MediaPlayer.create(parentActivity, R.raw.box_ef)
-                            mediaPlayer.start()
-                            mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-                        }
-                        scoreRed++
-                        binding.scoreRed.text = scoreRed.toString()
-                        txt.text = nm1.first().toString()
-                        txt.typeface = ResourcesCompat.getFont(parentActivity, R.font.bertram)
+            if (shouldCheckTop(idNm))
+                extraTurn = handleTopBox(aroundIds)
+            if (shouldCheckBottom(idNm))
+                extraTurn = handleBottomBox(aroundIds)
 
-                        bgTopU.setColor(redX)
-                        bgTopL.setColor(redX)
-                        bgTopR.setColor(redX)
-
-                        bgMidC1.setColor(redX)
-                        bgMidC1.setStroke(14, redY)
-                        bgMidC2.setColor(redX)
-                        bgMidC2.setStroke(14, redY)
-
-                        bgUpC1.setColor(redX)
-                        bgUpC1.setStroke(14, redY)
-                        bgUpC2.setColor(redX)
-                        bgUpC2.setStroke(14, redY)
-                    } else {
-                        isNotMuted {
-                            val mediaPlayer = MediaPlayer.create(parentActivity, R.raw.box_ef)
-                            mediaPlayer.start()
-                            mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-                        }
-                        scoreBlue++
-                        binding.scoreBlue.text = scoreBlue.toString()
-                        txt.text = nm2.first().toString()
-                        txt.typeface = ResourcesCompat.getFont(parentActivity, R.font.bertram)
-                        bgTopU.setColor(blueX)
-                        bgTopL.setColor(blueX)
-                        bgTopR.setColor(blueX)
-
-                        bgMidC1.setColor(blueX)
-                        bgMidC1.setStroke(14, blueY)
-                        bgMidC2.setColor(blueX)
-                        bgMidC2.setStroke(14, blueY)
-
-                        bgUpC1.setColor(blueX)
-                        bgUpC1.setStroke(14, blueY)
-                        bgUpC2.setColor(blueX)
-                        bgUpC2.setStroke(14, blueY)
-                        if (one) {
-                            one = false
-                            toast("Bonus TURN for you")
-                        }
-                    }
-                    change = true
-                }
-            }
-            if ((idNm[1].digitToInt() < 7 && idNm[4] == 'T' || idNm[3].digitToInt() < 7) && idNm[4] == 'L') {
-                val idDownU =
-                    resources.getIdentifier(aroundIds[3], "id", parentActivity.packageName)
-                val idDownL =
-                    resources.getIdentifier(aroundIds[4], "id", parentActivity.packageName)
-                val idDownR =
-                    resources.getIdentifier(aroundIds[5], "id", parentActivity.packageName)
-                val lineDownU = binding.root.findViewById<View>(idDownU)
-                val lineDownL = binding.root.findViewById<View>(idDownL)
-                val lineDownR = binding.root.findViewById<View>(idDownR)
-                val bgDownU = lineDownU.background.mutate() as GradientDrawable
-                val bgDownL = lineDownL.background.mutate() as GradientDrawable
-                val bgDownR = lineDownR.background.mutate() as GradientDrawable
-                if ((getColorGrad(bgDownU) == redX || getColorGrad(bgDownU) == blueX) &&
-                    (getColorGrad(bgDownL) == redX || getColorGrad(bgDownL) == blueX) &&
-                    (getColorGrad(bgDownR) == redX || getColorGrad(bgDownR) == blueX)
-                ) {
-                    val txtId =
-                        resources.getIdentifier(aroundIds[7], "id", parentActivity.packageName)
-                    val idMidC1 =
-                        resources.getIdentifier(aroundIds[8], "id", parentActivity.packageName)
-                    val idMidC2 =
-                        resources.getIdentifier(aroundIds[9], "id", parentActivity.packageName)
-                    val idDownC1 =
-                        resources.getIdentifier(aroundIds[12], "id", parentActivity.packageName)
-                    val idDownC2 =
-                        resources.getIdentifier(aroundIds[13], "id", parentActivity.packageName)
-                    val crMid1 = binding.root.findViewById<View>(idMidC1)
-                    val crMid2 = binding.root.findViewById<View>(idMidC2)
-                    val crDown1 = binding.root.findViewById<View>(idDownC1)
-                    val crDown2 = binding.root.findViewById<View>(idDownC2)
-
-                    val bgMidC1 = crMid1.background.mutate() as GradientDrawable
-                    val bgMidC2 = crMid2.background.mutate() as GradientDrawable
-                    val bgDownC1 = crDown1.background.mutate() as GradientDrawable
-                    val bgDownC2 = crDown2.background.mutate() as GradientDrawable
-                    val txt = binding.root.findViewById<TextView>(txtId)
-                    if (clickCount % 2 == 1) {
-                        isNotMuted {
-                            val mediaPlayer = MediaPlayer.create(parentActivity, R.raw.box_ef)
-                            mediaPlayer.start()
-                            mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-                        }
-                        scoreRed++
-                        binding.scoreRed.text = "" + scoreRed
-                        txt.text = nm1.first().toString()
-                        txt.typeface = ResourcesCompat.getFont(parentActivity, R.font.bertram)
-                        bgDownU.setColor(redX)
-                        bgDownL.setColor(redX)
-                        bgDownR.setColor(redX)
-
-                        bgMidC1.setColor(redX)
-                        bgMidC1.setStroke(14, redY)
-                        bgMidC2.setColor(redX)
-                        bgMidC2.setStroke(14, redY)
-
-                        bgDownC1.setColor(redX)
-                        bgDownC1.setStroke(14, redY)
-                        bgDownC2.setColor(redX)
-                        bgDownC2.setStroke(14, redY)
-                    } else {
-                        isNotMuted {
-                            val mediaPlayer = MediaPlayer.create(parentActivity, R.raw.box_ef)
-                            mediaPlayer.start()
-                            mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-                        }
-                        scoreBlue++
-                        binding.scoreBlue.text = scoreBlue.toString()
-                        txt.text = "" + nm2[0]
-                        txt.typeface = ResourcesCompat.getFont(parentActivity, R.font.bertram)
-                        bgDownU.setColor(blueX)
-                        bgDownL.setColor(blueX)
-                        bgDownR.setColor(blueX)
-
-                        bgMidC1.setColor(blueX)
-                        bgMidC1.setStroke(14, blueY)
-                        bgMidC2.setColor(blueX)
-                        bgMidC2.setStroke(14, blueY)
-
-                        bgDownC1.setColor(blueX)
-                        bgDownC1.setStroke(14, blueY)
-                        bgDownC2.setColor(blueX)
-                        bgDownC2.setStroke(14, blueY)
-                        if (one) {
-                            one = false
-                            toast("Bonus TURN for you")
-                        }
-                    }
-                    change = true
-                }
-            }
-            if (change) {
+            if (extraTurn) {
                 clickCount--
                 recursion = false
-            } else {
-                if (clickCount % 2 == 1) {
-                    clickEnabled = true
-                    binding.red.textSize = 30f
-                    binding.red.setTextColor(whiteT)
-                    binding.blue.textSize = 35f
-                    binding.blue.setTextColor(white)
-                } else {
-                    binding.blue.textSize = 30f
-                    binding.blue.setTextColor(whiteT)
-                    binding.red.textSize = 35f
-                    binding.red.setTextColor(white)
-                }
-            }
-            if (clickCount % 2 == 1) {
-                clickEnabled = true
-            } else if (lineIDs.isNotEmpty()) {
-                clickEnabled = false
-                var countColored = 0
-                var blankIndex = -69
-                var extraTurn = false
-                if (idNm[1].digitToInt() > 1 && idNm[4] == 'T' || idNm[3].digitToInt() > 1 && idNm[4] == 'L') {
-                    Log.d("TAG", "lineClick: AI in top half")
-                    val idTopU =
-                        resources.getIdentifier(aroundIds[0], "id", parentActivity.packageName)
-                    val idTopL =
-                        resources.getIdentifier(aroundIds[1], "id", parentActivity.packageName)
-                    val idTopR =
-                        resources.getIdentifier(aroundIds[2], "id", parentActivity.packageName)
-                    val lineU = binding.root.findViewById<View>(idTopU)
-                    val lineL = binding.root.findViewById<View>(idTopL)
-                    val lineR = binding.root.findViewById<View>(idTopR)
-                    val bgTopU = lineU.background.mutate() as GradientDrawable
-                    val bgTopL = lineL.background.mutate() as GradientDrawable
-                    val bgTopR = lineR.background.mutate() as GradientDrawable
-                    if (getColorGrad(bgTopU) != whiteX) countColored++ else blankIndex = 0
-                    if (getColorGrad(bgTopL) != whiteX) countColored++ else blankIndex = 1
-                    if (getColorGrad(bgTopR) != whiteX) countColored++ else blankIndex = 2
-                    if (countColored == 2) {
-                        Log.d("TAG", "lineClick: AI in top half countColored")
-                        val lineId = resources.getIdentifier(
-                            aroundIds[blankIndex],
-                            "id",
-                            parentActivity.packageName
-                        )
-                        lifecycleScope.launch {
-                            delay(500)
-                            clickEnabled = true
-                            recursion = true
-                            performClick(binding.root.findViewById(lineId))
-                            tmpLineId = lineId
-                            recursion = false
-                        }
-                        extraTurn = true
-                    }
-                }
-                countColored = 0
-                blankIndex = -69
-                if (idNm[1].digitToInt() < 7 && idNm[4] == 'T' || idNm[3].digitToInt() < 7 && idNm[4] == 'L') {
-                    Log.d("TAG", "lineClick: AI in dwn half")
-                    val idDownU =
-                        resources.getIdentifier(aroundIds[3], "id", parentActivity.packageName)
-                    val idDownL =
-                        resources.getIdentifier(aroundIds[4], "id", parentActivity.packageName)
-                    val idDownR =
-                        resources.getIdentifier(aroundIds[5], "id", parentActivity.packageName)
-                    val lineDownU = binding.root.findViewById<View>(idDownU)
-                    val lineDownL = binding.root.findViewById<View>(idDownL)
-                    val lineDownR = binding.root.findViewById<View>(idDownR)
-                    val bgDownU = lineDownU.background.mutate() as GradientDrawable
-                    val bgDownL = lineDownL.background.mutate() as GradientDrawable
-                    val bgDownR = lineDownR.background.mutate() as GradientDrawable
-                    if (getColorGrad(bgDownU) != whiteX) countColored++ else blankIndex = 3
-                    if (getColorGrad(bgDownL) != whiteX) countColored++ else blankIndex = 4
-                    if (getColorGrad(bgDownR) != whiteX) countColored++ else blankIndex = 5
-                    if (countColored == 2) {
-                        val lineId = resources.getIdentifier(aroundIds[blankIndex], "id", parentActivity.packageName)
-                        Log.d("TAG", "lineClick: AI in dwn half countColored")
-                        lifecycleScope.launch {
-                            delay(650)
-                            if (tmpLineId != lineId) {
-                                clickEnabled = true
-                                recursion = true
-                                performClick(binding.root.findViewById(lineId))
-                                recursion = false
-                            }
-                        }
-                        extraTurn = true
-                    }
-                }
-                Log.d("TAG", "lineClick: lineIDs.size: ${lineIDs.size}")
-                if (!extraTurn && !recursion) {
-                    Log.d("TAG", "lineClick: AI in random")
-                    //recursion=false;
-                    var ind: Int
-                    var countColoredUp = 0
-                    var countColoredDn = 0
-                    var randLineIdNm: String?
-                    val lineIdTemp = ArrayList(lineIDs)
-                    ind = random.nextInt(lineIDs.size)
-                    randLineIdNm = lineIDs[ind]
-                    while (true) {
-                        Log.d("TAG", "lineClick: AI in random loop")
-                        if (randLineIdNm!![1].digitToInt() > 1 && randLineIdNm[4] == 'T' || randLineIdNm[3].digitToInt() > 1 && randLineIdNm[4] == 'L') {
-                            val idTopU = resources.getIdentifier(
-                                getIdNm(randLineIdNm)[0],
-                                "id",
-                                parentActivity.packageName
-                            )
-                            val idTopL = resources.getIdentifier(
-                                getIdNm(randLineIdNm)[1],
-                                "id",
-                                parentActivity.packageName
-                            )
-                            val idTopR = resources.getIdentifier(
-                                getIdNm(randLineIdNm)[2],
-                                "id",
-                                parentActivity.packageName
-                            )
-                            val lineU = binding.root.findViewById<View>(idTopU)
-                            val lineL = binding.root.findViewById<View>(idTopL)
-                            val lineR = binding.root.findViewById<View>(idTopR)
-                            val bgTopU = lineU.background.mutate() as GradientDrawable
-                            val bgTopL = lineL.background.mutate() as GradientDrawable
-                            val bgTopR = lineR.background.mutate() as GradientDrawable
-                            if (getColorGrad(bgTopU) != whiteX) countColoredUp++
-                            if (getColorGrad(bgTopL) != whiteX) countColoredUp++
-                            if (getColorGrad(bgTopR) != whiteX) countColoredUp++
-                        }
-                        if ((randLineIdNm[1].digitToInt() < 7 && randLineIdNm[4] == 'T' || randLineIdNm[3].digitToInt() < 7) && randLineIdNm[4] == 'L') {
-                            val idDownU = resources.getIdentifier(
-                                getIdNm(randLineIdNm)[3],
-                                "id",
-                                parentActivity.packageName
-                            )
-                            val idDownL = resources.getIdentifier(
-                                getIdNm(randLineIdNm)[4],
-                                "id",
-                                parentActivity.packageName
-                            )
-                            val idDownR = resources.getIdentifier(
-                                getIdNm(randLineIdNm)[5],
-                                "id",
-                                parentActivity.packageName
-                            )
-                            val lineDownU = binding.root.findViewById<View>(idDownU)
-                            val lineDownL = binding.root.findViewById<View>(idDownL)
-                            val lineDownR = binding.root.findViewById<View>(idDownR)
-                            val bgDownU = lineDownU.background.mutate() as GradientDrawable
-                            val bgDownL = lineDownL.background.mutate() as GradientDrawable
-                            val bgDownR = lineDownR.background.mutate() as GradientDrawable
-                            if (getColorGrad(bgDownU) != whiteX) countColoredDn++
-                            if (getColorGrad(bgDownL) != whiteX) countColoredDn++
-                            if (getColorGrad(bgDownR) != whiteX) countColoredDn++
-                        }
-                        if ((countColoredUp > 1 || countColoredDn > 1) && !(countColoredUp == 3 || countColoredDn == 3)) {
-                            Log.d(TAG, "lineClick: AI in random countColored. clk cnt: $clickCount")
-                            if (lineIdTemp.size == 1) {
-                                randLineIdNm = lineIdTemp[0]
-                                break
-                            }
-                            lineIdTemp.removeAt(ind)
-                            ind = random.nextInt(lineIdTemp.size)
-                            randLineIdNm = lineIdTemp[ind]
-                            countColoredUp = 0
-                            countColoredDn = 0
-                        } else break
-                    }
+            } else handleTurnUI()
 
-                    Log.d(TAG, "AiLineClick: $randLineIdNm Up- $countColoredUp Dn- $countColoredDn")
-                    val lineId =
-                        resources.getIdentifier(randLineIdNm, "id", parentActivity.packageName)
-                    lifecycleScope.launch {
-                        delay(800)
-                        clickEnabled = true
-                        performClick(binding.root.findViewById(lineId))
-                    }
-                }
+            if (clickCount % 2 == 0 && lineIDs.isNotEmpty()) {
+                handleAI(idNm)
             }
+
             lifecycleScope.launch {
-                if (scoreRed + scoreBlue == 36) {
-                    delay(950)
-                    isNotMuted {
-                        val mediaPlayer = MediaPlayer.create(parentActivity, R.raw.win_ef)
-                        mediaPlayer.start()
-                        mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-                    }
-                    binding.red.textSize = 30f
-                    binding.red.setTextColor(white)
-                    binding.blue.textSize = 30f
-                    binding.blue.setTextColor(white)
-                    if (scoreRed > scoreBlue) onGameOver("AI won the match.")
-                    else if (scoreRed < scoreBlue) {
-                        var winAI = pref.read("winAI", 0)
-                        pref.save("winAI", ++winAI)
-                        onGameOver("You won the match.")
-                    }else onGameOver("Match Draw.")
-                }
+                if (scoreRed + scoreBlue == 36) finishGame()
             }
         }
     }
+
+    private fun playLineClickSound() {
+        isNotMuted {
+            val mp = MediaPlayer.create(parentActivity, R.raw.line_click_ef)
+            mp.start()
+            mp.setOnCompletionListener(MediaPlayer::release)
+        }
+    }
+
+    private fun shouldCheckTop(idNm: String): Boolean {
+        return (idNm[1].digitToInt() > 1 && idNm[4] == 'T') ||
+                (idNm[3].digitToInt() > 1 && idNm[4] == 'L')
+    }
+
+    private fun shouldCheckBottom(idNm: String): Boolean {
+        return ((idNm[1].digitToInt() < 7 && idNm[4] == 'T') ||
+                (idNm[3].digitToInt() < 7)) && idNm[4] == 'L'
+    }
+
+    private fun handleTopBox(aroundIds: List<String?>): Boolean {
+        val u = binding.root.findViewById<View>(idFromName(aroundIds[0]))
+        val l = binding.root.findViewById<View>(idFromName(aroundIds[1]))
+        val r = binding.root.findViewById<View>(idFromName(aroundIds[2]))
+
+        if (!isAllColored(u, l, r)) return false
+
+        val txt = binding.root.findViewById<TextView>(idFromName(aroundIds[6]))
+
+        val mid1 = binding.root.findViewById<View>(idFromName(aroundIds[8]))
+        val mid2 = binding.root.findViewById<View>(idFromName(aroundIds[9]))
+        val up1 = binding.root.findViewById<View>(idFromName(aroundIds[10]))
+        val up2 = binding.root.findViewById<View>(idFromName(aroundIds[11]))
+
+        colorCapturedBox(
+            innerText = txt,
+            lineUp = u,
+            lineLeft = l,
+            lineRight = r,
+            circleMidLeft = mid1,
+            circleMidRight = mid2,
+            circleUpLeft = up1,
+            circleUpRight = up2
+        )
+
+        return true
+    }
+
+    private fun handleBottomBox(aroundIds: List<String?>): Boolean {
+        val u = binding.root.findViewById<View>(idFromName(aroundIds[3]))
+        val l = binding.root.findViewById<View>(idFromName(aroundIds[4]))
+        val r = binding.root.findViewById<View>(idFromName(aroundIds[5]))
+
+        if (!isAllColored(u, l, r)) return false
+
+        val txt = binding.root.findViewById<TextView>(idFromName(aroundIds[7]))
+
+        val mid1 = binding.root.findViewById<View>(idFromName(aroundIds[8]))
+        val mid2 = binding.root.findViewById<View>(idFromName(aroundIds[9]))
+        val dn1 = binding.root.findViewById<View>(idFromName(aroundIds[12]))
+        val dn2 = binding.root.findViewById<View>(idFromName(aroundIds[13]))
+
+        colorCapturedBox(
+            innerText = txt,
+            lineUp = u,
+            lineLeft = l,
+            lineRight = r,
+            circleMidLeft = mid1,
+            circleMidRight = mid2,
+            circleUpLeft = dn1,
+            circleUpRight = dn2
+        )
+
+        return true
+    }
+
+    private fun isAllColored(vararg views: View): Boolean {
+        return views.all {
+            val bg = it.background.mutate() as GradientDrawable
+            val c = getColorGrad(bg)
+            c == redX || c == blueX
+        }
+    }
+
+    @SuppressLint("DiscouragedApi")
+    private fun idFromName(name: String?): Int {
+        return resources.getIdentifier(name, "id", parentActivity.packageName)
+    }
+
+    private fun colorCapturedBox(
+        innerText: TextView,
+        lineUp: View, lineLeft: View, lineRight: View,
+        circleMidLeft: View, circleMidRight: View,
+        circleUpLeft: View, circleUpRight: View
+    ) {
+        playBoxSound()
+
+        val isRed = clickCount % 2 == 1
+
+        if (isRed) {
+            scoreRed++
+            binding.scoreRed.text = scoreRed.toString()
+            innerText.text = nm1.first().toString()
+        } else {
+            scoreBlue++
+            binding.scoreBlue.text = scoreBlue.toString()
+            innerText.text = nm2.first().toString()
+            if (one) {
+                one = false
+                toast("Bonus TURN for you")
+            }
+        }
+
+        innerText.typeface = ResourcesCompat.getFont(parentActivity, R.font.bertram)
+
+        val color = if (isRed) redX else blueX
+        val stroke = if (isRed) redY else blueY
+
+        listOf(lineUp, lineLeft, lineRight).forEach {
+            val bg = it.background.mutate() as GradientDrawable
+            bg.setColor(color)
+        }
+        listOf(circleMidLeft, circleMidRight, circleUpLeft, circleUpRight).forEach {
+            val bg = it.background.mutate() as GradientDrawable
+            bg.setColor(color)
+            bg.setStroke(14, stroke)
+        }
+    }
+
+    private fun playBoxSound() {
+        isNotMuted {
+            val mp = MediaPlayer.create(parentActivity, R.raw.box_ef)
+            mp.start()
+            mp.setOnCompletionListener(MediaPlayer::release)
+        }
+    }
+
+    private fun handleTurnUI() {
+        if (clickCount % 2 == 1) {
+            clickEnabled = true
+            binding.red.textSize = 30f
+            binding.red.setTextColor(whiteT)
+            binding.blue.textSize = 35f
+            binding.blue.setTextColor(white)
+        } else {
+            binding.blue.textSize = 30f
+            binding.blue.setTextColor(whiteT)
+            binding.red.textSize = 35f
+            binding.red.setTextColor(white)
+        }
+    }
+
+    private fun handleAI(idNm: String) {
+        clickEnabled = false
+
+        val halfTopFoundExtraTurn = checkAIHalf(idNm, true)
+        if (halfTopFoundExtraTurn) return
+
+        val halfBottomFoundExtraTurn = checkAIHalf(idNm, false)
+        if (halfBottomFoundExtraTurn) return
+
+        handleAIRandom()
+    }
+
+    private fun checkAIHalf(idNm: String, isTop: Boolean): Boolean {
+        val ids = getIdNm(idNm)
+        val idx = if (isTop) 0 else 3
+
+        var countColored = 0
+        var blankIndex = -1
+
+        if ((isTop && shouldCheckTop(idNm)) || (!isTop && shouldCheckBottom(idNm))){
+            for (i in idx..idx + 2) {
+                val v = binding.root.findViewById<View>(idFromName(ids[i]))
+                val bg = v.background.mutate() as GradientDrawable
+                if (getColorGrad(bg) != whiteX) countColored++
+                else blankIndex = i
+            }
+
+            if (countColored == 2) {
+                val lineId = idFromName(ids[blankIndex])
+                lifecycleScope.launch {
+                    delay(if (isTop) 500 else 650)
+                    clickEnabled = true
+                    recursion = true
+                    performClick(binding.root.findViewById(lineId))
+                    recursion = false
+                }
+                return true
+            }
+        }
+        return false
+    }
+
+    private fun handleAIRandom() {
+        val ids = lineIDs.toMutableList()
+        var name = lineIDs[random.nextInt(ids.size)]
+
+        while (true) {
+            val countUp = countColored(name, true)
+            val countDn = countColored(name, false)
+
+            if ((countUp > 1 || countDn > 1) && !(countUp == 3 || countDn == 3)) {
+                if (ids.size == 1) break
+                ids.remove(name)
+                name = ids[random.nextInt(ids.size)]
+            } else break
+        }
+
+        val lineId = idFromName(name)
+        lifecycleScope.launch {
+            delay(800)
+            clickEnabled = true
+            performClick(binding.root.findViewById(lineId))
+        }
+    }
+
+    private fun countColored(randLineIdNm: String, isTop: Boolean): Int {
+        val aroundIds = getIdNm(randLineIdNm)
+        var c = 0
+        if ((isTop && shouldCheckTop(randLineIdNm)) || (!isTop && shouldCheckBottom(randLineIdNm))){
+            val start = if (isTop) 0 else 3
+            for (i in start..start + 2) {
+                val v = binding.root.findViewById<View>(idFromName(aroundIds[i]))
+                val bg = v.background.mutate() as GradientDrawable
+                if (getColorGrad(bg) != whiteX) c++
+            }
+        }
+        return c
+    }
+
+    private fun finishGame() {
+        playWinSound()
+        binding.red.textSize = 30f
+        binding.red.setTextColor(white)
+        binding.blue.textSize = 30f
+        binding.blue.setTextColor(white)
+
+        if (scoreRed > scoreBlue) onGameOver("AI won the match.")
+        else if (scoreBlue > scoreRed) {
+            var winAI = pref.read("winAI", 0)
+            pref.save("winAI", ++winAI)
+            onGameOver("You won the match.")
+        } else onGameOver("Match Draw.")
+    }
+
+    private fun playWinSound() {
+        isNotMuted {
+            val mp = MediaPlayer.create(parentActivity, R.raw.win_ef)
+            mp.start()
+            mp.setOnCompletionListener(MediaPlayer::release)
+        }
+    }
+
 
     @SuppressLint("SetTextI18n")
     fun onGameOver(winMsg: String) {
