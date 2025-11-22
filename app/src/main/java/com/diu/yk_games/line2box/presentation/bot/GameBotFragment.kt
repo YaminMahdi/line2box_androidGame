@@ -52,8 +52,8 @@ class GameBotFragment : Fragment() {
     //MediaPlayer lineClick, boxPlus, winSoundEf, btnClick;
     private var isFirstRun = false
     private var recursion = false
+    private var recursionCount = 0
     private var clickEnabled = false
-    private var tmpLineId = 0
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -89,14 +89,12 @@ class GameBotFragment : Fragment() {
                 infoShow {
                     lifecycleScope.launch {
                         delay(600)
-                        clickEnabled = true
-                        performClick(binding.root.findViewById(randLineId))
+                        performClick(binding.root.findViewById(randLineId), true)
                     }
                 }
             } else {
                 delay(600)
-                clickEnabled = true
-                performClick(binding.root.findViewById(randLineId))
+                performClick(binding.root.findViewById(randLineId), true)
             }
         }
     }
@@ -104,7 +102,9 @@ class GameBotFragment : Fragment() {
     fun setupListener() {
         viewModel.getLineViewGroups(binding).forEach { viewGroup ->
             repeat(viewGroup.childCount) { i ->
-                viewGroup.getChildAt(i)?.setOnClickListener(::performClick)
+                viewGroup.getChildAt(i)?.setOnClickListener {
+                    performClick(it, false)
+                }
             }
         }
         binding.volBtn.performOnClickF()
@@ -122,37 +122,40 @@ class GameBotFragment : Fragment() {
     val white by lazy { resources.getColor(R.color.white, parentActivity.theme) }
 
     @SuppressLint("SetTextI18n", "DiscouragedApi")
-    fun performClick(view: View) {
+    fun performClick(view: View, isBot: Boolean) {
         val idNm = resources.getResourceEntryName(view.id)
         idNm.log()
         val aroundIds = getIdNm(idNm)
         val bg = view.background.mutate() as GradientDrawable
         val color = getColorGrad(bg)
-        var extraTurn = false
 
-        if (color == whiteX && clickEnabled && lineIDs.isNotEmpty()) {
+        if (color == whiteX && (clickEnabled || isBot) && lineIDs.isNotEmpty()) {
             cat("clickEnabled")
             playLineClickSound()
             lineIDs.remove(idNm)
             clickCount++
-            bg.setColor(if (clickCount % 2 == 1) redX else blueX)
+            bg.setColor(if (isBot) redX else blueX)
 
-            if (shouldCheckTop(idNm))
-                extraTurn = handleBox(aroundIds, true)
-            if (shouldCheckBottom(idNm))
-                extraTurn = handleBox(aroundIds, false)
+            val extraTurn =
+                (shouldCheckTop(idNm) && handleBox(aroundIds, true, isBot)) ||
+                (shouldCheckBottom(idNm) && handleBox(aroundIds, false, isBot))
 
             if (extraTurn) {
                 clickCount--
-                recursion = false
-            } else handleTurnUI()
-
-            if (clickCount % 2 == 0 && lineIDs.isNotEmpty()) {
+//                recursion = false
+//                if (isBot) recursionCount--
+            } else handleTurnUI(isBot)
+            cat("idNm $idNm, extraTurn $extraTurn, isBot $isBot, recursion $recursion, lineIDs.size ${lineIDs.size}")
+            if (((extraTurn && isBot) || (!extraTurn && !isBot)) && lineIDs.isNotEmpty())
                 handleAI(idNm)
-            }
+            else
+                clickEnabled = true
 
-            lifecycleScope.launch {
-                if (scoreRed + scoreBlue == 36) finishGame()
+            if (scoreRed + scoreBlue == 36 && !isGameOver) {
+                lifecycleScope.launch {
+                    delay(950)
+                    finishGame()
+                }
             }
         }
     }
@@ -175,7 +178,7 @@ class GameBotFragment : Fragment() {
                 (idNm[3].digitToInt() < 7 && idNm[4] == 'L')
     }
 
-    private fun handleBox(aroundIds: List<String?>, isTop: Boolean): Boolean {
+    private fun handleBox(aroundIds: List<String?>, isTop: Boolean, isBot: Boolean): Boolean {
         cat("handleBox isTop $isTop")
         val u = binding.root.findViewById<View>(idFromName(aroundIds[if(isTop) 0 else 3]
             .also { it.log("handleBox") }))
@@ -201,7 +204,8 @@ class GameBotFragment : Fragment() {
             circleMidLeft = mid1,
             circleMidRight = mid2,
             circleUpLeft = up1,
-            circleUpRight = up2
+            circleUpRight = up2,
+            isBot = isBot
         )
         return true
     }
@@ -225,13 +229,11 @@ class GameBotFragment : Fragment() {
         innerText: TextView,
         lineUp: View, lineLeft: View, lineRight: View,
         circleMidLeft: View, circleMidRight: View,
-        circleUpLeft: View, circleUpRight: View
+        circleUpLeft: View, circleUpRight: View, isBot: Boolean
     ) {
         playBoxSound()
 
-        val isRed = clickCount % 2 == 1
-
-        if (isRed) {
+        if (isBot) {
             scoreRed++
             binding.scoreRed.text = scoreRed.toString()
             innerText.text = nm1.first().toString()
@@ -247,8 +249,8 @@ class GameBotFragment : Fragment() {
 
         innerText.typeface = ResourcesCompat.getFont(parentActivity, R.font.bertram)
 
-        val color = if (isRed) redX else blueX
-        val stroke = if (isRed) redY else blueY
+        val color = if (isBot) redX else blueX
+        val stroke = if (isBot) redY else blueY
 
         listOf(lineUp, lineLeft, lineRight).forEach {
             val bg = it.background.mutate() as GradientDrawable
@@ -269,8 +271,8 @@ class GameBotFragment : Fragment() {
         }
     }
 
-    private fun handleTurnUI() {
-        if (clickCount % 2 == 1) {
+    private fun handleTurnUI(isBot: Boolean) {
+        if (isBot) {
             clickEnabled = true
             binding.red.textSize = 30f
             binding.red.setTextColor(whiteT)
@@ -286,14 +288,16 @@ class GameBotFragment : Fragment() {
 
     private fun handleAI(idNm: String) {
         clickEnabled = false
-
         val halfTopFoundExtraTurn = checkAIHalf(idNm, true)
-        if (halfTopFoundExtraTurn) return
-
         val halfBottomFoundExtraTurn = checkAIHalf(idNm, false)
-        if (halfBottomFoundExtraTurn) return
 
-        handleAIRandom()
+        if (halfTopFoundExtraTurn && halfBottomFoundExtraTurn) recursion = true
+        if (halfTopFoundExtraTurn || halfBottomFoundExtraTurn) return
+
+        if(!recursion)
+            handleAIRandom()
+        else
+            recursion = false
     }
 
     private fun checkAIHalf(idNm: String, isTop: Boolean): Boolean {
@@ -315,10 +319,11 @@ class GameBotFragment : Fragment() {
                 val lineId = idFromName(ids[blankIndex])
                 lifecycleScope.launch {
                     delay(if (isTop) 500 else 650)
-                    clickEnabled = true
-                    recursion = true
-                    performClick(binding.root.findViewById(lineId))
-                    recursion = false
+//                    recursion = true
+//                    recursionCount++
+                    performClick(binding.root.findViewById(lineId), true)
+//                    recursion = false
+//                    recursionCount--
                 }
                 return true
             }
@@ -344,8 +349,7 @@ class GameBotFragment : Fragment() {
         val lineId = idFromName(name)
         lifecycleScope.launch {
             delay(800)
-            clickEnabled = true
-            performClick(binding.root.findViewById(lineId))
+            performClick(binding.root.findViewById(lineId), true)
         }
     }
 
@@ -364,6 +368,7 @@ class GameBotFragment : Fragment() {
     }
 
     private fun finishGame() {
+        isGameOver = true
         playWinSound()
         binding.red.textSize = 30f
         binding.red.setTextColor(white)
@@ -666,16 +671,17 @@ class GameBotFragment : Fragment() {
     }
 
     companion object {
-        private const val TAG = "GameBotFragment"
         var clickCount = 0
         var scoreRed = 0
         var scoreBlue = 0
         var bestScore = 9999
+        var tmpLineId = -1
         lateinit var top: String
         lateinit var left: String
         var nm1 = "AI"
         var nm2 = "Blue"
         var one = true
         var flag = true
+        var isGameOver = true
     }
 }

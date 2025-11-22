@@ -37,7 +37,7 @@ class MainViewModel(
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    var motionProgress = 0
+    var lastMotionState : Int? = null
     val firebaseAuth by lazy { Firebase.auth }
     val database by lazy { Firebase.database }
     val firestore by lazy { Firebase.firestore }
@@ -416,8 +416,8 @@ class MainViewModel(
             "r3c1T", "r3c1L", "r3c2T", "r3c2L", "r3c3T", "r3c3L", "r3c4T", "r3c4L", "r3c5T", "r3c5L", "r3c6T", "r3c6L", "r3c7L",
             "r4c1T", "r4c1L", "r4c2T", "r4c2L", "r4c3T", "r4c3L", "r4c4T", "r4c4L", "r4c5T", "r4c5L", "r4c6T", "r4c6L", "r4c7L",
             "r5c1T", "r5c1L", "r5c2T", "r5c2L", "r5c3T", "r5c3L", "r5c4T", "r5c4L", "r5c5T", "r5c5L", "r5c6T", "r5c6L", "r5c7L",
-            "r7c1T", "r6c1T", "r6c1L", "r7c6T", "r6c2T", "r6c2L", "r7c2T", "r6c3T", "r6c3L", "r7c3T", "r6c4T", "r6c4L", "r7c4T",
-            "r6c5T", "r6c5L", "r7c5T", "r6c6T", "r6c6L", "r6c7L"
+            "r6c1T", "r6c1L", "r6c2T", "r6c2L", "r6c3T", "r6c3L", "r6c4T", "r6c4T", "r6c5L", "r6c6L", "r6c6T", "r6c6L", "r6c7L",
+            "r7c1T", "r7c2T", "r7c3T", "r7c4T", "r7c5T", "r7c6T"
         )
 
     val countryEmojis = ArrayList(

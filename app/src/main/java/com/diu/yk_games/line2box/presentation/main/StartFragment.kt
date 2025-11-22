@@ -2,6 +2,7 @@ package com.diu.yk_games.line2box.presentation.main
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.content.Intent
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -19,6 +20,7 @@ import com.diu.yk_games.line2box.databinding.ActivityStartBinding
 import com.diu.yk_games.line2box.databinding.DialogLayoutInfoBinding
 import com.diu.yk_games.line2box.databinding.DialogLayoutUpdateuiBinding
 import com.diu.yk_games.line2box.presentation.MainViewModel
+import com.diu.yk_games.line2box.presentation.bot.GameActivity3
 import com.diu.yk_games.line2box.presentation.navigation.Routes
 import com.diu.yk_games.line2box.util.applyState
 import com.diu.yk_games.line2box.util.gone
@@ -51,9 +53,9 @@ class StartFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        when (viewModel.motionProgress){
-            -1 -> binding.motionLayout.jumpToState(R.id.previous)
-            1 -> binding.motionLayout.jumpToState(R.id.next)
+        viewModel.lastMotionState?.let {
+            binding.motionLayout.jumpToState(it)
+            viewModel.lastMotionState = null
         }
     }
 
@@ -71,6 +73,10 @@ class StartFragment : Fragment() {
     private fun setupListener() {
         binding.startBtnId.setBounceClickListener {
             startBtn()
+        }
+        binding.startBtnId.setOnLongClickListener {
+            parentActivity.startActivity(Intent(parentActivity, GameActivity3::class.java))
+            true
         }
         binding.volBtn.performOnClickF()
         binding.ideaBtn.setBounceClickListener {
@@ -177,43 +183,46 @@ class StartFragment : Fragment() {
             mediaPlayer?.start()
             mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
         }
-        if (binding.mode1.alpha < .5) {
-            if (viewModel.onlineStatus == "pass") {
-                navigateSafe(Routes.MultiPlayer)
-                viewModel.motionProgress = 1
-            } else if (viewModel.onlineStatus == "needReload") {
-                //updateUI()
-                val builder = AlertDialog.Builder(parentActivity)
-                val dialogBinding = DialogLayoutUpdateuiBinding.inflate(LayoutInflater.from(parentActivity))
 
-                builder.setView(dialogBinding.root)
-                builder.setCancelable(false)
-                dialogBinding.googlePlayWarning.gone()
-                dialogBinding.UpdateInfo.text = "You must have INTERNET connection to play in ONLINE mode"
-                val alertDialog = builder.create()
-                dialogBinding.buttonUpdate.setBounceClickListener {
-                    isNotMuted {
-                        val mediaPlayer = MediaPlayer.create(parentActivity, R.raw.btn_click_ef)
-                        mediaPlayer?.start()
-                        mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
+        when (binding.motionLayout.currentState) {
+            R.id.next -> {
+                if (viewModel.onlineStatus == "pass") {
+                    navigateSafe(Routes.MultiPlayer)
+                    viewModel.lastMotionState = R.id.next
+                } else if (viewModel.onlineStatus == "needReload") {
+                    //updateUI()
+                    val builder = AlertDialog.Builder(parentActivity)
+                    val dialogBinding =
+                        DialogLayoutUpdateuiBinding.inflate(LayoutInflater.from(parentActivity))
+
+                    builder.setView(dialogBinding.root)
+                    builder.setCancelable(false)
+                    dialogBinding.googlePlayWarning.gone()
+                    dialogBinding.UpdateInfo.text =
+                        "You must have INTERNET connection to play in ONLINE mode"
+                    val alertDialog = builder.create()
+                    dialogBinding.buttonUpdate.setBounceClickListener {
+                        isNotMuted {
+                            val mediaPlayer = MediaPlayer.create(parentActivity, R.raw.btn_click_ef)
+                            mediaPlayer?.start()
+                            mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
+                        }
+                        recreate(requireActivity())
+                        runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
                     }
-                    recreate(requireActivity())
-                    runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
+                    alertDialog.window?.setBackgroundDrawable(0.toDrawable())
+                    runCatching { alertDialog.show() }
                 }
-                alertDialog.window?.setBackgroundDrawable(0.toDrawable())
-                runCatching { alertDialog.show() }
             }
-        } else if (binding.mode3.alpha < .5){
-            navigateSafe(Routes.ChangeName)
-            viewModel.motionProgress = -1
-        } else{
-            navigateSafe(Routes.GameBot)
-            viewModel.motionProgress = 0
+            R.id.previous -> {
+                navigateSafe(Routes.ChangeName)
+                viewModel.lastMotionState = R.id.previous
+            }
+            R.id.start -> {
+                navigateSafe(Routes.GameBot)
+                viewModel.lastMotionState = null
+            }
         }
-    }
-
-    companion object {
-        private const val TAG = "StartFragment"
     }
 
 }
