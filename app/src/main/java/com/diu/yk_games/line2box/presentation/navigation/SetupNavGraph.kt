@@ -9,6 +9,7 @@ import com.diu.yk_games.line2box.presentation.main.StartFragment
 import com.diu.yk_games.line2box.presentation.offline.GameDualFragment
 import com.diu.yk_games.line2box.presentation.offline.NameInfoFragment
 import com.diu.yk_games.line2box.presentation.online.LeaderBoardFragment
+import com.diu.yk_games.line2box.presentation.online.MultiplayerFragment
 
 fun NavController.setupNavGraph() {
     graph = createGraph(
@@ -18,7 +19,7 @@ fun NavController.setupNavGraph() {
         fragment<DisplayFragment, Routes.ScoreBoard>()
         fragment<LeaderBoardFragment, Routes.LeaderBoard>()
         fragment<NameInfoFragment, Routes.ChangeName>()
-        fragment<StartFragment, Routes.MultiPlayer>()
+        fragment<MultiplayerFragment, Routes.MultiPlayer>()
         fragment<GameDualFragment, Routes.GameDual>()
         fragment<GameBotFragment, Routes.GameBot>()
     }

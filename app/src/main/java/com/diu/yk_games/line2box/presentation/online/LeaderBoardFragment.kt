@@ -12,43 +12,51 @@ import android.widget.LinearLayout
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.DialogLayoutProfileBinding
-import com.diu.yk_games.line2box.databinding.FragmentLeaderBoardBinding
+import com.diu.yk_games.line2box.databinding.FragmentDisplayBinding
 import com.diu.yk_games.line2box.model.GameProfile
+import com.diu.yk_games.line2box.presentation.MainViewModel
 import com.diu.yk_games.line2box.presentation.RankListAdapter
 import com.diu.yk_games.line2box.util.gone
+import com.diu.yk_games.line2box.util.onBackPressed
 import com.diu.yk_games.line2box.util.pref
-import com.google.firebase.Firebase
+import com.diu.yk_games.line2box.util.setBounceClickListener
 import com.google.firebase.firestore.AggregateSource
 import com.google.firebase.firestore.Query
-import com.google.firebase.firestore.firestore
 import com.google.firebase.firestore.toObject
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class LeaderBoardFragment : Fragment() {
-    private lateinit var binding: FragmentLeaderBoardBinding
+    private lateinit var binding: FragmentDisplayBinding
+    private val viewModel: MainViewModel by activityViewModels()
+
     private var rankList= mutableListOf<GameProfile>()
-    private lateinit var playerId: String
-    private val rankListAdapter by lazy { RankListAdapter(playerId) }
+    private val rankListAdapter by lazy { RankListAdapter(viewModel.playerId) }
 
     @SuppressLint("SetTextI18n")
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = FragmentLeaderBoardBinding.inflate(inflater, container, false)
+        binding = FragmentDisplayBinding.inflate(inflater, container, false)
         return binding.root
+    }
+
+    private fun setupUI(){
+        binding.fragLabel.text = getString(R.string.global_rank_list)
+        binding.statusLabel.text = getString(R.string.total_player)
     }
 
     @SuppressLint("SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        playerId = arguments?.getString("playerId").orEmpty()
-        binding.showRankList.adapter = rankListAdapter
-        val db = Firebase.firestore.collection("gamerProfile")
+        setupUI()
+        binding.recyclerView.adapter = rankListAdapter
+        val db = viewModel.firestore.collection("gamerProfile")
         db.whereNotEqualTo("coin", 100)
             .orderBy("coin", Query.Direction.DESCENDING)
             .limit(100)
@@ -56,18 +64,18 @@ class LeaderBoardFragment : Fragment() {
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     for (document in task.result) {
-                        Log.d(TAG, document.getId() )
+                        Log.d(TAG, document.id)
                         val xx = document.toObject<GameProfile>()
                         rankList.add(xx)
-                        rankListAdapter.submitList(rankList)
                     }
+                    rankListAdapter.submitList(rankList)
                     //rankList.sort(Comparator.comparing(a -> a.coin))
                     //Collections.reverse(rankList)
-                    val pos = findIndex(rankList, playerId)
+                    val pos = findIndex(rankList, viewModel.playerId)
                     try {
                         // rankList.indexOf(user)
-                        Log.d(TAG, "onComplete(pos): "+pos+" ser- "+rankList.get(pos).playerId+" "+playerId)
-                        if (pos > 5) binding.showRankList.scrollToPosition(pos - 1)
+                        Log.d(TAG, "onComplete(pos): $pos ser- ${rankList.getOrNull(pos)?.playerId} ${viewModel.playerId}")
+                        if (pos > 5) binding.recyclerView.scrollToPosition(pos - 1)
                         //list.post(() -> list.smoothScrollToPosition(pos))
                     } catch (e: Exception) {
                         e.printStackTrace()
@@ -81,12 +89,14 @@ class LeaderBoardFragment : Fragment() {
                 lifecycleScope.launch {
                     for(i in 0 .. it.count step  512) {
                         delay(45)
-                        binding.playerCount.text = "%,d".format(i)
+                        binding.status.text = "%,d".format(i)
                     }
-                    binding.playerCount.text = "%,d".format(it.count)
+                    binding.status.text = "%,d".format(it.count)
                 }
             }
         var itemClicked = false
+        binding.btnBack.setBounceClickListener(::onBackPressed)
+
         rankListAdapter.onClickListener = run@{ gamerPro ->
             if(itemClicked) return@run
             itemClicked = true
@@ -96,7 +106,7 @@ class LeaderBoardFragment : Fragment() {
                 mediaPlayer.start()
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release)
             }
-            Firebase.firestore.collection("gamerProfile").document(gamerPro.playerId)
+            viewModel.firestore.collection("gamerProfile").document(gamerPro.playerId)
                 .get().addOnSuccessListener { documentSnapshot ->
                     val server2device = documentSnapshot.toObject<GameProfile>()
                     if (server2device != null) {

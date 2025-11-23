@@ -40,8 +40,6 @@ class ChatFragmentFriendly : Fragment() {
     private lateinit var binding: FragmentChatFriendlyBinding
     private val viewModel by activityViewModels<MainViewModel>()
     private lateinit var activity: Activity
-//    private lateinit var key: String
-//    private lateinit var playerId: String
     private val msgListAdapter by lazy { MsgListAdapter(viewModel.playerId) }
     private val drawerLayout by lazy { activity.findViewById<DrawerLayout>(R.id.drawer_layout) }
 
@@ -51,10 +49,6 @@ class ChatFragmentFriendly : Fragment() {
     ): View {
         binding = FragmentChatFriendlyBinding.inflate(inflater, container, false)
         activity = requireActivity()
-//        arguments?.let{
-//            key = it.getString("key").orEmpty()
-//            playerId = it.getString("playerId").orEmpty()
-//        }
         binding.showMsgList.adapter = msgListAdapter
         val mp = MediaPlayer.create(activity, R.raw.pop)
         viewModel.friendsChatList.collectWithLifecycle {
@@ -75,7 +69,7 @@ class ChatFragmentFriendly : Fragment() {
                 }
             }
             lastMsg?.key?.let {
-                lastMsgKey = it
+                lastMsgKey = lastMsg.key
             }
         }
         return binding.root
@@ -191,10 +185,5 @@ class ChatFragmentFriendly : Fragment() {
 
     companion object {
         var lastMsgKey = ""
-//        fun newInstance(key: String?, playerId: String?): ChatFragmentFriendly {
-//            val fragment = ChatFragmentFriendly()
-//            fragment.arguments = bundleOf("key" to key, "playerId" to playerId)
-//            return fragment
-//        }
     }
 }

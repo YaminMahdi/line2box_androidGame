@@ -155,7 +155,7 @@ class StartActivity : AppCompatActivity() {
         setContentView(binding.root)
         setNavStatusPadding(binding.mainLayout, binding.globalScoreFrag)
         inAppUpdate.checkForUpdate()
-        viewModel.initGameProfile(loadGlobalChat = false)
+        viewModel.initGameProfile()
         loadingUI = LoadingUI()
         loadingUI.start()
         //if (!isFirstRun)

@@ -52,7 +52,6 @@ class GameBotFragment : Fragment() {
     //MediaPlayer lineClick, boxPlus, winSoundEf, btnClick;
     private var isFirstRun = false
     private var recursion = false
-    private var recursionCount = 0
     private var clickEnabled = false
 
     override fun onCreateView(
@@ -142,8 +141,6 @@ class GameBotFragment : Fragment() {
 
             if (extraTurn) {
                 clickCount--
-//                recursion = false
-//                if (isBot) recursionCount--
             } else handleTurnUI(isBot)
             cat("idNm $idNm, extraTurn $extraTurn, isBot $isBot, recursion $recursion, lineIDs.size ${lineIDs.size}")
             if (((extraTurn && isBot) || (!extraTurn && !isBot)) && lineIDs.isNotEmpty())
@@ -319,11 +316,7 @@ class GameBotFragment : Fragment() {
                 val lineId = idFromName(ids[blankIndex])
                 lifecycleScope.launch {
                     delay(if (isTop) 500 else 650)
-//                    recursion = true
-//                    recursionCount++
                     performClick(binding.root.findViewById(lineId), true)
-//                    recursion = false
-//                    recursionCount--
                 }
                 return true
             }
@@ -675,7 +668,6 @@ class GameBotFragment : Fragment() {
         var scoreRed = 0
         var scoreBlue = 0
         var bestScore = 9999
-        var tmpLineId = -1
         lateinit var top: String
         lateinit var left: String
         var nm1 = "AI"

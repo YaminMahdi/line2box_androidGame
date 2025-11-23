@@ -63,10 +63,16 @@ class DisplayFragment : Fragment() {
         return binding.root
     }
 
+    private fun setupUI(){
+        binding.fragLabel.text = getString(R.string.global_score_board)
+        binding.statusLabel.text = getString(R.string.last_best_score)
+    }
+
     @SuppressLint("SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.showScoreList.adapter = scoreListAdapter
+        setupUI()
+        binding.recyclerView.adapter = scoreListAdapter
         //Source source = Source.CACHE;
         viewModel.firestore.collection("LastBestPlayer").document("LastBestPlayer")
             .get().addOnCompleteListener { task ->
@@ -74,7 +80,7 @@ class DisplayFragment : Fragment() {
                     val document = task.result
                     Log.d(TAG, "Cached document data: " + document.data)
                     bestScore = document.data?.get("info")?.toString().orEmpty()
-                    binding.lastBestScore.text = "\uD83D\uDC51 $bestScore"
+                    binding.status.text = "\uD83D\uDC51 $bestScore"
                 } else {
                     Log.d(TAG, "Cached get failed: ", task.exception)
                 }

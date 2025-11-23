@@ -36,7 +36,7 @@
     <string name="reboot_device"><u>3. Restart your device</u></string>
     <string name="logo">logo</string>
     <string name="_0">0</string>
-    <string name="total_player">Total Player -</string>
+    <string name="total_player">Total Player-</string>
     <string name="last_best_score">Last Best Score-</string>
     <string name="name">Name</string>
     <string name="input_id">Input ID</string>
@@ -79,4 +79,6 @@
     <string name="retry">Retry</string>
     <string name="no_internet">No Internet !</string>
     <string name="you_must_have_internet_connection_for_the_first_time_to_run_the_game">You must have INTERNET connection for the first time to run the game</string>
+    <string name="global_score_board">Global Score Board</string>
+    <string name="global_rank_list">Global Rank List</string>
 </resources>

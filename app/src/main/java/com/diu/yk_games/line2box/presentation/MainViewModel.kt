@@ -101,8 +101,7 @@ class MainViewModel(
     fun setLoading(value: Boolean) {
         savedStateHandle["isLoading"] = value
     }
-
-    fun initGameProfile(playerId: String = this@MainViewModel.playerId, loadGlobalChat: Boolean = true) {
+    fun initGameProfile(playerId: String = this@MainViewModel.playerId) {
         _gameProfile = GameProfile()
         if(playerId.isNotEmpty()) {
             this@MainViewModel.playerId = playerId
@@ -110,10 +109,11 @@ class MainViewModel(
             gameProfile.apply()
         }
         else this@MainViewModel.playerId = gameProfile.playerId
-        if(loadGlobalChat) {
-            fetchGlobalChat()
-            fetchActiveMatches()
-        }
+    }
+
+    fun initMultiplayer() {
+        fetchGlobalChat()
+        fetchActiveMatches()
     }
 
     fun addTempKey(key: String?) {
@@ -333,7 +333,7 @@ class MainViewModel(
         fun defError(): Result<Bundle> {
             if(matches.value.isNotEmpty())
                 globalChatRef.child(msg.key).removeValue()
-            return Result.failure<Bundle>(Exception("Match expired."))
+            return Result.failure(Exception("Match expired."))
         }
         if (msg.gameId.length != 4) return defError()
         val gameRoom = getValidMatch(msg.gameId) ?: return defError()

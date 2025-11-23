@@ -2,16 +2,21 @@ package com.diu.yk_games.line2box.presentation
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.graphics.Rect
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.View
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.addCallback
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.drawable.toDrawable
+import androidx.customview.widget.ViewDragHelper
+import androidx.drawerlayout.widget.DrawerLayout.DrawerListener
 import androidx.navigation.fragment.NavHostFragment
+import androidx.viewpager2.widget.ViewPager2
 import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.ActivityMainDrawerBinding
 import com.diu.yk_games.line2box.databinding.DialogLayoutAlertBinding
@@ -25,13 +30,18 @@ import com.diu.yk_games.line2box.model.msg
 import com.diu.yk_games.line2box.presentation.navigation.Routes
 import com.diu.yk_games.line2box.presentation.navigation.asRoute
 import com.diu.yk_games.line2box.presentation.navigation.setupNavGraph
+import com.diu.yk_games.line2box.presentation.online.BlankChatFragment
+import com.diu.yk_games.line2box.presentation.online.ChatFragmentFriendly
+import com.diu.yk_games.line2box.presentation.online.ChatFragmentGlobal
 import com.diu.yk_games.line2box.presentation.online.GameActivity2.Companion.isFirstRun
 import com.diu.yk_games.line2box.util.ConnectivityObserver
 import com.diu.yk_games.line2box.util.Constants
 import com.diu.yk_games.line2box.util.InAppUpdate
+import com.diu.yk_games.line2box.util.cat
 import com.diu.yk_games.line2box.util.changeVisibility
 import com.diu.yk_games.line2box.util.closeKeyboard
 import com.diu.yk_games.line2box.util.collectWithLifecycle
+import com.diu.yk_games.line2box.util.getSystemBars
 import com.diu.yk_games.line2box.util.gone
 import com.diu.yk_games.line2box.util.hideSystemBars
 import com.diu.yk_games.line2box.util.isNotMuted
@@ -75,7 +85,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(bindingDrawer.root)
         setNavStatusPadding(binding.mainNavHost, binding.sideNavGroup)
         inAppUpdate.checkForUpdate()
-        viewModel.initGameProfile(loadGlobalChat = false)
+        viewModel.initGameProfile()
         window.hideSystemBars()
 
         navController.setupNavGraph()
@@ -94,6 +104,79 @@ class MainActivity : AppCompatActivity() {
     private fun setupUI() {
         initializePlayGameUser()
         binding.loader.loadDrawable(R.drawable.g_loading)
+
+        val activityRootView = window.decorView
+        activityRootView.viewTreeObserver.addOnGlobalLayoutListener {
+            val r = Rect()
+            //r will be populated with the coordinates of your view that area still visible.
+            activityRootView.getWindowVisibleDisplayFrame(r)
+            val maxHeight = activityRootView.height
+            val heightDiff = maxHeight - r.height()
+            cat("onGlobalLayout: height diff: $heightDiff ${r.height()} $maxHeight")
+            if (heightDiff > 0.25 * maxHeight) {
+                // if more than 25% of the screen, its probably a keyboard......do something here
+                cat("onGlobalLayout: here")
+                bindingDrawer.chatFragmentLinerLayout.setPadding(0, 0, 0, heightDiff)
+                bindingDrawer.navCloseButtonLayout.setPadding(0, 0, 0, heightDiff)
+            } else {
+                val systemBars = getSystemBars()
+                bindingDrawer.chatFragmentLinerLayout.setPadding(0, 0, 0, systemBars.bottom)
+                bindingDrawer.navCloseButtonLayout.setPadding(0, 0, 0, systemBars.bottom)
+            }
+        }
+        bindingDrawer.root.addDrawerListener(object : DrawerListener {
+            override fun onDrawerSlide(drawerView: View, slideOffset: Float) {}
+            override fun onDrawerOpened(drawerView: View) {}
+            override fun onDrawerClosed(drawerView: View) {}
+            override fun onDrawerStateChanged(newState: Int) {
+                Log.d("TAG", "onDrawerStateChanged: $newState")
+                if (newState == ViewDragHelper.STATE_SETTLING) {
+                    closeKeyboard()
+                    viewModel.setNewMsgBoltVisible(false)
+                    if (viewModel.ignoreDrawerClosesSound) {
+                        viewModel.ignoreDrawerClosesSound = false
+                        return
+                    }
+                    isNotMuted {
+                        val mediaPlayer = MediaPlayer.create(this@MainActivity, R.raw.slide)
+                        mediaPlayer.start()
+                        mediaPlayer.setOnCompletionListener(MediaPlayer::release)
+                    }
+                }
+            }
+        })
+        //chat bug fix
+        bindingDrawer.chatPager.isUserInputEnabled = false
+        bindingDrawer.chatPager.adapter = ViewPagerAdapter(
+            listOf(
+                ChatFragmentGlobal(),
+                ChatFragmentFriendly(),
+                BlankChatFragment()
+            ), this
+        )
+        bindingDrawer.bubbleTabBar.addBubbleListener { id ->
+            if (id == R.id.globalChat)
+                bindingDrawer.chatPager.currentItem = 0
+            else
+                bindingDrawer.chatPager.currentItem =
+                    if (viewModel.friendsChatList.value.isNotEmpty()) 1 else 2
+        }
+        bindingDrawer.chatPager.registerOnPageChangeCallback(object :
+            ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                super.onPageSelected(position)
+                when (position) {
+                    0 -> bindingDrawer.bubbleTabBar.setSelected(0, true)
+                    1 -> bindingDrawer.bubbleTabBar.setSelected(1, true)
+                }
+            }
+        })
+        binding.openNavBtn.setBounceClickListener {
+            openNavBtn()
+        }
+        bindingDrawer.closeNavBtn.setBounceClickListener {
+            closeNavBtn()
+        }
     }
 
     private fun setupListener() {
@@ -141,6 +224,9 @@ class MainActivity : AppCompatActivity() {
     private fun setupObserver() {
         viewModel.isLoading.collectWithLifecycle {
             binding.loadingLayout.changeVisibility(it)
+        }
+        viewModel.isNewMsgBoltVisible.collectWithLifecycle {
+            binding.newMsgBoltu.changeVisibility(it)
         }
     }
 

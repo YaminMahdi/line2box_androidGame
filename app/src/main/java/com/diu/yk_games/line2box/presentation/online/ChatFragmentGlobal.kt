@@ -35,9 +35,7 @@ class ChatFragmentGlobal : Fragment() {
     private lateinit var binding: FragmentChatGlobalBinding
     private val viewModel by activityViewModels<MainViewModel>()
     private lateinit var activity: Activity
-//    private lateinit var playerId: String
     private val msgListAdapter by lazy { MsgListAdapter(viewModel.playerId) }
-
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -51,9 +49,6 @@ class ChatFragmentGlobal : Fragment() {
     @SuppressLint("SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-//        arguments?.let{
-//            playerId = it.getString("playerId").orEmpty()
-//        }
         binding.showMsgList.adapter = msgListAdapter
         binding.chatBoxGlobal.requestFocus()
         viewModel.globalChatList.collectWithLifecycle {
@@ -137,12 +132,4 @@ class ChatFragmentGlobal : Fragment() {
             } ?: toast("Write Something..")
         }
     }
-
-//    companion object {
-//        fun newInstance(playerId: String?): ChatFragmentGlobal {
-//            val fragment = ChatFragmentGlobal()
-//            fragment.arguments = bundleOf("playerId" to playerId)
-//            return fragment
-//        }
-//    }
 }
