@@ -183,7 +183,7 @@
 
             <View
                 android:id="@+id/modeY"
-                android:layout_width="@dimen/_80sdp"
+                android:layout_width="@dimen/_42sdp"
                 android:layout_height="@dimen/_80sdp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"

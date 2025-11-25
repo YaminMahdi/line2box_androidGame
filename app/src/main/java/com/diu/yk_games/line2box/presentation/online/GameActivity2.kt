@@ -714,7 +714,7 @@ class GameActivity2 : AppCompatActivity() {
                     else -> handleDraw()
                 }
                 // Update level after match
-                doc.update("lvl", updatePro.lvlByCal)
+                doc.update("lvl", updatePro.lvlByCal())
                 saveToFirebase(plr1Cup, plr2Cup)
                 lifecycleScope.launch {
                     delay(1200)

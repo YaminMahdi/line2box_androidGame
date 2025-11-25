@@ -38,6 +38,7 @@ class MainViewModel(
 ) : ViewModel() {
 
     var lastMotionState : Int? = null
+    var lastMotionTransitionState : Bundle? = null
     val firebaseAuth by lazy { Firebase.auth }
     val database by lazy { Firebase.database }
     val firestore by lazy { Firebase.firestore }
@@ -199,10 +200,11 @@ class MainViewModel(
 
     var friendlyValueListener  : ValueEventListener? = null
     var friendlyChatRef : DatabaseReference? = null
-    fun fetchFriendlyChat(){
+
+    fun fetchFriendlyChat(gameRoomKey: String = matchKey){
         viewModelScope.launch {
-            if(matchKey.isEmpty()) return@launch
-            val friendsChatRef = multiPlayerRef.child(matchKey).child("friendlyChat")
+            if(gameRoomKey.isEmpty()) return@launch
+            val friendsChatRef = multiPlayerRef.child(gameRoomKey).child("friendlyChat")
             friendlyValueListener?.also { friendlyChatRef?.removeEventListener(it) }
             friendlyChatRef = friendsChatRef
             friendlyValueListener = friendsChatRef.limitToLast(100).addValueEventListener(object : ValueEventListener {
@@ -214,7 +216,7 @@ class MainViewModel(
                         if(ms.type.typeEnum == Type.ExitText)
                             localPlayerCount--
                         ms.copy(key = key)
-                    }.reversed()
+                    }.sortedByDescending { it.time }
                     savedStateHandle["friendsChatList"] = chatList
                 }
                 override fun onCancelled(databaseError: DatabaseError) {}
@@ -362,7 +364,7 @@ class MainViewModel(
             child("playerCount").setValue("2")
             //remove
             child("playerInfo").child("nm2").setValue(gameProfile.nm)
-            child("playerInfo").child("lvl2").setValue(gameProfile.lvlByCal)
+            child("playerInfo").child("lvl2").setValue(gameProfile.lvlByCal())
             //remove
         }
         val friendsChatRef = multiPlayerRef.child(fullKey).child("friendlyChat")
@@ -387,7 +389,7 @@ class MainViewModel(
 
                 "plr2Id" to playerId,
                 "nm2" to gameProfile.nm,
-                "lvl2" to gameProfile.lvlByCal
+                "lvl2" to gameProfile.lvlByCal()
             )
         )
 

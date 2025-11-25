@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
 import android.widget.LinearLayout
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.GravityCompat
@@ -34,7 +35,7 @@ import com.google.firebase.firestore.toObject
 class ChatFragmentGlobal : Fragment() {
     private lateinit var binding: FragmentChatGlobalBinding
     private val viewModel by activityViewModels<MainViewModel>()
-    private lateinit var activity: Activity
+    private lateinit var parentActivity: Activity
     private val msgListAdapter by lazy { MsgListAdapter(viewModel.playerId) }
 
     override fun onCreateView(
@@ -42,7 +43,7 @@ class ChatFragmentGlobal : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentChatGlobalBinding.inflate(inflater, container, false)
-        activity = requireActivity()
+        parentActivity = requireActivity()
         return binding.root
     }
 
@@ -61,7 +62,7 @@ class ChatFragmentGlobal : Fragment() {
             //presentationEco str = (presentationEco)o; //As you are using Default String Adapter
             if (!pref.read("muted", false)) {
                 val mediaPlayer =
-                    MediaPlayer.create(activity, R.raw.btn_click_ef)
+                    MediaPlayer.create(parentActivity, R.raw.btn_click_ef)
                 mediaPlayer.start()
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release)
             }
@@ -71,7 +72,7 @@ class ChatFragmentGlobal : Fragment() {
                     .get().addOnSuccessListener { documentSnapshot ->
                         val server2device = documentSnapshot.toObject<GameProfile>()
                         if (server2device != null) {
-                            val builder = AlertDialog.Builder(activity)
+                            val builder = AlertDialog.Builder(parentActivity)
                             val binding =
                                 DialogLayoutProfileBinding.inflate(layoutInflater)
                             builder.setView(binding.root)
@@ -110,26 +111,37 @@ class ChatFragmentGlobal : Fragment() {
         }
 
         msgListAdapter.onLongClickListener = { msg ->
-            activity.setClipBoardData(msg.msgData, "Text copied")
+            parentActivity.setClipBoardData(msg.msgData, "Text copied")
             true
         }
 
         msgListAdapter.onJoinClickListener = { msg ->
             viewModel.getJoinBundle(msg).onSuccess {
-                activity.findViewById<DrawerLayout>(R.id.drawer_layout)?.closeDrawer(GravityCompat.START)
-                activity.startActivity(Intent(activity, GameActivity2::class.java).putExtras(it))
+                parentActivity.findViewById<DrawerLayout>(R.id.drawer_layout)?.closeDrawer(GravityCompat.START)
+                parentActivity.startActivity(Intent(parentActivity, GameActivity2::class.java).putExtras(it))
             }.onFailure {
                 toast(it.message.toString())
             }
         }
 
         binding.msgSendBtn.setBounceClickListener {
-            val mp = MediaPlayer.create(activity, R.raw.pop)
+            val mp = MediaPlayer.create(parentActivity, R.raw.pop)
             mp.start()
             mp.setOnCompletionListener(MediaPlayer::release)
             viewModel.sendMessage2GlobalChat(binding.chatBoxGlobal.text.toString())?.also{
                 binding.chatBoxGlobal.setText("")
             } ?: toast("Write Something..")
+        }
+
+        binding.chatBoxGlobal.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_SEND) {
+                viewModel.sendMessage2FriendlyChat(binding.chatBoxGlobal.text.toString())?.also {
+                    binding.chatBoxGlobal.setText("")
+                } ?: toast("Write Something..")
+                true // Return true to indicate that you have consumed the event
+            } else {
+                false // Return false to allow the system to handle the event
+            }
         }
     }
 }

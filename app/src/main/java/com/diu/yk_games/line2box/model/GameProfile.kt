@@ -11,7 +11,7 @@ class GameProfile {
     var matchPlayed = pref.read("matchPlayed", 0)
     var matchWinMulti = pref.read("matchWinMulti", 0)
     var coin = pref.read("coins", 100)
-    var lvl = pref.read("lvl", lvlByCal)
+    var lvl = pref.read("lvl", lvlByCal())
     var playerId = pref.read("playerId", "")
     var countryEmoji = pref.read("countryEmoji", "")
     var countryNm = pref.read("countryNm", "")
@@ -30,12 +30,11 @@ class GameProfile {
         }
     }
 
-    val lvlByCal: Int
-        get() {
-            val mul = matchWinMulti + 1
-            val pld = matchPlayed + 1
-            return sqrt(mul * (mul / 7.0) + pld * 2).toInt()
-        }
+    fun lvlByCal(): Int {
+        val mul = matchWinMulti + 1
+        val pld = matchPlayed + 1
+        return sqrt(mul * (mul / 7.0) + pld * 2).toInt()
+    }
 
     fun setMatchPlayed() {
         matchPlayed++

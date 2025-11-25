@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
 import android.widget.ImageView
 import android.widget.LinearLayout
 import androidx.core.graphics.drawable.toDrawable
@@ -25,6 +26,7 @@ import com.diu.yk_games.line2box.presentation.MsgListAdapter
 import com.diu.yk_games.line2box.util.collectWithLifecycle
 import com.diu.yk_games.line2box.util.gone
 import com.diu.yk_games.line2box.util.loadDrawable
+import com.diu.yk_games.line2box.util.log
 import com.diu.yk_games.line2box.util.pref
 import com.diu.yk_games.line2box.util.setBounceClickListener
 import com.diu.yk_games.line2box.util.setClipBoardData
@@ -39,25 +41,34 @@ import kotlinx.coroutines.launch
 class ChatFragmentFriendly : Fragment() {
     private lateinit var binding: FragmentChatFriendlyBinding
     private val viewModel by activityViewModels<MainViewModel>()
-    private lateinit var activity: Activity
+    private lateinit var parentActivity: Activity
     private val msgListAdapter by lazy { MsgListAdapter(viewModel.playerId) }
-    private val drawerLayout by lazy { activity.findViewById<DrawerLayout>(R.id.drawer_layout) }
+    private val drawerLayout by lazy { parentActivity.findViewById<DrawerLayout>(R.id.drawer_layout) }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentChatFriendlyBinding.inflate(inflater, container, false)
-        activity = requireActivity()
+        parentActivity = requireActivity()
         binding.showMsgList.adapter = msgListAdapter
-        val mp = MediaPlayer.create(activity, R.raw.pop)
+        return binding.root
+    }
+
+    @SuppressLint("SetTextI18n")
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        binding.chatBoxFriendly.requestFocus()
+        val mp = MediaPlayer.create(parentActivity, R.raw.pop)
+
         viewModel.friendsChatList.collectWithLifecycle {
-            msgListAdapter.submitList(it){
+            it.size.log("friendsChatList")
+            msgListAdapter.submitList(it) {
                 binding.showMsgList.scrollToPosition(0)
             }
             val lastMsg = it.firstOrNull()
-            if(lastMsg?.key == lastMsgKey) return@collectWithLifecycle
-            when(lastMsg?.msgData){
+            if (lastMsg?.key == lastMsgKey) return@collectWithLifecycle
+            when (lastMsg?.msgData) {
                 "🤣" -> emojiRunner(R.drawable.emoji_haha, R.raw.haha)
                 "😭" -> emojiRunner(R.drawable.emoji_cry, R.raw.cry)
                 "😱" -> emojiRunner(R.drawable.emoji_scream, R.raw.scream)
@@ -72,19 +83,12 @@ class ChatFragmentFriendly : Fragment() {
                 lastMsgKey = lastMsg.key
             }
         }
-        return binding.root
-    }
-
-    @SuppressLint("SetTextI18n")
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        binding.chatBoxFriendly.requestFocus()
 
         msgListAdapter.onClickListener = { msg ->
             //presentationEco str = (presentationEco)o; //As you are using Default String Adapter
             if (!pref.read("muted", false)) {
                 val mediaPlayer =
-                    MediaPlayer.create(activity, R.raw.btn_click_ef)
+                    MediaPlayer.create(parentActivity, R.raw.btn_click_ef)
                 mediaPlayer.start()
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release)
             }
@@ -95,7 +99,7 @@ class ChatFragmentFriendly : Fragment() {
                     .addOnSuccessListener { documentSnapshot ->
                         val server2device = documentSnapshot.toObject<GameProfile>()
                         if (server2device != null) {
-                            val builder = AlertDialog.Builder(activity)
+                            val builder = AlertDialog.Builder(parentActivity)
                             val binding =
                                 DialogLayoutProfileBinding.inflate(layoutInflater)
                             builder.setView(binding.root)
@@ -106,7 +110,8 @@ class ChatFragmentFriendly : Fragment() {
                             params.setMargins(60, 150, 60, 0)
                             binding.apply {
                                 linearLayoutFrame.layoutParams = params
-                                countryTxt.text = "${server2device.countryNm} ${server2device.countryEmoji}"
+                                countryTxt.text =
+                                    "${server2device.countryNm} ${server2device.countryEmoji}"
                                 lvlTxt.text = server2device.lvl.toString()
                                 coinHave.text = server2device.coin.toString()
                                 matchPlayedTxt.text = server2device.matchPlayed.toString()
@@ -134,11 +139,11 @@ class ChatFragmentFriendly : Fragment() {
         }
 
         msgListAdapter.onLongClickListener = { msg ->
-            activity.setClipBoardData(msg.msgData, "Text copied")
+            parentActivity.setClipBoardData(msg.msgData, "Text copied")
             true
         }
         binding.msgSendBtn.setBounceClickListener {
-            viewModel.sendMessage2FriendlyChat(binding.chatBoxFriendly.text.toString())?.also{
+            viewModel.sendMessage2FriendlyChat(binding.chatBoxFriendly.text.toString())?.also {
                 binding.chatBoxFriendly.setText("")
             } ?: toast("Write Something..")
         }
@@ -147,6 +152,16 @@ class ChatFragmentFriendly : Fragment() {
         binding.sendKiss.setBounceClickListener { sendEmoji("😘") }
         binding.sendScream.setBounceClickListener { sendEmoji("😱") }
         binding.sendYawn.setBounceClickListener { sendEmoji("🥱") }
+        binding.chatBoxFriendly.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_SEND) {
+                viewModel.sendMessage2FriendlyChat(binding.chatBoxFriendly.text.toString())?.also {
+                    binding.chatBoxFriendly.setText("")
+                } ?: toast("Write Something..")
+                true // Return true to indicate that you have consumed the event
+            } else {
+                false // Return false to allow the system to handle the event
+            }
+        }
     }
 
     private fun sendEmoji(emoji: String) {
@@ -162,18 +177,18 @@ class ChatFragmentFriendly : Fragment() {
         binding.sendScream.isEnabled = false
         binding.sendYawn.isEnabled = false
         if (!pref.read("muted", false)) {
-            val mediaPlayer = MediaPlayer.create(activity, sound)
+            val mediaPlayer = MediaPlayer.create(parentActivity, sound)
             mediaPlayer.start()
             mediaPlayer.setOnCompletionListener(MediaPlayer::release)
         }
-        activity.findViewById<ImageView>(R.id.emojiPlay).apply {
+        parentActivity.findViewById<ImageView>(R.id.emojiPlay).apply {
             loadDrawable(gif)
             show()
         }
         viewModel.setNewMsgBoltVisible(false)
         lifecycleScope.launch {
             delay(2500)
-            activity.findViewById<View>(R.id.emojiPlay).gone()
+            parentActivity.findViewById<View>(R.id.emojiPlay).gone()
             binding.sendHaha.isEnabled = true
             binding.sendCry.isEnabled = true
             binding.sendKiss.isEnabled = true

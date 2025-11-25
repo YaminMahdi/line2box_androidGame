@@ -71,4 +71,18 @@
             android:src="@drawable/g_loading" />
     </FrameLayout>
 
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/emojiPlay"
+        android:layout_width="@dimen/_65sdp"
+        android:layout_height="@dimen/_65sdp"
+        android:layout_gravity="end|bottom"
+        android:layout_margin="@dimen/_15sdp"
+        android:contentDescription="@string/logo"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:src="@drawable/emoji_haha"
+        tools:visibility="visible" />
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

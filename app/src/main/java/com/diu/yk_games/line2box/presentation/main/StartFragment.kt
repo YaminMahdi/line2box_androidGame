@@ -51,12 +51,18 @@ class StartFragment : Fragment() {
         return binding.root
     }
 
+    override fun onPause() {
+        super.onPause()
+        viewModel.lastMotionTransitionState = binding.motionLayout.transitionState
+    }
+
     override fun onResume() {
         super.onResume()
-        viewModel.lastMotionState?.let {
-            binding.motionLayout.jumpToState(it)
-            viewModel.lastMotionState = null
+        viewModel.lastMotionTransitionState?.let {
+            binding.motionLayout.transitionState = it
+            viewModel.lastMotionTransitionState = null
         }
+
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -65,6 +71,7 @@ class StartFragment : Fragment() {
         setupListener()
         setupObserver()
     }
+
     private fun setupUI() {
         parentActivity = requireActivity()
         ifMuted()
@@ -86,7 +93,7 @@ class StartFragment : Fragment() {
             navigateToScoreBoard()
         }
         binding.logo.setBounceClickListener {
-            if(BuildConfig.DEBUG){
+            if (BuildConfig.DEBUG) {
                 viewModel.clearMultiPlayerDB()
                 toast("MultiPlayer database cleared")
             }
@@ -188,7 +195,6 @@ class StartFragment : Fragment() {
             R.id.next -> {
                 if (viewModel.onlineStatus == "pass") {
                     navigateSafe(Routes.MultiPlayer)
-                    viewModel.lastMotionState = R.id.next
                 } else if (viewModel.onlineStatus == "needReload") {
                     //updateUI()
                     val builder = AlertDialog.Builder(parentActivity)
@@ -214,14 +220,9 @@ class StartFragment : Fragment() {
                     runCatching { alertDialog.show() }
                 }
             }
-            R.id.previous -> {
-                navigateSafe(Routes.ChangeName)
-                viewModel.lastMotionState = R.id.previous
-            }
-            R.id.start -> {
-                navigateSafe(Routes.GameBot)
-                viewModel.lastMotionState = null
-            }
+
+            R.id.previous -> navigateSafe(Routes.ChangeName)
+            R.id.start -> navigateSafe(Routes.GameBot)
         }
     }
 

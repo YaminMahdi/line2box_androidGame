@@ -1,5 +1,6 @@
 package com.diu.yk_games.line2box.presentation
 
+import android.animation.LayoutTransition
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.graphics.Rect
@@ -13,7 +14,9 @@ import androidx.activity.addCallback
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.drawable.toDrawable
+import androidx.core.view.isVisible
 import androidx.customview.widget.ViewDragHelper
+import androidx.drawerlayout.widget.DrawerLayout
 import androidx.drawerlayout.widget.DrawerLayout.DrawerListener
 import androidx.navigation.fragment.NavHostFragment
 import androidx.viewpager2.widget.ViewPager2
@@ -146,6 +149,7 @@ class MainActivity : AppCompatActivity() {
             }
         })
         //chat bug fix
+        bindingDrawer.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
         bindingDrawer.chatPager.isUserInputEnabled = false
         bindingDrawer.chatPager.adapter = ViewPagerAdapter(
             listOf(
@@ -180,12 +184,41 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupListener() {
+        binding.sideNavGroup.layoutTransition = LayoutTransition()
+        navController.currentBackStackEntryFlow.collectWithLifecycle {
+            val route = it.destination.route.asRoute
+            route.log("screen")
+            when (route) {
+                Routes.Home, Routes.ScoreBoard, Routes.ChangeName, Routes.GameBot,
+                is Routes.GameDual -> binding.sideNavGroup.apply {
+                    if (!isVisible) return@apply
+                    animate()
+                        .alpha(0f)
+                        .translationX(-100f)
+                        .setDuration(250L)
+                        .withEndAction { gone() }
+                        .start()
+                }
+
+                else -> binding.sideNavGroup.apply {
+                    if (isVisible) return@apply
+                    alpha = 0f
+                    show()
+                    animate()
+                        .alpha(1f)
+                        .translationX(0f)
+                        .setDuration(250L)
+                        .start()
+                }
+            }
+        }
         onBackPressedDispatcher.addCallback(this) {
             when (navController.currentBackStackEntry?.destination?.route.asRoute) {
                 Routes.Home -> showBackPressDialog()
-                is Routes.GameDual, is Routes.GameBot, is Routes.GameOnline -> showBackPressDialog(
+                is Routes.GameDual, Routes.GameBot, Routes.GameOnline -> showBackPressDialog(
                     getString(R.string.do_you_really_want_to_quit_the_match)
                 )
+
                 else -> onBackPressedIgnoreCallback()
             }
         }

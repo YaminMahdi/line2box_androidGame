@@ -1,6 +1,7 @@
 package com.diu.yk_games.line2box.presentation.online
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.app.AlertDialog
 import android.media.MediaPlayer
 import android.os.Bundle
@@ -33,6 +34,7 @@ import kotlinx.coroutines.launch
 class LeaderBoardFragment : Fragment() {
     private lateinit var binding: FragmentDisplayBinding
     private val viewModel: MainViewModel by activityViewModels()
+    private lateinit var parentActivity: Activity
 
     private var rankList= mutableListOf<GameProfile>()
     private val rankListAdapter by lazy { RankListAdapter(viewModel.playerId) }
@@ -43,6 +45,7 @@ class LeaderBoardFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentDisplayBinding.inflate(inflater, container, false)
+        parentActivity = requireActivity()
         return binding.root
     }
 
@@ -102,7 +105,7 @@ class LeaderBoardFragment : Fragment() {
             itemClicked = true
             if (!pref.read("muted", false)) {
                 val mediaPlayer =
-                    MediaPlayer.create(context, R.raw.btn_click_ef)
+                    MediaPlayer.create(parentActivity, R.raw.btn_click_ef)
                 mediaPlayer.start()
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release)
             }
@@ -111,7 +114,7 @@ class LeaderBoardFragment : Fragment() {
                     val server2device = documentSnapshot.toObject<GameProfile>()
                     if (server2device != null) {
                         val dialogBinding = DialogLayoutProfileBinding.inflate(layoutInflater)
-                        val alertDialog = AlertDialog.Builder(context)
+                        val alertDialog = AlertDialog.Builder(parentActivity)
                             .setView(dialogBinding.root)
                             .create()
                         alertDialog.setOnDismissListener {

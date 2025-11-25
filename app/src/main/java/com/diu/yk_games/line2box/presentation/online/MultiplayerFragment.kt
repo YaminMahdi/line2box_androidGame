@@ -37,7 +37,6 @@ import com.diu.yk_games.line2box.databinding.DialogLayoutProfileBinding
 import com.diu.yk_games.line2box.databinding.DialogLayoutUpdateBinding
 import com.diu.yk_games.line2box.model.GameRoom
 import com.diu.yk_games.line2box.model.MsgStore
-import com.diu.yk_games.line2box.model.PlayerInfoOld
 import com.diu.yk_games.line2box.model.toMessage
 import com.diu.yk_games.line2box.model.toPlayerInfo
 import com.diu.yk_games.line2box.presentation.MainViewModel
@@ -51,7 +50,6 @@ import com.diu.yk_games.line2box.util.getClipBoardData
 import com.diu.yk_games.line2box.util.gone
 import com.diu.yk_games.line2box.util.isMuted
 import com.diu.yk_games.line2box.util.isNotMuted
-import com.diu.yk_games.line2box.util.log
 import com.diu.yk_games.line2box.util.navigateSafe
 import com.diu.yk_games.line2box.util.onBackPressed
 import com.diu.yk_games.line2box.util.performOnClickF
@@ -79,12 +77,12 @@ import kotlinx.coroutines.launch
 @SuppressLint("SetTextI18n")
 class MultiplayerFragment : Fragment() {
     private lateinit var binding: ContentMultiplayerBinding
-    private lateinit var parentActivity : Activity
-    private lateinit var bubbleTabBar: BubbleTabBar
     private val viewModel: MainViewModel by activityViewModels()
+    private lateinit var parentActivity: Activity
+    private lateinit var bubbleTabBar: BubbleTabBar
     private var editing = false
     lateinit var playerId: String
-    
+
     override fun onResume() {
         super.onResume()
         viewModel.initGameProfile()
@@ -100,10 +98,8 @@ class MultiplayerFragment : Fragment() {
                     isAnimate = false,
                     shouldTriggerSelected = false
                 )
-//                bindingMain.bubbleTabBar.setSelected(1, true)
                 joinInputId.isEnabled = false
                 startMatchBtn.isEnabled = false
-//                joinInputId.setText("")
                 joinInputId.hint = viewModel.getKey4()
                 copyPastBtn.setImageResource(R.drawable.icon_share)
                 copyPastBtn.tag = R.drawable.icon_share
@@ -111,17 +107,6 @@ class MultiplayerFragment : Fragment() {
                     ContextCompat.getColor(parentActivity, R.color.greenY)
             }
         }
-//        else{
-//            binding.joinInputId.setText(viewModel.getKey4())
-//            binding.startMatchBtn.isEnabled = false
-//        }
-//        viewModel.matches.collectWithLifecycle {
-//            if (it.isEmpty() || binding.stickySwitch.getDirection() == StickySwitch.Direction.LEFT) return@collectWithLifecycle
-//            it.map { it.key }.log("matches ${viewModel.matchKey}")
-//            if (it.none { it.key == viewModel.matchKey }) {
-//                binding.stickySwitch.setDirection(StickySwitch.Direction.LEFT)
-//            }
-//        }
     }
 
     override fun onCreateView(
@@ -142,7 +127,7 @@ class MultiplayerFragment : Fragment() {
         viewModel.matchBundle.value.apply {
             putString("plr2Id", playerId)
             putString("nm2", viewModel.gameProfile.nm)
-            putInt("lvl2", viewModel.gameProfile.lvlByCal)
+            putInt("lvl2", viewModel.gameProfile.lvlByCal())
             putBoolean("plyr1", false)
         }
         Log.d("TAG", "onCreate: local" + viewModel.gameProfile.coin)
@@ -158,6 +143,7 @@ class MultiplayerFragment : Fragment() {
         ifMuted()
 
         setupListener()
+        setupObserver()
         setupObserver()
     }
 
@@ -180,7 +166,7 @@ class MultiplayerFragment : Fragment() {
         }
     }
 
-    private fun setupListener(){
+    private fun setupListener() {
         binding.joinInputId.doAfterTextChanged { txt ->
             if (txt?.length != 4) return@doAfterTextChanged
             val gameRoom = viewModel.getValidMatch(txt.toString()) ?: run {
@@ -199,29 +185,34 @@ class MultiplayerFragment : Fragment() {
             viewModel.matchBundle.value.putString("gameKey", gameRoom.key)
             if (gameRoom.playerCount == "1") {
                 amiThePayer = true
-                viewModel.multiPlayerRef.child(gameRoom.key).child("playerCount")
-                    .setValue("2")
-                binding.startMatchBtn.isEnabled = true
-                viewModel.multiPlayerRef.child(gameRoom.key).child("player2")
-                    .setValue(viewModel.gameProfile.toPlayerInfo())
-                viewModel.matchBundle.value.apply {
-                    putString(
-                        "plr1Id",
-                        gameRoom.player1.id.ifEmpty { gameRoom.playerInfo.plr1Id }) // remove ifEmpty someday
-                    putString("nm1", gameRoom.player1.nm.ifEmpty { gameRoom.playerInfo.nm1 })
-                    putInt(
-                        "lvl1",
-                        if (gameRoom.player1.lvl == 0) gameRoom.playerInfo.lvl1 else gameRoom.player1.lvl
-                    )
-                }
+//                viewModel.multiPlayerRef.child(gameRoom.key).child("playerCount")
+//                    .setValue("2")
+//                viewModel.multiPlayerRef.child(gameRoom.key).child("player2")
+//                    .setValue(viewModel.gameProfile.toPlayerInfo())
+
                 val ms = viewModel.gameProfile.toMessage(
                     playerId = playerId,
                     msg = "Joined the match.",
                     type = MsgStore.Type.EnterText
                 )
+                viewModel.multiPlayerRef.child(gameRoom.key).updateChildren(
+                    mapOf(
+                        "playerCount" to "2",
+                        "player2" to viewModel.gameProfile.toPlayerInfo(),
+                        "friendlyChat" to gameRoom.friendlyChat.toMutableMap().apply {
+                            put(getFriendlyChatKey(gameRoom.key), ms)
+                        }
+                    )
+                )
+                binding.startMatchBtn.isEnabled = true
+                viewModel.matchBundle.value.apply {
+                    putString("plr1Id", gameRoom.player1.id)
+                    putString("nm1", gameRoom.player1.nm)
+                    putInt("lvl1", gameRoom.player1.lvl)
+                }
+//                viewModel.multiPlayerRef.child(gameRoom.key).child("friendlyChat")
+//                    .push().setValue(ms)
                 viewModel.matchKey = gameRoom.key
-                viewModel.multiPlayerRef.child(gameRoom.key).child("friendlyChat")
-                    .push().setValue(ms)
                 viewModel.friendsChatList.collectWithLifecycle {
                     if (it.isEmpty()) return@collectWithLifecycle
                     bubbleTabBar.setSelected(1, true)
@@ -245,7 +236,7 @@ class MultiplayerFragment : Fragment() {
                             viewModel.matchBundle.value.apply {
                                 putString("plr2Id", playerId)
                                 putString("nm2", viewModel.gameProfile.nm)
-                                putInt("lvl2", viewModel.gameProfile.lvlByCal)
+                                putInt("lvl2", viewModel.gameProfile.lvlByCal())
                                 putBoolean("plyr1", false)
                             }
 
@@ -269,44 +260,42 @@ class MultiplayerFragment : Fragment() {
                             binding.joinInputId.hint = ""
                             binding.joinInputId.setText("")
                             viewModel.clearTempMatches()
-                            viewModel.matchKey = viewModel.multiPlayerRef.push().key!!
-                            viewModel.matchKey.log("matches start")
-//                            nm1 = viewModel.gameProfile.nm
-//                            lvl1 = viewModel.gameProfile.lvlByCal
-//                            Log.d("TAG", "ver: $nm1 $lvl1")
+                            val key =
+                                viewModel.multiPlayerRef.push().key.orEmpty().ifEmpty { return }
                             viewModel.matchBundle.value.apply {
                                 putString("plr1Id", playerId)
                                 putBoolean("plyr1", true)
                                 putString("nm1", viewModel.gameProfile.nm)
-                                putInt("lvl1", viewModel.gameProfile.lvlByCal)
-                                putString("gameKey", viewModel.matchKey)
+                                putInt("lvl1", viewModel.gameProfile.lvlByCal())
+                                putString("gameKey", key)
                             }
-//                            key = viewModel.multiPlayerRef.push().key
-//                            viewModel.addTempKey(key)
-                            Log.d("TAG", "onCreate key: $viewModel.matchKey")
-                            val gameRoom = GameRoom(
-                                player1 = viewModel.gameProfile.toPlayerInfo(),
-                                playerInfo = PlayerInfoOld(
-                                    nm1 = viewModel.gameProfile.nm,
-                                    lvl1 = viewModel.gameProfile.lvlByCal,
-                                    plr1Id = playerId
-                                )
+                            Log.d("TAG", "onCreate key: $key")
+                            val msg = viewModel.gameProfile.toMessage(
+                                playerId = playerId,
+                                msg = "Created the match.",
+                                type = MsgStore.Type.EnterText
                             )
-                            if (viewModel.matchKey.isEmpty()) return
-                            viewModel.multiPlayerRef.child(viewModel.matchKey).setValue(gameRoom)
-                            viewModel.multiPlayerRef.child(viewModel.matchKey)
-                                .child("friendlyChat")
-                                .push()
-                                .setValue(
-                                    viewModel.gameProfile.toMessage(
-                                        playerId = playerId,
-                                        msg = "Created the match.",
-                                        type = MsgStore.Type.EnterText
-                                    )
-                                )
+                            val gameRoom = GameRoom(
+                                key = key,
+                                player1 = viewModel.gameProfile.toPlayerInfo(),
+                                friendlyChat = mapOf(getFriendlyChatKey(key) to msg)
+                            )
+                            viewModel.multiPlayerRef.child(key)
+                                .setValue(gameRoom)
+//                            viewModel.multiPlayerRef.child(key)
+//                                .child("friendlyChat")
+//                                .push()
+//                                .setValue(
+//                                    viewModel.gameProfile.toMessage(
+//                                        playerId = playerId,
+//                                        msg = "Created the match.",
+//                                        type = MsgStore.Type.EnterText
+//                                    )
+//                                )
                             bubbleTabBar.setSelected(1, true)
                             viewModel.isStickySwitchRight = true
-                            fetchJoiningPlayerInfo()
+                            viewModel.matchKey = key
+                            fetchJoiningPlayerInfo(key)
                             lifecycleScope.launch {
                                 delay(400)
                                 binding.joinInputId.hint = viewModel.getKey4()
@@ -357,29 +346,30 @@ class MultiplayerFragment : Fragment() {
         }
     }
 
-    private fun fetchJoiningPlayerInfo() {
-        val key = viewModel.matchKey
-        viewModel.multiPlayerRef.child(viewModel.matchKey)
+    private fun getFriendlyChatKey(key: String): String {
+        return viewModel.multiPlayerRef.child(key)
+            .child("friendlyChat").push().key.orEmpty()
+            .ifEmpty { "0" }
+    }
+
+    private fun fetchJoiningPlayerInfo(key: String = viewModel.matchKey) {
+        viewModel.friendsChatList.collectWithLifecycle {
+            if (it.isEmpty()) return@collectWithLifecycle
+            bubbleTabBar.setSelected(1, true)
+            cancel()
+        }
+        viewModel.multiPlayerRef.child(key)
             .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(dataSnapshot: DataSnapshot) {
                     val gameRoom = dataSnapshot.getValue<GameRoom>() ?: run {
                         binding.startMatchBtn.isEnabled = false
                         return
                     }
-                    //                Log.d("TAG -int key", "onDataChange: $key $validKey ${dataSnapshot.child("playerCount").getValue(String::class.java)}")
-                    //                nm2 = dataSnapshot.child("playerInfo").child("nm2").getValue(String::class.java).orEmpty()
-                    //                lvl2 = dataSnapshot.child("playerInfo").child("lvl2").getValue(Int::class.java) ?: 0
-                    //                Log.d("TAG", "ver2: $nm2 $lvl2")
                     viewModel.matchBundle.value.apply {
                         if (binding.stickySwitch.getDirection() == StickySwitch.Direction.LEFT) return@apply
-                        putString(
-                            "plr2Id",
-                            gameRoom.player2.id.ifEmpty { gameRoom.playerInfo.plr2Id })  // remove ifEmpty someday
-                        putString("nm2", gameRoom.player2.nm.ifEmpty { gameRoom.playerInfo.nm2 })
-                        putInt(
-                            "lvl2",
-                            if (gameRoom.player2.lvl == 0) gameRoom.playerInfo.lvl2 else gameRoom.player2.lvl
-                        )
+                        putString("plr2Id", gameRoom.player2.id)
+                        putString("nm2", gameRoom.player2.nm)
+                        putInt("lvl2", gameRoom.player2.lvl)
                     }
                     when (gameRoom.playerCount) {
                         "2" -> {
@@ -403,7 +393,9 @@ class MultiplayerFragment : Fragment() {
     }
 
     private fun View.animateCenterBox(bottomMargin: Int) {
-        if (parentActivity.findViewById<DrawerLayout>(R.id.drawer_layout).isDrawerOpen(GravityCompat.START)) return
+        if (parentActivity.findViewById<DrawerLayout>(R.id.drawer_layout)
+                .isDrawerOpen(GravityCompat.START)
+        ) return
         val parent = parent as? ConstraintLayout ?: return
         val constraintSet = ConstraintSet()
         constraintSet.clone(parent)
@@ -423,24 +415,24 @@ class MultiplayerFragment : Fragment() {
     private fun lvlUpgrade() {
         val pf = viewModel.gameProfile
         val tmpLvl = pref.read("tmpLvl", 1)
-        if (tmpLvl != pf.lvlByCal) {
+        if (tmpLvl != pf.lvlByCal()) {
             isNotMuted {
                 val mediaPlayer = MediaPlayer.create(parentActivity, R.raw.win_ef)
                 mediaPlayer.start()
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release)
             }
             Firebase.firestore.collection("gamerProfile").document((playerId))
-                .update("lvl", pf.lvlByCal)
-            pref.save("tmpLvl", pf.lvlByCal)
+                .update("lvl", pf.lvlByCal())
+            pref.save("tmpLvl", pf.lvlByCal())
             val dialogBinding = DialogLayoutUpdateBinding.inflate(layoutInflater)
             val alertDialog = AlertDialog.Builder(parentActivity)
                 .setView(dialogBinding.root)
                 .setCancelable(false)
                 .create()
             dialogBinding.warningMessage.text =
-                if (tmpLvl < pf.lvlByCal) "Level Upgraded !" else "Level Downgraded !"
+                if (tmpLvl < pf.lvlByCal()) "Level Upgraded !" else "Level Downgraded !"
             dialogBinding.UpdateInfo.text =
-                "$tmpLvl${if (tmpLvl < pf.lvlByCal) " --> " else " <-- "}${pf.lvlByCal}"
+                "$tmpLvl${if (tmpLvl < pf.lvlByCal()) " --> " else " <-- "}${pf.lvlByCal()}"
             dialogBinding.UpdateInfo.typeface = resources.getFont(R.font.baloopaaji)
             dialogBinding.UpdateInfo.textSize = 25f
             dialogBinding.buttonUpdate.text = "Continue"
@@ -553,7 +545,7 @@ class MultiplayerFragment : Fragment() {
 //        x.countryNm = (pref.getString("countryNm", ""))!!
         bindingProfileDialog.apply {
             countryTxt.text = x.countryNm + " " + x.countryEmoji
-            lvlTxt.text = "" + x.lvlByCal
+            lvlTxt.text = "" + x.lvlByCal()
             matchPlayedTxt.text = "" + x.matchPlayed
             matchWonTxt.text = "" + x.matchWinMulti
             coinShow.gone()
@@ -709,7 +701,11 @@ class MultiplayerFragment : Fragment() {
             startActivity(intent)
         } catch (e: Exception) {
             e.printStackTrace()
-            Toast.makeText(parentActivity, "Unable to open Play Games profile chooser", Toast.LENGTH_SHORT)
+            Toast.makeText(
+                parentActivity,
+                "Unable to open Play Games profile chooser",
+                Toast.LENGTH_SHORT
+            )
                 .show()
         }
     }

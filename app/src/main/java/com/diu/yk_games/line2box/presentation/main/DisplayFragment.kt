@@ -1,8 +1,8 @@
 package com.diu.yk_games.line2box.presentation.main
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.app.AlertDialog
-import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.PorterDuff
 import android.media.MediaPlayer
@@ -35,12 +35,12 @@ import com.google.firebase.firestore.toObject
 class DisplayFragment : Fragment() {
     lateinit var binding: FragmentDisplayBinding
     private val viewModel: MainViewModel by activityViewModels()
+    private lateinit var parentActivity: Activity
 
     private var dsList= mutableListOf<DataStore>()
     private var bestScore = "\n\n\nNetwork Error"
     private lateinit var p1Pro: GameProfile
     private lateinit var p2Pro: GameProfile
-    private lateinit var context: Context
 
     private val scoreListAdapter by lazy { ScoreListAdapter() }
 
@@ -48,18 +48,12 @@ class DisplayFragment : Fragment() {
         private const val TAG = "DisplayFragment"
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        // Initialize dataset, this data would usually come from a local content provider or
-        // remote server.
-        context = requireContext()
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentDisplayBinding.inflate(inflater, container, false)
+        parentActivity = requireActivity()
         return binding.root
     }
 
@@ -111,12 +105,12 @@ class DisplayFragment : Fragment() {
             else {
                 if (!pref.read("muted", false)) {
                     val mediaPlayer =
-                        MediaPlayer.create(context, R.raw.btn_click_ef)
+                        MediaPlayer.create(parentActivity, R.raw.btn_click_ef)
                     mediaPlayer.start()
                     mediaPlayer.setOnCompletionListener(MediaPlayer::release)
                 }
                 val dialogBinding = DialogLayoutScrGlobeBinding.inflate(layoutInflater)
-                val alertDialog = AlertDialog.Builder(context)
+                val alertDialog = AlertDialog.Builder(parentActivity)
                     .setView(dialogBinding.root).create()
                 alertDialog.setOnDismissListener {
                     itemClicked = false
@@ -179,12 +173,12 @@ class DisplayFragment : Fragment() {
     @SuppressLint("SetTextI18n")
     private fun onPlayerProfileClick(profile: GameProfile, marginLeft: Int, onDismissed: () -> Unit) {
         if (!pref.read("muted", false)) {
-            val mediaPlayer = MediaPlayer.create(context, R.raw.btn_click_ef)
+            val mediaPlayer = MediaPlayer.create(parentActivity, R.raw.btn_click_ef)
             mediaPlayer.start()
             mediaPlayer.setOnCompletionListener(MediaPlayer::release)
         }
         val dBinding = DialogLayoutProfileBinding.inflate(layoutInflater)
-        val alertDialog = AlertDialog.Builder(context)
+        val alertDialog = AlertDialog.Builder(parentActivity)
             .setView(dBinding.root)
             .create()
         alertDialog.setOnDismissListener{

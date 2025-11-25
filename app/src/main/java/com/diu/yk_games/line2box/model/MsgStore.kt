@@ -5,6 +5,7 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class MsgStore(
+    @Transient
     val key: String = "",
     var playerId: String = "",
     var time: Long = 0L,
@@ -33,7 +34,7 @@ fun GameProfile.toMessage(
         playerId = playerId,
         time = System.currentTimeMillis(),
         nmData = nm,
-        lvlData = lvlByCal.toString(),
+        lvlData = lvlByCal().toString(),
         msgData = msg,
         type = type.name
     )

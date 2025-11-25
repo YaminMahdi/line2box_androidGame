@@ -9,18 +9,18 @@ data class PlayerInfo(
     val nm: String = "",
     val lvl: Int = 0,
     val coin: Int = 0,
-): Parcelable
+) : Parcelable
 
 @Parcelize
 data class PlayerInfoOld(
     val nm1: String = "",
     val lvl1: Int = 0,
-    val plr1Id : String = "",
+    val plr1Id: String = "",
 
     val nm2: String = "",
     val lvl2: Int = 0,
-    val plr2Id : String = ""
-): Parcelable
+    val plr2Id: String = ""
+) : Parcelable
 
 @Parcelize
 data class GameRoom(
@@ -29,12 +29,13 @@ data class GameRoom(
     val playerInfo: PlayerInfoOld = PlayerInfoOld(), //remove
     val playerCount: String = "1",
     val plr2Cup: String = "0",
+    val friendlyChat: Map<String, MsgStore> = mapOf(),
     val key: String = ""
-): Parcelable
+) : Parcelable
 
-fun GameProfile.toPlayerInfo()= PlayerInfo(
+fun GameProfile.toPlayerInfo() = PlayerInfo(
     id = playerId,
     nm = nm,
-    lvl = lvlByCal,
+    lvl = lvlByCal(),
     coin = coin
 )

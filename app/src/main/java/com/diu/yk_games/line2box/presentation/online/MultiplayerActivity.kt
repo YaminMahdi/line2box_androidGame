@@ -146,7 +146,7 @@ class MultiplayerActivity : AppCompatActivity() {
             viewModel.matchBundle.value.apply {
                 putString("plr2Id", playerId)
                 putString("nm2", viewModel.gameProfile.nm)
-                putInt("lvl2", viewModel.gameProfile.lvlByCal)
+                putInt("lvl2", viewModel.gameProfile.lvlByCal())
                 putBoolean("plyr1", false)
             }
         }
@@ -246,7 +246,7 @@ class MultiplayerActivity : AppCompatActivity() {
                 viewModel.multiPlayerRef.child(gameRoom.key).child("playerInfo").child("nm2")
                     .setValue(viewModel.gameProfile.nm)
                 viewModel.multiPlayerRef.child(gameRoom.key).child("playerInfo").child("lvl2")
-                    .setValue(viewModel.gameProfile.lvlByCal)
+                    .setValue(viewModel.gameProfile.lvlByCal())
                 //remove
                 viewModel.multiPlayerRef.child(gameRoom.key).child("player2")
                     .setValue(viewModel.gameProfile.toPlayerInfo())
@@ -303,7 +303,7 @@ class MultiplayerActivity : AppCompatActivity() {
 //                            viewModel.multiPlayerRef.child(newKey).child("playerInfo").child("nm2")
 //                                .setValue(viewModel.gameProfile.nm)
 //                            viewModel.multiPlayerRef.child(newKey).child("playerInfo")
-//                                .child("lvl2").setValue(viewModel.gameProfile.lvlByCal)
+//                                .child("lvl2").setValue(viewModel.gameProfile.lvlByCal())
 //                            //remove
 //                            viewModel.multiPlayerRef.child(newKey).child("player2")
 //                                .setValue(viewModel.gameProfile.toPlayerInfo())
@@ -338,7 +338,7 @@ class MultiplayerActivity : AppCompatActivity() {
         }
 //        viewModel.gameProfile.let {
 //            nm2 = it.nm
-//            lvl2 = it.lvlByCal
+//            lvl2 = it.lvlByCal()
 //        }
 //        Log.d("TAG left", "ver: $nm1 $lvl1")
         binding.stickySwitch.onSelectedChangeListener =
@@ -354,12 +354,12 @@ class MultiplayerActivity : AppCompatActivity() {
                             viewModel.matchBundle.value.apply {
                                 putString("plr2Id", playerId)
                                 putString("nm2", viewModel.gameProfile.nm)
-                                putInt("lvl2", viewModel.gameProfile.lvlByCal)
+                                putInt("lvl2", viewModel.gameProfile.lvlByCal())
                                 putBoolean("plyr1", false)
                             }
 //                            viewModel.gameProfile.let {
 //                                nm2 = it.nm
-//                                lvl2 = it.lvlByCal
+//                                lvl2 = it.lvlByCal()
 //                            }
 //                            Log.d("TAG left", "ver: $nm1 $lvl1")
 //                            mBundle.putString("nm2", nm2)
@@ -390,13 +390,13 @@ class MultiplayerActivity : AppCompatActivity() {
                             viewModel.matchKey = viewModel.multiPlayerRef.push().key!!
                             viewModel.matchKey.log("matches start")
 //                            nm1 = viewModel.gameProfile.nm
-//                            lvl1 = viewModel.gameProfile.lvlByCal
+//                            lvl1 = viewModel.gameProfile.lvlByCal()
 //                            Log.d("TAG", "ver: $nm1 $lvl1")
                             viewModel.matchBundle.value.apply {
                                 putString("plr1Id", playerId)
                                 putBoolean("plyr1", true)
                                 putString("nm1", viewModel.gameProfile.nm)
-                                putInt("lvl1", viewModel.gameProfile.lvlByCal)
+                                putInt("lvl1", viewModel.gameProfile.lvlByCal())
                                 putString("gameKey", viewModel.matchKey)
                             }
 //                            key = viewModel.multiPlayerRef.push().key
@@ -406,7 +406,7 @@ class MultiplayerActivity : AppCompatActivity() {
                                 player1 = viewModel.gameProfile.toPlayerInfo(),
                                 playerInfo = PlayerInfoOld(
                                     nm1 = viewModel.gameProfile.nm,
-                                    lvl1 = viewModel.gameProfile.lvlByCal,
+                                    lvl1 = viewModel.gameProfile.lvlByCal(),
                                     plr1Id = playerId
                                 )
                             )
@@ -636,24 +636,24 @@ class MultiplayerActivity : AppCompatActivity() {
     private fun lvlUpgrade() {
         val pf = viewModel.gameProfile
         val tmpLvl = pref.read("tmpLvl", 1)
-        if (tmpLvl != pf.lvlByCal) {
+        if (tmpLvl != pf.lvlByCal()) {
             isNotMuted {
                 val mediaPlayer = MediaPlayer.create(this, R.raw.win_ef)
                 mediaPlayer.start()
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release)
             }
             Firebase.firestore.collection("gamerProfile").document((playerId))
-                .update("lvl", pf.lvlByCal)
-            pref.save("tmpLvl", pf.lvlByCal)
+                .update("lvl", pf.lvlByCal())
+            pref.save("tmpLvl", pf.lvlByCal())
             val dialogBinding = DialogLayoutUpdateBinding.inflate(layoutInflater)
             val alertDialog = AlertDialog.Builder(this)
                 .setView(dialogBinding.root)
                 .setCancelable(false)
                 .create()
             dialogBinding.warningMessage.text =
-                if (tmpLvl < pf.lvlByCal) "Level Upgraded !" else "Level Downgraded !"
+                if (tmpLvl < pf.lvlByCal()) "Level Upgraded !" else "Level Downgraded !"
             dialogBinding.UpdateInfo.text =
-                "$tmpLvl${if (tmpLvl < pf.lvlByCal) " --> " else " <-- "}${pf.lvlByCal}"
+                "$tmpLvl${if (tmpLvl < pf.lvlByCal()) " --> " else " <-- "}${pf.lvlByCal()}"
             dialogBinding.UpdateInfo.typeface = resources.getFont(R.font.baloopaaji)
             dialogBinding.UpdateInfo.textSize = 25f
             dialogBinding.buttonUpdate.text = "Continue"
@@ -797,7 +797,7 @@ class MultiplayerActivity : AppCompatActivity() {
 //        x.countryNm = (pref.getString("countryNm", ""))!!
         bindingProfileDialog.apply {
             countryTxt.text = x.countryNm + " " + x.countryEmoji
-            lvlTxt.text = "" + x.lvlByCal
+            lvlTxt.text = "" + x.lvlByCal()
             matchPlayedTxt.text = "" + x.matchPlayed
             matchWonTxt.text = "" + x.matchWinMulti
             coinShow.gone()
