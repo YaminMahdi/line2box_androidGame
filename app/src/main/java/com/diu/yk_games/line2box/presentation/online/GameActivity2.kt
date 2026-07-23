@@ -70,13 +70,14 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Objects
 import kotlin.random.Random
+import kotlin.time.Duration.Companion.milliseconds
 
 
 @SuppressLint("DiscouragedApi")
 class GameActivity2 : AppCompatActivity() {
     private lateinit var bindingRoot: ActivityGame2Binding
     private lateinit var binding: ContentGame2Binding
-    private val viewModel: MainViewModel by viewModels()
+    private val viewModel by viewModels<MainViewModel>()
 
     private var lvl1: Int = 0
     private var lvl2: Int = 0
@@ -118,7 +119,7 @@ class GameActivity2 : AppCompatActivity() {
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
         lifecycleScope.launch {
-            delay(200)
+            delay(200.milliseconds)
             if (isFirstRun) infoShow()
         }
         PACKAGE_NAME = applicationContext.packageName
@@ -128,12 +129,12 @@ class GameActivity2 : AppCompatActivity() {
             plr2Id = it?.getString("plr2Id").orEmpty()
             playerId = if (plyr1) plr1Id else plr2Id
         }
-        intent.extras?.let {
-            it.getString("nm1")?.let { nm1 = it }
-            it.getString("nm2")?.let { nm2 = it }
-            lvl1 = it.getInt("lvl1")
-            lvl2 = it.getInt("lvl2")
-            plyr1 = it.getBoolean("plyr1")
+        intent.extras?.run {
+            getString("nm1")?.let { nm1 = it }
+            getString("nm2")?.let { nm2 = it }
+            lvl1 = getInt("lvl1")
+            lvl2 = getInt("lvl2")
+            plyr1 = getBoolean("plyr1")
             viewModel.initGameProfile()
             viewModel.fetchServerLineClick(gameKey = gameKey, isPlyr1 = plyr1)
         }
@@ -195,13 +196,13 @@ class GameActivity2 : AppCompatActivity() {
             val r = Rect()
             //r will be populated with the coordinates of your view that area still visible.
             activityRootView.getWindowVisibleDisplayFrame(r)
-            val maxHight = activityRootView.height
-            val heightDiff = maxHight - r.height()
-            Log.d("TAG", "onGlobalLayout: heidiff: $heightDiff ${r.height()} $maxHight")
+            val maxHeight = activityRootView.height
+            val heightDiff = maxHeight - r.height()
+            Log.d("TAG", "onGlobalLayout: heightDiff: $heightDiff ${r.height()} $maxHeight")
             val layout1 = findViewById<LinearLayout>(R.id.chatFragmentLinerLayout)
             val layout2 = findViewById<LinearLayout>(R.id.navCloseButtonLayout)
-            if (heightDiff > 0.25 * maxHight) {
-                // if more than 25% of the screen, its probably a keyboard......do something here
+            if (heightDiff > 0.25 * maxHeight) {
+                // if more than 25% of the screen, it's probably a keyboard......do something here
                 Log.d("TAG", "onGlobalLayout: here")
                 layout1.setPadding(0, 0, 0, heightDiff)
                 layout2.setPadding(0, 0, 0, heightDiff)
@@ -717,7 +718,7 @@ class GameActivity2 : AppCompatActivity() {
                 doc.update("lvl", updatePro.lvlByCal())
                 saveToFirebase(plr1Cup, plr2Cup)
                 lifecycleScope.launch {
-                    delay(1200)
+                    delay(1200.milliseconds)
                     onGameOver(winTxt, wCoin, updatePro)
                 }
             }
@@ -801,13 +802,13 @@ class GameActivity2 : AppCompatActivity() {
             lifecycleScope.launch {
                 if (win) {
                     for (i in 0..coin step 4) {
-                        delay(100)
+                        delay(100.milliseconds)
                         dialogBinding.coinWin.text = "+$i"
                     }
                     dialogBinding.coinWin.text = "+$coin"
                 } else {
                     for (i in 0 downTo coin step 4) {
-                        delay(100)
+                        delay(100.milliseconds)
                         dialogBinding.coinWin.text = "$i"
                     }
                     dialogBinding.coinWin.text = "$coin"
@@ -820,7 +821,7 @@ class GameActivity2 : AppCompatActivity() {
 
     private fun saveToFirebase(plr1Cup: String, plr2Cup: String) {
         val firestore = Firebase.firestore
-        val plr2CupRef = viewModel.multiPlayerRef.child(gameKey).child("plr2Cup") //he he
+        val plr2CupRef = viewModel.multiPlayerRef.child(gameKey).child("plr2Cup") //hehe
         if (!plyr1) {
             plr2CupRef.setValue(plr2Cup)
             return
@@ -836,8 +837,8 @@ class GameActivity2 : AppCompatActivity() {
             plr2Cup = "0"
         )
         firestore.collection("LastBestPlayer").document("LastBestPlayer").get()
-            .addOnSuccessListener {
-                val map = it.data ?: return@addOnSuccessListener
+            .addOnSuccessListener { snapshot ->
+                val map = snapshot.data ?: return@addOnSuccessListener
                 Log.d("TAG", "Cached document data: $map")
                 val bestScore = map["info"]
                     .toString()

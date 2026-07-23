@@ -11,7 +11,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import androidx.core.app.ActivityCompat.recreate
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.toDrawable
@@ -33,6 +32,7 @@ import com.diu.yk_games.line2box.util.invisible
 import com.diu.yk_games.line2box.util.isMuted
 import com.diu.yk_games.line2box.util.isNotMuted
 import com.diu.yk_games.line2box.util.loadDrawable
+import com.diu.yk_games.line2box.util.navigateSafe
 import com.diu.yk_games.line2box.util.onBackPressed
 import com.diu.yk_games.line2box.util.performOnClickF
 import com.diu.yk_games.line2box.util.pref
@@ -47,10 +47,11 @@ import kotlinx.coroutines.launch
 import java.util.Objects
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.time.Duration.Companion.milliseconds
 
 class GameDualFragment : Fragment() {
     private lateinit var binding: FragmentGameDualBinding
-    private val viewModel: MainViewModel by activityViewModels()
+    private val viewModel by activityViewModels<MainViewModel>()
     private lateinit var scoreRedView: TextView
     private lateinit var scoreBlueView: TextView
     private lateinit var redTxt: TextView
@@ -509,7 +510,7 @@ class GameDualFragment : Fragment() {
                 var winOffline = pref.read("winOffline", 0)
                 pref.save("winOffline", ++winOffline)
                 lifecycleScope.launch {
-                    delay(800)
+                    delay(800.milliseconds)
                     isNotMuted {
                         val mediaPlayer = MediaPlayer.create(parentActivity, R.raw.win_ef)
                         mediaPlayer.start()
@@ -553,6 +554,7 @@ class GameDualFragment : Fragment() {
                 mediaPlayer.start()
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release)
             }
+            runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
             if (winOffline > 5) {
                 val manager = ReviewManagerFactory.create(parentActivity)
                 val request = manager.requestReviewFlow()
@@ -561,12 +563,11 @@ class GameDualFragment : Fragment() {
                         val reviewInfo = task.result
                         val flow = manager.launchReviewFlow(parentActivity, reviewInfo!!)
                         flow.addOnCompleteListener {
-                            recreate(parentActivity)
+                            recreateGame()
                         }
-                    } else recreate(parentActivity)
+                    } else recreateGame()
                 }
-            } else recreate(parentActivity)
-            runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
+            } else recreateGame()
         }
 
         binding.buttonNo.setBounceClickListener {
@@ -576,12 +577,20 @@ class GameDualFragment : Fragment() {
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release)
             }
             runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
-            parentActivity.finish()
             toast("Score Saved to Online Score Board")
+            parentActivity.finish()
         }
 
         alertDialog.window?.setBackgroundDrawable(0.toDrawable())
         runCatching { alertDialog.show() }
+    }
+
+    fun recreateGame() {
+        navigateSafe(Routes.GameDual(nm1, nm2)) {
+            popUpTo(Routes.GameDual::class){
+                inclusive = true
+            }
+        }
     }
 
     @Suppress("unused")

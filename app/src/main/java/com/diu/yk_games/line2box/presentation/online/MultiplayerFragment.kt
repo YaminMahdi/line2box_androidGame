@@ -72,12 +72,13 @@ import io.ghyeok.stickyswitch.widget.StickySwitch.OnSelectedChangeListener
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 @Suppress("DEPRECATION")
 @SuppressLint("SetTextI18n")
 class MultiplayerFragment : Fragment() {
     private lateinit var binding: ContentMultiplayerBinding
-    private val viewModel: MainViewModel by activityViewModels()
+    private val viewModel by activityViewModels<MainViewModel>()
     private lateinit var parentActivity: Activity
     private lateinit var bubbleTabBar: BubbleTabBar
     private var editing = false
@@ -157,7 +158,7 @@ class MultiplayerFragment : Fragment() {
             val heightDiff = maxHeight - r.height()
             cat("onGlobalLayout: height diff: $heightDiff ${r.height()} $maxHeight")
             if (heightDiff > 0.25 * maxHeight) {
-                // if more than 25% of the screen, its probably a keyboard......do something here
+                // if more than 25% of the screen, it's probably a keyboard......do something here
                 cat("onGlobalLayout: here")
                 binding.centerBox.animateCenterBox(400)
             } else {
@@ -246,7 +247,7 @@ class MultiplayerFragment : Fragment() {
                             viewModel.setNewMsgBoltVisible(false)
                             viewModel.isStickySwitchRight = false
                             lifecycleScope.launch {
-                                delay(400)
+                                delay(400.milliseconds)
                                 binding.joinInputId.hint = "Game ID"
                                 binding.copyPastBtn.setImageResource(R.drawable.icon_paste)
                                 binding.copyPastBtn.tag = R.drawable.icon_paste
@@ -297,7 +298,7 @@ class MultiplayerFragment : Fragment() {
                             viewModel.matchKey = key
                             fetchJoiningPlayerInfo(key)
                             lifecycleScope.launch {
-                                delay(400)
+                                delay(400.milliseconds)
                                 binding.joinInputId.hint = viewModel.getKey4()
                                 binding.copyPastBtn.setImageResource(R.drawable.icon_share)
                                 binding.copyPastBtn.tag = R.drawable.icon_share
@@ -457,7 +458,7 @@ class MultiplayerFragment : Fragment() {
         profileBtn { binding ->
             if (!muted) pref.save("muted", false)
             lifecycleScope.launch {
-                delay(250)
+                delay(250.milliseconds)
                 binding.nmTxt.isEnabled = true
                 editing = true
                 binding.nmEditBtn.setImageResource(R.drawable.icon_save)

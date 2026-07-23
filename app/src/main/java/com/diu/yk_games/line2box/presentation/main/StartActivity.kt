@@ -73,7 +73,7 @@ import java.util.Random
 
 class StartActivity : AppCompatActivity() {
     private lateinit var binding: ActivityStartBinding
-    private val viewModel: MainViewModel by viewModels()
+    private val viewModel by viewModels<MainViewModel>()
     private var scrBrdVisible = false
     private val isFirstRun: Boolean by lazy { pref.read("firstRun", true) }
     companion object {

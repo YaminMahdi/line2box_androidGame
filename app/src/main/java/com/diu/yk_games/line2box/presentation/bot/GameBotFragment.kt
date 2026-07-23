@@ -2,7 +2,6 @@ package com.diu.yk_games.line2box.presentation.bot
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
-import android.content.Intent
 import android.graphics.Paint
 import android.graphics.drawable.GradientDrawable
 import android.media.MediaPlayer
@@ -16,40 +15,29 @@ import androidx.core.graphics.drawable.toDrawable
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.lifecycleScope
 import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.DialogLayoutAlertBinding
 import com.diu.yk_games.line2box.databinding.DialogLayoutInfoBinding
 import com.diu.yk_games.line2box.databinding.FragmentGameDualBinding
 import com.diu.yk_games.line2box.presentation.MainViewModel
-import com.diu.yk_games.line2box.presentation.main.StartActivity
-import com.diu.yk_games.line2box.util.applyState
-import com.diu.yk_games.line2box.util.cat
-import com.diu.yk_games.line2box.util.invisible
-import com.diu.yk_games.line2box.util.isMuted
-import com.diu.yk_games.line2box.util.isNotMuted
-import com.diu.yk_games.line2box.util.loadDrawable
-import com.diu.yk_games.line2box.util.log
-import com.diu.yk_games.line2box.util.onBackPressed
-import com.diu.yk_games.line2box.util.performOnClickF
-import com.diu.yk_games.line2box.util.pref
-import com.diu.yk_games.line2box.util.setBounceClickListener
-import com.diu.yk_games.line2box.util.show
-import com.diu.yk_games.line2box.util.toast
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import com.diu.yk_games.line2box.presentation.navigation.Routes
+import com.diu.yk_games.line2box.util.*
+import kotlinx.coroutines.*
 import java.util.Objects
 import java.util.Random
+import kotlin.time.Duration.Companion.milliseconds
 
 class GameBotFragment : Fragment() {
     private lateinit var binding: FragmentGameDualBinding
-    private val viewModel: MainViewModel by activityViewModels()
+    private val viewModel by activityViewModels<MainViewModel>()
     lateinit var parentActivity: FragmentActivity
 
     private val lineIDs by lazy { viewModel.lineIDs.toMutableList() }
     private var random = Random()
 
-    //MediaPlayer lineClick, boxPlus, winSoundEf, btnClick;
+    private val scope =
+        CoroutineScope(Dispatchers.Main.limitedParallelism(1) + SupervisorJob())
+
     private var isFirstRun = false
     private var recursion = false
     private var clickEnabled = false
@@ -74,25 +62,29 @@ class GameBotFragment : Fragment() {
 
     @SuppressLint("DiscouragedApi")
     private fun setupUI() {
+        binding.nm1Id.text = nm1
+        binding.nm2Id.text = nm2
+
         clickCount = 0
         scoreRed = 0
         scoreBlue = 0
         bestScore = 9999
+        isGameOver = false
         val ind = random.nextInt(84)
         val randLineId = resources.getIdentifier(lineIDs[ind], "id", parentActivity.packageName)
-        lifecycleScope.launch {
+        scope.launch {
             binding.volBtn.applyState(isMuted())
             isFirstRun = pref.read("firstRun", true)
             if (isFirstRun) {
-                delay(200)
+                delay(200.milliseconds)
                 infoShow {
-                    lifecycleScope.launch {
-                        delay(600)
+                    scope.launch {
+                        delay(600.milliseconds)
                         performClick(binding.root.findViewById(randLineId), true)
                     }
                 }
             } else {
-                delay(600)
+                delay(600.milliseconds)
                 performClick(binding.root.findViewById(randLineId), true)
             }
         }
@@ -110,7 +102,7 @@ class GameBotFragment : Fragment() {
         binding.ideaBtn.setBounceClickListener(::ideaBtn)
         binding.homeBtn.setBounceClickListener(::backBtn)
     }
-    
+
     val redX by lazy { resources.getColor(R.color.redX, parentActivity.theme) }
     val redY by lazy { resources.getColor(R.color.redY, parentActivity.theme) }
     val blueX by lazy { resources.getColor(R.color.blueX, parentActivity.theme) }
@@ -123,34 +115,37 @@ class GameBotFragment : Fragment() {
     @SuppressLint("SetTextI18n", "DiscouragedApi")
     fun performClick(view: View, isBot: Boolean) {
         val idNm = resources.getResourceEntryName(view.id)
-        idNm.log()
-        val aroundIds = getIdNm(idNm)
+        cat("performClick $idNm")
+        val aroundIds = getAroundIdNames(idNm)
+        cat("aroundIds $aroundIds")
         val bg = view.background.mutate() as GradientDrawable
         val color = getColorGrad(bg)
 
         if (color == whiteX && (clickEnabled || isBot) && lineIDs.isNotEmpty()) {
-            cat("clickEnabled")
+            cat("clickEnabled $clickEnabled")
             playLineClickSound()
             lineIDs.remove(idNm)
             clickCount++
             bg.setColor(if (isBot) redX else blueX)
 
-            val extraTurn =
-                (shouldCheckTop(idNm) && handleBox(aroundIds, true, isBot)) ||
-                (shouldCheckBottom(idNm) && handleBox(aroundIds, false, isBot))
+            val et1 = (shouldCheckTop(idNm) && handleBox(idNm, aroundIds, true, isBot))
+            val et2 = (shouldCheckBottom(idNm) && handleBox(idNm, aroundIds, false, isBot))
+
+            val extraTurn = et1 || et2
 
             if (extraTurn) {
                 clickCount--
             } else handleTurnUI(isBot)
             cat("idNm $idNm, extraTurn $extraTurn, isBot $isBot, recursion $recursion, lineIDs.size ${lineIDs.size}")
             if (((extraTurn && isBot) || (!extraTurn && !isBot)) && lineIDs.isNotEmpty())
-                handleAI(idNm)
+                handleAI(idNm, aroundIds)
             else
                 clickEnabled = true
 
+            cat("isGameOver $isGameOver, totalScore ${scoreRed + scoreBlue}")
             if (scoreRed + scoreBlue == 36 && !isGameOver) {
-                lifecycleScope.launch {
-                    delay(950)
+                scope.launch {
+                    delay(950.milliseconds)
                     finishGame()
                 }
             }
@@ -166,32 +161,36 @@ class GameBotFragment : Fragment() {
     }
 
     private fun shouldCheckTop(idNm: String): Boolean {
-        return (idNm[1].digitToInt() > 1 && idNm[4] == 'T') ||
+        val shouldCheckTop =  (idNm[1].digitToInt() > 1 && idNm[4] == 'T') ||
                 (idNm[3].digitToInt() > 1 && idNm[4] == 'L')
+        cat("shouldCheckTop $shouldCheckTop, idNm $idNm")
+        return shouldCheckTop
     }
 
     private fun shouldCheckBottom(idNm: String): Boolean {
-        return (idNm[1].digitToInt() < 7 && idNm[4] == 'T') ||
+        val shouldCheckBottom =  (idNm[1].digitToInt() < 7 && idNm[4] == 'T') ||
                 (idNm[3].digitToInt() < 7 && idNm[4] == 'L')
+        cat("shouldCheckBottom $shouldCheckBottom, idNm $idNm")
+        return shouldCheckBottom
     }
 
-    private fun handleBox(aroundIds: List<String?>, isTop: Boolean, isBot: Boolean): Boolean {
-        cat("handleBox isTop $isTop")
+    private fun handleBox(idNm: String, aroundIds: List<String?>, isTop: Boolean, isBot: Boolean): Boolean {
+        cat("handleBox4 $idNm, isTop $isTop")
         val u = binding.root.findViewById<View>(idFromName(aroundIds[if(isTop) 0 else 3]
-            .also { it.log("handleBox") }))
+            .also { it.log("handleBox lineUp") }))
         val l = binding.root.findViewById<View>(idFromName(aroundIds[if(isTop) 1 else 4]
-            .also { it.log("handleBox") }))
+            .also { it.log("handleBox lineLeft") }))
         val r = binding.root.findViewById<View>(idFromName(aroundIds[if(isTop) 2 else 5]
-            .also { it.log("handleBox") }))
+            .also { it.log("handleBox lineRight") }))
 
         if (!isAllColored(u, l, r)) return false
 
-        val txt = binding.root.findViewById<TextView>(idFromName(aroundIds[if(isTop) 6 else 7]))
+        val txt = binding.root.findViewById<TextView>(idFromName(aroundIds[if (isTop) 6 else 7]))
 
         val mid1 = binding.root.findViewById<View>(idFromName(aroundIds[8]))
         val mid2 = binding.root.findViewById<View>(idFromName(aroundIds[9]))
-        val up1 = binding.root.findViewById<View>(idFromName(aroundIds[if(isTop) 10 else 12])) //down1 ifTop
-        val up2 = binding.root.findViewById<View>(idFromName(aroundIds[if(isTop) 11 else 13]))
+        val up1 = binding.root.findViewById<View>(idFromName(aroundIds[if (isTop) 10 else 12])) //down1 ifTop
+        val up2 = binding.root.findViewById<View>(idFromName(aroundIds[if (isTop) 11 else 13]))
 
         colorCapturedBox(
             innerText = txt,
@@ -283,39 +282,41 @@ class GameBotFragment : Fragment() {
         }
     }
 
-    private fun handleAI(idNm: String) {
+    private fun handleAI(idNm: String, aroundIds: List<String?>) {
         clickEnabled = false
-        val halfTopFoundExtraTurn = checkAIHalf(idNm, true)
-        val halfBottomFoundExtraTurn = checkAIHalf(idNm, false)
+        val halfTopFoundExtraTurn = checkAIHalf(idNm, aroundIds, true)
+        val halfBottomFoundExtraTurn = checkAIHalf(idNm, aroundIds, false)
+        cat("halfTopFoundExtraTurn $halfTopFoundExtraTurn, halfBottomFoundExtraTurn $halfBottomFoundExtraTurn")
 
-        if (halfTopFoundExtraTurn && halfBottomFoundExtraTurn) recursion = true
+        recursion = halfTopFoundExtraTurn && halfBottomFoundExtraTurn
+        cat("handleAI recursion $recursion")
         if (halfTopFoundExtraTurn || halfBottomFoundExtraTurn) return
 
-        if(!recursion)
-            handleAIRandom()
-        else
-            recursion = false
+        handleAIRandom()
     }
 
-    private fun checkAIHalf(idNm: String, isTop: Boolean): Boolean {
-        val ids = getIdNm(idNm)
+    private fun checkAIHalf(
+        idNm: String,
+        aroundIds: List<String?>,
+        isTop: Boolean
+    ): Boolean {
         val idx = if (isTop) 0 else 3
 
         var countColored = 0
         var blankIndex = -1
 
-        if ((isTop && shouldCheckTop(idNm)) || (!isTop && shouldCheckBottom(idNm))){
+        if ((isTop && shouldCheckTop(idNm)) || (!isTop && shouldCheckBottom(idNm))) {
             for (i in idx..idx + 2) {
-                val v = binding.root.findViewById<View>(idFromName(ids[i]))
+                val v = binding.root.findViewById<View>(idFromName(aroundIds[i]))
                 val bg = v.background.mutate() as GradientDrawable
                 if (getColorGrad(bg) != whiteX) countColored++
                 else blankIndex = i
             }
 
             if (countColored == 2) {
-                val lineId = idFromName(ids[blankIndex])
-                lifecycleScope.launch {
-                    delay(if (isTop) 500 else 650)
+                val lineId = idFromName(aroundIds[blankIndex])
+                scope.launch {
+                    delay((if (isTop) 500 else 650).milliseconds)
                     performClick(binding.root.findViewById(lineId), true)
                 }
                 return true
@@ -326,30 +327,32 @@ class GameBotFragment : Fragment() {
 
     private fun handleAIRandom() {
         val ids = lineIDs.toMutableList()
-        var name = lineIDs[random.nextInt(ids.size)]
+        var randLineIdNm = lineIDs[random.nextInt(ids.size)]
 
         while (true) {
-            val countUp = countColored(name, true)
-            val countDn = countColored(name, false)
+            val countUp = countColored(randLineIdNm, true)
+            val countDn = countColored(randLineIdNm, false)
 
             if ((countUp > 1 || countDn > 1) && !(countUp == 3 || countDn == 3)) {
                 if (ids.size == 1) break
-                ids.remove(name)
-                name = ids[random.nextInt(ids.size)]
+                ids.remove(randLineIdNm)
+                randLineIdNm = ids[random.nextInt(ids.size)]
             } else break
         }
+        cat("handleAIRandom $randLineIdNm")
 
-        val lineId = idFromName(name)
-        lifecycleScope.launch {
-            delay(800)
+        val lineId = idFromName(randLineIdNm)
+        scope.launch {
+            delay(800.milliseconds)
             performClick(binding.root.findViewById(lineId), true)
         }
     }
 
     private fun countColored(randLineIdNm: String, isTop: Boolean): Int {
-        val aroundIds = getIdNm(randLineIdNm)
+        val aroundIds = getAroundIdNames(randLineIdNm)
+        cat("countColored aroundIds $aroundIds")
         var c = 0
-        if ((isTop && shouldCheckTop(randLineIdNm)) || (!isTop && shouldCheckBottom(randLineIdNm))){
+        if ((isTop && shouldCheckTop(randLineIdNm)) || (!isTop && shouldCheckBottom(randLineIdNm))) {
             val start = if (isTop) 0 else 3
             for (i in start..start + 2) {
                 val v = binding.root.findViewById<View>(idFromName(aroundIds[i]))
@@ -402,8 +405,11 @@ class GameBotFragment : Fragment() {
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release)
             }
             runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
-            startActivity(Intent(parentActivity, GameBotFragment::class.java))
-            onBackPressed()
+            navigateSafe(Routes.GameBot) {
+                popUpTo(Routes.GameBot::class){
+                    inclusive = true
+                }
+            }
         }
         dialogBinding.buttonNo.setBounceClickListener {
             isNotMuted {
@@ -412,7 +418,6 @@ class GameBotFragment : Fragment() {
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release)
             }
             runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
-            startActivity(Intent(parentActivity, StartActivity::class.java))
             onBackPressed()
             flag = true
         }
@@ -496,7 +501,8 @@ class GameBotFragment : Fragment() {
         alertDialog.window?.setBackgroundDrawable(0.toDrawable())
         runCatching { alertDialog?.show() }
     }
-    fun getIdNm(idNm: String): List<String?> {
+
+    fun getAroundIdNames(idNm: String): List<String?> {
         val idS = arrayOfNulls<String>(14)
         val id = StringBuilder()
         if (idNm[4] == 'T') {
@@ -674,6 +680,6 @@ class GameBotFragment : Fragment() {
         var nm2 = "Blue"
         var one = true
         var flag = true
-        var isGameOver = true
+        var isGameOver = false
     }
 }

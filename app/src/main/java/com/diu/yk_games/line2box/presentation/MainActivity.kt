@@ -76,7 +76,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var bindingDrawer: ActivityMainDrawerBinding
     private val binding by lazy { bindingDrawer.main }
     private val navController by lazy { bindingDrawer.main.mainNavHost.getFragment<NavHostFragment>().navController }
-    private val viewModel: MainViewModel by viewModels()
+    private val viewModel by viewModels<MainViewModel>()
 
     lateinit var playerId: String
 
@@ -117,7 +117,7 @@ class MainActivity : AppCompatActivity() {
             val heightDiff = maxHeight - r.height()
             cat("onGlobalLayout: height diff: $heightDiff ${r.height()} $maxHeight")
             if (heightDiff > 0.25 * maxHeight) {
-                // if more than 25% of the screen, its probably a keyboard......do something here
+                // if more than 25% of the screen, it's probably a keyboard......do something here
                 cat("onGlobalLayout: here")
                 bindingDrawer.chatFragmentLinerLayout.setPadding(0, 0, 0, heightDiff)
                 bindingDrawer.navCloseButtonLayout.setPadding(0, 0, 0, heightDiff)
@@ -291,7 +291,7 @@ class MainActivity : AppCompatActivity() {
                         val credential = PlayGamesAuthProvider.getCredential(serverAuthToken)
                         //AuthCredential credential = PlayGamesAuthProvider.getCredential(PlayGamesAuthProvider.PLAY_GAMES_SIGN_IN_METHOD)
                         viewModel.firebaseAuth.signInWithCredential(credential)
-                            .addOnSuccessListener {
+                            .addOnSuccessListener { _ ->
                                 // Sign in success, update UI with the signed-in user's information
 
                                 Log.d(TAG, "signInWithCredential: success")
@@ -336,7 +336,7 @@ class MainActivity : AppCompatActivity() {
                                     // Continue with Play Games Services
                                 } else {
                                     //Toast.makeText(StartActivity.this, "Failed", Toast.LENGTH_SHORT).show()
-                                    Log.d(TAG, "gamesSignInClient. isAuthenticated false: $it")
+                                    Log.d(TAG, "gamesSignInClient. isAuthenticated false")
                                     // Disable your integration with Play Games Services or show a
                                     // login button to ask  players to sign-in. Clicking it should
                                     // call GamesSignInClient.signIn()
@@ -610,16 +610,6 @@ class MainActivity : AppCompatActivity() {
         alertDialog.window?.setBackgroundDrawable(0.toDrawable())
         runCatching { alertDialog.show() }
     }
-
-    private fun backBtn() {
-        isNotMuted {
-            val mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
-            mediaPlayer.start()
-            mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-        }
-        onBackPressedDispatcher.onBackPressed()
-    }
-
 
     companion object {
         private const val TAG = "MainActivity"

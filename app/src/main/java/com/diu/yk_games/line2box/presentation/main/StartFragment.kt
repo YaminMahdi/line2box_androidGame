@@ -38,7 +38,7 @@ import kotlinx.coroutines.launch
 
 class StartFragment : Fragment() {
     private lateinit var binding: ActivityStartBinding
-    private val viewModel: MainViewModel by activityViewModels()
+    private val viewModel by activityViewModels<MainViewModel>()
     private val isFirstRun by lazy { pref.read("firstRun", true) }
 
     lateinit var parentActivity: FragmentActivity
@@ -53,16 +53,17 @@ class StartFragment : Fragment() {
 
     override fun onPause() {
         super.onPause()
-        viewModel.lastMotionTransitionState = binding.motionLayout.transitionState
+        viewModel.lastMotionState = binding.motionLayout.currentState
     }
 
     override fun onResume() {
         super.onResume()
-        viewModel.lastMotionTransitionState?.let {
-            binding.motionLayout.transitionState = it
-            viewModel.lastMotionTransitionState = null
+        if (binding.motionLayout.currentState == viewModel.lastMotionState)
+            return
+        viewModel.lastMotionState?.let {
+            binding.motionLayout.jumpToState(it)
+            viewModel.lastMotionState = null
         }
-
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

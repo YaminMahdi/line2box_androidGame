@@ -83,7 +83,7 @@ import kotlinx.coroutines.launch
 class MultiplayerActivity : AppCompatActivity() {
     private lateinit var bindingMain: ActivityGameMultiBinding
     private val binding by lazy { bindingMain.appBarGame2 }
-    private val viewModel: MainViewModel by viewModels()
+    private val viewModel by viewModels<MainViewModel>()
 
     //    var nm1: String =""
 //    var nm2: String =""

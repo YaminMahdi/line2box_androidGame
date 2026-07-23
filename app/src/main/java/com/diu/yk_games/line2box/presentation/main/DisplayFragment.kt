@@ -34,7 +34,7 @@ import com.google.firebase.firestore.toObject
 
 class DisplayFragment : Fragment() {
     lateinit var binding: FragmentDisplayBinding
-    private val viewModel: MainViewModel by activityViewModels()
+    private val viewModel by activityViewModels<MainViewModel>()
     private lateinit var parentActivity: Activity
 
     private var dsList= mutableListOf<DataStore>()

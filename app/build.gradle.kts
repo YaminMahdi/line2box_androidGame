@@ -11,13 +11,11 @@ val secrets = org.jetbrains.kotlin.konan.properties.loadProperties("${rootDir}/l
 kotlin {
     jvmToolchain(25)
     compilerOptions {
-        languageVersion = org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_3
         freeCompilerArgs.addAll(
-            "-Xcontext-parameters",
-            "-Xwhen-guards",
-            "-Xnon-local-break-continue",
+            "-Xwhen-expressions=indy",
             "-Xcontext-sensitive-resolution",
-            "-Xallow-condition-implies-returns-contracts"
+            "-Xcollection-literals",
+            "-Xexplicit-backing-fields"
         )
     }
 }
@@ -44,12 +42,16 @@ android {
         }
     }
     namespace = "com.diu.yk_games.line2box"
-    compileSdk = 36
+    compileSdk {
+        version = release(37) {
+            minorApiLevel = 1
+        }
+    }
 
     defaultConfig {
         applicationId = "com.diu.yk_games.line2box"
         minSdk = 27
-        targetSdk = 36
+        targetSdk = 37
         versionCode = 17
         versionName = "1.17"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -87,17 +89,17 @@ androidComponents {
 }
 
 dependencies {
-    implementation("androidx.core:core-ktx:1.17.0")
+    implementation("androidx.core:core-ktx:1.19.0")
     implementation("androidx.appcompat:appcompat:1.7.1")
-    implementation("com.google.android.material:material:1.13.0")
+    implementation("com.google.android.material:material:1.14.0")
     implementation("androidx.constraintlayout:constraintlayout:2.2.1")
-    implementation("androidx.activity:activity-ktx:1.12.0")
+    implementation("androidx.activity:activity-ktx:1.13.0")
     implementation("androidx.fragment:fragment-ktx:1.8.9")
 
-    implementation("androidx.navigation:navigation-fragment-ktx:2.9.6")
-    implementation("androidx.navigation:navigation-ui-ktx:2.9.6")
+    implementation("androidx.navigation:navigation-fragment-ktx:2.9.8")
+    implementation("androidx.navigation:navigation-ui-ktx:2.9.8")
 
-    implementation(platform("com.google.firebase:firebase-bom:34.6.0"))
+    implementation(platform("com.google.firebase:firebase-bom:34.16.0"))
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-crashlytics")
@@ -105,11 +107,11 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore")
 
     implementation("com.google.android.gms:play-services-games-v2:21.0.0")
-    implementation("com.google.android.gms:play-services-auth:21.4.0")
+    implementation("com.google.android.gms:play-services-auth:21.6.0")
 
-    implementation("com.google.code.gson:gson:2.13.2")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
-    implementation("org.jsoup:jsoup:1.21.2")
+    implementation("com.google.code.gson:gson:2.14.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
+    implementation("org.jsoup:jsoup:1.22.2")
 
     implementation("io.ak1:bubbletabbar:1.0.8")
     implementation("com.github.GwonHyeok:StickySwitch:0.0.16")
@@ -131,9 +133,9 @@ dependencies {
     implementation("com.google.android.play:app-update-ktx:2.1.0")
 
     // Custom Tabs
-    implementation("androidx.browser:browser:1.9.0")
+    implementation("androidx.browser:browser:1.10.0")
 
-    implementation("io.coil-kt.coil3:coil:3.3.0")
-    implementation("io.coil-kt.coil3:coil-gif:3.3.0")
+    implementation("io.coil-kt.coil3:coil:3.5.0")
+    implementation("io.coil-kt.coil3:coil-gif:3.5.0")
 
 }

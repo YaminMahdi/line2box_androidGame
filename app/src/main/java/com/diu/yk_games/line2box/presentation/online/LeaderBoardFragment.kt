@@ -33,7 +33,7 @@ import kotlinx.coroutines.launch
 
 class LeaderBoardFragment : Fragment() {
     private lateinit var binding: FragmentDisplayBinding
-    private val viewModel: MainViewModel by activityViewModels()
+    private val viewModel by activityViewModels<MainViewModel>()
     private lateinit var parentActivity: Activity
 
     private var rankList= mutableListOf<GameProfile>()

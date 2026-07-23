@@ -21,7 +21,7 @@ import io.ak1.BubbleTabBar
 
 class ShareDialogFragment : BottomSheetDialogFragment() {
 
-    private val viewModel: MainViewModel by activityViewModels()
+    private val viewModel by activityViewModels<MainViewModel>()
 
     lateinit var binding: DialogFragmentShareBinding
 
