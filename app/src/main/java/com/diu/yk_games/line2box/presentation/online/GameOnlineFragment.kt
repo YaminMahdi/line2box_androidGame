@@ -33,33 +33,19 @@ import com.diu.yk_games.line2box.model.GameProfile
 import com.diu.yk_games.line2box.model.MsgStore
 import com.diu.yk_games.line2box.presentation.MainViewModel
 import com.diu.yk_games.line2box.presentation.navigation.Routes
-import com.diu.yk_games.line2box.util.applyState
-import com.diu.yk_games.line2box.util.collectWithLifecycle
-import com.diu.yk_games.line2box.util.invisible
-import com.diu.yk_games.line2box.util.isMuted
-import com.diu.yk_games.line2box.util.isNotMuted
-import com.diu.yk_games.line2box.util.loadDrawable
-import com.diu.yk_games.line2box.util.onBackPressed
-import com.diu.yk_games.line2box.util.performOnClickF
-import com.diu.yk_games.line2box.util.pref
-import com.diu.yk_games.line2box.util.setBounceClickListener
-import com.diu.yk_games.line2box.util.show
-import com.diu.yk_games.line2box.util.toast
+import com.diu.yk_games.line2box.util.*
 import com.google.android.gms.tasks.Task
 import com.google.android.play.core.review.ReviewInfo
 import com.google.android.play.core.review.ReviewManagerFactory
 import com.google.firebase.Firebase
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.ValueEventListener
-import com.google.firebase.database.getValue
+import com.google.firebase.database.*
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Objects
 import kotlin.random.Random
+import kotlin.time.Duration.Companion.milliseconds
 
 
 @SuppressLint("DiscouragedApi")
@@ -113,7 +99,7 @@ class GameOnlineFragment : Fragment() {
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
         lifecycleScope.launch {
-            delay(200)
+            delay(200.milliseconds)
             if (isFirstRun) infoShow()
         }
         PACKAGE_NAME = parentActivity.packageName
@@ -482,7 +468,7 @@ class GameOnlineFragment : Fragment() {
                 doc.update("lvl", updatePro.lvlByCal())
                 saveToFirebase(plr1Cup, plr2Cup)
                 lifecycleScope.launch {
-                    delay(1200)
+                    delay(1200.milliseconds)
                     onGameOver(winTxt, wCoin, updatePro)
                 }
             }
@@ -563,13 +549,13 @@ class GameOnlineFragment : Fragment() {
             lifecycleScope.launch {
                 if (win) {
                     for (i in 0..coin step 4) {
-                        delay(100)
+                        delay(100.milliseconds)
                         dialogBinding.coinWin.text = "+$i"
                     }
                     dialogBinding.coinWin.text = "+$coin"
                 } else {
                     for (i in 0 downTo coin step 4) {
-                        delay(100)
+                        delay(100.milliseconds)
                         dialogBinding.coinWin.text = "$i"
                     }
                     dialogBinding.coinWin.text = "$coin"
