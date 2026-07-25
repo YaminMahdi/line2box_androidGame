@@ -135,7 +135,7 @@ class ChatFragmentGlobal : Fragment() {
 
         binding.chatBoxGlobal.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEND) {
-                viewModel.sendMessage2FriendlyChat(binding.chatBoxGlobal.text.toString())?.also {
+                viewModel.sendMessage2GlobalChat(binding.chatBoxGlobal.text.toString())?.also {
                     binding.chatBoxGlobal.setText("")
                 } ?: toast("Write Something..")
                 true // Return true to indicate that you have consumed the event

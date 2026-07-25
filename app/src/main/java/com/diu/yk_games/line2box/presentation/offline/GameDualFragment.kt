@@ -60,7 +60,7 @@ class GameDualFragment : Fragment() {
     var nm1 = "Red"
     var nm2 = "Blue"
 
-    lateinit var parentActivity: FragmentActivity
+    private lateinit var parentActivity: FragmentActivity
 
     private var isFirstRun = false
 

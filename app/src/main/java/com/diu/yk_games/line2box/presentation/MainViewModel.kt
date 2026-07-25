@@ -7,24 +7,14 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.diu.yk_games.line2box.databinding.FragmentGameDualBinding
-import com.diu.yk_games.line2box.model.GameProfile
-import com.diu.yk_games.line2box.model.GameRoom
-import com.diu.yk_games.line2box.model.MsgStore
+import com.diu.yk_games.line2box.model.*
 import com.diu.yk_games.line2box.model.MsgStore.Type
-import com.diu.yk_games.line2box.model.toMessage
-import com.diu.yk_games.line2box.model.toPlayerInfo
-import com.diu.yk_games.line2box.model.typeEnum
+import com.diu.yk_games.line2box.presentation.navigation.Routes
 import com.diu.yk_games.line2box.util.log
 import com.diu.yk_games.line2box.util.pref
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
-import com.google.firebase.database.ChildEventListener
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.ValueEventListener
-import com.google.firebase.database.database
-import com.google.firebase.database.getValue
+import com.google.firebase.database.*
 import com.google.firebase.firestore.firestore
 import com.google.firebase.firestore.toObject
 import kotlinx.coroutines.Dispatchers
@@ -38,7 +28,6 @@ class MainViewModel(
 ) : ViewModel() {
 
     var lastMotionState : Int? = null
-    var lastMotionTransitionState : Bundle? = null
     val firebaseAuth by lazy { Firebase.auth }
     val database by lazy { Firebase.database }
     val firestore by lazy { Firebase.firestore }
@@ -84,6 +73,7 @@ class MainViewModel(
         }
 
     var matchBundle = savedStateHandle.getStateFlow("matchBundle", Bundle())
+    var gameOnline = Routes.GameOnline()
 
     val tempKeys
         get() = savedStateHandle.get<List<String>>("tempKeys") ?: emptyList()
@@ -120,7 +110,7 @@ class MainViewModel(
     fun addTempKey(key: String?) {
         if (key.isNullOrEmpty()) return
         viewModelScope.launch(Dispatchers.IO){
-            savedStateHandle["tempKeys"] = (tempKeys + key).distinct()
+            savedStateHandle["tempKeys"] = (tempKeys + key).distinct().filter(String::isNotEmpty)
             pref.save("tmpKey", key)
             tempKeys.log("tempKeys")
         }
@@ -224,12 +214,12 @@ class MainViewModel(
         }
     }
 
-    fun sendMessage2FriendlyChat(text: String): Unit?{
+    fun sendMessage2FriendlyChat(text: String, type: Type = Type.Normal): Unit?{
         if(text.isEmpty()) return null
         val friendlyChatRef = multiPlayerRef.child(matchKey).child("friendlyChat")
         viewModelScope.launch(Dispatchers.IO) {
             friendlyChatRef.push().setValue(
-                gameProfile.toMessage(playerId = playerId, msg = text)
+                gameProfile.toMessage(playerId = playerId, msg = text, type = type)
             )
         }
         return Unit
@@ -266,7 +256,7 @@ class MainViewModel(
 
     fun fuckIL() {
         Firebase.firestore.collection("gamerProfile").whereEqualTo("countryEmoji", "🇮🇱")
-            .addSnapshotListener { qs, ex ->
+            .addSnapshotListener { qs, _ ->
                 qs?.documents?.mapNotNull { it?.toObject<GameProfile>() }?.forEach {
                     it.countryEmoji = "🇵🇸"
                     it.countryNm = "Palestina"

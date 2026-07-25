@@ -29,6 +29,7 @@ import com.diu.yk_games.line2box.model.CountryInfo
 import com.diu.yk_games.line2box.model.ErrorType
 import com.diu.yk_games.line2box.model.GameProfile
 import com.diu.yk_games.line2box.model.HadithStore
+import com.diu.yk_games.line2box.model.MsgStore
 import com.diu.yk_games.line2box.model.msg
 import com.diu.yk_games.line2box.presentation.navigation.Routes
 import com.diu.yk_games.line2box.presentation.navigation.asRoute
@@ -213,10 +214,16 @@ class MainActivity : AppCompatActivity() {
             }
         }
         onBackPressedDispatcher.addCallback(this) {
+            if (bindingDrawer.drawerLayout.isOpen) {
+                bindingDrawer.drawerLayout.close()
+                return@addCallback
+            }
             when (navController.currentBackStackEntry?.destination?.route.asRoute) {
-                Routes.Home -> showBackPressDialog()
-                is Routes.GameDual, Routes.GameBot, Routes.GameOnline -> showBackPressDialog(
-                    getString(R.string.do_you_really_want_to_quit_the_match)
+                is Routes.Home -> showBackPressDialog()
+                is Routes.GameDual, is Routes.GameBot -> showBackPressDialog(getString(R.string.do_you_really_want_to_quit_the_match))
+                is Routes.GameOnline -> showBackPressDialog(
+                    confirmationText = getString(R.string.do_you_really_want_to_quit_the_match),
+                    isOnline = true
                 )
 
                 else -> onBackPressedIgnoreCallback()
@@ -224,7 +231,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun OnBackPressedCallback.showBackPressDialog(confirmationText: String = "Do you really want to exit?") {
+    fun OnBackPressedCallback.showBackPressDialog(confirmationText: String = "Do you really want to exit?", isOnline: Boolean = false) {
         val builder = AlertDialog.Builder(this@MainActivity)
         val dialogBinding = DialogLayoutAlertBinding.inflate(LayoutInflater.from(this@MainActivity))
         builder.setView(dialogBinding.root)
@@ -239,6 +246,15 @@ class MainActivity : AppCompatActivity() {
                 val mediaPlayer = MediaPlayer.create(this@MainActivity, R.raw.btn_click_ef)
                 mediaPlayer?.start()
                 mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
+            }
+            if (isOnline) {
+                if (viewModel.localPlayerCount != 2)
+                    viewModel.multiPlayerRef.child(viewModel.gameOnline.gameKey).removeValue()
+                else {
+                    viewModel.sendMessage2FriendlyChat("Left the match.", type = MsgStore.Type.ExitText)
+                    viewModel.multiPlayerRef.child(viewModel.gameOnline.gameKey).child("playerCount")
+                        .setValue("-1")
+                }
             }
             runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
             onBackPressedIgnoreCallback()

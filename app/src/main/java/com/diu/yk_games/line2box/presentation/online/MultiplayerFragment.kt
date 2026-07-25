@@ -91,7 +91,8 @@ class MultiplayerFragment : Fragment() {
         lvlUpgrade()
         viewModel.fetchFriendlyChat()
         if (viewModel.isStickySwitchRight) {
-            viewModel.matchBundle.value.putBoolean("plyr1", true)
+//            viewModel.matchBundle.value.putBoolean("plyr1", true)
+            viewModel.gameOnline.isPlyr1 = true
             fetchJoiningPlayerInfo()
             binding.apply {
                 stickySwitch.setDirection(
@@ -125,11 +126,17 @@ class MultiplayerFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         viewModel.initMultiplayer()
-        viewModel.matchBundle.value.apply {
-            putString("plr2Id", playerId)
-            putString("nm2", viewModel.gameProfile.nm)
-            putInt("lvl2", viewModel.gameProfile.lvlByCal())
-            putBoolean("plyr1", false)
+//        viewModel.matchBundle.value.apply {
+//            putString("plr2Id", playerId)
+//            putString("nm2", viewModel.gameProfile.nm)
+//            putInt("lvl2", viewModel.gameProfile.lvlByCal())
+//            putBoolean("plyr1", false)
+//        }
+        viewModel.gameOnline.apply {
+            plr2Id = playerId
+            nm2 = viewModel.gameProfile.nm
+            lvl2 = viewModel.gameProfile.lvlByCal()
+            isPlyr1 = false
         }
         Log.d("TAG", "onCreate: local" + viewModel.gameProfile.coin)
         binding.trophyTextId.text = "" + viewModel.gameProfile.coin
@@ -183,7 +190,8 @@ class MultiplayerFragment : Fragment() {
                 "afterTextChanged: " + gameRoom.key + " " + binding.joinInputId.text.toString().length
             )
             closeKeyboard()
-            viewModel.matchBundle.value.putString("gameKey", gameRoom.key)
+//            viewModel.matchBundle.value.putString("gameKey", gameRoom.key)
+            viewModel.gameOnline.gameKey = gameRoom.key
             if (gameRoom.playerCount == "1") {
                 amiThePayer = true
 //                viewModel.multiPlayerRef.child(gameRoom.key).child("playerCount")
@@ -206,10 +214,15 @@ class MultiplayerFragment : Fragment() {
                     )
                 )
                 binding.startMatchBtn.isEnabled = true
-                viewModel.matchBundle.value.apply {
-                    putString("plr1Id", gameRoom.player1.id)
-                    putString("nm1", gameRoom.player1.nm)
-                    putInt("lvl1", gameRoom.player1.lvl)
+//                viewModel.matchBundle.value.apply {
+//                    putString("plr1Id", gameRoom.player1.id)
+//                    putString("nm1", gameRoom.player1.nm)
+//                    putInt("lvl1", gameRoom.player1.lvl)
+//                }
+                viewModel.gameOnline.apply {
+                    plr1Id = gameRoom.player1.id
+                    nm1 = gameRoom.player1.nm
+                    lvl1 = gameRoom.player1.lvl
                 }
 //                viewModel.multiPlayerRef.child(gameRoom.key).child("friendlyChat")
 //                    .push().setValue(ms)
@@ -234,13 +247,18 @@ class MultiplayerFragment : Fragment() {
                             binding.startMatchBtn.isEnabled = false
                             binding.joinInputId.hint = ""
                             binding.joinInputId.setText("")
-                            viewModel.matchBundle.value.apply {
-                                putString("plr2Id", playerId)
-                                putString("nm2", viewModel.gameProfile.nm)
-                                putInt("lvl2", viewModel.gameProfile.lvlByCal())
-                                putBoolean("plyr1", false)
+//                            viewModel.matchBundle.value.apply {
+//                                putString("plr2Id", playerId)
+//                                putString("nm2", viewModel.gameProfile.nm)
+//                                putInt("lvl2", viewModel.gameProfile.lvlByCal())
+//                                putBoolean("plyr1", false)
+//                            }
+                            viewModel.gameOnline.apply {
+                                plr2Id = playerId
+                                nm2 = viewModel.gameProfile.nm
+                                lvl2 = viewModel.gameProfile.lvlByCal()
+                                isPlyr1 = false
                             }
-
 
                             bubbleTabBar.setSelected(0, true)
                             viewModel.clearFriendlyChat()
@@ -263,12 +281,19 @@ class MultiplayerFragment : Fragment() {
                             viewModel.clearTempMatches()
                             val key =
                                 viewModel.multiPlayerRef.push().key.orEmpty().ifEmpty { return }
-                            viewModel.matchBundle.value.apply {
-                                putString("plr1Id", playerId)
-                                putBoolean("plyr1", true)
-                                putString("nm1", viewModel.gameProfile.nm)
-                                putInt("lvl1", viewModel.gameProfile.lvlByCal())
-                                putString("gameKey", key)
+//                            viewModel.matchBundle.value.apply {
+//                                putString("plr1Id", playerId)
+//                                putBoolean("plyr1", true)
+//                                putString("nm1", viewModel.gameProfile.nm)
+//                                putInt("lvl1", viewModel.gameProfile.lvlByCal())
+//                                putString("gameKey", key)
+//                            }
+                            viewModel.gameOnline.apply {
+                                plr1Id = playerId
+                                nm1 = viewModel.gameProfile.nm
+                                lvl1 = viewModel.gameProfile.lvlByCal()
+                                gameKey = key
+                                isPlyr1 = true
                             }
                             Log.d("TAG", "onCreate key: $key")
                             val msg = viewModel.gameProfile.toMessage(
@@ -366,11 +391,17 @@ class MultiplayerFragment : Fragment() {
                         binding.startMatchBtn.isEnabled = false
                         return
                     }
-                    viewModel.matchBundle.value.apply {
+//                    viewModel.matchBundle.value.apply {
+//                        if (binding.stickySwitch.getDirection() == StickySwitch.Direction.LEFT) return@apply
+//                        putString("plr2Id", gameRoom.player2.id)
+//                        putString("nm2", gameRoom.player2.nm)
+//                        putInt("lvl2", gameRoom.player2.lvl)
+//                    }
+                    viewModel.gameOnline.apply {
                         if (binding.stickySwitch.getDirection() == StickySwitch.Direction.LEFT) return@apply
-                        putString("plr2Id", gameRoom.player2.id)
-                        putString("nm2", gameRoom.player2.nm)
-                        putInt("lvl2", gameRoom.player2.lvl)
+                        plr2Id = gameRoom.player2.id
+                        nm2 = gameRoom.player2.nm
+                        lvl2 = gameRoom.player2.lvl
                     }
                     when (gameRoom.playerCount) {
                         "2" -> {
@@ -677,8 +708,9 @@ class MultiplayerFragment : Fragment() {
             mediaPlayer.start()
             mediaPlayer.setOnCompletionListener(MediaPlayer::release)
         }
-        val mIntent = Intent(parentActivity, GameActivity2::class.java)
-        startActivity(mIntent.putExtras(viewModel.matchBundle.value))
+//        val mIntent = Intent(parentActivity, GameActivity2::class.java)
+//        startActivity(mIntent.putExtras(viewModel.matchBundle.value))
+        navigateSafe(viewModel.gameOnline)
         binding.startMatchBtn.isEnabled = false
 //        finish()
     }

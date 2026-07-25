@@ -20,12 +20,10 @@ import com.diu.yk_games.line2box.databinding.DialogLayoutAlertBinding
 import com.diu.yk_games.line2box.databinding.DialogLayoutInfoBinding
 import com.diu.yk_games.line2box.databinding.FragmentGameDualBinding
 import com.diu.yk_games.line2box.presentation.MainViewModel
-import com.diu.yk_games.line2box.presentation.navigation.Routes
 import com.diu.yk_games.line2box.util.*
 import kotlinx.coroutines.*
 import java.util.Objects
 import java.util.Random
-import kotlin.time.Duration.Companion.milliseconds
 
 class GameBotFragment : Fragment() {
     private lateinit var binding: FragmentGameDualBinding
@@ -60,10 +58,10 @@ class GameBotFragment : Fragment() {
         setupListener()
     }
 
-    @SuppressLint("DiscouragedApi")
+    @SuppressLint("DiscouragedApi", "SetTextI18n")
     private fun setupUI() {
-        binding.nm1Id.text = nm1
-        binding.nm2Id.text = nm2
+        binding.nm1Id.text = "($nm1)"
+        binding.nm2Id.text = "($nm2)"
 
         clickCount = 0
         scoreRed = 0
