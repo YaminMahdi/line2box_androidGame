@@ -16,18 +16,12 @@ import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.util.Patterns
-import android.view.MotionEvent
-import android.view.View
-import android.view.ViewGroup
-import android.view.Window
-import android.view.WindowManager
+import android.view.*
 import android.view.inputmethod.InputMethodManager
-import android.widget.EditText
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.annotation.DrawableRes
-import androidx.appcompat.app.AppCompatActivity
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.net.toUri
 import androidx.core.os.bundleOf
@@ -46,16 +40,10 @@ import coil3.imageLoader
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.request.target
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.coroutines.withContext
 import java.io.File
 import java.nio.ByteBuffer
 import java.text.SimpleDateFormat
@@ -481,8 +469,8 @@ inline fun <T> tryGet(data: () -> T): T? =
         null
     }
 
-fun Fragment.closeKeyboard(nextFocus: View? = null) {
-    activity?.closeKeyboard(nextFocus)
+fun Fragment.closeKeyboard() {
+    activity?.closeKeyboard()
 }
 
 fun View.closeKeyboard() {
@@ -493,14 +481,10 @@ fun View.closeKeyboard() {
     }
 }
 
-fun Activity.closeKeyboard(nextFocus: View? = null) {
-    val view = this.currentFocus
-    if (view is EditText) {
-        val manager =
-            this.getSystemService(AppCompatActivity.INPUT_METHOD_SERVICE) as InputMethodManager
-        manager.hideSoftInputFromWindow(view.windowToken, 0)
-        nextFocus?.requestFocus()
-    }
+fun FragmentActivity.closeKeyboard() {
+    val windowToken = currentFocus?.windowToken ?: window.decorView.rootView.windowToken
+    val manager = getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+    manager.hideSoftInputFromWindow(windowToken, 0)
 }
 
 var systemBarInsets: SystemBarInsets? = null
@@ -515,6 +499,10 @@ fun View.getSystemBarsHeight(): SystemBarInsets {
     return SystemBarInsets(systemBars?.top ?: 50, systemBars?.bottom ?: 30)
 }
 
+fun FragmentActivity.isKeyboardOpen(): Boolean {
+    val insets = ViewCompat.getRootWindowInsets(window.decorView)
+    return insets?.isVisible(WindowInsetsCompat.Type.ime()) == true
+}
 
 fun FragmentActivity.setNavStatusPadding(vararg layout: ViewGroup, both: Int = 1) {
     lifecycleScope.launch {
@@ -597,7 +585,7 @@ fun <T: Any> Fragment.navigateSafe(
 ): Unit? {
     return try {
         closeKeyboard()
-        findNavController().navigate(route){
+        findNavController().navigate(route) {
             builder()
             launchSingleTop = true
         }

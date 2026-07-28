@@ -11,7 +11,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.core.graphics.drawable.toDrawable
-import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
@@ -30,13 +29,13 @@ import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.toObject
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 class LeaderBoardFragment : Fragment() {
     private lateinit var binding: FragmentDisplayBinding
     private val viewModel by activityViewModels<MainViewModel>()
     private lateinit var parentActivity: Activity
 
-    private var rankList= mutableListOf<GameProfile>()
     private val rankListAdapter by lazy { RankListAdapter(viewModel.playerId) }
 
     @SuppressLint("SetTextI18n")
@@ -49,7 +48,7 @@ class LeaderBoardFragment : Fragment() {
         return binding.root
     }
 
-    private fun setupUI(){
+    private fun setupUI() {
         binding.fragLabel.text = getString(R.string.global_rank_list)
         binding.statusLabel.text = getString(R.string.total_player)
     }
@@ -64,34 +63,25 @@ class LeaderBoardFragment : Fragment() {
             .orderBy("coin", Query.Direction.DESCENDING)
             .limit(100)
             .get()
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    for (document in task.result) {
-                        Log.d(TAG, document.id)
-                        val xx = document.toObject<GameProfile>()
-                        rankList.add(xx)
-                    }
-                    rankListAdapter.submitList(rankList)
-                    //rankList.sort(Comparator.comparing(a -> a.coin))
-                    //Collections.reverse(rankList)
-                    val pos = findIndex(rankList, viewModel.playerId)
-                    try {
-                        // rankList.indexOf(user)
-                        Log.d(TAG, "onComplete(pos): $pos ser- ${rankList.getOrNull(pos)?.playerId} ${viewModel.playerId}")
-                        if (pos > 5) binding.recyclerView.scrollToPosition(pos - 1)
-                        //list.post(() -> list.smoothScrollToPosition(pos))
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                } else {
-                    Log.d(TAG, "Error getting documents: ", task.exception)
+            .addOnSuccessListener { qs ->
+                val rankList = qs.map {
+                    it.toObject<GameProfile>()
+                }
+                rankListAdapter.submitList(rankList)
+                val pos = findIndex(rankList, viewModel.playerId)
+                try {
+                    Log.d(TAG, "onComplete(pos): $pos playerId- ${viewModel.playerId}")
+                    if (pos > 5) binding.recyclerView.scrollToPosition(pos - 1)
+                    //list.post(() -> list.smoothScrollToPosition(pos))
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
             }
         db.count().get(AggregateSource.SERVER)
             .addOnSuccessListener {
                 lifecycleScope.launch {
-                    for(i in 0 .. it.count step  512) {
-                        delay(45)
+                    for (i in 0..it.count step 512) {
+                        delay((45 * (i / 10)).milliseconds)
                         binding.status.text = "%,d".format(i)
                     }
                     binding.status.text = "%,d".format(it.count)
@@ -101,7 +91,7 @@ class LeaderBoardFragment : Fragment() {
         binding.btnBack.setBounceClickListener(::onBackPressed)
 
         rankListAdapter.onClickListener = run@{ gamerPro ->
-            if(itemClicked) return@run
+            if (itemClicked) return@run
             itemClicked = true
             if (!pref.read("muted", false)) {
                 val mediaPlayer =
@@ -129,7 +119,8 @@ class LeaderBoardFragment : Fragment() {
                             linearLayoutFrame.layoutParams = params
                             //v.findViewById(R.id.linearLayoutFrame).setPadding(20,0,20,0)
                             if (server2device.countryNm != "")
-                                countryTxt.text = "${server2device.countryNm} ${server2device.countryEmoji}"
+                                countryTxt.text =
+                                    "${server2device.countryNm} ${server2device.countryEmoji}"
                             else
                                 countryLayout.gone()
                             lvlTxt.text = server2device.lvl.toString()
@@ -150,11 +141,7 @@ class LeaderBoardFragment : Fragment() {
                         dialogBinding.root.setOnClickListener {
                             runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
                         }
-                        try {
-                            alertDialog.show()
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                        }
+                        runCatching { alertDialog.show() }
                     }
                 }
         }
@@ -169,10 +156,5 @@ class LeaderBoardFragment : Fragment() {
 
     companion object {
         private const val TAG = "LeadBoardFrag"
-        fun newInstance(playerId: String?): LeaderBoardFragment {
-            val fragment = LeaderBoardFragment()
-            fragment.arguments =  bundleOf("playerId" to playerId)
-            return fragment
-        }
     }
 }

@@ -15,6 +15,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.isVisible
+import androidx.core.view.updatePadding
 import androidx.customview.widget.ViewDragHelper
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.drawerlayout.widget.DrawerLayout.DrawerListener
@@ -25,41 +26,14 @@ import com.diu.yk_games.line2box.databinding.ActivityMainDrawerBinding
 import com.diu.yk_games.line2box.databinding.DialogLayoutAlertBinding
 import com.diu.yk_games.line2box.databinding.DialogLayoutShowHadithBinding
 import com.diu.yk_games.line2box.databinding.DialogLayoutUpdateuiBinding
-import com.diu.yk_games.line2box.model.CountryInfo
-import com.diu.yk_games.line2box.model.ErrorType
-import com.diu.yk_games.line2box.model.GameProfile
-import com.diu.yk_games.line2box.model.HadithStore
-import com.diu.yk_games.line2box.model.MsgStore
-import com.diu.yk_games.line2box.model.msg
+import com.diu.yk_games.line2box.model.*
 import com.diu.yk_games.line2box.presentation.navigation.Routes
 import com.diu.yk_games.line2box.presentation.navigation.asRoute
 import com.diu.yk_games.line2box.presentation.navigation.setupNavGraph
 import com.diu.yk_games.line2box.presentation.online.BlankChatFragment
 import com.diu.yk_games.line2box.presentation.online.ChatFragmentFriendly
 import com.diu.yk_games.line2box.presentation.online.ChatFragmentGlobal
-import com.diu.yk_games.line2box.presentation.online.GameActivity2.Companion.isFirstRun
-import com.diu.yk_games.line2box.util.ConnectivityObserver
-import com.diu.yk_games.line2box.util.Constants
-import com.diu.yk_games.line2box.util.InAppUpdate
-import com.diu.yk_games.line2box.util.cat
-import com.diu.yk_games.line2box.util.changeVisibility
-import com.diu.yk_games.line2box.util.closeKeyboard
-import com.diu.yk_games.line2box.util.collectWithLifecycle
-import com.diu.yk_games.line2box.util.getSystemBars
-import com.diu.yk_games.line2box.util.gone
-import com.diu.yk_games.line2box.util.hideSystemBars
-import com.diu.yk_games.line2box.util.isNotMuted
-import com.diu.yk_games.line2box.util.loadDrawable
-import com.diu.yk_games.line2box.util.log
-import com.diu.yk_games.line2box.util.onBackPressedIgnoreCallback
-import com.diu.yk_games.line2box.util.pref
-import com.diu.yk_games.line2box.util.setBounceClickListener
-import com.diu.yk_games.line2box.util.setNavStatusPadding
-import com.diu.yk_games.line2box.util.show
-import com.diu.yk_games.line2box.util.showCustomTab
-import com.diu.yk_games.line2box.util.showOnMarket
-import com.diu.yk_games.line2box.util.toast
-import com.diu.yk_games.line2box.util.tryGet
+import com.diu.yk_games.line2box.util.*
 import com.google.android.gms.games.PlayGames
 import com.google.firebase.auth.PlayGamesAuthProvider
 import com.google.firebase.firestore.AggregateSource
@@ -87,7 +61,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         bindingDrawer = ActivityMainDrawerBinding.inflate(layoutInflater)
         setContentView(bindingDrawer.root)
-        setNavStatusPadding(binding.mainNavHost, binding.sideNavGroup)
+        setNavStatusPadding(binding.mainNavHost)
         inAppUpdate.checkForUpdate()
         viewModel.initGameProfile()
         window.hideSystemBars()
@@ -106,32 +80,35 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupUI() {
+        isFirstRun = pref.read("firstRun", true)
         initializePlayGameUser()
         binding.loader.loadDrawable(R.drawable.g_loading)
 
         val activityRootView = window.decorView
         activityRootView.viewTreeObserver.addOnGlobalLayoutListener {
             val r = Rect()
+            val systemBarInsets = getSystemBars()
             //r will be populated with the coordinates of your view that area still visible.
             activityRootView.getWindowVisibleDisplayFrame(r)
             val maxHeight = activityRootView.height
             val heightDiff = maxHeight - r.height()
-            cat("onGlobalLayout: height diff: $heightDiff ${r.height()} $maxHeight")
-            if (heightDiff > 0.25 * maxHeight) {
-                // if more than 25% of the screen, it's probably a keyboard......do something here
-                cat("onGlobalLayout: here")
-                bindingDrawer.chatFragmentLinerLayout.setPadding(0, 0, 0, heightDiff)
-                bindingDrawer.navCloseButtonLayout.setPadding(0, 0, 0, heightDiff)
-            } else {
-                val systemBars = getSystemBars()
-                bindingDrawer.chatFragmentLinerLayout.setPadding(0, 0, 0, systemBars.bottom)
-                bindingDrawer.navCloseButtonLayout.setPadding(0, 0, 0, systemBars.bottom)
+
+            // Calculate what the target padding should be
+            val targetPadding = if (heightDiff > 0.25 * maxHeight)
+                heightDiff - systemBarInsets.top
+            else
+                systemBarInsets.bottom
+
+            // Only update if the padding has actually changed
+            if (bindingDrawer.chatFragmentLinerLayout.paddingBottom != targetPadding) {
+                bindingDrawer.chatFragmentLinerLayout.updatePadding(bottom = targetPadding)
+                bindingDrawer.navCloseButtonLayout.updatePadding(bottom = targetPadding)
             }
         }
         bindingDrawer.root.addDrawerListener(object : DrawerListener {
             override fun onDrawerSlide(drawerView: View, slideOffset: Float) {}
             override fun onDrawerOpened(drawerView: View) {}
-            override fun onDrawerClosed(drawerView: View) {}
+            override fun onDrawerClosed(drawerView: View) = closeKeyboard()
             override fun onDrawerStateChanged(newState: Int) {
                 Log.d("TAG", "onDrawerStateChanged: $newState")
                 if (newState == ViewDragHelper.STATE_SETTLING) {
@@ -214,7 +191,13 @@ class MainActivity : AppCompatActivity() {
             }
         }
         onBackPressedDispatcher.addCallback(this) {
+            cat("onBackPressedDispatcher called ${isKeyboardOpen()}")
+            if (isKeyboardOpen()) {
+                closeKeyboard()
+                return@addCallback
+            }
             if (bindingDrawer.drawerLayout.isOpen) {
+                closeKeyboard()
                 bindingDrawer.drawerLayout.close()
                 return@addCallback
             }
@@ -231,7 +214,10 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun OnBackPressedCallback.showBackPressDialog(confirmationText: String = "Do you really want to exit?", isOnline: Boolean = false) {
+    fun OnBackPressedCallback.showBackPressDialog(
+        confirmationText: String = "Do you really want to exit?",
+        isOnline: Boolean = false
+    ) {
         val builder = AlertDialog.Builder(this@MainActivity)
         val dialogBinding = DialogLayoutAlertBinding.inflate(LayoutInflater.from(this@MainActivity))
         builder.setView(dialogBinding.root)
@@ -251,8 +237,12 @@ class MainActivity : AppCompatActivity() {
                 if (viewModel.localPlayerCount != 2)
                     viewModel.multiPlayerRef.child(viewModel.gameOnline.gameKey).removeValue()
                 else {
-                    viewModel.sendMessage2FriendlyChat("Left the match.", type = MsgStore.Type.ExitText)
-                    viewModel.multiPlayerRef.child(viewModel.gameOnline.gameKey).child("playerCount")
+                    viewModel.sendMessage2FriendlyChat(
+                        text = "Left the match.",
+                        type = MsgStore.Type.ExitText
+                    )
+                    viewModel.multiPlayerRef.child(viewModel.gameOnline.gameKey)
+                        .child("playerCount")
                         .setValue("-1")
                 }
             }
@@ -349,6 +339,7 @@ class MainActivity : AppCompatActivity() {
                                                 }
                                         } else loadProfileFromServer()
                                     }
+                                    updateUI(ErrorType.NoError)
                                     // Continue with Play Games Services
                                 } else {
                                     //Toast.makeText(StartActivity.this, "Failed", Toast.LENGTH_SHORT).show()
@@ -360,7 +351,6 @@ class MainActivity : AppCompatActivity() {
                                     viewModel.onlineStatus = "needReload"
                                     viewModel.setLoading(false)
                                 }
-                                updateUI(ErrorType.NoError)
                             }
                             .addOnFailureListener {
                                 // If sign in fails, display a message to the user.
@@ -421,8 +411,8 @@ class MainActivity : AppCompatActivity() {
                 Log.d(TAG, "getLocation: $countryInfo")
                 gameProfile.query = countryInfo.query
                 gameProfile.cityNm = countryInfo.city
-                viewModel.countryList.find { it.first == countryInfo.country }
-                    ?: viewModel.countryList.find {
+                GameUtils.countryList.find { it.first == countryInfo.country }
+                    ?: GameUtils.countryList.find {
                         it.first.contains(
                             countryInfo.country,
                             ignoreCase = true
@@ -574,7 +564,7 @@ class MainActivity : AppCompatActivity() {
         when (errorType) {
             ErrorType.NoInternet -> {
                 if (!needProfile) {
-                    dialogBinding.UpdateInfo.text = "Some functionalities are disabled."
+                    dialogBinding.updateInfo.text = "Some functionalities are disabled."
                     dialogBinding.buttonUpdate.text = "Continue"
                 }
             }
@@ -582,7 +572,7 @@ class MainActivity : AppCompatActivity() {
             else -> {
                 if (needProfile) {
                     dialogBinding.googlePlayWarning.show()
-                    dialogBinding.UpdateInfo.text = "You may need to UPDATE an app.\n(Link Below)"
+                    dialogBinding.updateInfo.text = "You may need to UPDATE an app.\n(Link Below)"
                 }
             }
         }
@@ -630,5 +620,7 @@ class MainActivity : AppCompatActivity() {
     companion object {
         private const val TAG = "MainActivity"
         private var showHadith = true
+        private var isFirstRun = true
+
     }
 }

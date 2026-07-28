@@ -1,6 +1,6 @@
 package com.diu.yk_games.line2box.model
 
-enum class ErrorType{
+enum class ErrorType {
     PlayServiceNeeded,
     AuthenticationFailure,
     ServerNotResponding,

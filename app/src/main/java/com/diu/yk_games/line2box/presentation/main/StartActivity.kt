@@ -15,43 +15,14 @@ import androidx.core.graphics.drawable.toDrawable
 import androidx.lifecycle.lifecycleScope
 import com.diu.yk_games.line2box.BuildConfig
 import com.diu.yk_games.line2box.R
-import com.diu.yk_games.line2box.databinding.ActivityStartBinding
-import com.diu.yk_games.line2box.databinding.DialogLayoutAlertBinding
-import com.diu.yk_games.line2box.databinding.DialogLayoutInfoBinding
-import com.diu.yk_games.line2box.databinding.DialogLayoutLoadingBinding
-import com.diu.yk_games.line2box.databinding.DialogLayoutShowHadithBinding
-import com.diu.yk_games.line2box.databinding.DialogLayoutUpdateuiBinding
-import com.diu.yk_games.line2box.model.CountryInfo
-import com.diu.yk_games.line2box.model.ErrorType
-import com.diu.yk_games.line2box.model.GameProfile
-import com.diu.yk_games.line2box.model.HadithStore
-import com.diu.yk_games.line2box.model.msg
+import com.diu.yk_games.line2box.databinding.*
+import com.diu.yk_games.line2box.model.*
 import com.diu.yk_games.line2box.presentation.BlankFragment
 import com.diu.yk_games.line2box.presentation.MainViewModel
 import com.diu.yk_games.line2box.presentation.bot.GameActivity3
 import com.diu.yk_games.line2box.presentation.offline.GameActivity1
 import com.diu.yk_games.line2box.presentation.online.MultiplayerActivity
-import com.diu.yk_games.line2box.util.ConnectivityObserver
-import com.diu.yk_games.line2box.util.Constants
-import com.diu.yk_games.line2box.util.InAppUpdate
-import com.diu.yk_games.line2box.util.applyState
-import com.diu.yk_games.line2box.util.gone
-import com.diu.yk_games.line2box.util.hideSystemBars
-import com.diu.yk_games.line2box.util.invisible
-import com.diu.yk_games.line2box.util.isMuted
-import com.diu.yk_games.line2box.util.isNotMuted
-import com.diu.yk_games.line2box.util.loadDrawable
-import com.diu.yk_games.line2box.util.log
-import com.diu.yk_games.line2box.util.onBackPressedIgnoreCallback
-import com.diu.yk_games.line2box.util.performOnClick
-import com.diu.yk_games.line2box.util.pref
-import com.diu.yk_games.line2box.util.setBounceClickListener
-import com.diu.yk_games.line2box.util.setNavStatusPadding
-import com.diu.yk_games.line2box.util.show
-import com.diu.yk_games.line2box.util.showCustomTab
-import com.diu.yk_games.line2box.util.showOnMarket
-import com.diu.yk_games.line2box.util.toast
-import com.diu.yk_games.line2box.util.tryGet
+import com.diu.yk_games.line2box.util.*
 import com.google.android.gms.games.PlayGames
 import com.google.android.gms.games.PlayGamesSdk
 import com.google.firebase.Firebase
@@ -503,14 +474,14 @@ class StartActivity : AppCompatActivity() {
         when(errorType){
             ErrorType.NoInternet -> {
                 if (!needProfile) {
-                    dialogBinding.UpdateInfo.text = "Some functionalities are disabled."
+                    dialogBinding.updateInfo.text = "Some functionalities are disabled."
                     dialogBinding.buttonUpdate.text = "Continue"
                 }
             }
             else -> {
                 if (needProfile) {
                     dialogBinding.googlePlayWarning.show()
-                    dialogBinding.UpdateInfo.text = "You may need to UPDATE an app.\n(Link Below)"
+                    dialogBinding.updateInfo.text = "You may need to UPDATE an app.\n(Link Below)"
                 }
             }
         }
@@ -793,7 +764,7 @@ class StartActivity : AppCompatActivity() {
                 builder.setView(dialogBinding.root)
                 builder.setCancelable(false)
                 dialogBinding.googlePlayWarning.gone()
-                dialogBinding.UpdateInfo.text = "You must have INTERNET connection to play in ONLINE mode"
+                dialogBinding.updateInfo.text = "You must have INTERNET connection to play in ONLINE mode"
                 val alertDialog = builder.create()
                 dialogBinding.buttonUpdate.setBounceClickListener {
                     isNotMuted {

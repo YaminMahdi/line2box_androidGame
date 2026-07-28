@@ -29,8 +29,7 @@
             android:id="@+id/navCloseButtonLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:layout_marginBottom="@dimen/_16sdp"
+            android:layout_marginTop="@dimen/_200sdp"
             android:orientation="vertical">
 
             <androidx.appcompat.widget.AppCompatImageButton

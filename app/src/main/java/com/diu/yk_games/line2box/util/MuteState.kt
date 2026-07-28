@@ -1,4 +1,4 @@
-@file:Suppress("unused", "CONTEXT_RECEIVERS_DEPRECATED")
+@file:Suppress("unused")
 
 package com.diu.yk_games.line2box.util
 
@@ -9,8 +9,9 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.diu.yk_games.line2box.R
-import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 enum class MuteState(val backgroundRes: Int, val imageRes: Int) {
     MUTED(R.drawable.btn_gry_bg, R.drawable.icon_vol_mute),
@@ -37,7 +38,7 @@ fun ImageButton.performOnClick() {
         f.lifecycleScope.launch {
             val isMuted = isMuted()
             applyState(!isMuted)
-            if(isMuted) {
+            if (isMuted) {
                 runCatching {
                     val mediaPlayer = MediaPlayer.create(f, R.raw.btn_click_ef)
                     mediaPlayer.start()
@@ -49,14 +50,17 @@ fun ImageButton.performOnClick() {
     }
 }
 
-inline fun LifecycleOwner.isNotMuted(crossinline ifMuted: () -> Unit = {}, crossinline ifNotMuted: () -> Unit) {
+inline fun LifecycleOwner.isNotMuted(
+    crossinline ifMuted: () -> Unit = {},
+    crossinline ifNotMuted: () -> Unit
+) {
     lifecycleScope.launch {
         runCatching {
-            if(isMuted()) ifMuted() else ifNotMuted()
+            if (isMuted()) ifMuted() else ifNotMuted()
         }
     }
 }
 
-suspend fun isMuted(): Boolean {
-    return currentCoroutineContext().IO { pref.read("muted", false) }
+suspend fun isMuted(): Boolean = withContext(Dispatchers.IO) {
+    pref.read("muted", false)
 }

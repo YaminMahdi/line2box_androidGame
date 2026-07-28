@@ -138,4 +138,6 @@ dependencies {
     implementation("io.coil-kt.coil3:coil:3.5.0")
     implementation("io.coil-kt.coil3:coil-gif:3.5.0")
 
+    implementation("com.github.chesire:lifecyklelog:3.1.1")
+
 }

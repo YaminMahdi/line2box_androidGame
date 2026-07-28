@@ -12,15 +12,7 @@ import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.FragmentNminfoBinding
 import com.diu.yk_games.line2box.model.GameProfile
 import com.diu.yk_games.line2box.presentation.navigation.Routes
-import com.diu.yk_games.line2box.util.IO
-import com.diu.yk_games.line2box.util.applyState
-import com.diu.yk_games.line2box.util.isMuted
-import com.diu.yk_games.line2box.util.isNotMuted
-import com.diu.yk_games.line2box.util.navigateSafe
-import com.diu.yk_games.line2box.util.onBackPressed
-import com.diu.yk_games.line2box.util.performOnClickF
-import com.diu.yk_games.line2box.util.pref
-import com.diu.yk_games.line2box.util.setBounceClickListener
+import com.diu.yk_games.line2box.util.*
 import kotlinx.coroutines.launch
 
 class NameInfoFragment : Fragment() {
@@ -85,7 +77,7 @@ class NameInfoFragment : Fragment() {
                 if (binding.palyerBlue.text.toString() != "")
                     pref.save("plrNm2", nm2)
             }
-            navigateSafe(Routes.GameDual(nm1, nm2)) {
+            navigateSafe(Routes.GameDual(nm1.trim(), nm2.trim())) {
                 popUpTo(Routes.ChangeName::class){
                     inclusive = true
                 }

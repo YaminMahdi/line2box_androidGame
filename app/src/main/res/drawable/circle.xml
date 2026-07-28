@@ -3,9 +3,9 @@
     android:shape="oval">
     <solid android:color="@color/white" />
     <stroke
-        android:width="@dimen/_4sdp"
+        android:width="@dimen/_3sdp"
         android:color="@color/whiteY" />
     <size
-        android:width="@dimen/_40sdp"
-        android:height="@dimen/_40sdp" />
+        android:width="@dimen/_16sdp"
+        android:height="@dimen/_16sdp" />
 </shape>

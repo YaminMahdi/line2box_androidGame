@@ -26,18 +26,6 @@
         tools:ignore="DiscouragedApi"
         tools:targetApi="33">
         <activity
-            android:name=".presentation.bot.GameActivity3"
-            android:exported="false"
-            android:windowSoftInputMode="adjustResize" />
-        <activity
-            android:name=".presentation.online.MultiplayerActivity"
-            android:exported="true"
-            android:windowSoftInputMode="adjustResize" />
-        <activity
-            android:name=".presentation.online.GameActivity2"
-            android:exported="true"
-            android:windowSoftInputMode="adjustResize" />
-        <activity
             android:name=".presentation.MainActivity"
             android:exported="true"
             android:windowSoftInputMode="adjustResize">

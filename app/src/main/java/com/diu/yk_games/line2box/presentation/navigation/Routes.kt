@@ -12,7 +12,7 @@ sealed class Routes {
 
     @Serializable data object MultiPlayer: Routes()
 
-    @Serializable data class GameDual(val nm1: String="", val nm2: String=""): Routes()
+    @Serializable data class GameDual(val nm1: String = "", val nm2: String = ""): Routes()
     @Serializable data object GameBot: Routes()
     @Serializable data class GameOnline(
         var gameKey: String = "",
@@ -23,7 +23,11 @@ sealed class Routes {
         var nm2: String = "",
         var lvl1: Int = 0,
         var lvl2: Int = 0
-    ): Routes()
+    ): Routes() {
+        val currentPlayerId get() = if (isPlyr1) plr1Id else plr2Id
+        val currentPlayerName get() = if (isPlyr1) nm1 else nm2
+        val currentPlayerLevel get() = if (isPlyr1) lvl1 else lvl2
+    }
 }
 
 val <T> KSerializer<T>.route

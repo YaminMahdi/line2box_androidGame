@@ -23,15 +23,7 @@ import com.diu.yk_games.line2box.databinding.FragmentChatFriendlyBinding
 import com.diu.yk_games.line2box.model.GameProfile
 import com.diu.yk_games.line2box.presentation.MainViewModel
 import com.diu.yk_games.line2box.presentation.MsgListAdapter
-import com.diu.yk_games.line2box.util.collectWithLifecycle
-import com.diu.yk_games.line2box.util.gone
-import com.diu.yk_games.line2box.util.loadDrawable
-import com.diu.yk_games.line2box.util.log
-import com.diu.yk_games.line2box.util.pref
-import com.diu.yk_games.line2box.util.setBounceClickListener
-import com.diu.yk_games.line2box.util.setClipBoardData
-import com.diu.yk_games.line2box.util.show
-import com.diu.yk_games.line2box.util.toast
+import com.diu.yk_games.line2box.util.*
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import com.google.firebase.firestore.toObject
@@ -43,7 +35,9 @@ class ChatFragmentFriendly : Fragment() {
     private val viewModel by activityViewModels<MainViewModel>()
     private lateinit var parentActivity: Activity
     private val msgListAdapter by lazy { MsgListAdapter(viewModel.playerId) }
-    private val drawerLayout by lazy { parentActivity.findViewById<DrawerLayout>(R.id.drawer_layout) }
+    private val drawerLayout: DrawerLayout by lazy {
+        parentActivity.findViewById(R.id.drawer_layout)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,

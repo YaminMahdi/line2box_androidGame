@@ -24,12 +24,8 @@ import com.diu.yk_games.line2box.model.DataStore
 import com.diu.yk_games.line2box.model.GameProfile
 import com.diu.yk_games.line2box.presentation.MainViewModel
 import com.diu.yk_games.line2box.presentation.ScoreListAdapter
-import com.diu.yk_games.line2box.util.gone
-import com.diu.yk_games.line2box.util.log
-import com.diu.yk_games.line2box.util.onBackPressed
-import com.diu.yk_games.line2box.util.pref
-import com.diu.yk_games.line2box.util.setBounceClickListener
-import com.diu.yk_games.line2box.util.toast
+import com.diu.yk_games.line2box.util.*
+import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.toObject
 
 class DisplayFragment : Fragment() {
@@ -37,7 +33,6 @@ class DisplayFragment : Fragment() {
     private val viewModel by activityViewModels<MainViewModel>()
     private lateinit var parentActivity: Activity
 
-    private var dsList= mutableListOf<DataStore>()
     private var bestScore = "\n\n\nNetwork Error"
     private lateinit var p1Pro: GameProfile
     private lateinit var p2Pro: GameProfile
@@ -80,14 +75,12 @@ class DisplayFragment : Fragment() {
                 }
             }
         viewModel.firestore.collection("ScoreBoard")
-            .orderBy("time")
+            .orderBy("time", Query.Direction.DESCENDING)
             .limitToLast(100)
             .get()
             .addOnSuccessListener { task ->
-                task.documents.forEach {
-                    it.toObject<DataStore>()?.let {ds->
-                        dsList.add(0, ds)
-                    }
+                val dsList = task.documents.mapNotNull {
+                    it.toObject<DataStore>()
                 }
                 Log.d(TAG, "isSuccessful: ${dsList.size}")
                 scoreListAdapter.submitList(dsList)

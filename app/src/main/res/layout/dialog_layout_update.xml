@@ -24,7 +24,7 @@
         android:textSize="@dimen/_24sdp"
         />
     <TextView
-        android:id="@+id/UpdateInfo"
+        android:id="@+id/updateInfo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Updating the game makes playing the game more fun."

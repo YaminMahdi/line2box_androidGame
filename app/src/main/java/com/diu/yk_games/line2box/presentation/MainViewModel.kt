@@ -2,11 +2,10 @@ package com.diu.yk_games.line2box.presentation
 
 import android.os.Bundle
 import android.util.Log
-import androidx.core.os.bundleOf
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.serialization.saved
 import androidx.lifecycle.viewModelScope
-import com.diu.yk_games.line2box.databinding.FragmentGameDualBinding
 import com.diu.yk_games.line2box.model.*
 import com.diu.yk_games.line2box.model.MsgStore.Type
 import com.diu.yk_games.line2box.presentation.navigation.Routes
@@ -27,7 +26,7 @@ class MainViewModel(
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    var lastMotionState : Int? = null
+    var lastMotionState: Int? = null
     val firebaseAuth by lazy { Firebase.auth }
     val database by lazy { Firebase.database }
     val firestore by lazy { Firebase.firestore }
@@ -43,7 +42,7 @@ class MainViewModel(
             value.apply()
         }
     private var _gameProfile: GameProfile? = null
-    var onlineStatus =""
+    var onlineStatus = ""
 
     val isLoading = savedStateHandle.getStateFlow("isLoading", true)
     val globalChatList = savedStateHandle.getStateFlow("globalChatList", emptyList<MsgStore>())
@@ -56,11 +55,17 @@ class MainViewModel(
 
     var gameId
         get() = savedStateHandle["gameId"] ?: ""
-        set(value) { savedStateHandle["gameId"] = value }
+        set(value) {
+            savedStateHandle["gameId"] = value
+        }
 
     var playerId
         get() = savedStateHandle["playerId"] ?: ""
-        set(value) { savedStateHandle["playerId"] = value }
+        set(value) {
+            savedStateHandle["playerId"] = value
+        }
+
+    var matchInfo by savedStateHandle.saved { Routes.GameOnline() }
 
     var matchKey
         get() = savedStateHandle["matchKey"] ?: ""
@@ -80,7 +85,9 @@ class MainViewModel(
 
     var isStickySwitchRight
         get() = savedStateHandle.get<Boolean>("isStickySwitchRight") == true
-        set(value) { savedStateHandle["isStickySwitchRight"] = value }
+        set(value) {
+            savedStateHandle["isStickySwitchRight"] = value
+        }
 
     val isNewMsgBoltVisible = savedStateHandle.getStateFlow("isNewMsgBoltVisible", false)
 
@@ -92,24 +99,25 @@ class MainViewModel(
     fun setLoading(value: Boolean) {
         savedStateHandle["isLoading"] = value
     }
+
     fun initGameProfile(playerId: String = this@MainViewModel.playerId) {
         _gameProfile = GameProfile()
-        if(playerId.isNotEmpty()) {
+        if (playerId.isNotEmpty()) {
             this@MainViewModel.playerId = playerId
             gameProfile.playerId = playerId
             gameProfile.apply()
-        }
-        else this@MainViewModel.playerId = gameProfile.playerId
+        } else this@MainViewModel.playerId = gameProfile.playerId
     }
 
     fun initMultiplayer() {
+        gameOnline = Routes.GameOnline()
         fetchGlobalChat()
         fetchActiveMatches()
     }
 
     fun addTempKey(key: String?) {
         if (key.isNullOrEmpty()) return
-        viewModelScope.launch(Dispatchers.IO){
+        viewModelScope.launch(Dispatchers.IO) {
             savedStateHandle["tempKeys"] = (tempKeys + key).distinct().filter(String::isNotEmpty)
             pref.save("tmpKey", key)
             tempKeys.log("tempKeys")
@@ -117,29 +125,29 @@ class MainViewModel(
     }
 
     fun clearFriendlyChat() {
-        viewModelScope.launch(Dispatchers.IO){
+        viewModelScope.launch(Dispatchers.IO) {
             savedStateHandle["friendsChatList"] = emptyList<MsgStore>()
             friendlyValueListener?.also { friendlyChatRef?.removeEventListener(it) }
         }
     }
 
     fun clearTempMatches() {
-        viewModelScope.launch(Dispatchers.IO){
+        viewModelScope.launch(Dispatchers.IO) {
             savedStateHandle["friendsChatList"] = emptyList<MsgStore>()
             tempKeys.forEach {
-                if(it == matchKey)
+                if (it == matchKey)
                     matchKey = ""
                 multiPlayerRef.child(it).removeValue()
                 savedStateHandle["tempKeys"] = tempKeys - it
                 pref.read<String?>("tmpKey", null)?.let { tmp ->
-                    if(tmp == it) pref.remove("tmpKey")
+                    if (tmp == it) pref.remove("tmpKey")
                 }
             }
         }
     }
 
     fun removeTempMatch() {
-        viewModelScope.launch(Dispatchers.IO){
+        viewModelScope.launch(Dispatchers.IO) {
             pref.read<String?>("tmpKey", null)?.let {
                 multiPlayerRef.child(it).removeValue()
                 pref.remove("tmpKey")
@@ -149,73 +157,77 @@ class MainViewModel(
 
     val viewIdFromServer = MutableSharedFlow<String>()
 
-    fun fetchServerLineClick(gameKey: String, isPlyr1: Boolean) {
+    fun fetchServerLineClick(gameKey: String = matchKey, isPlyr1: Boolean) {
         viewModelScope.launch {
             matchKey = gameKey
             val matchRef = multiPlayerRef.child(gameKey).child("matchInfo")
-            matchRef.child(if(isPlyr1) "plyr2" else "plyr1").addChildEventListener(object : ChildEventListener {
-                override fun onChildAdded(dataSnapshot: DataSnapshot, s: String?) {
-                    val idFromServer = dataSnapshot.getValue<String>() ?: return
-                    viewModelScope.launch {
-                        viewIdFromServer.emit(idFromServer)
+            matchRef.child(if (isPlyr1) "plyr2" else "plyr1")
+                .addChildEventListener(object : ChildEventListener {
+                    override fun onChildAdded(dataSnapshot: DataSnapshot, s: String?) {
+                        val idFromServer = dataSnapshot.getValue<String>() ?: return
+                        viewModelScope.launch {
+                            viewIdFromServer.emit(idFromServer)
+                        }
                     }
-                }
 
-                override fun onChildChanged(dataSnapshot: DataSnapshot, s: String?) {}
-                override fun onChildRemoved(dataSnapshot: DataSnapshot) {}
-                override fun onChildMoved(dataSnapshot: DataSnapshot, s: String?) {}
-                override fun onCancelled(databaseError: DatabaseError) {
-                    Log.w("TAG", "Failed to read value.", databaseError.toException())
-                }
-            })
+                    override fun onChildChanged(dataSnapshot: DataSnapshot, s: String?) {}
+                    override fun onChildRemoved(dataSnapshot: DataSnapshot) {}
+                    override fun onChildMoved(dataSnapshot: DataSnapshot, s: String?) {}
+                    override fun onCancelled(databaseError: DatabaseError) {
+                        Log.w("TAG", "Failed to read value.", databaseError.toException())
+                    }
+                })
         }
     }
 
-    fun fetchGlobalChat(){
+    fun fetchGlobalChat() {
         viewModelScope.launch {
             globalChatRef.limitToLast(100).addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     val chatList = snapshot.children.mapNotNull {
                         val key = it.key
                         val ms = it.getValue<MsgStore>()
-                        if(key == null || ms == null) return@mapNotNull null
+                        if (key == null || ms == null) return@mapNotNull null
                         ms.copy(key = key)
                     }.reversed()
                     savedStateHandle["globalChatList"] = chatList
                 }
+
                 override fun onCancelled(databaseError: DatabaseError) {}
             })
         }
     }
 
-    var friendlyValueListener  : ValueEventListener? = null
-    var friendlyChatRef : DatabaseReference? = null
+    var friendlyValueListener: ValueEventListener? = null
+    var friendlyChatRef: DatabaseReference? = null
 
-    fun fetchFriendlyChat(gameRoomKey: String = matchKey){
+    fun fetchFriendlyChat(gameRoomKey: String = matchKey) {
         viewModelScope.launch {
-            if(gameRoomKey.isEmpty()) return@launch
+            if (gameRoomKey.isEmpty()) return@launch
             val friendsChatRef = multiPlayerRef.child(gameRoomKey).child("friendlyChat")
             friendlyValueListener?.also { friendlyChatRef?.removeEventListener(it) }
             friendlyChatRef = friendsChatRef
-            friendlyValueListener = friendsChatRef.limitToLast(100).addValueEventListener(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    val chatList = snapshot.children.mapNotNull {
-                        val key = it.key
-                        val ms = it.getValue<MsgStore>()
-                        if(key == null || ms == null) return@mapNotNull null
-                        if(ms.type.typeEnum == Type.ExitText)
-                            localPlayerCount--
-                        ms.copy(key = key)
-                    }.sortedByDescending { it.time }
-                    savedStateHandle["friendsChatList"] = chatList
-                }
-                override fun onCancelled(databaseError: DatabaseError) {}
-            })
+            friendlyValueListener =
+                friendsChatRef.limitToLast(100).addValueEventListener(object : ValueEventListener {
+                    override fun onDataChange(snapshot: DataSnapshot) {
+                        val chatList = snapshot.children.mapNotNull {
+                            val key = it.key
+                            val ms = it.getValue<MsgStore>()
+                            if (key == null || ms == null) return@mapNotNull null
+                            if (ms.type.typeEnum == Type.ExitText)
+                                localPlayerCount--
+                            ms.copy(key = key)
+                        }.sortedByDescending { it.time }
+                        savedStateHandle["friendsChatList"] = chatList
+                    }
+
+                    override fun onCancelled(databaseError: DatabaseError) {}
+                })
         }
     }
 
-    fun sendMessage2FriendlyChat(text: String, type: Type = Type.Normal): Unit?{
-        if(text.isEmpty()) return null
+    fun sendMessage2FriendlyChat(text: String, type: Type = Type.Normal): Unit? {
+        if (text.isEmpty()) return null
         val friendlyChatRef = multiPlayerRef.child(matchKey).child("friendlyChat")
         viewModelScope.launch(Dispatchers.IO) {
             friendlyChatRef.push().setValue(
@@ -225,8 +237,8 @@ class MainViewModel(
         return Unit
     }
 
-    fun sendMessage2GlobalChat(text: String): Unit?{
-        if(text.isEmpty()) return null
+    fun sendMessage2GlobalChat(text: String): Unit? {
+        if (text.isEmpty()) return null
         viewModelScope.launch(Dispatchers.IO) {
             globalChatRef.push().setValue(
                 gameProfile.toMessage(playerId = playerId, msg = text)
@@ -265,25 +277,29 @@ class MainViewModel(
             }
     }
 
-    fun fetchActiveMatches(){
-        viewModelScope.launch(Dispatchers.IO){
+    fun fetchActiveMatches() {
+        viewModelScope.launch(Dispatchers.IO) {
             multiPlayerRef.limitToLast(100).addChildEventListener(object : ChildEventListener {
                 override fun onChildAdded(dataSnapshot: DataSnapshot, s: String?) {
                     Log.d("addList", "onChildAdded: " + dataSnapshot.key)
                     runCatching {
                         dataSnapshot.getValue<GameRoom>()?.let { game ->
-                            savedStateHandle["matches"] = (matches.value + game.copy(key= dataSnapshot.key.orEmpty())).distinctBy { it.key }
+                            savedStateHandle["matches"] =
+                                (matches.value + game.copy(key = dataSnapshot.key.orEmpty())).distinctBy { it.key }
                         }
                     }
                 }
+
                 override fun onChildChanged(dataSnapshot: DataSnapshot, s: String?) {
                     removeByKey(dataSnapshot.key)
                     runCatching {
                         dataSnapshot.getValue<GameRoom>()?.let { game ->
-                            savedStateHandle["matches"] = (matches.value + game.copy(key= dataSnapshot.key.orEmpty()))
+                            savedStateHandle["matches"] =
+                                (matches.value + game.copy(key = dataSnapshot.key.orEmpty()))
                         }
                     }
                 }
+
                 override fun onChildRemoved(dataSnapshot: DataSnapshot) {
                     removeByKey(dataSnapshot.key)
                 }
@@ -305,13 +321,14 @@ class MainViewModel(
         }
     }
 
-    fun getValidMatch(shortKey: String): GameRoom? = matches.value.find { getKey4(it.key) == shortKey }
+    fun getValidMatch(shortKey: String): GameRoom? =
+        matches.value.find { getKey4(it.key) == shortKey }
 
     fun getKey4(key: String = matchKey): String {
         if (key.isEmpty()) return ""
         return buildString {
             for (i in 4..key.length) {
-                if(length == 4) break
+                if (length == 4) break
                 when (key[i]) {
                     '0', 'O', 'o' -> append('M')
                     '-', '_' -> continue
@@ -322,8 +339,11 @@ class MainViewModel(
     }
 
     fun getJoinBundle(msg: MsgStore): Result<Bundle> {
-        fun defError(): Result<Bundle> {
-            if(matches.value.isNotEmpty())
+        return Result.success(Bundle())
+    }
+    fun getJoinRoute(msg: MsgStore): Result<Routes.GameOnline> {
+        fun defError(): Result<Routes.GameOnline> {
+            if (matches.value.isNotEmpty())
                 globalChatRef.child(msg.key).removeValue()
             return Result.failure(Exception("Match expired."))
         }
@@ -332,21 +352,12 @@ class MainViewModel(
         val fullKey = gameRoom.key
         pref.save("tmpKey", fullKey)
 
-//        val gameRoom = suspendCoroutine<GameRoom?> { cont ->
-//            multiPlayerRef.child(fullKey)
-//                .addListenerForSingleValueEvent(object : ValueEventListener {
-//                    override fun onDataChange(snapshot: DataSnapshot) {
-//                        cont.resume(snapshot.getValue<GameRoom>())
-//                    }
-//                    override fun onCancelled(error: DatabaseError) {
-//                        cont.resume(null)
-//                    }
-//                })
-//        } ?: return@withContext defError()
-
-        if (gameRoom.playerCount == "-1") return defError()
-        if (gameRoom.player1.id == playerId || gameRoom.player2.id == playerId) return Result.failure(Exception("You are already in the match."))
-        if (gameRoom.playerCount == "2") return Result.failure(Exception("Match already started."))
+        if (gameRoom.playerCount == "-1")
+            return defError()
+        if (gameRoom.player1.id == playerId || gameRoom.player2.id == playerId)
+            return Result.failure(Exception("You are already in the match."))
+        if (gameRoom.playerCount == "2")
+            return Result.failure(Exception("Match already started."))
 
         // Update player2 and player count
         multiPlayerRef.child(fullKey).apply {
@@ -367,40 +378,35 @@ class MainViewModel(
                 type = Type.EnterText
             )
         )
-        // Return the bundle
         return Result.success(
-            bundleOf(
-                "gameKey" to fullKey,
-                "plyr1" to false,
-
-                "plr1Id" to gameRoom.player1.id,
-                "nm1" to gameRoom.player1.nm,
-                "lvl1" to gameRoom.player1.lvl,
-
-                "plr2Id" to playerId,
-                "nm2" to gameProfile.nm,
-                "lvl2" to gameProfile.lvlByCal()
+            Routes.GameOnline(
+                gameKey = fullKey,
+                isPlyr1 = false,
+                plr1Id = gameRoom.player1.id,
+                nm1 = gameRoom.player1.nm,
+                lvl1 = gameRoom.player1.lvl,
+                plr2Id = playerId,
+                nm2 = gameProfile.nm,
+                lvl2 = gameProfile.lvlByCal()
             )
         )
-
+//        // Return the bundle
+//        return Result.success(
+//            bundleOf(
+//                "gameKey" to fullKey,
+//                "plyr1" to false,
+//
+//                "plr1Id" to gameRoom.player1.id,
+//                "nm1" to gameRoom.player1.nm,
+//                "lvl1" to gameRoom.player1.lvl,
+//
+//                "plr2Id" to playerId,
+//                "nm2" to gameProfile.nm,
+//                "lvl2" to gameProfile.lvlByCal()
+//            )
+//        )
     }
-
-
-    fun getLineViewGroups(binding: FragmentGameDualBinding) = listOf(
-        binding.rh1,
-        binding.rh2,
-        binding.rh3,
-        binding.rh4,
-        binding.rh5,
-        binding.rh6,
-        binding.rh7,
-        binding.rv1,
-        binding.rv2,
-        binding.rv3,
-        binding.rv4,
-        binding.rv5,
-        binding.rv6
-    )
+/*
 
     var lineIDs = listOf(
         "r1c1T", "r1c1L", "r1c2T", "r1c2L", "r1c3T", "r1c3L", "r1c4T", "r1c4L", "r1c5T", "r1c5L", "r1c6T", "r1c6L", "r1c7L",
@@ -451,5 +457,6 @@ class MainViewModel(
         "Paraguay" to "🇵🇾", "Peru" to "🇵🇪", "Philippines" to "🇵🇭", "Poland" to "🇵🇱", "Portugal" to "🇵🇹", "Qatar" to "🇶🇦", "Romania" to "🇷🇴", "Russia" to "🇷🇺", "Rwanda" to "🇷🇼", "Saudi Arabia" to "🇸🇦", "Scotland" to "🏴", "Serbia" to "🇷🇸", "South Korea" to "🇰🇷", "Spain" to "🇪🇸", "Sri Lanka" to "🇱🇰", "Turkey" to "🇹🇷", "United Arab Emirates" to "🇦🇪",
         "United Kingdom" to "🇬🇧", "United States" to "🇺🇸", "Uruguay" to "🇺🇾", "Uzbekistan" to "🇺🇿", "Vanuatu" to "🇻🇺", "Venezuela" to "🇻🇪", "Vietnam" to "🇻🇳", "Yemen" to "🇾🇪", "Zambia" to "🇿🇲", "Zimbabwe" to "🇿🇼"
     )
+*/
 
 }

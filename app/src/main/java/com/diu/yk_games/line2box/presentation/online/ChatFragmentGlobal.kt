@@ -3,7 +3,6 @@ package com.diu.yk_games.line2box.presentation.online
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
-import android.content.Intent
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -22,12 +21,7 @@ import com.diu.yk_games.line2box.databinding.FragmentChatGlobalBinding
 import com.diu.yk_games.line2box.model.GameProfile
 import com.diu.yk_games.line2box.presentation.MainViewModel
 import com.diu.yk_games.line2box.presentation.MsgListAdapter
-import com.diu.yk_games.line2box.util.collectWithLifecycle
-import com.diu.yk_games.line2box.util.gone
-import com.diu.yk_games.line2box.util.pref
-import com.diu.yk_games.line2box.util.setBounceClickListener
-import com.diu.yk_games.line2box.util.setClipBoardData
-import com.diu.yk_games.line2box.util.toast
+import com.diu.yk_games.line2box.util.*
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import com.google.firebase.firestore.toObject
@@ -116,9 +110,10 @@ class ChatFragmentGlobal : Fragment() {
         }
 
         msgListAdapter.onJoinClickListener = { msg ->
-            viewModel.getJoinBundle(msg).onSuccess {
+            viewModel.getJoinRoute(msg).onSuccess {
                 parentActivity.findViewById<DrawerLayout>(R.id.drawer_layout)?.closeDrawer(GravityCompat.START)
-                parentActivity.startActivity(Intent(parentActivity, GameActivity2::class.java).putExtras(it))
+//                parentActivity.startActivity(Intent(parentActivity, GameActivity2::class.java).putExtras(it))
+                navigateSafe(it)
             }.onFailure {
                 toast(it.message.toString())
             }

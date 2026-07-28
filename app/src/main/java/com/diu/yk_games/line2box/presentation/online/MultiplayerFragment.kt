@@ -41,23 +41,7 @@ import com.diu.yk_games.line2box.model.toMessage
 import com.diu.yk_games.line2box.model.toPlayerInfo
 import com.diu.yk_games.line2box.presentation.MainViewModel
 import com.diu.yk_games.line2box.presentation.navigation.Routes
-import com.diu.yk_games.line2box.util.Constants
-import com.diu.yk_games.line2box.util.applyState
-import com.diu.yk_games.line2box.util.cat
-import com.diu.yk_games.line2box.util.closeKeyboard
-import com.diu.yk_games.line2box.util.collectWithLifecycle
-import com.diu.yk_games.line2box.util.getClipBoardData
-import com.diu.yk_games.line2box.util.gone
-import com.diu.yk_games.line2box.util.isMuted
-import com.diu.yk_games.line2box.util.isNotMuted
-import com.diu.yk_games.line2box.util.navigateSafe
-import com.diu.yk_games.line2box.util.onBackPressed
-import com.diu.yk_games.line2box.util.performOnClickF
-import com.diu.yk_games.line2box.util.pref
-import com.diu.yk_games.line2box.util.setBounceClickListener
-import com.diu.yk_games.line2box.util.show
-import com.diu.yk_games.line2box.util.showOnMarket
-import com.diu.yk_games.line2box.util.toast
+import com.diu.yk_games.line2box.util.*
 import com.google.android.gms.common.images.ImageManager
 import com.google.android.gms.games.PlayGames
 import com.google.firebase.Firebase
@@ -152,26 +136,35 @@ class MultiplayerFragment : Fragment() {
 
         setupListener()
         setupObserver()
-        setupObserver()
     }
 
     private fun setupObserver() {
         val activityRootView = parentActivity.window.decorView
+        var isKeyboardOpen = false
         activityRootView.viewTreeObserver.addOnGlobalLayoutListener {
             val r = Rect()
             //r will be populated with the coordinates of your view that area still visible.
             activityRootView.getWindowVisibleDisplayFrame(r)
             val maxHeight = activityRootView.height
             val heightDiff = maxHeight - r.height()
-            cat("onGlobalLayout: height diff: $heightDiff ${r.height()} $maxHeight")
-            if (heightDiff > 0.25 * maxHeight) {
-                // if more than 25% of the screen, it's probably a keyboard......do something here
-                cat("onGlobalLayout: here")
-                binding.centerBox.animateCenterBox(400)
-            } else {
-                binding.centerBox.animateCenterBox(0)
+
+            // Determine the current state based on your 25% threshold
+            val currentlyOpen = heightDiff > (0.25 * maxHeight)
+
+            // Only animate if the keyboard state has actually toggled
+            if (currentlyOpen != isKeyboardOpen) {
+                isKeyboardOpen = currentlyOpen // Update the state flag
+
+                if (isKeyboardOpen) {
+                    cat("onGlobalLayout: Keyboard Opened")
+                    binding.centerBox.animateCenterBox(400)
+                } else {
+                    cat("onGlobalLayout: Keyboard Closed")
+                    binding.centerBox.animateCenterBox(0)
+                }
             }
         }
+
     }
 
     private fun setupListener() {
@@ -368,6 +361,7 @@ class MultiplayerFragment : Fragment() {
             profileBtn()
         }
         binding.startMatchBtn.setBounceClickListener {
+            binding.joinInputId.setText("")
             startBtn()
         }
     }
@@ -463,10 +457,10 @@ class MultiplayerFragment : Fragment() {
                 .create()
             dialogBinding.warningMessage.text =
                 if (tmpLvl < pf.lvlByCal()) "Level Upgraded !" else "Level Downgraded !"
-            dialogBinding.UpdateInfo.text =
+            dialogBinding.updateInfo.text =
                 "$tmpLvl${if (tmpLvl < pf.lvlByCal()) " --> " else " <-- "}${pf.lvlByCal()}"
-            dialogBinding.UpdateInfo.typeface = resources.getFont(R.font.baloopaaji)
-            dialogBinding.UpdateInfo.textSize = 25f
+            dialogBinding.updateInfo.typeface = resources.getFont(R.font.baloopaaji)
+            dialogBinding.updateInfo.textSize = 25f
             dialogBinding.buttonUpdate.text = "Continue"
             dialogBinding.buttonUpdate.setBounceClickListener {
                 isNotMuted {

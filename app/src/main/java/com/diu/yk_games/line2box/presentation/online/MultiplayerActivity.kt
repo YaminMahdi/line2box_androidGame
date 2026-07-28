@@ -32,38 +32,13 @@ import androidx.transition.ChangeBounds
 import androidx.transition.TransitionManager
 import androidx.viewpager2.widget.ViewPager2
 import com.diu.yk_games.line2box.R
-import com.diu.yk_games.line2box.databinding.ActivityGameMultiBinding
-import com.diu.yk_games.line2box.databinding.DialogLayoutAlertBinding
-import com.diu.yk_games.line2box.databinding.DialogLayoutInfoMulBinding
-import com.diu.yk_games.line2box.databinding.DialogLayoutProfileBinding
-import com.diu.yk_games.line2box.databinding.DialogLayoutUpdateBinding
-import com.diu.yk_games.line2box.model.GameRoom
-import com.diu.yk_games.line2box.model.MsgStore
-import com.diu.yk_games.line2box.model.PlayerInfoOld
-import com.diu.yk_games.line2box.model.toMessage
-import com.diu.yk_games.line2box.model.toPlayerInfo
+import com.diu.yk_games.line2box.databinding.*
+import com.diu.yk_games.line2box.model.*
 import com.diu.yk_games.line2box.presentation.BlankFragment
 import com.diu.yk_games.line2box.presentation.MainViewModel
 import com.diu.yk_games.line2box.presentation.ViewPagerAdapter
 import com.diu.yk_games.line2box.presentation.main.DisplayFragment
-import com.diu.yk_games.line2box.util.Constants
-import com.diu.yk_games.line2box.util.applyState
-import com.diu.yk_games.line2box.util.closeKeyboard
-import com.diu.yk_games.line2box.util.collectWithLifecycle
-import com.diu.yk_games.line2box.util.getClipBoardData
-import com.diu.yk_games.line2box.util.getSystemBars
-import com.diu.yk_games.line2box.util.gone
-import com.diu.yk_games.line2box.util.hideSystemBars
-import com.diu.yk_games.line2box.util.isMuted
-import com.diu.yk_games.line2box.util.isNotMuted
-import com.diu.yk_games.line2box.util.log
-import com.diu.yk_games.line2box.util.onBackPressedIgnoreCallback
-import com.diu.yk_games.line2box.util.performOnClick
-import com.diu.yk_games.line2box.util.pref
-import com.diu.yk_games.line2box.util.setBounceClickListener
-import com.diu.yk_games.line2box.util.show
-import com.diu.yk_games.line2box.util.showOnMarket
-import com.diu.yk_games.line2box.util.toast
+import com.diu.yk_games.line2box.util.*
 import com.google.android.gms.common.images.ImageManager
 import com.google.android.gms.games.PlayGames
 import com.google.firebase.Firebase
@@ -652,10 +627,10 @@ class MultiplayerActivity : AppCompatActivity() {
                 .create()
             dialogBinding.warningMessage.text =
                 if (tmpLvl < pf.lvlByCal()) "Level Upgraded !" else "Level Downgraded !"
-            dialogBinding.UpdateInfo.text =
+            dialogBinding.updateInfo.text =
                 "$tmpLvl${if (tmpLvl < pf.lvlByCal()) " --> " else " <-- "}${pf.lvlByCal()}"
-            dialogBinding.UpdateInfo.typeface = resources.getFont(R.font.baloopaaji)
-            dialogBinding.UpdateInfo.textSize = 25f
+            dialogBinding.updateInfo.typeface = resources.getFont(R.font.baloopaaji)
+            dialogBinding.updateInfo.textSize = 25f
             dialogBinding.buttonUpdate.text = "Continue"
             dialogBinding.buttonUpdate.setBounceClickListener {
                 isNotMuted {
@@ -768,7 +743,7 @@ class MultiplayerActivity : AppCompatActivity() {
         }
         scrBrdVisible = true
         supportFragmentManager.beginTransaction()
-            .replace(R.id.disFragment, LeaderBoardFragment.newInstance(playerId))
+            .replace(R.id.disFragment, LeaderBoardFragment())
             .commit()
         findViewById<View>(R.id.multiConstraintLyt).gone()
         (findViewById<View>(R.id.FragLabel) as TextView).text = "Global Rank List"
