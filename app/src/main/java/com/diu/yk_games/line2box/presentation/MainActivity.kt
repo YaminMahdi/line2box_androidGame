@@ -27,6 +27,7 @@ import com.diu.yk_games.line2box.databinding.DialogLayoutAlertBinding
 import com.diu.yk_games.line2box.databinding.DialogLayoutShowHadithBinding
 import com.diu.yk_games.line2box.databinding.DialogLayoutUpdateuiBinding
 import com.diu.yk_games.line2box.model.*
+import com.diu.yk_games.line2box.presentation.adapter.ViewPagerAdapter
 import com.diu.yk_games.line2box.presentation.navigation.Routes
 import com.diu.yk_games.line2box.presentation.navigation.asRoute
 import com.diu.yk_games.line2box.presentation.navigation.setupNavGraph
@@ -167,8 +168,8 @@ class MainActivity : AppCompatActivity() {
             val route = it.destination.route.asRoute
             route.log("screen")
             when (route) {
-                Routes.Home, Routes.ScoreBoard, Routes.ChangeName, Routes.GameBot,
-                is Routes.GameDual -> binding.sideNavGroup.apply {
+                Routes.Home, Routes.ScoreBoard, Routes.LeaderBoard, Routes.ChangeName,
+                Routes.GameBot, is Routes.GameDual -> binding.sideNavGroup.apply {
                     if (!isVisible) return@apply
                     animate()
                         .alpha(0f)

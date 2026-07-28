@@ -7,24 +7,16 @@ import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import androidx.core.graphics.drawable.toDrawable
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentActivity
-import androidx.fragment.app.activityViewModels
 import com.diu.yk_games.line2box.databinding.DialogLayoutAlertBinding
 import com.diu.yk_games.line2box.databinding.FragmentGameDualBinding
-import com.diu.yk_games.line2box.presentation.MainViewModel
+import com.diu.yk_games.line2box.presentation.base.BaseFragment
 import com.diu.yk_games.line2box.presentation.navigation.Routes
 import com.diu.yk_games.line2box.util.*
 import kotlinx.coroutines.*
 import kotlin.time.Duration.Companion.milliseconds
 
-class GameBotFragment : Fragment() {
-    private lateinit var binding: FragmentGameDualBinding
-    private val viewModel by activityViewModels<MainViewModel>()
-    lateinit var parentActivity: FragmentActivity
-
+class GameBotFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDualBinding::inflate) {
     private val lineIDs by lazy { GameUtils.lineIDs.toMutableList() }
 
     private val scope =
@@ -38,25 +30,15 @@ class GameBotFragment : Fragment() {
         _gameUtils = null
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        binding = FragmentGameDualBinding.inflate(inflater, container, false)
-        parentActivity = requireActivity()
-        _gameUtils?.updateContext(
-            context = parentActivity,
-            binding = binding
-        )
-        return binding.root
-    }
-
     @SuppressLint("DiscouragedApi")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         if (_gameUtils == null)
             _gameUtils = GameUtils(context = parentActivity, binding = binding, isBot = true)
+        else _gameUtils?.updateContext(
+            context = parentActivity,
+            binding = binding
+        )
         setupUI()
         gameUtils.setupListener(onLineClick = ::performClick)
     }

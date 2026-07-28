@@ -13,19 +13,17 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.net.Uri
-import android.os.Bundle
 import android.util.Log
 import android.util.Patterns
 import android.view.*
-import android.view.inputmethod.InputMethodManager
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.annotation.DrawableRes
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.net.toUri
-import androidx.core.os.bundleOf
 import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
@@ -55,6 +53,7 @@ import java.util.Locale
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.resume
+import kotlin.time.Duration.Companion.milliseconds
 
 ///**Flow collect from Fragment with `repeatOnLifecycle` on` lifecycleScope` till `RESUMED` */
 //context(f: Fragment)
@@ -168,14 +167,14 @@ fun View.setBounceClickListener(onClick: ((View) -> Unit)? = null) {
     var delay = 0L
     setOnClickListener {
         mainScope.launch {
-            delay(150L)
+            delay(150L.milliseconds)
             onClick?.invoke(it)
         }
     }
     setOnTouchListener { v, event ->
         mainScope.launch {
             if (event.action == MotionEvent.ACTION_DOWN) {
-                delay(delay)
+                delay(delay.milliseconds)
                 val scaleDownX = ObjectAnimator.ofFloat(v, "scaleX", 0.90f)
                 val scaleDownY = ObjectAnimator.ofFloat(v, "scaleY", 0.90f)
                 scaleDownX.duration = 140L
@@ -188,7 +187,7 @@ fun View.setBounceClickListener(onClick: ((View) -> Unit)? = null) {
             } else {
                 val delayNeeded =
                     if (event.action == MotionEvent.ACTION_UP || !event.isInside(v)) delay else 350L
-                delay(delayNeeded)
+                delay(delayNeeded.milliseconds)
                 delay = 0L
                 val scaleDownX2 = ObjectAnimator.ofFloat(v, "scaleX", 1f)
                 val scaleDownY2 = ObjectAnimator.ofFloat(v, "scaleY", 1f)
@@ -339,13 +338,6 @@ suspend fun <T, R> T.IO(block: suspend T.() -> R) = withContext(Dispatchers.IO) 
     block()
 }
 
-
-fun Map<String, Any?>.toBundle(): Bundle {
-    val lst = this.toList().toTypedArray()
-//    lst.logJson()
-    return bundleOf(*lst)
-}
-
 fun Boolean.toYesNo() = if (this) "YES" else "NO"
 fun Boolean.toUnitOrNull() = if (this) Unit else null
 fun Boolean?.isTrue() = this == true
@@ -469,22 +461,42 @@ inline fun <T> tryGet(data: () -> T): T? =
         null
     }
 
-fun Fragment.closeKeyboard() {
-    activity?.closeKeyboard()
+// 1. Core View Extensions
+fun View.closeKeyboard(window: Window) {
+    WindowCompat
+        .getInsetsController(window, this)
+        .hide(WindowInsetsCompat.Type.ime())
+    if (hasFocus()) clearFocus()
 }
 
-fun View.closeKeyboard() {
-    context?.apply {
-        val inputMethodManager =
-            getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        inputMethodManager.hideSoftInputFromWindow(windowToken, 0)
+fun View.showKeyboard(window: Window) {
+    requestFocus()
+    post {
+        WindowCompat
+            .getInsetsController(window, this)
+            .show(WindowInsetsCompat.Type.ime())
     }
 }
 
-fun FragmentActivity.closeKeyboard() {
-    val windowToken = currentFocus?.windowToken ?: window.decorView.rootView.windowToken
-    val manager = getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
-    manager.hideSoftInputFromWindow(windowToken, 0)
+// 2. Activity Extensions
+fun Activity.closeKeyboard() {
+    val view = currentFocus ?: window.decorView
+    view.closeKeyboard(window)
+}
+
+fun Activity.showKeyboard(targetView: View) {
+    targetView.showKeyboard(window)
+}
+
+// 3. Fragment Extensions
+fun Fragment.closeKeyboard() {
+    val currentWindow = activity?.window ?: return
+    val targetView = view?.findFocus() ?: view ?: currentWindow.decorView
+    targetView.closeKeyboard(currentWindow)
+}
+
+fun Fragment.showKeyboard(targetView: View) {
+    activity?.showKeyboard(targetView)
 }
 
 var systemBarInsets: SystemBarInsets? = null
@@ -625,13 +637,13 @@ fun OnBackPressedCallback.onBackPressedIgnoreCallback() {
     isEnabled = true
 }
 
-@JvmOverloads
 fun Fragment.onBackPressed(view: View? = null) {
-    view?.closeKeyboard() ?: closeKeyboard()
-    activity?.onBackPressedDispatcher?.onBackPressed()
+    val activity = activity ?: return
+    view?.closeKeyboard(activity.window) ?: closeKeyboard()
+    activity.onBackPressedDispatcher.onBackPressed()
 }
-@JvmOverloads
+
 fun FragmentActivity.onBackPressed(view: View? = null) {
-    view?.closeKeyboard() ?: closeKeyboard()
+    view?.closeKeyboard(window) ?: closeKeyboard()
     onBackPressedDispatcher.onBackPressed()
 }

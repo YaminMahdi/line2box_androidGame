@@ -20,10 +20,8 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.ak1.BubbleTabBar
 
 class ShareDialogFragment : BottomSheetDialogFragment() {
-
-    private val viewModel by activityViewModels<MainViewModel>()
-
     lateinit var binding: DialogFragmentShareBinding
+    private val viewModel by activityViewModels<MainViewModel>()
 
     override fun onCreateDialog(
         savedInstanceState: Bundle?,

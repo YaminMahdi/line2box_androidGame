@@ -20,7 +20,7 @@ import com.diu.yk_games.line2box.databinding.DialogLayoutProfileBinding
 import com.diu.yk_games.line2box.databinding.FragmentChatGlobalBinding
 import com.diu.yk_games.line2box.model.GameProfile
 import com.diu.yk_games.line2box.presentation.MainViewModel
-import com.diu.yk_games.line2box.presentation.MsgListAdapter
+import com.diu.yk_games.line2box.presentation.adapter.MsgListAdapter
 import com.diu.yk_games.line2box.util.*
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
@@ -88,7 +88,6 @@ class ChatFragmentGlobal : Fragment() {
                                 profileShapeLayout.gone()
                                 nmEditBtn.gone()
                                 nmLTxt.gone()
-                                themeBox.gone()
                                 countryLTxt.gone()
                                 buttonSaveInfo.gone()
                             }

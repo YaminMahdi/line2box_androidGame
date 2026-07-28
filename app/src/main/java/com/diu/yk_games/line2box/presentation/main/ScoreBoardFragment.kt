@@ -1,38 +1,29 @@
 package com.diu.yk_games.line2box.presentation.main
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.app.AlertDialog
 import android.content.res.ColorStateList
 import android.graphics.PorterDuff
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toDrawable
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
 import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.DialogLayoutProfileBinding
 import com.diu.yk_games.line2box.databinding.DialogLayoutScrGlobeBinding
 import com.diu.yk_games.line2box.databinding.FragmentDisplayBinding
 import com.diu.yk_games.line2box.model.DataStore
 import com.diu.yk_games.line2box.model.GameProfile
-import com.diu.yk_games.line2box.presentation.MainViewModel
-import com.diu.yk_games.line2box.presentation.ScoreListAdapter
+import com.diu.yk_games.line2box.presentation.adapter.ScoreListAdapter
+import com.diu.yk_games.line2box.presentation.base.BaseFragment
 import com.diu.yk_games.line2box.util.*
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.toObject
 
-class DisplayFragment : Fragment() {
-    lateinit var binding: FragmentDisplayBinding
-    private val viewModel by activityViewModels<MainViewModel>()
-    private lateinit var parentActivity: Activity
-
+class ScoreBoardFragment : BaseFragment<FragmentDisplayBinding>(FragmentDisplayBinding::inflate) {
     private var bestScore = "\n\n\nNetwork Error"
     private lateinit var p1Pro: GameProfile
     private lateinit var p2Pro: GameProfile
@@ -40,29 +31,19 @@ class DisplayFragment : Fragment() {
     private val scoreListAdapter by lazy { ScoreListAdapter() }
 
     companion object{
-        private const val TAG = "DisplayFragment"
-    }
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        binding = FragmentDisplayBinding.inflate(inflater, container, false)
-        parentActivity = requireActivity()
-        return binding.root
+        private const val TAG = "ScoreBoardFragment"
     }
 
     private fun setupUI(){
         binding.fragLabel.text = getString(R.string.global_score_board)
         binding.statusLabel.text = getString(R.string.last_best_score)
+        binding.recyclerView.adapter = scoreListAdapter
     }
 
     @SuppressLint("SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupUI()
-        binding.recyclerView.adapter = scoreListAdapter
-        //Source source = Source.CACHE;
         viewModel.firestore.collection("LastBestPlayer").document("LastBestPlayer")
             .get().addOnCompleteListener { task ->
                 if (task.isSuccessful) {
@@ -76,7 +57,7 @@ class DisplayFragment : Fragment() {
             }
         viewModel.firestore.collection("ScoreBoard")
             .orderBy("time", Query.Direction.DESCENDING)
-            .limitToLast(100)
+            .limit(100)
             .get()
             .addOnSuccessListener { task ->
                 val dsList = task.documents.mapNotNull {
@@ -202,7 +183,6 @@ class DisplayFragment : Fragment() {
             profileShapeLayout.gone()
             nmEditBtn.gone()
             nmLTxt.gone()
-            themeBox.gone()
             countryLTxt.gone()
             buttonSaveInfo.gone()
         }

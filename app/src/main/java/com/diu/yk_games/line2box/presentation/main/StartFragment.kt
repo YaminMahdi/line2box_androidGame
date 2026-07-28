@@ -3,45 +3,28 @@ package com.diu.yk_games.line2box.presentation.main
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import androidx.core.app.ActivityCompat.recreate
 import androidx.core.graphics.drawable.toDrawable
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentActivity
-import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import com.diu.yk_games.line2box.BuildConfig
 import com.diu.yk_games.line2box.R
-import com.diu.yk_games.line2box.databinding.ActivityStartBinding
 import com.diu.yk_games.line2box.databinding.DialogLayoutUpdateuiBinding
-import com.diu.yk_games.line2box.presentation.MainViewModel
+import com.diu.yk_games.line2box.databinding.FragmentStartBinding
+import com.diu.yk_games.line2box.presentation.base.BaseFragment
 import com.diu.yk_games.line2box.presentation.navigation.Routes
 import com.diu.yk_games.line2box.util.*
 import kotlinx.coroutines.launch
 
-class StartFragment : Fragment() {
-    private lateinit var binding: ActivityStartBinding
-    private val viewModel by activityViewModels<MainViewModel>()
+class StartFragment : BaseFragment<FragmentStartBinding>(FragmentStartBinding::inflate) {
     private lateinit var gameUtils: GameUtils
-    lateinit var parentActivity: FragmentActivity
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        binding = ActivityStartBinding.inflate(inflater, container, false)
-        return binding.root
-    }
 
     override fun onPause() {
         super.onPause()
         viewModel.lastMotionState = binding.motionLayout.currentState
     }
 
-    override fun onResume() {
-        super.onResume()
+    override fun onCreateView(view: View) {
         if (binding.motionLayout.currentState == viewModel.lastMotionState)
             return
         viewModel.lastMotionState?.let {
@@ -58,7 +41,6 @@ class StartFragment : Fragment() {
     }
 
     private fun setupUI() {
-        parentActivity = requireActivity()
         gameUtils = GameUtils(parentActivity)
         ifMuted()
     }

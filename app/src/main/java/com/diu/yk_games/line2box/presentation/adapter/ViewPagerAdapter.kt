@@ -1,4 +1,4 @@
-package com.diu.yk_games.line2box.presentation
+package com.diu.yk_games.line2box.presentation.adapter
 
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity

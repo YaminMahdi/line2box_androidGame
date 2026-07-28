@@ -2,35 +2,19 @@ package com.diu.yk_games.line2box.presentation.offline
 
 import android.media.MediaPlayer
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.FragmentNminfoBinding
 import com.diu.yk_games.line2box.model.GameProfile
+import com.diu.yk_games.line2box.presentation.base.BaseFragment
 import com.diu.yk_games.line2box.presentation.navigation.Routes
 import com.diu.yk_games.line2box.util.*
 import kotlinx.coroutines.launch
 
-class NameInfoFragment : Fragment() {
-    lateinit var binding: FragmentNminfoBinding
-    lateinit var parentActivity: FragmentActivity
-
+class NameInfoFragment : BaseFragment<FragmentNminfoBinding>(FragmentNminfoBinding::inflate) {
     private var nm1 = "Red"
     private var nm2 = "Blue"
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        binding = FragmentNminfoBinding.inflate(inflater, container, false)
-        parentActivity = requireActivity()
-        return binding.root
-    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

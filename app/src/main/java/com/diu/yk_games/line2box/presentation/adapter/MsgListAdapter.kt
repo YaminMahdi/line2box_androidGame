@@ -1,4 +1,4 @@
-package com.diu.yk_games.line2box.presentation
+package com.diu.yk_games.line2box.presentation.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -52,7 +52,7 @@ class MsgListAdapter(private val playerId: String) : ListAdapter<MsgStore, Recyc
                 lvlId.text = item.lvlData
                 msgId.text = item.msgData.split("Match ID").firstOrNull()?.trim() ?: item.msgData
                 gameId.text = item.gameId
-                btnJoin.isEnabled = if(item.playerId == playerId) false else true
+                btnJoin.isEnabled = item.playerId != playerId
                 btnJoin.setBounceClickListener {
                     if(item.gameId.isNotEmpty())
                         onJoinClickListener?.invoke(item)

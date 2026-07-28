@@ -1,25 +1,20 @@
 package com.diu.yk_games.line2box.presentation.online
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.app.AlertDialog
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.core.graphics.drawable.toDrawable
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.DialogLayoutProfileBinding
 import com.diu.yk_games.line2box.databinding.FragmentDisplayBinding
 import com.diu.yk_games.line2box.model.GameProfile
-import com.diu.yk_games.line2box.presentation.MainViewModel
-import com.diu.yk_games.line2box.presentation.RankListAdapter
+import com.diu.yk_games.line2box.presentation.adapter.RankListAdapter
+import com.diu.yk_games.line2box.presentation.base.BaseFragment
 import com.diu.yk_games.line2box.util.gone
 import com.diu.yk_games.line2box.util.onBackPressed
 import com.diu.yk_games.line2box.util.pref
@@ -31,33 +26,21 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
 
-class LeaderBoardFragment : Fragment() {
-    private lateinit var binding: FragmentDisplayBinding
-    private val viewModel by activityViewModels<MainViewModel>()
-    private lateinit var parentActivity: Activity
-
-    private val rankListAdapter by lazy { RankListAdapter(viewModel.playerId) }
-
-    @SuppressLint("SetTextI18n")
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        binding = FragmentDisplayBinding.inflate(inflater, container, false)
-        parentActivity = requireActivity()
-        return binding.root
+class LeaderBoardFragment : BaseFragment<FragmentDisplayBinding>(FragmentDisplayBinding::inflate) {
+    private val rankListAdapter by lazy {
+        RankListAdapter(viewModel.playerId)
     }
 
     private fun setupUI() {
         binding.fragLabel.text = getString(R.string.global_rank_list)
         binding.statusLabel.text = getString(R.string.total_player)
+        binding.recyclerView.adapter = rankListAdapter
     }
 
     @SuppressLint("SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupUI()
-        binding.recyclerView.adapter = rankListAdapter
         val db = viewModel.firestore.collection("gamerProfile")
         db.whereNotEqualTo("coin", 100)
             .orderBy("coin", Query.Direction.DESCENDING)
@@ -81,7 +64,7 @@ class LeaderBoardFragment : Fragment() {
             .addOnSuccessListener {
                 lifecycleScope.launch {
                     for (i in 0..it.count step 512) {
-                        delay((45 * (i / 10)).milliseconds)
+                        delay(45.milliseconds)
                         binding.status.text = "%,d".format(i)
                     }
                     binding.status.text = "%,d".format(it.count)
@@ -133,7 +116,6 @@ class LeaderBoardFragment : Fragment() {
                             profileShapeLayout.gone()
                             nmEditBtn.gone()
                             nmLTxt.gone()
-                            themeBox.gone()
                             countryLTxt.gone()
                             buttonSaveInfo.gone()
                         }

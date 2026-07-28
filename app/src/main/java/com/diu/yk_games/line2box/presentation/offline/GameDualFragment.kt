@@ -9,13 +9,9 @@ import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toDrawable
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentActivity
-import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.toRoute
@@ -23,7 +19,7 @@ import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.DialogLayoutAlertBinding
 import com.diu.yk_games.line2box.databinding.FragmentGameDualBinding
 import com.diu.yk_games.line2box.model.DataStore
-import com.diu.yk_games.line2box.presentation.MainViewModel
+import com.diu.yk_games.line2box.presentation.base.BaseFragment
 import com.diu.yk_games.line2box.presentation.navigation.Routes
 import com.diu.yk_games.line2box.util.*
 import com.google.android.play.core.review.ReviewManagerFactory
@@ -36,15 +32,11 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
-class GameDualFragment : Fragment() {
-    private lateinit var binding: FragmentGameDualBinding
-    private val viewModel by activityViewModels<MainViewModel>()
+class GameDualFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDualBinding::inflate) {
     private lateinit var scoreRedView: TextView
     private lateinit var scoreBlueView: TextView
     private lateinit var redTxt: TextView
     private lateinit var blueTxt: TextView
-
-    private lateinit var parentActivity: FragmentActivity
 
     private var isFirstRun = false
 
@@ -53,25 +45,14 @@ class GameDualFragment : Fragment() {
         _gameUtils = null
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        binding = FragmentGameDualBinding.inflate(inflater, container, false)
-        parentActivity = requireActivity()
-        _gameUtils?.updateContext(
-            context = parentActivity,
-            binding = binding
-        )
-        return binding.root
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         if (_gameUtils == null)
             _gameUtils = GameUtils(parentActivity, binding)
-
+        else _gameUtils?.updateContext(
+            context = parentActivity,
+            binding = binding
+        )
         setupUI()
         gameUtils.setupListener(onLineClick = ::performClick)
     }
