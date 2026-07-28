@@ -52,6 +52,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
 
+@SuppressLint("SetTextI18n")
 class MultiplayerFragment : BaseFragment<FragmentMultiplayerBinding>(FragmentMultiplayerBinding::inflate) {
     private val drawerLayout: DrawerLayout by lazy {
         parentActivity.findViewById(R.id.drawer_layout)

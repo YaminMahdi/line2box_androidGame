@@ -29,6 +29,7 @@ import com.google.firebase.firestore.firestore
 import com.google.firebase.firestore.toObject
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 class ChatFragmentFriendly : Fragment() {
     private lateinit var binding: FragmentChatFriendlyBinding
@@ -180,7 +181,7 @@ class ChatFragmentFriendly : Fragment() {
         }
         viewModel.setNewMsgBoltVisible(false)
         lifecycleScope.launch {
-            delay(2500)
+            delay(2500.milliseconds)
             parentActivity.findViewById<View>(R.id.emojiPlay).gone()
             binding.sendHaha.isEnabled = true
             binding.sendCry.isEnabled = true
