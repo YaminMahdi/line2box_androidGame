@@ -8,6 +8,7 @@ import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.FragmentNminfoBinding
 import com.diu.yk_games.line2box.model.GameProfile
 import com.diu.yk_games.line2box.presentation.base.BaseFragment
+import com.diu.yk_games.line2box.presentation.main.SettingsFragment
 import com.diu.yk_games.line2box.presentation.navigation.Routes
 import com.diu.yk_games.line2box.util.*
 import kotlinx.coroutines.launch
@@ -24,7 +25,6 @@ class NameInfoFragment : BaseFragment<FragmentNminfoBinding>(FragmentNminfoBindi
 
     private fun setupUI() {
         lifecycleScope.launch {
-            binding.volBtn.applyState(isMuted())
             binding.apply {
                 val tmpNm1 = IO { pref.read("plrNm1", "") }
                 val tmpNm2 = IO { pref.read("plrNm2", "") }
@@ -36,9 +36,11 @@ class NameInfoFragment : BaseFragment<FragmentNminfoBinding>(FragmentNminfoBindi
     }
 
     fun setupListener() {
-        binding.volBtn.performOnClickF()
+        binding.settingBtn.setBounceClickListener {
+            SettingsFragment.show(childFragmentManager)
+        }
         binding.backBtn.setBounceClickListener {
-            isNotMuted {
+            if (!viewModel.settings.isMuted) {
                 val mediaPlayer = MediaPlayer.create(parentActivity, R.raw.btn_click_ef)
                 mediaPlayer.start()
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release)

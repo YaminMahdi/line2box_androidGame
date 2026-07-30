@@ -48,7 +48,7 @@ class GameDualFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDualB
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         if (_gameUtils == null)
-            _gameUtils = GameUtils(parentActivity, binding)
+            _gameUtils = GameUtils(this, binding)
         else _gameUtils?.updateContext(
             context = parentActivity,
             binding = binding
@@ -72,7 +72,6 @@ class GameDualFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDualB
         redTxt = binding.red
         blueTxt = binding.blue
         lifecycleScope.launch {
-            binding.volBtn.applyState(isMuted())
             isFirstRun = IO { pref.read("firstRun", true) }
         }
     }
@@ -111,7 +110,7 @@ class GameDualFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDualB
                 pref.save("winOffline", ++winOffline)
                 lifecycleScope.launch {
                     delay(800.milliseconds)
-                    isNotMuted {
+                    if (!viewModel.settings.isMuted) {
                         val mediaPlayer = MediaPlayer.create(parentActivity, R.raw.win_ef)
                         mediaPlayer.start()
                         mediaPlayer.setOnCompletionListener(MediaPlayer::release)
@@ -149,7 +148,7 @@ class GameDualFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDualB
         val alertDialog = builder.create()
 
         binding.buttonYes.setBounceClickListener {
-            isNotMuted {
+            if (!viewModel.settings.isMuted) {
                 val mediaPlayer = MediaPlayer.create(parentActivity, R.raw.btn_click_ef)
                 mediaPlayer.start()
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release)
@@ -171,7 +170,7 @@ class GameDualFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDualB
         }
 
         binding.buttonNo.setBounceClickListener {
-            isNotMuted {
+            if (!viewModel.settings.isMuted) {
                 val mediaPlayer = MediaPlayer.create(parentActivity, R.raw.btn_click_ef)
                 mediaPlayer.start()
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release)

@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.diu.yk_games.line2box.model.*
 import com.diu.yk_games.line2box.model.MsgStore.Type
 import com.diu.yk_games.line2box.presentation.navigation.Routes
+import com.diu.yk_games.line2box.util.PrefKeys
 import com.diu.yk_games.line2box.util.log
 import com.diu.yk_games.line2box.util.pref
 import com.google.firebase.Firebase
@@ -18,8 +19,11 @@ import com.google.firebase.firestore.toObject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import java.util.UUID
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 class MainViewModel(
     private val savedStateHandle: SavedStateHandle
@@ -31,8 +35,10 @@ class MainViewModel(
     val firestore by lazy { Firebase.firestore }
     val globalChatRef by lazy { database.getReference("globalChat") }
     val multiPlayerRef by lazy { database.getReference("MultiPlayer") }
+
+    @OptIn(ExperimentalUuidApi::class)
     val scoreBoardKey  //fake key
-        get() = UUID.randomUUID().toString()
+        get() = Uuid.generateV7().toString()
 
     var gameProfile
         get() = _gameProfile ?: GameProfile()
@@ -89,6 +95,27 @@ class MainViewModel(
 
     val isNewMsgBoltVisible = savedStateHandle.getStateFlow("isNewMsgBoltVisible", false)
 
+    val settingsState: StateFlow<Settings>
+        field = MutableStateFlow(Settings())
+
+    val settings
+        get() = settingsState.value
+
+    fun updateSettings(settings: Settings) =
+        updateSettings { settings }
+
+    fun updateSettings(transform: Settings.() -> Settings) {
+        val updated = settings.transform()
+        settingsState.value = updated
+        pref.save(PrefKeys.SETTINGS, updated)
+    }
+
+    init {
+        viewModelScope.launch(Dispatchers.IO) {
+            val storedSettings = pref.read(PrefKeys.SETTINGS, Settings())
+            settingsState.value = storedSettings
+        }
+    }
 
     fun setNewMsgBoltVisible(value: Boolean) {
         savedStateHandle["isNewMsgBoltVisible"] = value

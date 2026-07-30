@@ -1,6 +1,10 @@
 <resources>
     <string name="app_name">Line2Box</string>
     <string name="background">Background</string>
+    <string name="general">General</string>
+    <string name="play_sounds">Play Sounds</string>
+    <string name="show_game_guide">Show game guide</string>
+    <string name="show_hadith">Show Hadith</string>
     <string name="red">RED</string>
     <string name="vs">vs</string>
     <string name="blue">BLUE</string>

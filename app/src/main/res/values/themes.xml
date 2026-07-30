@@ -1,6 +1,6 @@
 <resources>
     <!-- Base application theme. -->
-    <style name="Theme.Line2Box" parent="Theme.Material3.Dark.NoActionBar">
+    <style name="Theme.Line2Box" parent="Theme.Material3Expressive.Dark.NoActionBar">
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/blueX</item>
         <item name="colorPrimaryVariant">#1F2A60</item>
@@ -19,10 +19,12 @@
         <item name="android:windowTranslucentNavigation">true</item>
     </style>
 
-    <style name="TransparentBottomSheetDialogTheme" parent="Theme.Material3.Dark.NoActionBar">
+    <style name="TransparentBottomSheetDialog" parent="Theme.Material3.Dark.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/TransparentBottomSheetStyle</item>
+    </style>
+
+    <style name="TransparentBottomSheetStyle" parent="Widget.Design.BottomSheet.Modal">
         <item name="android:background">@android:color/transparent</item>
-        <item name="android:colorBackground">@android:color/transparent</item>
-        <item name="android:windowTranslucentNavigation">true</item>
     </style>
 
 

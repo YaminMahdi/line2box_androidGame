@@ -1,6 +1,5 @@
 package com.diu.yk_games.line2box.presentation.online
 
-import android.app.Dialog
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -15,7 +14,6 @@ import com.diu.yk_games.line2box.databinding.DialogFragmentShareBinding
 import com.diu.yk_games.line2box.presentation.MainViewModel
 import com.diu.yk_games.line2box.util.setBounceClickListener
 import com.diu.yk_games.line2box.util.setClipBoardData
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import io.ak1.BubbleTabBar
 
@@ -23,10 +21,8 @@ class ShareDialogFragment : BottomSheetDialogFragment() {
     lateinit var binding: DialogFragmentShareBinding
     private val viewModel by activityViewModels<MainViewModel>()
 
-    override fun onCreateDialog(
-        savedInstanceState: Bundle?,
-    ): Dialog {
-        return BottomSheetDialog(requireContext(), R.style.TransparentBottomSheetDialogTheme)
+    override fun getTheme(): Int {
+        return R.style.TransparentBottomSheetDialog
     }
 
     override fun onCreateView(

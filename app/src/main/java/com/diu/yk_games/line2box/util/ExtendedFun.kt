@@ -12,6 +12,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
+import android.graphics.drawable.TransitionDrawable
 import android.net.Uri
 import android.util.Log
 import android.util.Patterns
@@ -21,6 +22,8 @@ import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.annotation.DrawableRes
 import androidx.browser.customtabs.CustomTabsIntent
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toDrawable
 import androidx.core.net.toUri
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
@@ -646,4 +649,19 @@ fun Fragment.onBackPressed(view: View? = null) {
 fun FragmentActivity.onBackPressed(view: View? = null) {
     view?.closeKeyboard(window) ?: closeKeyboard()
     onBackPressedDispatcher.onBackPressed()
+}
+
+fun ImageView.setDrawableWithFade(@DrawableRes background: Int, durationMs: Int = 500) {
+    val newDrawable = ContextCompat.getDrawable(context, background) ?: return
+    val currentBackground = (drawable as? TransitionDrawable)
+        ?.getDrawable(1)
+        ?: drawable
+        ?: 0.toDrawable()
+
+    if (newDrawable.constantState == currentBackground.constantState) return
+
+    val transitionDrawable = TransitionDrawable(arrayOf(currentBackground, newDrawable))
+    setImageDrawable(transitionDrawable)
+    transitionDrawable.startTransition(durationMs)
+    transitionDrawable.isCrossFadeEnabled = true
 }

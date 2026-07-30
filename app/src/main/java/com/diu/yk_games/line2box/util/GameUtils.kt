@@ -12,20 +12,27 @@ import androidx.annotation.ColorRes
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.toDrawable
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import com.diu.yk_games.line2box.BuildConfig
 import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.DialogLayoutInfoBinding
 import com.diu.yk_games.line2box.databinding.FragmentGameDualBinding
+import com.diu.yk_games.line2box.presentation.MainViewModel
+import com.diu.yk_games.line2box.presentation.main.SettingsFragment
 import kotlinx.coroutines.launch
 import java.util.Objects
 
 class GameUtils(
-    var context: FragmentActivity,
+    var fragment: Fragment,
     var binding: FragmentGameDualBinding? = null,
     val isBot: Boolean = false
 ) {
+    private val viewModel by fragment.activityViewModels<MainViewModel>()
+    private var context = fragment.requireActivity()
+
     fun updateContext(context: FragmentActivity, binding: FragmentGameDualBinding) {
         this.context = context
         this.binding = binding
@@ -95,7 +102,9 @@ class GameUtils(
                     }
                 }
             }
-            binding.volBtn.performOnClick()
+            binding.settingBtn.setBounceClickListener {
+                SettingsFragment.show(context.supportFragmentManager)
+            }
             binding.homeBtn.setBounceClickListener(::backBtn)
             binding.ideaBtn.setBounceClickListener(::ideaBtn)
         }
@@ -543,7 +552,7 @@ class GameUtils(
     }
 
     fun playSound(id: Int) {
-        context.isNotMuted {
+        if (!viewModel.settings.isMuted) {
             val mp = MediaPlayer.create(context, id)
             mp.start()
             mp.setOnCompletionListener(MediaPlayer::release)

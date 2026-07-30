@@ -11,9 +11,9 @@
         android:id="@+id/globalScoreFrag"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="gone"
         android:layout_marginTop="@dimen/_14sdp"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:visibility="gone">
 
         <TextView
             android:id="@+id/FragLabel"
@@ -33,8 +33,7 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            tools:layout="@layout/fragment_blank"
-            />
+            tools:layout="@layout/fragment_blank" />
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/goBackBtn"
@@ -58,8 +57,7 @@
         android:id="@+id/mainLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="@dimen/_5sdp"
-        >
+        android:layout_marginTop="@dimen/_5sdp">
 
         <LinearLayout
             android:id="@+id/linearLayoutStart1"
@@ -98,29 +96,29 @@
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="end"
-
-                    >
-
-                    <androidx.appcompat.widget.AppCompatImageButton
-                        android:id="@+id/volBtn"
-                        android:layout_width="@dimen/_36sdp"
-                        android:layout_height="@dimen/_36sdp"
-                        android:layout_gravity="end"
-                        android:layout_marginEnd="@dimen/_8sdp"
-                        android:background="@drawable/btn_ylw_bg"
-                        android:fontFamily="@font/sortie"
-                        android:paddingVertical="10dp"
-                        android:src="@drawable/icon_vol_unmute" />
+                    android:layout_gravity="end">
 
                     <androidx.appcompat.widget.AppCompatImageButton
                         android:id="@+id/ideaBtn"
                         android:layout_width="@dimen/_36sdp"
                         android:layout_height="@dimen/_36sdp"
                         android:layout_gravity="end"
+                        android:layout_marginEnd="10dp"
+                        android:background="@drawable/btn_ylw_bg"
+                        android:fontFamily="@font/sortie"
+                        android:paddingVertical="@dimen/_8sdp"
+                        android:src="@drawable/icon_i"
+                        tools:ignore="SmallSp" />
+
+                    <androidx.appcompat.widget.AppCompatImageButton
+                        android:id="@+id/settingBtn"
+                        android:layout_width="@dimen/_36sdp"
+                        android:layout_height="@dimen/_36sdp"
+                        android:layout_gravity="end"
                         android:background="@drawable/btn_gry_bg"
                         android:fontFamily="@font/sortie"
-                        android:src="@drawable/icon_i" />
+                        android:src="@drawable/icon_setting"
+                        tools:ignore="SmallSp" />
                 </LinearLayout>
 
             </LinearLayout>

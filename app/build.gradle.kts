@@ -4,6 +4,7 @@ plugins {
     id("com.google.gms.google-services")
     id("com.google.firebase.crashlytics")
     id("org.jetbrains.kotlin.plugin.serialization")
+    id("org.jetbrains.kotlin.plugin.compose")
 }
 
 val secrets = org.jetbrains.kotlin.konan.properties.loadProperties("${rootDir}/local.properties")
@@ -73,6 +74,7 @@ android {
     buildFeatures {
         viewBinding = true
         buildConfig = true
+        compose = true
     }
 }
 
@@ -89,10 +91,19 @@ androidComponents {
 }
 
 dependencies {
+    implementation(platform("androidx.compose:compose-bom-alpha:2026.07.00"))
+    implementation("androidx.activity:activity-compose:1.13.0")
+    implementation("androidx.fragment:fragment-compose:1.8.9")
+    implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.material:material-icons-extended:1.7.8")
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.ui:ui-graphics")
+    implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.core:core-ktx:1.19.0")
     implementation("androidx.appcompat:appcompat:1.7.1")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.11.0")
     implementation("com.google.android.material:material:1.14.0")
-    implementation("androidx.constraintlayout:constraintlayout:2.2.1")
+    implementation("androidx.constraintlayout:constraintlayout:2.2.2")
     implementation("androidx.activity:activity-ktx:1.13.0")
     implementation("androidx.fragment:fragment-ktx:1.8.9")
 
@@ -106,12 +117,12 @@ dependencies {
     implementation("com.google.firebase:firebase-database")
     implementation("com.google.firebase:firebase-firestore")
 
-    implementation("com.google.android.gms:play-services-games-v2:21.0.0")
+    implementation("com.google.android.gms:play-services-games-v2:22.0.0")
     implementation("com.google.android.gms:play-services-auth:21.6.0")
 
     implementation("com.google.code.gson:gson:2.14.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
-    implementation("org.jsoup:jsoup:1.22.2")
+    implementation("org.jsoup:jsoup:1.23.1")
 
     implementation("io.ak1:bubbletabbar:1.0.8")
     implementation("com.github.GwonHyeok:StickySwitch:0.0.16")
@@ -121,8 +132,12 @@ dependencies {
     implementation("com.intuit.ssp:ssp-android:1.1.1")
 
     testImplementation("junit:junit:4.13.2")
+    androidTestImplementation(platform("androidx.compose:compose-bom-alpha:2026.07.00"))
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     androidTestImplementation("androidx.test.ext:junit:1.3.0")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
+    debugImplementation("androidx.compose.ui:ui-tooling")
 
     // Play In-App Review:
     implementation("com.google.android.play:review:2.0.2")
@@ -139,5 +154,4 @@ dependencies {
     implementation("io.coil-kt.coil3:coil-gif:3.5.0")
 
     implementation("com.github.chesire:lifecyklelog:3.1.1")
-
 }

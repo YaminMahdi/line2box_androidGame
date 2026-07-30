@@ -35,10 +35,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".presentation.offline.GameActivity1"
-            android:exported="true"
-            android:windowSoftInputMode="adjustResize" />
 
         <meta-data
             android:name="com.google.android.gms.games.APP_ID"

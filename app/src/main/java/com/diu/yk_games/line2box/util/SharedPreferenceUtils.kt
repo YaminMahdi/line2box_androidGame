@@ -12,7 +12,10 @@ import com.google.gson.Gson
 val pref by lazy { Line2BoxApplication.instance.preference }
 
 object PrefKeys {
-    const val ALLOW_DUMMY = "ALLOW_DUMMY"
+    const val SETTINGS = "SETTINGS_KEY"
+    const val MUTED = "muted"
+    const val FIRST_RUN = "firstRun"
+    const val SHOW_HADITH = "showHadith"
 }
 
 @Suppress("unused")

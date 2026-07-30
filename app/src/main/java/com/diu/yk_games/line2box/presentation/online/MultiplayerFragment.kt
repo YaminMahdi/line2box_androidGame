@@ -34,6 +34,7 @@ import com.diu.yk_games.line2box.model.MsgStore
 import com.diu.yk_games.line2box.model.toMessage
 import com.diu.yk_games.line2box.model.toPlayerInfo
 import com.diu.yk_games.line2box.presentation.base.BaseFragment
+import com.diu.yk_games.line2box.presentation.main.SettingsFragment
 import com.diu.yk_games.line2box.presentation.navigation.Routes
 import com.diu.yk_games.line2box.util.*
 import com.google.android.gms.common.images.ImageManager
@@ -107,7 +108,6 @@ class MultiplayerFragment : BaseFragment<FragmentMultiplayerBinding>(FragmentMul
         binding.copyPastBtn.setImageResource(R.drawable.icon_paste)
         binding.copyPastBtn.tag = R.drawable.icon_paste
         binding.startMatchBtn.isEnabled = false
-        ifMuted()
 
         setupListener()
         setupObserver()
@@ -268,7 +268,7 @@ class MultiplayerFragment : BaseFragment<FragmentMultiplayerBinding>(FragmentMul
                 }
             }
         binding.copyPastBtn.setBounceClickListener {
-            isNotMuted {
+            if (!viewModel.settings.isMuted) {
                 val mediaPlayer = MediaPlayer.create(parentActivity, R.raw.btn_click_ef)
                 mediaPlayer.start()
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release)
@@ -293,7 +293,9 @@ class MultiplayerFragment : BaseFragment<FragmentMultiplayerBinding>(FragmentMul
         binding.leaderBoardBtn.setBounceClickListener {
             leaderBoard()
         }
-        binding.volBtn.performOnClickF()
+        binding.settingBtn.setBounceClickListener {
+            SettingsFragment.show(childFragmentManager)
+        }
         binding.ideaBtn.setBounceClickListener {
             ideaBtn()
         }
@@ -374,7 +376,7 @@ class MultiplayerFragment : BaseFragment<FragmentMultiplayerBinding>(FragmentMul
         val pf = viewModel.gameProfile
         val tmpLvl = pref.read("tmpLvl", 1)
         if (tmpLvl != pf.lvlByCal()) {
-            isNotMuted {
+            if (!viewModel.settings.isMuted) {
                 val mediaPlayer = MediaPlayer.create(parentActivity, R.raw.win_ef)
                 mediaPlayer.start()
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release)
@@ -395,7 +397,7 @@ class MultiplayerFragment : BaseFragment<FragmentMultiplayerBinding>(FragmentMul
             dialogBinding.updateInfo.textSize = 25f
             dialogBinding.buttonUpdate.text = "Continue"
             dialogBinding.buttonUpdate.setBounceClickListener {
-                isNotMuted {
+                if (!viewModel.settings.isMuted) {
                     val mediaPlayer = MediaPlayer.create(parentActivity, R.raw.btn_click_ef)
                     mediaPlayer.start()
                     mediaPlayer.setOnCompletionListener(MediaPlayer::release)
@@ -433,14 +435,8 @@ class MultiplayerFragment : BaseFragment<FragmentMultiplayerBinding>(FragmentMul
         }
     }
 
-    private fun ifMuted() {
-        lifecycleScope.launch {
-            binding.volBtn.applyState(isMuted())
-        }
-    }
-
     fun ideaBtn() {
-        isNotMuted {
+        if (!viewModel.settings.isMuted) {
             val mediaPlayer = MediaPlayer.create(parentActivity, R.raw.btn_click_ef)
             mediaPlayer.start()
             mediaPlayer.setOnCompletionListener(MediaPlayer::release)
@@ -452,7 +448,7 @@ class MultiplayerFragment : BaseFragment<FragmentMultiplayerBinding>(FragmentMul
         builder.setCancelable(false)
         val alertDialog = builder.create()
         dialogBinding.btnConfirm.setBounceClickListener {
-            isNotMuted {
+            if (!viewModel.settings.isMuted) {
                 val mediaPlayer = MediaPlayer.create(parentActivity, R.raw.btn_click_ef)
                 mediaPlayer.start()
                 mediaPlayer.setOnCompletionListener(MediaPlayer::release)
@@ -464,7 +460,7 @@ class MultiplayerFragment : BaseFragment<FragmentMultiplayerBinding>(FragmentMul
     }
 
     private fun scoreBoard() {
-        isNotMuted {
+        if (!viewModel.settings.isMuted) {
             val mediaPlayer = MediaPlayer.create(parentActivity, R.raw.btn_click_ef)
             mediaPlayer.start()
             mediaPlayer.setOnCompletionListener(MediaPlayer::release)
@@ -473,7 +469,7 @@ class MultiplayerFragment : BaseFragment<FragmentMultiplayerBinding>(FragmentMul
     }
 
     private fun leaderBoard() {
-        isNotMuted {
+        if (!viewModel.settings.isMuted) {
             val mediaPlayer = MediaPlayer.create(parentActivity, R.raw.btn_click_ef)
             mediaPlayer.start()
             mediaPlayer.setOnCompletionListener(MediaPlayer::release)
@@ -483,7 +479,7 @@ class MultiplayerFragment : BaseFragment<FragmentMultiplayerBinding>(FragmentMul
 
     private fun profileBtn(onCreated: (DialogLayoutProfileBinding) -> Unit = {}) {
         editing = false
-        isNotMuted {
+        if (!viewModel.settings.isMuted) {
             val mediaPlayer = MediaPlayer.create(parentActivity, R.raw.btn_click_ef)
             mediaPlayer.start()
             mediaPlayer.setOnCompletionListener(MediaPlayer::release)
@@ -529,7 +525,7 @@ class MultiplayerFragment : BaseFragment<FragmentMultiplayerBinding>(FragmentMul
                 }
             }
             buttonChangeAccount.setBounceClickListener {
-                isNotMuted {
+                if (!viewModel.settings.isMuted) {
                     val mediaPlayer =
                         MediaPlayer.create(parentActivity, R.raw.btn_click_ef)
                     mediaPlayer.start()
@@ -538,7 +534,7 @@ class MultiplayerFragment : BaseFragment<FragmentMultiplayerBinding>(FragmentMul
                 openPlayGamesProfileChooser()
             }
             nmEditBtn.setBounceClickListener {
-                isNotMuted {
+                if (!viewModel.settings.isMuted) {
                     val mediaPlayer =
                         MediaPlayer.create(parentActivity, R.raw.btn_click_ef)
                     mediaPlayer.start()
@@ -571,7 +567,7 @@ class MultiplayerFragment : BaseFragment<FragmentMultiplayerBinding>(FragmentMul
                 }
             }
             buttonSaveInfo.setBounceClickListener {
-                isNotMuted {
+                if (!viewModel.settings.isMuted) {
                     val mediaPlayer =
                         MediaPlayer.create(parentActivity, R.raw.btn_click_ef)
                     mediaPlayer.start()
@@ -606,7 +602,7 @@ class MultiplayerFragment : BaseFragment<FragmentMultiplayerBinding>(FragmentMul
     }
 
     private fun backBtn() {
-        isNotMuted {
+        if (!viewModel.settings.isMuted) {
             val mediaPlayer = MediaPlayer.create(parentActivity, R.raw.btn_click_ef)
             mediaPlayer.start()
             mediaPlayer.setOnCompletionListener(MediaPlayer::release)
@@ -615,7 +611,7 @@ class MultiplayerFragment : BaseFragment<FragmentMultiplayerBinding>(FragmentMul
     }
 
     private fun startBtn() {
-        isNotMuted {
+        if (!viewModel.settings.isMuted) {
             val mediaPlayer = MediaPlayer.create(parentActivity, R.raw.btn_click_ef)
             mediaPlayer.start()
             mediaPlayer.setOnCompletionListener(MediaPlayer::release)

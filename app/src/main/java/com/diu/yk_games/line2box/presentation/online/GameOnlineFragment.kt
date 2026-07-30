@@ -49,12 +49,6 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
     lateinit var matchRef: DatabaseReference
     lateinit var chatRef: DatabaseReference
 
-    private fun ifMuted() {
-        lifecycleScope.launch {
-            binding.volBtn.applyState(isMuted())
-        }
-    }
-
     override fun onAttach(context: Context) {
         super.onAttach(context)
         _gameUtils = null
@@ -63,7 +57,7 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         if (_gameUtils == null)
-            _gameUtils = GameUtils(parentActivity, binding)
+            _gameUtils = GameUtils(this, binding)
         else _gameUtils?.updateContext(
             context = parentActivity,
             binding = binding
@@ -86,7 +80,6 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
         blueX = ContextCompat.getColor(parentActivity, R.color.blueX)
         blueY = ContextCompat.getColor(parentActivity, R.color.blueY)
 
-        ifMuted()
         lifecycleScope.launch {
             delay(200.milliseconds)
             isFirstRun = IO { pref.read("firstRun", true) }

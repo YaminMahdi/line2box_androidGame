@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.view.View
 import androidx.core.app.ActivityCompat.recreate
 import androidx.core.graphics.drawable.toDrawable
-import androidx.lifecycle.lifecycleScope
 import com.diu.yk_games.line2box.BuildConfig
 import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.DialogLayoutUpdateuiBinding
@@ -14,7 +13,6 @@ import com.diu.yk_games.line2box.databinding.FragmentStartBinding
 import com.diu.yk_games.line2box.presentation.base.BaseFragment
 import com.diu.yk_games.line2box.presentation.navigation.Routes
 import com.diu.yk_games.line2box.util.*
-import kotlinx.coroutines.launch
 
 class StartFragment : BaseFragment<FragmentStartBinding>(FragmentStartBinding::inflate) {
     private lateinit var gameUtils: GameUtils
@@ -41,15 +39,16 @@ class StartFragment : BaseFragment<FragmentStartBinding>(FragmentStartBinding::i
     }
 
     private fun setupUI() {
-        gameUtils = GameUtils(parentActivity)
-        ifMuted()
+        gameUtils = GameUtils(this)
     }
 
     private fun setupListener() {
         binding.startBtnId.setBounceClickListener {
             startBtn()
         }
-        binding.volBtn.performOnClickF()
+        binding.settingBtn.setBounceClickListener {
+            SettingsFragment.show(childFragmentManager)
+        }
         binding.ideaBtn.setBounceClickListener {
             ideaBtn()
         }
@@ -66,12 +65,6 @@ class StartFragment : BaseFragment<FragmentStartBinding>(FragmentStartBinding::i
 
     private fun setupObserver() {
 
-    }
-
-    private fun ifMuted() {
-        lifecycleScope.launch {
-            binding.volBtn.applyState(isMuted())
-        }
     }
 
     private fun navigateToScoreBoard() {

@@ -34,7 +34,7 @@ class GameBotFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDualBi
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         if (_gameUtils == null)
-            _gameUtils = GameUtils(context = parentActivity, binding = binding, isBot = true)
+            _gameUtils = GameUtils(fragment = this, binding = binding, isBot = true)
         else _gameUtils?.updateContext(
             context = parentActivity,
             binding = binding
@@ -50,7 +50,6 @@ class GameBotFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDualBi
 
         val randLineId = gameUtils.idFromName(lineIDs.random())
         scope.launch {
-            binding.volBtn.applyState(isMuted())
             isFirstRun = IO { pref.read("firstRun", true) }
             if (isFirstRun) {
                 delay(200.milliseconds)

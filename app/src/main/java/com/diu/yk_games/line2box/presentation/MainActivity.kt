@@ -19,6 +19,7 @@ import androidx.core.view.updatePadding
 import androidx.customview.widget.ViewDragHelper
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.drawerlayout.widget.DrawerLayout.DrawerListener
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import androidx.viewpager2.widget.ViewPager2
 import com.diu.yk_games.line2box.R
@@ -81,7 +82,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupUI() {
-        isFirstRun = pref.read("firstRun", true)
         initializePlayGameUser()
         binding.loader.loadDrawable(R.drawable.g_loading)
 
@@ -119,7 +119,7 @@ class MainActivity : AppCompatActivity() {
                         viewModel.ignoreDrawerClosesSound = false
                         return
                     }
-                    isNotMuted {
+                    if (!viewModel.settings.isMuted) {
                         val mediaPlayer = MediaPlayer.create(this@MainActivity, R.raw.slide)
                         mediaPlayer.start()
                         mediaPlayer.setOnCompletionListener(MediaPlayer::release)
@@ -229,7 +229,7 @@ class MainActivity : AppCompatActivity() {
         dialogBinding.buttonNo.text = "NO"
         alertDialog.window?.setBackgroundDrawable(0.toDrawable())
         dialogBinding.buttonYes.setBounceClickListener {
-            isNotMuted {
+            if (!viewModel.settings.isMuted) {
                 val mediaPlayer = MediaPlayer.create(this@MainActivity, R.raw.btn_click_ef)
                 mediaPlayer?.start()
                 mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
@@ -251,7 +251,7 @@ class MainActivity : AppCompatActivity() {
             onBackPressedIgnoreCallback()
         }
         dialogBinding.buttonNo.setBounceClickListener {
-            isNotMuted {
+            if (!viewModel.settings.isMuted) {
                 val mediaPlayer = MediaPlayer.create(this@MainActivity, R.raw.btn_click_ef)
                 mediaPlayer?.start()
                 mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
@@ -268,8 +268,13 @@ class MainActivity : AppCompatActivity() {
         viewModel.isNewMsgBoltVisible.collectWithLifecycle {
             binding.newMsgBoltu.changeVisibility(it)
         }
+        lifecycleScope.launch {
+            viewModel.settingsState.collect {
+                it.log()
+                binding.background.setDrawableWithFade(it.theme.background)
+            }
+        }
     }
-
 
     private fun closeNavBtn() {
         closeKeyboard()
@@ -302,10 +307,8 @@ class MainActivity : AppCompatActivity() {
                                 // Sign in success, update UI with the signed-in user's information
 
                                 Log.d(TAG, "signInWithCredential: success")
-                                if (showHadith && isFirstRun) {
+                                if (viewModel.settings.showHadith)
                                     showAHadith()
-                                    showHadith = false
-                                }
                                 val user = viewModel.firebaseAuth.currentUser
                                 if (isAuthenticated && user != null) {
                                     PlayGames.getPlayersClient(this).currentPlayer.addOnSuccessListener { player ->
@@ -490,7 +493,7 @@ class MainActivity : AppCompatActivity() {
                         dialogBinding.hadithInfo.text = hadith.ref
                         val alertDialog = builder.create()
                         langBtn.setBounceClickListener {
-                            isNotMuted {
+                            if (!viewModel.settings.isMuted) {
                                 val mediaPlayer =
                                     MediaPlayer.create(this, R.raw.btn_click_ef)
                                 mediaPlayer?.start()
@@ -515,7 +518,7 @@ class MainActivity : AppCompatActivity() {
                             }
                         }
                         dialogBinding.buttonDone.setBounceClickListener {
-                            isNotMuted {
+                            if (!viewModel.settings.isMuted) {
                                 val mediaPlayer = MediaPlayer.create(
                                     this,
                                     R.raw.btn_click_ef
@@ -527,7 +530,7 @@ class MainActivity : AppCompatActivity() {
                         }
                         dialogBinding.srcLink.setBounceClickListener {
                             dialogBinding.srcLink.setTextColor(getColor(R.color.teal_700))
-                            isNotMuted {
+                            if (!viewModel.settings.isMuted) {
                                 val mediaPlayer =
                                     MediaPlayer.create(this, R.raw.btn_click_ef)
                                 mediaPlayer?.start()
@@ -578,7 +581,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
         dialogBinding.buttonUpdate.setBounceClickListener {
-            isNotMuted {
+            if (!viewModel.settings.isMuted) {
                 val mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
                 mediaPlayer?.start()
                 mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
@@ -589,7 +592,7 @@ class MainActivity : AppCompatActivity() {
         }
         dialogBinding.playSvLink.setBounceClickListener {
             dialogBinding.playSvLink.setTextColor(getColor(R.color.teal_700))
-            isNotMuted {
+            if (!viewModel.settings.isMuted) {
                 val mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
                 mediaPlayer?.start()
                 mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
@@ -598,7 +601,7 @@ class MainActivity : AppCompatActivity() {
         }
         dialogBinding.playGmLink.setBounceClickListener {
             dialogBinding.playGmLink.setTextColor(getColor(R.color.teal_700))
-            isNotMuted {
+            if (!viewModel.settings.isMuted) {
                 val mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
                 mediaPlayer?.start()
                 mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
@@ -607,7 +610,7 @@ class MainActivity : AppCompatActivity() {
         }
         dialogBinding.restartLink.setBounceClickListener {
             dialogBinding.restartLink.setTextColor(getColor(R.color.teal_700))
-            isNotMuted {
+            if (!viewModel.settings.isMuted) {
                 val mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
                 mediaPlayer?.start()
                 mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
@@ -620,8 +623,5 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         private const val TAG = "MainActivity"
-        private var showHadith = true
-        private var isFirstRun = true
-
     }
 }
