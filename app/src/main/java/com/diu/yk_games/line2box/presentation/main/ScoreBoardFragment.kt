@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.res.ColorStateList
 import android.graphics.PorterDuff
-import android.media.MediaPlayer
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -77,12 +76,7 @@ class ScoreBoardFragment : BaseFragment<FragmentDisplayBinding>(FragmentDisplayB
             if (gamerPro.plr1Id == "offline")
                 toast("Offline matches don't have match details.")
             else {
-                if (!pref.read("muted", false)) {
-                    val mediaPlayer =
-                        MediaPlayer.create(parentActivity, R.raw.btn_click_ef)
-                    mediaPlayer.start()
-                    mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-                }
+                viewModel.player.playButtonClickSound()
                 val dialogBinding = DialogLayoutScrGlobeBinding.inflate(layoutInflater)
                 val alertDialog = AlertDialog.Builder(parentActivity)
                     .setView(dialogBinding.root).create()
@@ -146,11 +140,7 @@ class ScoreBoardFragment : BaseFragment<FragmentDisplayBinding>(FragmentDisplayB
 
     @SuppressLint("SetTextI18n")
     private fun onPlayerProfileClick(profile: GameProfile, marginLeft: Int, onDismissed: () -> Unit) {
-        if (!pref.read("muted", false)) {
-            val mediaPlayer = MediaPlayer.create(parentActivity, R.raw.btn_click_ef)
-            mediaPlayer.start()
-            mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-        }
+        viewModel.player.playButtonClickSound()
         val dBinding = DialogLayoutProfileBinding.inflate(layoutInflater)
         val alertDialog = AlertDialog.Builder(parentActivity)
             .setView(dBinding.root)

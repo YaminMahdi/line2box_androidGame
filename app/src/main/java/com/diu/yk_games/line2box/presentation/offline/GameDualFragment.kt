@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Context
 import android.graphics.drawable.GradientDrawable
-import android.media.MediaPlayer
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -110,11 +109,7 @@ class GameDualFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDualB
                 pref.save("winOffline", ++winOffline)
                 lifecycleScope.launch {
                     delay(800.milliseconds)
-                    if (!viewModel.settings.isMuted) {
-                        val mediaPlayer = MediaPlayer.create(parentActivity, R.raw.win_ef)
-                        mediaPlayer.start()
-                        mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-                    }
+                    viewModel.player.playWinSound()
                     redTxt.textSize = 30f
                     redTxt.setTextColor(ContextCompat.getColor(parentActivity, R.color.white))
                     blueTxt.textSize = 30f
@@ -148,11 +143,7 @@ class GameDualFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDualB
         val alertDialog = builder.create()
 
         binding.buttonYes.setBounceClickListener {
-            if (!viewModel.settings.isMuted) {
-                val mediaPlayer = MediaPlayer.create(parentActivity, R.raw.btn_click_ef)
-                mediaPlayer.start()
-                mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-            }
+            viewModel.player.playButtonClickSound()
             runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
             if (winOffline > 5) {
                 val manager = ReviewManagerFactory.create(parentActivity)
@@ -170,11 +161,7 @@ class GameDualFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDualB
         }
 
         binding.buttonNo.setBounceClickListener {
-            if (!viewModel.settings.isMuted) {
-                val mediaPlayer = MediaPlayer.create(parentActivity, R.raw.btn_click_ef)
-                mediaPlayer.start()
-                mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-            }
+            viewModel.player.playButtonClickSound()
             runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
             toast("Score Saved to Online Score Board")
             popBackSafe()

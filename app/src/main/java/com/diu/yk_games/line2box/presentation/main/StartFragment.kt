@@ -47,6 +47,7 @@ class StartFragment : BaseFragment<FragmentStartBinding>(FragmentStartBinding::i
             startBtn()
         }
         binding.settingBtn.setBounceClickListener {
+            gameUtils.playButtonClickSound()
             SettingsFragment.show(childFragmentManager)
         }
         binding.ideaBtn.setBounceClickListener {

@@ -41,8 +41,8 @@ class SharedPreferenceUtils(applicationContext: Context) {
         }
     }
 
-    inline fun <reified T : Any> save(key: String, value: T) {
-        preferences.edit {
+    inline fun <reified T : Any> save(key: String, value: T, commit: Boolean = false) {
+        preferences.edit(commit) {
             when (T::class) {
                 String::class -> putString(key, value as String)
                 Int::class -> putInt(key, value as Int)

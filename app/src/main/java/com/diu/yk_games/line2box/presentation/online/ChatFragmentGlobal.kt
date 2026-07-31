@@ -3,7 +3,6 @@ package com.diu.yk_games.line2box.presentation.online
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
-import android.media.MediaPlayer
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -54,12 +53,7 @@ class ChatFragmentGlobal : Fragment() {
 
         msgListAdapter.onClickListener = { msg ->
             //presentationEco str = (presentationEco)o; //As you are using Default String Adapter
-            if (!pref.read("muted", false)) {
-                val mediaPlayer =
-                    MediaPlayer.create(parentActivity, R.raw.btn_click_ef)
-                mediaPlayer.start()
-                mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-            }
+            viewModel.player.playButtonClickSound()
             if (msg.playerId.isNotEmpty()) {
                 val db = Firebase.firestore
                 db.collection("gamerProfile").document(msg.playerId)
@@ -119,9 +113,7 @@ class ChatFragmentGlobal : Fragment() {
         }
 
         binding.msgSendBtn.setBounceClickListener {
-            val mp = MediaPlayer.create(parentActivity, R.raw.pop)
-            mp.start()
-            mp.setOnCompletionListener(MediaPlayer::release)
+            viewModel.player.playPopSound()
             viewModel.sendMessage2GlobalChat(binding.chatBoxGlobal.text.toString())?.also{
                 binding.chatBoxGlobal.setText("")
             } ?: toast("Write Something..")

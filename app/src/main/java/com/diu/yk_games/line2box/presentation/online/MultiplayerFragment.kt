@@ -4,16 +4,13 @@ import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.ActivityNotFoundException
 import android.content.ComponentName
-import android.content.Context
 import android.content.Intent
 import android.graphics.Rect
-import android.media.MediaPlayer
 import android.os.Bundle
 import android.os.PersistableBundle
 import android.util.Log
 import android.view.View
 import android.view.animation.AnticipateInterpolator
-import android.view.inputmethod.InputMethodManager
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.content.ContextCompat
@@ -268,11 +265,7 @@ class MultiplayerFragment : BaseFragment<FragmentMultiplayerBinding>(FragmentMul
                 }
             }
         binding.copyPastBtn.setBounceClickListener {
-            if (!viewModel.settings.isMuted) {
-                val mediaPlayer = MediaPlayer.create(parentActivity, R.raw.btn_click_ef)
-                mediaPlayer.start()
-                mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-            }
+            viewModel.player.playButtonClickSound()
             when (binding.stickySwitch.getDirection()) {
                 StickySwitch.Direction.RIGHT -> {
                     viewModel.gameId = viewModel.getKey4()
@@ -294,6 +287,7 @@ class MultiplayerFragment : BaseFragment<FragmentMultiplayerBinding>(FragmentMul
             leaderBoard()
         }
         binding.settingBtn.setBounceClickListener {
+            viewModel.player.playButtonClickSound()
             SettingsFragment.show(childFragmentManager)
         }
         binding.ideaBtn.setBounceClickListener {
@@ -376,11 +370,7 @@ class MultiplayerFragment : BaseFragment<FragmentMultiplayerBinding>(FragmentMul
         val pf = viewModel.gameProfile
         val tmpLvl = pref.read("tmpLvl", 1)
         if (tmpLvl != pf.lvlByCal()) {
-            if (!viewModel.settings.isMuted) {
-                val mediaPlayer = MediaPlayer.create(parentActivity, R.raw.win_ef)
-                mediaPlayer.start()
-                mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-            }
+            viewModel.player.playWinSound()
             Firebase.firestore.collection("gamerProfile").document((viewModel.playerId))
                 .update("lvl", pf.lvlByCal())
             pref.save("tmpLvl", pf.lvlByCal())
@@ -397,11 +387,7 @@ class MultiplayerFragment : BaseFragment<FragmentMultiplayerBinding>(FragmentMul
             dialogBinding.updateInfo.textSize = 25f
             dialogBinding.buttonUpdate.text = "Continue"
             dialogBinding.buttonUpdate.setBounceClickListener {
-                if (!viewModel.settings.isMuted) {
-                    val mediaPlayer = MediaPlayer.create(parentActivity, R.raw.btn_click_ef)
-                    mediaPlayer.start()
-                    mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-                }
+                viewModel.player.playButtonClickSound()
                 runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
             }
             alertDialog.window?.setBackgroundDrawable(0.toDrawable())
@@ -409,38 +395,22 @@ class MultiplayerFragment : BaseFragment<FragmentMultiplayerBinding>(FragmentMul
         }
     }
 
-    @Suppress("DEPRECATION")
     private fun changeNameNeeded() {
         toast("Change Your Name.")
-        val muted = pref.read("muted", false)
-        if (!muted) pref.save("muted", true)
-        profileBtn { binding ->
-            if (!muted) pref.save("muted", false)
+        profileBtn(false) { binding ->
             lifecycleScope.launch {
                 delay(250.milliseconds)
                 binding.nmTxt.isEnabled = true
                 editing = true
                 binding.nmEditBtn.setImageResource(R.drawable.icon_save)
-                if (binding.nmTxt.requestFocus()) {
-                    val imm: InputMethodManager =
-                        parentActivity.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-                    imm.toggleSoftInput(
-                        InputMethodManager.SHOW_IMPLICIT,
-                        InputMethodManager.HIDE_IMPLICIT_ONLY
-                    )
-                    binding.nmTxt.setSelection(binding.nmTxt.text.length)
-                }
+                binding.nmTxt.showKeyboard()
+                binding.nmTxt.setSelection(binding.nmTxt.text.length)
             }
-
         }
     }
 
     fun ideaBtn() {
-        if (!viewModel.settings.isMuted) {
-            val mediaPlayer = MediaPlayer.create(parentActivity, R.raw.btn_click_ef)
-            mediaPlayer.start()
-            mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-        }
+        viewModel.player.playButtonClickSound()
 
         val dialogBinding = DialogLayoutInfoMulBinding.inflate(layoutInflater)
         val builder = AlertDialog.Builder(parentActivity)
@@ -448,11 +418,7 @@ class MultiplayerFragment : BaseFragment<FragmentMultiplayerBinding>(FragmentMul
         builder.setCancelable(false)
         val alertDialog = builder.create()
         dialogBinding.btnConfirm.setBounceClickListener {
-            if (!viewModel.settings.isMuted) {
-                val mediaPlayer = MediaPlayer.create(parentActivity, R.raw.btn_click_ef)
-                mediaPlayer.start()
-                mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-            }
+            viewModel.player.playButtonClickSound()
             runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
         }
         alertDialog.window?.setBackgroundDrawable(0.toDrawable())
@@ -460,30 +426,22 @@ class MultiplayerFragment : BaseFragment<FragmentMultiplayerBinding>(FragmentMul
     }
 
     private fun scoreBoard() {
-        if (!viewModel.settings.isMuted) {
-            val mediaPlayer = MediaPlayer.create(parentActivity, R.raw.btn_click_ef)
-            mediaPlayer.start()
-            mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-        }
+        viewModel.player.playButtonClickSound()
         navigateSafe(Routes.ScoreBoard)
     }
 
     private fun leaderBoard() {
-        if (!viewModel.settings.isMuted) {
-            val mediaPlayer = MediaPlayer.create(parentActivity, R.raw.btn_click_ef)
-            mediaPlayer.start()
-            mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-        }
+        viewModel.player.playButtonClickSound()
         navigateSafe(Routes.LeaderBoard)
     }
 
-    private fun profileBtn(onCreated: (DialogLayoutProfileBinding) -> Unit = {}) {
+    private fun profileBtn(
+        playSound: Boolean = true,
+        onCreated: (DialogLayoutProfileBinding) -> Unit = {}
+    ) {
         editing = false
-        if (!viewModel.settings.isMuted) {
-            val mediaPlayer = MediaPlayer.create(parentActivity, R.raw.btn_click_ef)
-            mediaPlayer.start()
-            mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-        }
+        if (playSound)
+            viewModel.player.playButtonClickSound()
         val bindingProfileDialog = DialogLayoutProfileBinding.inflate(layoutInflater)
         val alertDialog = AlertDialog.Builder(parentActivity)
             .setView(bindingProfileDialog.root)
@@ -525,26 +483,16 @@ class MultiplayerFragment : BaseFragment<FragmentMultiplayerBinding>(FragmentMul
                 }
             }
             buttonChangeAccount.setBounceClickListener {
-                if (!viewModel.settings.isMuted) {
-                    val mediaPlayer =
-                        MediaPlayer.create(parentActivity, R.raw.btn_click_ef)
-                    mediaPlayer.start()
-                    mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-                }
+                viewModel.player.playButtonClickSound()
                 openPlayGamesProfileChooser()
             }
             nmEditBtn.setBounceClickListener {
-                if (!viewModel.settings.isMuted) {
-                    val mediaPlayer =
-                        MediaPlayer.create(parentActivity, R.raw.btn_click_ef)
-                    mediaPlayer.start()
-                    mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-                }
+                viewModel.player.playButtonClickSound()
                 if (!editing) {
                     nmTxt.isEnabled = true
                     nmTxt.setSelection(nmTxt.text.length)
                     nmEditBtn.setImageResource(R.drawable.icon_save)
-                    showKeyboard(nmTxt)
+                    nmTxt.showKeyboard()
                     editing = true
                 } else {
                     closeKeyboard()
@@ -567,12 +515,7 @@ class MultiplayerFragment : BaseFragment<FragmentMultiplayerBinding>(FragmentMul
                 }
             }
             buttonSaveInfo.setBounceClickListener {
-                if (!viewModel.settings.isMuted) {
-                    val mediaPlayer =
-                        MediaPlayer.create(parentActivity, R.raw.btn_click_ef)
-                    mediaPlayer.start()
-                    mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-                }
+                viewModel.player.playButtonClickSound()
                 closeKeyboard()
                 val newNm: String = nmTxt.text.toString()
                 if ((newNm == "")) {
@@ -602,20 +545,12 @@ class MultiplayerFragment : BaseFragment<FragmentMultiplayerBinding>(FragmentMul
     }
 
     private fun backBtn() {
-        if (!viewModel.settings.isMuted) {
-            val mediaPlayer = MediaPlayer.create(parentActivity, R.raw.btn_click_ef)
-            mediaPlayer.start()
-            mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-        }
+        viewModel.player.playButtonClickSound()
         onBackPressed()
     }
 
     private fun startBtn() {
-        if (!viewModel.settings.isMuted) {
-            val mediaPlayer = MediaPlayer.create(parentActivity, R.raw.btn_click_ef)
-            mediaPlayer.start()
-            mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-        }
+        viewModel.player.playButtonClickSound()
         navigateSafe(viewModel.gameOnline)
         binding.startMatchBtn.isEnabled = false
     }

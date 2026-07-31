@@ -15,8 +15,7 @@ kotlin {
         freeCompilerArgs.addAll(
             "-Xwhen-expressions=indy",
             "-Xcontext-sensitive-resolution",
-            "-Xcollection-literals",
-            "-Xexplicit-backing-fields"
+            "-Xcollection-literals"
         )
     }
 }
@@ -91,7 +90,7 @@ androidComponents {
 }
 
 dependencies {
-    implementation(platform("androidx.compose:compose-bom-alpha:2026.07.00"))
+    implementation(platform("androidx.compose:compose-bom-alpha:2026.07.01"))
     implementation("androidx.activity:activity-compose:1.13.0")
     implementation("androidx.fragment:fragment-compose:1.8.9")
     implementation("androidx.compose.material3:material3")
@@ -110,7 +109,7 @@ dependencies {
     implementation("androidx.navigation:navigation-fragment-ktx:2.9.8")
     implementation("androidx.navigation:navigation-ui-ktx:2.9.8")
 
-    implementation(platform("com.google.firebase:firebase-bom:34.16.0"))
+    implementation(platform("com.google.firebase:firebase-bom:34.17.0"))
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-crashlytics")
@@ -132,7 +131,7 @@ dependencies {
     implementation("com.intuit.ssp:ssp-android:1.1.1")
 
     testImplementation("junit:junit:4.13.2")
-    androidTestImplementation(platform("androidx.compose:compose-bom-alpha:2026.07.00"))
+    androidTestImplementation(platform("androidx.compose:compose-bom-alpha:2026.07.01"))
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     androidTestImplementation("androidx.test.ext:junit:1.3.0")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0")

@@ -4,7 +4,6 @@ import android.animation.LayoutTransition
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.graphics.Rect
-import android.media.MediaPlayer
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -119,11 +118,7 @@ class MainActivity : AppCompatActivity() {
                         viewModel.ignoreDrawerClosesSound = false
                         return
                     }
-                    if (!viewModel.settings.isMuted) {
-                        val mediaPlayer = MediaPlayer.create(this@MainActivity, R.raw.slide)
-                        mediaPlayer.start()
-                        mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-                    }
+                    viewModel.player.playSlideSound()
                 }
             }
         })
@@ -229,11 +224,7 @@ class MainActivity : AppCompatActivity() {
         dialogBinding.buttonNo.text = "NO"
         alertDialog.window?.setBackgroundDrawable(0.toDrawable())
         dialogBinding.buttonYes.setBounceClickListener {
-            if (!viewModel.settings.isMuted) {
-                val mediaPlayer = MediaPlayer.create(this@MainActivity, R.raw.btn_click_ef)
-                mediaPlayer?.start()
-                mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
-            }
+            viewModel.player.playButtonClickSound()
             if (isOnline) {
                 if (viewModel.localPlayerCount != 2)
                     viewModel.multiPlayerRef.child(viewModel.gameOnline.gameKey).removeValue()
@@ -251,11 +242,7 @@ class MainActivity : AppCompatActivity() {
             onBackPressedIgnoreCallback()
         }
         dialogBinding.buttonNo.setBounceClickListener {
-            if (!viewModel.settings.isMuted) {
-                val mediaPlayer = MediaPlayer.create(this@MainActivity, R.raw.btn_click_ef)
-                mediaPlayer?.start()
-                mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
-            }
+            viewModel.player.playButtonClickSound()
             runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
         }
         runCatching { alertDialog.show() }
@@ -493,12 +480,7 @@ class MainActivity : AppCompatActivity() {
                         dialogBinding.hadithInfo.text = hadith.ref
                         val alertDialog = builder.create()
                         langBtn.setBounceClickListener {
-                            if (!viewModel.settings.isMuted) {
-                                val mediaPlayer =
-                                    MediaPlayer.create(this, R.raw.btn_click_ef)
-                                mediaPlayer?.start()
-                                mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
-                            }
+                            viewModel.player.playButtonClickSound()
                             if (langBtn.text == "EN") {
                                 narratorInfo.text = hadith.e
                                 hadithTxt.text = hadith.en
@@ -518,24 +500,12 @@ class MainActivity : AppCompatActivity() {
                             }
                         }
                         dialogBinding.buttonDone.setBounceClickListener {
-                            if (!viewModel.settings.isMuted) {
-                                val mediaPlayer = MediaPlayer.create(
-                                    this,
-                                    R.raw.btn_click_ef
-                                )
-                                mediaPlayer?.start()
-                                mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
-                            }
+                            viewModel.player.playButtonClickSound()
                             runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
                         }
                         dialogBinding.srcLink.setBounceClickListener {
                             dialogBinding.srcLink.setTextColor(getColor(R.color.teal_700))
-                            if (!viewModel.settings.isMuted) {
-                                val mediaPlayer =
-                                    MediaPlayer.create(this, R.raw.btn_click_ef)
-                                mediaPlayer?.start()
-                                mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
-                            }
+                            viewModel.player.playButtonClickSound()
                             var url = hadith.src
                             if (hadith.t == "q" && langBtn.text == "BN") url =
                                 url.replace("bn", "en")
@@ -581,40 +551,24 @@ class MainActivity : AppCompatActivity() {
             }
         }
         dialogBinding.buttonUpdate.setBounceClickListener {
-            if (!viewModel.settings.isMuted) {
-                val mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
-                mediaPlayer?.start()
-                mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
-            }
+            viewModel.player.playButtonClickSound()
             runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
             if (pref.read("needProfile", true))
                 recreate()
         }
         dialogBinding.playSvLink.setBounceClickListener {
             dialogBinding.playSvLink.setTextColor(getColor(R.color.teal_700))
-            if (!viewModel.settings.isMuted) {
-                val mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
-                mediaPlayer?.start()
-                mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
-            }
+            viewModel.player.playButtonClickSound()
             showCustomTab(Constants.PLAY_SERVICES_APP_URL) ?: showOnMarket(Constants.PLAY_SERVICES)
         }
         dialogBinding.playGmLink.setBounceClickListener {
             dialogBinding.playGmLink.setTextColor(getColor(R.color.teal_700))
-            if (!viewModel.settings.isMuted) {
-                val mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
-                mediaPlayer?.start()
-                mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
-            }
+            viewModel.player.playButtonClickSound()
             showCustomTab(Constants.PLAY_GAMES_APP_URL) ?: showOnMarket(Constants.PLAY_GAMES)
         }
         dialogBinding.restartLink.setBounceClickListener {
             dialogBinding.restartLink.setTextColor(getColor(R.color.teal_700))
-            if (!viewModel.settings.isMuted) {
-                val mediaPlayer = MediaPlayer.create(this, R.raw.btn_click_ef)
-                mediaPlayer?.start()
-                mediaPlayer?.setOnCompletionListener(MediaPlayer::release)
-            }
+            viewModel.player.playButtonClickSound()
             showCustomTab(Constants.RESTART_YOUTUBE_URL)
         }
         alertDialog.window?.setBackgroundDrawable(0.toDrawable())

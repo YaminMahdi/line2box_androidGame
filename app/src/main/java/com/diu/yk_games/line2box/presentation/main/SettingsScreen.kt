@@ -45,12 +45,13 @@ private val ThemeRows = Settings.Theme.entries.chunked(THEMES_PER_ROW)
 fun SettingsScreen(
     settings: Settings,
     onSettingsChange: (Settings) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isShifted: Boolean = false
 ) {
-    var isShifted by remember { mutableStateOf(false) }
+    var isShifted by remember { mutableStateOf(isShifted) }
 
     LaunchedEffect(Unit) {
-        delay(250.milliseconds)
+        delay(200.milliseconds)
         isShifted = true
     }
 
@@ -111,7 +112,7 @@ fun SettingsScreen(
 fun DragHandle(
     modifier: Modifier = Modifier,
     width: Dp = 32.0.dp,
-    height: Dp =  4.0.dp,
+    height: Dp = 4.0.dp,
     shape: Shape = MaterialTheme.shapes.extraLarge,
     color: Color = MaterialTheme.colorScheme.onSurfaceVariant,
 ) {
@@ -143,7 +144,7 @@ private fun SettingsToggleGroup(
                 title = stringResource(R.string.play_sounds),
                 checked = !settings.isMuted,
                 onCheckedChange = { isMuted ->
-                    onSettingsChange(settings.copy(isMuted = isMuted))
+                    onSettingsChange(settings.copy(isMuted = !isMuted))
                 },
             )
             SettingToggleRow(
@@ -302,6 +303,7 @@ private const val THEMES_PER_ROW = 4
 private fun SettingsScreenPreview() {
     Line2BoxTheme {
         SettingsScreen(
+            isShifted = true,
             settings = Settings(
                 isMuted = true,
                 isFirstRun = false,

@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.graphics.Paint
 import android.graphics.drawable.GradientDrawable
-import android.media.MediaPlayer
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.TextView
@@ -49,7 +48,6 @@ class GameUtils(
     val whiteY = getColor(R.color.whiteY)
     val white = getColor(R.color.white)
 
-    @Suppress("UNRESOLVED_REFERENCE")
     val strokeSize = context.resources.getDimension(com.intuit.sdp.R.dimen._3sdp).toInt()
 
     var clickCount = 0
@@ -103,6 +101,7 @@ class GameUtils(
                 }
             }
             binding.settingBtn.setBounceClickListener {
+                playButtonClickSound()
                 SettingsFragment.show(context.supportFragmentManager)
             }
             binding.homeBtn.setBounceClickListener(::backBtn)
@@ -551,29 +550,10 @@ class GameUtils(
         return context.resources.getIdentifier(name, "id", BuildConfig.APPLICATION_ID)
     }
 
-    fun playSound(id: Int) {
-        if (!viewModel.settings.isMuted) {
-            val mp = MediaPlayer.create(context, id)
-            mp.start()
-            mp.setOnCompletionListener(MediaPlayer::release)
-        }
-    }
-
-    fun playBoxSound() {
-        playSound(R.raw.box_ef)
-    }
-
-    fun playLineClickSound() {
-        playSound(R.raw.line_click_ef)
-    }
-
-    fun playButtonClickSound() {
-        playSound(R.raw.btn_click_ef)
-    }
-
-    fun playWinSound() {
-        playSound(R.raw.win_ef)
-    }
+    fun playBoxSound() = viewModel.player.playBoxSound()
+    fun playLineClickSound() = viewModel.player.playLineClickSound()
+    fun playButtonClickSound() = viewModel.player.playButtonClickSound()
+    fun playWinSound() = viewModel.player.playWinSound()
 
     data class Box(
         val lineTop: String,

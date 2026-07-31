@@ -1,10 +1,8 @@
 package com.diu.yk_games.line2box.presentation.offline
 
-import android.media.MediaPlayer
 import android.os.Bundle
 import android.view.View
 import androidx.lifecycle.lifecycleScope
-import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.FragmentNminfoBinding
 import com.diu.yk_games.line2box.model.GameProfile
 import com.diu.yk_games.line2box.presentation.base.BaseFragment
@@ -37,22 +35,15 @@ class NameInfoFragment : BaseFragment<FragmentNminfoBinding>(FragmentNminfoBindi
 
     fun setupListener() {
         binding.settingBtn.setBounceClickListener {
+            viewModel.player.playButtonClickSound()
             SettingsFragment.show(childFragmentManager)
         }
         binding.backBtn.setBounceClickListener {
-            if (!viewModel.settings.isMuted) {
-                val mediaPlayer = MediaPlayer.create(parentActivity, R.raw.btn_click_ef)
-                mediaPlayer.start()
-                mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-            }
+            viewModel.player.playButtonClickSound()
             onBackPressed()
         }
         binding.playBtn.setBounceClickListener {
-            if (!pref.read("muted", false)) {
-                val mediaPlayer = MediaPlayer.create(context, R.raw.btn_click_ef)
-                mediaPlayer.start()
-                mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-            }
+            viewModel.player.playButtonClickSound()
             if (binding.palyerRed.text.toString() != "") nm1 = binding.palyerRed.text.toString()
 
             if (binding.palyerBlue.text.toString() != "") nm2 = binding.palyerBlue.text.toString()
@@ -70,11 +61,7 @@ class NameInfoFragment : BaseFragment<FragmentNminfoBinding>(FragmentNminfoBindi
             }
         }
         binding.nmSwanBtn.setBounceClickListener {
-            if (!pref.read("muted", false)) {
-                val mediaPlayer = MediaPlayer.create(context, R.raw.btn_click_ef)
-                mediaPlayer.start()
-                mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-            }
+            viewModel.player.playButtonClickSound()
             binding.palyerRed.text.toString().let {
                 binding.palyerRed.setText(binding.palyerBlue.text.toString())
                 binding.palyerBlue.setText(it)

@@ -76,12 +76,7 @@ class LeaderBoardFragment : BaseFragment<FragmentDisplayBinding>(FragmentDisplay
         rankListAdapter.onClickListener = run@{ gamerPro ->
             if (itemClicked) return@run
             itemClicked = true
-            if (!pref.read("muted", false)) {
-                val mediaPlayer =
-                    MediaPlayer.create(parentActivity, R.raw.btn_click_ef)
-                mediaPlayer.start()
-                mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-            }
+            viewModel.player.playButtonClickSound()
             viewModel.firestore.collection("gamerProfile").document(gamerPro.playerId)
                 .get().addOnSuccessListener { documentSnapshot ->
                     val server2device = documentSnapshot.toObject<GameProfile>()

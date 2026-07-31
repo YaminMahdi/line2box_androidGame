@@ -1,14 +1,16 @@
 package com.diu.yk_games.line2box.presentation
 
+import android.app.Application
 import android.util.Log
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.serialization.saved
 import androidx.lifecycle.viewModelScope
 import com.diu.yk_games.line2box.model.*
 import com.diu.yk_games.line2box.model.MsgStore.Type
 import com.diu.yk_games.line2box.presentation.navigation.Routes
 import com.diu.yk_games.line2box.util.PrefKeys
+import com.diu.yk_games.line2box.util.SoundEffectPlayer
 import com.diu.yk_games.line2box.util.log
 import com.diu.yk_games.line2box.util.pref
 import com.google.firebase.Firebase
@@ -26,9 +28,9 @@ import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 class MainViewModel(
+    context: Application,
     private val savedStateHandle: SavedStateHandle
-) : ViewModel() {
-
+) : AndroidViewModel(context) {
     var lastMotionState: Int? = null
     val firebaseAuth by lazy { Firebase.auth }
     val database by lazy { Firebase.database }
@@ -101,8 +103,17 @@ class MainViewModel(
     val settings
         get() = settingsState.value
 
-    fun updateSettings(settings: Settings) =
+    val player = SoundEffectPlayer(context, { settings.isMuted })
+
+    override fun onCleared() {
+        clearTempMatches()
+        player.release()
+    }
+
+    fun updateSettings(settings: Settings) {
         updateSettings { settings }
+        player.playButtonClickSound()
+    }
 
     fun updateSettings(transform: Settings.() -> Settings) {
         val updated = settings.transform()

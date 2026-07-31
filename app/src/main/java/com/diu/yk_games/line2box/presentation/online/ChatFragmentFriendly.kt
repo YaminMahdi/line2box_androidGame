@@ -3,7 +3,6 @@ package com.diu.yk_games.line2box.presentation.online
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
-import android.media.MediaPlayer
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -11,6 +10,7 @@ import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.widget.ImageView
 import android.widget.LinearLayout
+import androidx.annotation.RawRes
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
@@ -54,7 +54,6 @@ class ChatFragmentFriendly : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.chatBoxFriendly.requestFocus()
-        val mp = MediaPlayer.create(parentActivity, R.raw.pop)
 
         viewModel.friendsChatList.collectWithLifecycle {
             it.size.log("friendsChatList")
@@ -70,7 +69,7 @@ class ChatFragmentFriendly : Fragment() {
                 "😘" -> emojiRunner(R.drawable.emoji_kiss, R.raw.kiss)
                 "🥱" -> emojiRunner(R.drawable.emoji_yawn, R.raw.yawn)
                 else -> {
-                    mp.start()
+                    viewModel.player.playPopSound()
                     viewModel.setNewMsgBoltVisible(true)
                 }
             }
@@ -80,13 +79,7 @@ class ChatFragmentFriendly : Fragment() {
         }
 
         msgListAdapter.onClickListener = { msg ->
-            //presentationEco str = (presentationEco)o; //As you are using Default String Adapter
-            if (!pref.read("muted", false)) {
-                val mediaPlayer =
-                    MediaPlayer.create(parentActivity, R.raw.btn_click_ef)
-                mediaPlayer.start()
-                mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-            }
+            viewModel.player.playButtonClickSound()
             if (msg.playerId.isNotEmpty()) {
                 val db = Firebase.firestore
                 db.collection("gamerProfile").document(msg.playerId)
@@ -164,17 +157,13 @@ class ChatFragmentFriendly : Fragment() {
         drawerLayout.closeDrawer(GravityCompat.START)
     }
 
-    fun emojiRunner(gif: Int, sound: Int) {
+    fun emojiRunner(gif: Int,@RawRes rawRes: Int) {
         binding.sendHaha.isEnabled = false
         binding.sendCry.isEnabled = false
         binding.sendKiss.isEnabled = false
         binding.sendScream.isEnabled = false
         binding.sendYawn.isEnabled = false
-        if (!pref.read("muted", false)) {
-            val mediaPlayer = MediaPlayer.create(parentActivity, sound)
-            mediaPlayer.start()
-            mediaPlayer.setOnCompletionListener(MediaPlayer::release)
-        }
+        viewModel.player.playSound(rawRes)
         parentActivity.findViewById<ImageView>(R.id.emojiPlay).apply {
             loadDrawable(gif)
             show()

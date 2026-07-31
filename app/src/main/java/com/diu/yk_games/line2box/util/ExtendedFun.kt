@@ -498,8 +498,9 @@ fun Fragment.closeKeyboard() {
     targetView.closeKeyboard(currentWindow)
 }
 
-fun Fragment.showKeyboard(targetView: View) {
-    activity?.showKeyboard(targetView)
+context(f: Fragment)
+fun View.showKeyboard() {
+    f.activity?.showKeyboard(this)
 }
 
 var systemBarInsets: SystemBarInsets? = null
