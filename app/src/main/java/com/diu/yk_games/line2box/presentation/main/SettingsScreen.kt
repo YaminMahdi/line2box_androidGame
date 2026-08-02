@@ -8,18 +8,19 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.FrameRateCategory
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.preferredFrameRate
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -34,11 +35,7 @@ import com.diu.yk_games.line2box.ui.theme.Line2BoxTheme
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
 
-private val SheetShape = RoundedCornerShape(15.dp)
-private val ThemeShape = RoundedCornerShape(12.dp)
-val SheetColor = Color(0xE62A053E)
-val SheetBorderColor = Color(0xFFC55FD6)
-private val UnselectedBorderColor = Color.White.copy(alpha = 0.24f)
+private const val THEMES_PER_ROW = 4
 private val ThemeRows = Settings.Theme.entries.chunked(THEMES_PER_ROW)
 
 @Composable
@@ -61,10 +58,11 @@ fun SettingsScreen(
         label = "translationYAnimation"
     )
     Surface(
-        shape = SheetShape,
-        color = SheetColor,
-        border = BorderStroke(3.dp, SheetBorderColor),
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.primaryContainer.copy(.7f),
+        border = BorderStroke(3.dp, MaterialTheme.colorScheme.primary),
         modifier = modifier
+            .preferredFrameRate(FrameRateCategory.High)
             .padding(10.dp)
             .fillMaxWidth()
             .graphicsLayer {
@@ -86,7 +84,7 @@ fun SettingsScreen(
             Text(
                 text = stringResource(R.string.action_settings),
                 style = MaterialTheme.typography.titleMedium,
-                color = Color.White
+                color = MaterialTheme.colorScheme.onSurface,
             )
 
             SectionTitle(text = stringResource(R.string.general))
@@ -129,15 +127,13 @@ fun DragHandle(
 private fun SettingsToggleGroup(
     settings: Settings,
     onSettingsChange: (Settings) -> Unit,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     Surface(
-        shape = ThemeShape,
-        color = Color.White.copy(alpha = 0.08f),
-        border = BorderStroke(1.dp, UnselectedBorderColor),
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(ThemeShape)
+        shape = MaterialTheme.shapes.medium,
+        color = MaterialTheme.colorScheme.primaryContainer.copy(.6f),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(.4f)),
+        modifier = modifier.fillMaxWidth()
     ) {
         Column {
             SettingToggleRow(
@@ -182,17 +178,17 @@ private fun SettingToggleRow(
             text = title,
             modifier = Modifier.weight(1f),
             style = MaterialTheme.typography.bodyLarge,
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onSurface,
         )
         Switch(
             checked = checked,
             onCheckedChange = null,
             colors = SwitchDefaults.colors(
-                checkedThumbColor = Color.White,
-                checkedTrackColor = SheetBorderColor,
-                uncheckedThumbColor = Color.White.copy(alpha = 0.85f),
-                uncheckedTrackColor = Color.White.copy(alpha = 0.18f),
-                uncheckedBorderColor = UnselectedBorderColor,
+                checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
+                checkedTrackColor = MaterialTheme.colorScheme.primary,
+                uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant,
+                uncheckedBorderColor = MaterialTheme.colorScheme.outline,
             ),
         )
     }
@@ -207,7 +203,7 @@ private fun SectionTitle(
         text = text,
         modifier = modifier.fillMaxWidth(),
         style = MaterialTheme.typography.titleSmall,
-        color = Color.White.copy(alpha = 0.9f),
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
 }
 
@@ -254,7 +250,7 @@ private fun ThemeThumbnail(
     Box(
         modifier = modifier
             .aspectRatio(0.75f)
-            .clip(ThemeShape)
+            .clip(MaterialTheme.shapes.medium)
             .selectable(
                 selected = selected,
                 onClick = onClick,
@@ -262,8 +258,8 @@ private fun ThemeThumbnail(
             )
             .border(
                 width = if (selected) 3.dp else 1.dp,
-                color = if (selected) SheetBorderColor else UnselectedBorderColor,
-                shape = ThemeShape,
+                color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+                shape = MaterialTheme.shapes.medium,
             )
             .semantics {
                 contentDescription = backgroundDescription
@@ -277,26 +273,23 @@ private fun ThemeThumbnail(
         )
 
         if (selected) {
-            Surface(
+            Icon(
+                imageVector = Icons.Rounded.Check,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(6.dp)
-                    .size(24.dp),
-                shape = CircleShape,
-                color = SheetBorderColor,
-            ) {
-                Icon(
-                    imageVector = Icons.Rounded.Check,
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.padding(4.dp),
-                )
-            }
+                    .size(16.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.primary,
+                        shape = CircleShape
+                    )
+                    .padding(2.dp)
+            )
         }
     }
 }
-
-private const val THEMES_PER_ROW = 4
 
 @Preview(showBackground = true, backgroundColor = 0xFF101010)
 @Composable

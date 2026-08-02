@@ -105,7 +105,6 @@ class ChatFragmentGlobal : Fragment() {
         msgListAdapter.onJoinClickListener = { msg ->
             viewModel.getJoinRoute(msg).onSuccess {
                 parentActivity.findViewById<DrawerLayout>(R.id.drawer_layout)?.closeDrawer(GravityCompat.START)
-//                parentActivity.startActivity(Intent(parentActivity, GameActivity2::class.java).putExtras(it))
                 navigateSafe(it)
             }.onFailure {
                 toast(it.message.toString())

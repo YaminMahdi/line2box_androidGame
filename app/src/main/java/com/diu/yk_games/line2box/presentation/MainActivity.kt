@@ -333,7 +333,6 @@ class MainActivity : AppCompatActivity() {
                                     updateUI(ErrorType.NoError)
                                     // Continue with Play Games Services
                                 } else {
-                                    //Toast.makeText(StartActivity.this, "Failed", Toast.LENGTH_SHORT).show()
                                     Log.d(TAG, "gamesSignInClient. isAuthenticated false")
                                     // Disable your integration with Play Games Services or show a
                                     // login button to ask  players to sign-in. Clicking it should
@@ -346,7 +345,6 @@ class MainActivity : AppCompatActivity() {
                             .addOnFailureListener {
                                 // If sign in fails, display a message to the user.
                                 Log.d(TAG, "firebaseAuth signInWithCredential: failure: $it")
-                                //Toast.makeText(StartActivity.this, "Authentication failed.",Toast.LENGTH_SHORT).show()
                                 updateUI(ErrorType.AuthenticationFailure)
                                 viewModel.onlineStatus = "needReload"
                                 viewModel.setLoading(false)
@@ -354,7 +352,6 @@ class MainActivity : AppCompatActivity() {
                     }.addOnFailureListener {
                         // Failed to retrieve authentication code.
                         Log.d(TAG, "requestServerSideAccess:failure authentication code $it")
-                        //Toast.makeText(StartActivity.this, "No Internet.",Toast.LENGTH_SHORT).show()
                         updateUI(ErrorType.PlayServiceNeeded)
                         viewModel.onlineStatus = "needReload"
                         viewModel.setLoading(false)
@@ -367,7 +364,6 @@ class MainActivity : AppCompatActivity() {
                 }
 
             }.addOnFailureListener {
-                //Toast.makeText(StartActivity.this, "Failed", Toast.LENGTH_SHORT).show()
                 // Disable your integration with Play Games Services or show a
                 // login button to ask  players to sign-in. Clicking it should
                 // call GamesSignInClient.signIn()
@@ -425,11 +421,9 @@ class MainActivity : AppCompatActivity() {
                     viewModel.onlineStatus = "pass"
                     viewModel.setLoading(false)
                     Log.d(TAG, "onSuccess: Profile Created")
-                    //Toast.makeText(StartActivity.this, "onSuccess: Profile Created", Toast.LENGTH_SHORT).show()
                 }
                 .addOnFailureListener {
                     Log.d("TAG", "onSuccess: Profile Creation Failed")
-                    //Toast.makeText(StartActivity.this, "onSuccess: Profile Creation Failed", Toast.LENGTH_SHORT).show()
                     viewModel.onlineStatus = "needReload"
                     viewModel.setLoading(false)
                 }
@@ -438,7 +432,6 @@ class MainActivity : AppCompatActivity() {
 
     @SuppressLint("SetTextI18n")
     private fun showAHadith() {
-//        val hadithList = ArrayList<HadithStore>()
         viewModel.firestore.collection("dailyHadith")
             .count().get(AggregateSource.SERVER)
             .addOnCompleteListener {

@@ -2,9 +2,9 @@ package com.diu.yk_games.line2box.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val primary = Color(0xFFEAB5ED)
-val onPrimary = Color(0xFF48204E)
-val primaryContainer = Color(0xFF613767)
+val primary = Color(0xFFC55FD6)
+val onPrimary = Color(0xFFD0C3CC)
+val primaryContainer = Color(0xFF2A053E)
 val onPrimaryContainer = Color(0xFFFFD5FF)
 val secondary = Color(0xFFD7BFD5)
 val onSecondary = Color(0xFF3B2B3C)

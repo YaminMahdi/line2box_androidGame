@@ -55,7 +55,7 @@
                     android:background="@drawable/btn_ylw_bg"
                     android:fontFamily="@font/sortie"
                     android:paddingVertical="@dimen/_8sdp"
-                    android:src="@drawable/icon_i"
+                    android:src="@drawable/icon_idea"
                     tools:ignore="SmallSp" />
 
                 <androidx.appcompat.widget.AppCompatImageButton
