@@ -3,7 +3,6 @@ package com.diu.yk_games.line2box.presentation
 import android.animation.LayoutTransition
 import android.annotation.SuppressLint
 import android.app.AlertDialog
-import android.graphics.Rect
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -14,7 +13,6 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.isVisible
-import androidx.core.view.updatePadding
 import androidx.customview.widget.ViewDragHelper
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.drawerlayout.widget.DrawerLayout.DrawerListener
@@ -32,8 +30,7 @@ import com.diu.yk_games.line2box.presentation.navigation.Routes
 import com.diu.yk_games.line2box.presentation.navigation.asRoute
 import com.diu.yk_games.line2box.presentation.navigation.setupNavGraph
 import com.diu.yk_games.line2box.presentation.online.BlankChatFragment
-import com.diu.yk_games.line2box.presentation.online.ChatFragmentFriendly
-import com.diu.yk_games.line2box.presentation.online.ChatFragmentGlobal
+import com.diu.yk_games.line2box.presentation.online.ChatFragment
 import com.diu.yk_games.line2box.util.*
 import com.google.android.gms.games.PlayGames
 import com.google.firebase.auth.PlayGamesAuthProvider
@@ -83,7 +80,7 @@ class MainActivity : AppCompatActivity() {
     private fun setupUI() {
         initializePlayGameUser()
         binding.loader.loadDrawable(R.drawable.g_loading)
-
+        /*
         val activityRootView = window.decorView
         activityRootView.viewTreeObserver.addOnGlobalLayoutListener {
             val r = Rect()
@@ -105,6 +102,7 @@ class MainActivity : AppCompatActivity() {
                 bindingDrawer.navCloseButtonLayout.updatePadding(bottom = targetPadding)
             }
         }
+        */
         bindingDrawer.root.addDrawerListener(object : DrawerListener {
             override fun onDrawerSlide(drawerView: View, slideOffset: Float) {}
             override fun onDrawerOpened(drawerView: View) {}
@@ -123,30 +121,29 @@ class MainActivity : AppCompatActivity() {
             }
         })
         //chat bug fix
+        val chatPager = bindingDrawer.chatPager
         bindingDrawer.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
-        bindingDrawer.chatPager.isUserInputEnabled = false
-        bindingDrawer.chatPager.adapter = ViewPagerAdapter(
+        chatPager.isUserInputEnabled = false
+        chatPager.adapter = ViewPagerAdapter(
             listOf(
-                ChatFragmentGlobal(),
-                ChatFragmentFriendly(),
+                ChatFragment.newInstance(ChatMode.GLOBAL),
+                ChatFragment.newInstance(ChatMode.FRIENDLY),
+//                ChatFragmentGlobal(),
+//                ChatFragmentFriendly(),
                 BlankChatFragment()
             ), this
         )
         bindingDrawer.bubbleTabBar.addBubbleListener { id ->
             if (id == R.id.globalChat)
-                bindingDrawer.chatPager.currentItem = 0
+                chatPager.currentItem = 0
             else
-                bindingDrawer.chatPager.currentItem =
-                    if (viewModel.friendsChatList.value.isNotEmpty()) 1 else 2
+                chatPager.currentItem = if (viewModel.friendsChatList.value.isNotEmpty()) 1 else 2
         }
-        bindingDrawer.chatPager.registerOnPageChangeCallback(object :
-            ViewPager2.OnPageChangeCallback() {
-            override fun onPageSelected(position: Int) {
-                super.onPageSelected(position)
-                when (position) {
-                    0 -> bindingDrawer.bubbleTabBar.setSelected(0, true)
-                    1 -> bindingDrawer.bubbleTabBar.setSelected(1, true)
-                }
+        chatPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) = when (position) {
+                0 -> bindingDrawer.bubbleTabBar.setSelected(0, true)
+                1 -> bindingDrawer.bubbleTabBar.setSelected(1, true)
+                else -> Unit
             }
         })
         binding.openNavBtn.setBounceClickListener {
@@ -176,7 +173,6 @@ class MainActivity : AppCompatActivity() {
 
                 else -> binding.sideNavGroup.apply {
                     if (isVisible) return@apply
-                    alpha = 0f
                     show()
                     animate()
                         .alpha(1f)

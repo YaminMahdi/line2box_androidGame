@@ -218,7 +218,7 @@ class MainViewModel(
 
     fun fetchGlobalChat() {
         viewModelScope.launch {
-            globalChatRef.limitToLast(100).addValueEventListener(object : ValueEventListener {
+            globalChatRef.limitToLast(200).addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     val chatList = snapshot.children.mapNotNull {
                         val key = it.key
@@ -253,7 +253,7 @@ class MainViewModel(
                             if (ms.type.typeEnum == Type.ExitText)
                                 localPlayerCount--
                             ms.copy(key = key)
-                        }.sortedByDescending { it.time }
+                        }.reversed()
                         savedStateHandle["friendsChatList"] = chatList
                     }
 
