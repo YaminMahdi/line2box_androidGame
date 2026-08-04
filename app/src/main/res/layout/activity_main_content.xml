@@ -28,7 +28,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/_200sdp"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:visibility="gone"
+        tools:visibility="visible">
 
         <androidx.appcompat.widget.AppCompatImageButton
             android:id="@+id/openNavBtn"

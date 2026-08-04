@@ -75,7 +75,9 @@ fun ChatScreen(
 ) {
     val state = rememberLazyListState()
     val focus = remember { FocusRequester() }
-    LaunchedEffect(messages.firstOrNull()?.key) { if (messages.isNotEmpty()) state.scrollToItem(0) }
+    LaunchedEffect(messages.firstOrNull()?.key) {
+        if (messages.isNotEmpty()) state.scrollToItem(0)
+    }
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -85,7 +87,7 @@ fun ChatScreen(
         LazyColumn(
             state = state,
             reverseLayout = true,
-            verticalArrangement = Arrangement.spacedBy(3.dp),
+            verticalArrangement = Arrangement.spacedBy(3.dp, Alignment.Bottom),
             modifier = Modifier.weight(1f)
         ) {
             items(messages) { msg ->
@@ -100,7 +102,7 @@ fun ChatScreen(
             }
         }
         if (showEmoji)
-            EmojiBar(emojiEnabled, onEmoji)
+            EmojiBar(enabled = emojiEnabled, onEmoji = onEmoji)
         InputBar(
             value = text,
             changed = onTextChange,
@@ -120,9 +122,9 @@ private fun MessageRow(
     join: () -> Unit
 ) {
     Column(
-        Modifier
+        verticalArrangement = Arrangement.spacedBy(3.dp),
+        modifier = Modifier
             .fillMaxWidth()
-//            .padding(1.dp)
             .combinedClickable(onClick = click, onLongClick = longClick)
             .background(cocXx)
             .padding(horizontal = 11.dp, vertical = 5.dp)
@@ -307,7 +309,7 @@ private fun InputBar(
 fun ProfileDialog(profile: GameProfile, onDismiss: () -> Unit) {
     Dialog(onDismissRequest = onDismiss) {
         Surface(
-            color = fieldBg,
+            color = cocXx.copy(.9f),
             shape = RoundedCornerShape(25.dp),
             border = BorderStroke(2.dp, outline),
             modifier = Modifier

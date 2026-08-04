@@ -11,6 +11,7 @@ import android.os.PersistableBundle
 import android.util.Log
 import android.view.View
 import android.view.animation.AnticipateInterpolator
+import android.view.inputmethod.EditorInfo
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.content.ContextCompat
@@ -447,12 +448,12 @@ class MultiplayerFragment : BaseFragment<FragmentMultiplayerBinding>(FragmentMul
             .setView(bindingProfileDialog.root)
             .create()
         onCreated.invoke(bindingProfileDialog)
-        val x = viewModel.gameProfile
+        val profile = viewModel.gameProfile
         bindingProfileDialog.apply {
-            countryTxt.text = x.countryNm + " " + x.countryEmoji
-            lvlTxt.text = "" + x.lvlByCal()
-            matchPlayedTxt.text = "" + x.matchPlayed
-            matchWonTxt.text = "" + x.matchWinMulti
+            countryTxt.text = profile.countryNm + " " + profile.countryEmoji
+            lvlTxt.text = "" + profile.lvlByCal()
+            matchPlayedTxt.text = "" + profile.matchPlayed
+            matchWonTxt.text = "" + profile.matchWinMulti
             coinShow.gone()
             buttonChangeAccount.show()
             val mgr = ImageManager.create(parentActivity)
@@ -463,10 +464,9 @@ class MultiplayerFragment : BaseFragment<FragmentMultiplayerBinding>(FragmentMul
                     mgr.loadImage(profileImage, it)
                 }
             }
-            val oldName = x.nm
+            val oldName = profile.nm
             Log.d("TAG", "profileBtn nm: " + pref.read("nm", "x"))
             nmTxt.setText(oldName)
-            val db = Firebase.firestore
             //"com.google.android.play.games", "com.google.android.gms.games.ui.destination.main.MainActivity"
             profileShapeLayout.setBounceClickListener {
                 val intent: Intent = Intent(Intent.ACTION_VIEW).apply {
@@ -496,15 +496,16 @@ class MultiplayerFragment : BaseFragment<FragmentMultiplayerBinding>(FragmentMul
                     editing = true
                 } else {
                     closeKeyboard()
-                    val newNm: String = nmTxt.text.toString()
+                    val newNm = nmTxt.text.toString().trim()
                     if (newNm.length < 2) {
                         toast("Can't be single character.")
                         nmTxt.setText(oldName)
                     } else {
-                        x.nm = newNm
-                        x.apply()
+                        viewModel.updateProfile {
+                            copy(nm = newNm)
+                        }
                         Log.d("TAG", "profileBtn: ${viewModel.playerId}")
-                        db.collection("gamerProfile")
+                        viewModel.gamerProfileRef
                             .document(viewModel.playerId)
                             .update("nm", newNm)
                         nmTxt.isEnabled = false
@@ -514,34 +515,65 @@ class MultiplayerFragment : BaseFragment<FragmentMultiplayerBinding>(FragmentMul
                     }
                 }
             }
+
+            // Button Click
             buttonSaveInfo.setBounceClickListener {
-                viewModel.player.playButtonClickSound()
-                closeKeyboard()
-                val newNm: String = nmTxt.text.toString()
-                if ((newNm == "")) {
-                    toast("Can't be empty.")
-                    nmTxt.setText(oldName)
-                } else if (newNm.length == 1) {
-                    toast("Can't be single character.")
-                    nmTxt.setText(oldName)
+                saveProfileName(
+                    oldName = oldName,
+                    alertDialog = alertDialog
+                )
+            }
+
+            // IME Done Keyboard Listener
+            nmTxt.setOnEditorActionListener { _, actionId, _ ->
+                if (actionId == EditorInfo.IME_ACTION_DONE) {
+                    saveProfileName(
+                        oldName = oldName,
+                        alertDialog = alertDialog
+                    )
+                    true // Consumes the action
                 } else {
-                    x.nm = newNm
-                    x.apply()
-                    Log.d("TAG", "profileBtn: ${viewModel.playerId}")
-                    db.collection("gamerProfile")
-                        .document(viewModel.playerId)
-                        .update("nm", newNm)
-                    nmTxt.isEnabled = false
-                    nmEditBtn.setImageResource(R.drawable.icon_edit)
-                    editing = false
-                    pref.save("needName", false)
-                    runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
+                    false
                 }
             }
             alertDialog.window?.setBackgroundDrawable(0.toDrawable())
         }
 
         runCatching { alertDialog.show() }
+    }
+
+    private fun DialogLayoutProfileBinding.saveProfileName(
+        oldName: String,
+        alertDialog: AlertDialog
+    ) {
+        viewModel.player.playButtonClickSound()
+        closeKeyboard()
+
+        val newNm = nmTxt.text.toString().trim()
+
+        if (newNm.isEmpty()) {
+            toast("Can't be empty.")
+            nmTxt.setText(oldName)
+        } else if (newNm.length == 1) {
+            toast("Can't be single character.")
+            nmTxt.setText(oldName)
+        } else {
+            viewModel.updateProfile {
+                copy(nm = newNm)
+            }
+            Log.d("TAG", "profileBtn: ${viewModel.playerId}")
+
+            viewModel.gamerProfileRef
+                .document(viewModel.playerId)
+                .update("nm", newNm)
+
+            nmTxt.isEnabled = false
+            nmEditBtn.setImageResource(R.drawable.icon_edit)
+            editing = false
+            pref.save("needName", false)
+
+            runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
+        }
     }
 
     private fun backBtn() {

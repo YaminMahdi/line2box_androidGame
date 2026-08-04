@@ -1,5 +1,6 @@
 package com.diu.yk_games.line2box.presentation.online
 
+import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Context
@@ -7,6 +8,7 @@ import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.view.animation.DecelerateInterpolator
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.GravityCompat
@@ -19,17 +21,13 @@ import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.DialogLayoutGameOverBinding
 import com.diu.yk_games.line2box.databinding.FragmentGameDualBinding
 import com.diu.yk_games.line2box.model.DataStore
-import com.diu.yk_games.line2box.model.GameProfile
 import com.diu.yk_games.line2box.model.MsgStore
 import com.diu.yk_games.line2box.presentation.base.BaseFragment
 import com.diu.yk_games.line2box.presentation.navigation.Routes
 import com.diu.yk_games.line2box.util.*
-import com.google.android.gms.tasks.Task
-import com.google.android.play.core.review.ReviewInfo
 import com.google.android.play.core.review.ReviewManagerFactory
 import com.google.firebase.Firebase
 import com.google.firebase.database.*
-import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -153,13 +151,8 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
     }
 
     private fun finishGame() {
-        val db = Firebase.firestore
-        val doc = db.collection("gamerProfile").document(viewModel.matchInfo.currentPlayerId)
-        doc.update("matchPlayed", FieldValue.increment(1))
-        val updatePro = GameProfile()
         val winCoin = Random.nextInt(80) + 45
         val lostCoin = Random.nextInt(35) + 15
-        updatePro.setMatchPlayed()
         gameUtils.playWinSound()
         binding.red.textSize = 30f
         binding.red.setTextColor(resources.getColor(R.color.white, parentActivity.theme))
@@ -171,11 +164,7 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
         var plr2Cup = ""
 
         fun handleWin() {
-            doc.update("matchWinMulti", FieldValue.increment(1))
-            updatePro.setMatchWinMulti()
-            updatePro.coin += winCoin
-            updatePro.apply()
-            doc.update("coin", updatePro.coin)
+            viewModel.doOnMatchEnd(winCoin)
 
             winTxt = "You won the match."
             wCoin = "+$winCoin"
@@ -193,19 +182,13 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
         }
 
         fun handleLoss() {
-            updatePro.coin -= lostCoin
-            updatePro.apply()
-            doc.update("coin", updatePro.coin)
-
+            viewModel.doOnMatchEnd(lostCoin, false)
             winTxt = "You lost the match."
             wCoin = "-$lostCoin"
         }
 
         fun handleDraw() {
-            updatePro.coin = 50
-            updatePro.apply()
-            doc.update("coin", updatePro.coin)
-
+            viewModel.doOnMatchEnd(50)
             winTxt = "Match Draw."
             wCoin = "+$winCoin"
         }
@@ -233,102 +216,108 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
 
             else -> handleDraw()
         }
-        // Update level after match
-        doc.update("lvl", updatePro.lvlByCal())
         saveToFirebase(plr1Cup, plr2Cup)
         lifecycleScope.launch {
             delay(1200.milliseconds)
-            onGameOver(winTxt, wCoin, updatePro)
+            onGameOver(
+                winMsg = winTxt,
+                winCoin = wCoin,
+                matchWinMulti = viewModel.gameProfile.matchWinMulti
+            )
         }
     }
 
     @SuppressLint("SetTextI18n")
-    fun onGameOver(winMsg: String, winCoin: String, updatePro: GameProfile) {
+    fun onGameOver(winMsg: String, winCoin: String, matchWinMulti: Int) {
         val coin = winCoin.toInt()
-        val win = coin > -1
+        val isWin = coin > -1
 
         val dialogBinding = DialogLayoutGameOverBinding.inflate(layoutInflater)
         val alertDialog = AlertDialog.Builder(parentActivity)
             .setView(dialogBinding.root)
             .setCancelable(false)
             .create()
-        dialogBinding.textMessage.text = winMsg
-        dialogBinding.buttonNo.text = "Exit"
-        dialogBinding.buttonYes.text = "Chat"
+
+        dialogBinding.apply {
+            textMessage.text = winMsg
+            buttonNo.text = "Exit"
+            buttonYes.text = "Chat"
+        }
+
         dialogBinding.buttonYes.setBounceClickListener {
             gameUtils.playButtonClickSound()
-            if (updatePro.matchWinMulti > 2) {
-                val manager = ReviewManagerFactory.create(parentActivity)
-                val request = manager.requestReviewFlow()
-                request.addOnCompleteListener { task: Task<ReviewInfo?> ->
-                    if (task.isSuccessful) {
-                        // We can get the ReviewInfo object
-                        val reviewInfo = task.result ?: return@addOnCompleteListener
-                        val flow = manager.launchReviewFlow(parentActivity, reviewInfo)
-                        flow.addOnCompleteListener {
-                            drawerLayout.openDrawer(GravityCompat.START)
-                        }
-                    } else {
-                        drawerLayout.openDrawer(GravityCompat.START)
-                    }
-                }
-            } else {
-                drawerLayout.openDrawer(GravityCompat.START)
-            }
-            //recreate()
-            runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
+            dismissDialog(alertDialog)
+            openDrawerOrReview(matchWinMulti, openDrawer = true)
         }
+
         dialogBinding.buttonNo.setBounceClickListener {
             gameUtils.playButtonClickSound()
-            runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
-            if (viewModel.matchInfo.isPlyr1 && viewModel.matchKey.isNotEmpty())
+            dismissDialog(alertDialog)
+            if (viewModel.matchInfo.isPlyr1 && viewModel.matchKey.isNotEmpty()) {
                 viewModel.multiPlayerRef.child(viewModel.matchKey).removeValue()
-            if (updatePro.matchWinMulti > 2) {
-                val manager = ReviewManagerFactory.create(parentActivity)
-                val request = manager.requestReviewFlow()
-                request.addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        // We can get the ReviewInfo object
-                        val reviewInfo = task.result
-                        val flow = manager.launchReviewFlow(parentActivity, reviewInfo!!)
-                        flow.addOnCompleteListener {
-                            popBackSafe()
-                        }
-                    } else {
-                        popBackSafe()
-                    }
+            }
+            openDrawerOrReview(matchWinMulti, openDrawer = false)
+        }
+
+        alertDialog.window?.setBackgroundDrawable(0.toDrawable())
+        showDialogWithCoinAnimation(alertDialog, dialogBinding, coin, isWin)
+    }
+
+    private fun dismissDialog(dialog: AlertDialog) {
+        runCatching { if (dialog.isShowing) dialog.dismiss() }
+    }
+
+    private fun openDrawerOrReview(matchWinMulti: Int, openDrawer: Boolean) {
+        if (matchWinMulti > 2) {
+            showReviewFlow(openDrawer)
+        } else {
+            if (openDrawer) drawerLayout.openDrawer(GravityCompat.START)
+            else onBackPressed()
+        }
+    }
+
+    private fun showReviewFlow(openDrawer: Boolean) {
+        val manager = ReviewManagerFactory.create(parentActivity)
+        manager.requestReviewFlow().addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val reviewInfo = task.result ?: return@addOnCompleteListener
+                manager.launchReviewFlow(parentActivity, reviewInfo).addOnCompleteListener {
+                    if (openDrawer) drawerLayout.openDrawer(GravityCompat.START)
+                    else popBackSafe()
                 }
             } else {
-                onBackPressed()
+                if (openDrawer) drawerLayout.openDrawer(GravityCompat.START)
+                else popBackSafe()
             }
         }
-        alertDialog.window?.setBackgroundDrawable(0.toDrawable())
-        try {
-            alertDialog.show()
-            lifecycleScope.launch {
-                if (win) {
-                    for (i in 0..coin step 4) {
-                        delay(100.milliseconds)
-                        dialogBinding.coinWin.text = "+$i"
-                    }
-                    dialogBinding.coinWin.text = "+$coin"
-                } else {
-                    for (i in 0 downTo coin step 4) {
-                        delay(100.milliseconds)
-                        dialogBinding.coinWin.text = "$i"
-                    }
-                    dialogBinding.coinWin.text = "$coin"
-                }
+    }
+
+    private fun showDialogWithCoinAnimation(
+        alertDialog: AlertDialog,
+        dialogBinding: DialogLayoutGameOverBinding,
+        coin: Int,
+        isWin: Boolean
+    ) {
+        alertDialog.show()
+        val targetCoin = if (isWin) kotlin.math.abs(coin) else -kotlin.math.abs(coin)
+        val prefix = if (isWin) "+" else ""
+        ValueAnimator.ofInt(0, targetCoin).apply {
+            duration = 1000L
+            interpolator = DecelerateInterpolator()
+            addUpdateListener { animator ->
+                val currentValue = animator.animatedValue as Int
+                dialogBinding.coinWin.text = "$prefix$currentValue"
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
+            start()
         }
     }
 
     private fun saveToFirebase(plr1Cup: String, plr2Cup: String) {
         val firestore = Firebase.firestore
         if (viewModel.matchKey.isEmpty()) return
-        val plr2CupRef = viewModel.multiPlayerRef.child(viewModel.matchKey).child("plr2Cup") //hehe
+        val plr2CupRef = viewModel.multiPlayerRef
+            .child(viewModel.matchKey)
+            .child("plr2Cup") //hehe
         if (!viewModel.matchInfo.isPlyr1) {
             plr2CupRef.setValue(plr2Cup)
             return
@@ -336,10 +325,10 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
         val ds = DataStore(
             time = System.currentTimeMillis(),
             redData = "${
-                viewModel.matchInfo.nm1.split("\n", " ").firstOrNull()
+                viewModel.matchInfo.nm1.trim().split("\n", " ").firstOrNull()
             }: ${gameUtils.scoreRed}",
             blueData = "${
-                viewModel.matchInfo.nm2.split("\n", " ").firstOrNull()
+                viewModel.matchInfo.nm2.trim().split("\n", " ").firstOrNull()
             }: ${gameUtils.scoreBlue}",
             starData = "globe",
             plr1Id = viewModel.matchInfo.plr1Id,
@@ -361,12 +350,13 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
                     else -> null
                 }
                 data?.let {
-                    firestore.collection("LastBestPlayer").document("LastBestPlayer")
+                    firestore.collection("LastBestPlayer")
+                        .document("LastBestPlayer")
                         .update("info", it)
                 }
             }
         val key = viewModel.scoreBoardKey
-        plr2CupRef.addValueEventListener(object : ValueEventListener {
+        plr2CupRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 ds.plr2Cup = snapshot.getValue<String>() ?: return
                 firestore.collection("ScoreBoard").document(key).set(ds)

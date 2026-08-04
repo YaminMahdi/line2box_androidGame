@@ -136,6 +136,8 @@
                 android:importantForAutofill="no"
                 android:inputType="text"
                 android:maxLength="8"
+                android:maxLines="1"
+                android:imeOptions="actionDone"
                 android:textColor="@color/white"
                 android:textColorHint="@color/whiteY"
                 android:textSize="24sp"

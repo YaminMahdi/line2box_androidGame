@@ -22,6 +22,11 @@ class Line2BoxApplication : Application() {
         }
     }
 
+    override fun onTerminate() {
+        super.onTerminate()
+        ConnectivityObserver.teardown()
+    }
+
     companion object {
         lateinit var instance: Line2BoxApplication
             private set

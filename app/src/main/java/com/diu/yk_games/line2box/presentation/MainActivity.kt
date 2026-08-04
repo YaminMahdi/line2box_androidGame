@@ -32,15 +32,9 @@ import com.diu.yk_games.line2box.presentation.navigation.setupNavGraph
 import com.diu.yk_games.line2box.presentation.online.BlankChatFragment
 import com.diu.yk_games.line2box.presentation.online.ChatFragment
 import com.diu.yk_games.line2box.util.*
-import com.google.android.gms.games.PlayGames
-import com.google.firebase.auth.PlayGamesAuthProvider
 import com.google.firebase.firestore.AggregateSource
 import com.google.firebase.firestore.toObject
-import com.google.gson.Gson
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import org.jsoup.Jsoup
 import java.util.Random
 
 @Suppress("DEPRECATION")
@@ -61,7 +55,6 @@ class MainActivity : AppCompatActivity() {
         setContentView(bindingDrawer.root)
         setNavStatusPadding(binding.mainNavHost)
         inAppUpdate.checkForUpdate()
-        viewModel.initGameProfile()
         window.hideSystemBars()
 
         navController.setupNavGraph()
@@ -69,6 +62,7 @@ class MainActivity : AppCompatActivity() {
         setupUI()
         setupListener()
         setupObserver()
+        viewModel.initializePlayGameUser(this)
     }
 
     override fun onResume() {
@@ -78,7 +72,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupUI() {
-        initializePlayGameUser()
         binding.loader.loadDrawable(R.drawable.g_loading)
         /*
         val activityRootView = window.decorView
@@ -163,6 +156,7 @@ class MainActivity : AppCompatActivity() {
                 Routes.Home, Routes.ScoreBoard, Routes.LeaderBoard, Routes.ChangeName,
                 Routes.GameBot, is Routes.GameDual -> binding.sideNavGroup.apply {
                     if (!isVisible) return@apply
+                    translationX = 0f
                     animate()
                         .alpha(0f)
                         .translationX(-100f)
@@ -173,6 +167,7 @@ class MainActivity : AppCompatActivity() {
 
                 else -> binding.sideNavGroup.apply {
                     if (isVisible) return@apply
+                    translationX = -100f
                     show()
                     animate()
                         .alpha(1f)
@@ -245,6 +240,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupObserver() {
+        viewModel.uiEvents.collectWithLifecycle { event ->
+            when (event) {
+                MainUiEvent.ShowHadith -> showAHadith()
+                is MainUiEvent.ShowToast -> toast(event.message)
+                is MainUiEvent.UpdateUi -> updateUI(event.errorType)
+            }
+        }
         viewModel.isLoading.collectWithLifecycle {
             binding.loadingLayout.changeVisibility(it)
         }
@@ -270,160 +272,6 @@ class MainActivity : AppCompatActivity() {
         if (viewModel.friendsChatList.value.isEmpty())
             bindingDrawer.bubbleTabBar.setSelected(0, true)
         viewModel.setNewMsgBoltVisible(false)
-    }
-
-    private fun initializePlayGameUser() {
-        val gamesSignInClient = PlayGames.getGamesSignInClient(this)
-        gamesSignInClient.isAuthenticated
-            .addOnSuccessListener { authenticationResult ->
-                val isAuthenticated = authenticationResult.isAuthenticated
-                if (ConnectivityObserver.isConnected) {
-                    gamesSignInClient.requestServerSideAccess(
-                        getString(R.string.default_web_client_id),
-                        false /*forceRefreshToken=*/
-                    ).addOnSuccessListener { serverAuthToken ->
-                        //Toast.makeText(this, "serverAuthToken- "+serverAuthToken, Toast.LENGTH_SHORT).show()
-                        val credential = PlayGamesAuthProvider.getCredential(serverAuthToken)
-                        //AuthCredential credential = PlayGamesAuthProvider.getCredential(PlayGamesAuthProvider.PLAY_GAMES_SIGN_IN_METHOD)
-                        viewModel.firebaseAuth.signInWithCredential(credential)
-                            .addOnSuccessListener { _ ->
-                                // Sign in success, update UI with the signed-in user's information
-
-                                Log.d(TAG, "signInWithCredential: success")
-                                if (viewModel.settings.showHadith)
-                                    showAHadith()
-                                val user = viewModel.firebaseAuth.currentUser
-                                if (isAuthenticated && user != null) {
-                                    PlayGames.getPlayersClient(this).currentPlayer.addOnSuccessListener { player ->
-                                        val profileNeeded =
-                                            viewModel.playerId != player.playerId
-                                        viewModel.playerId = player.playerId
-                                        player.playerId.log("playerId")
-                                        if (profileNeeded || pref.read(
-                                                "needProfile",
-                                                true
-                                            )
-                                        ) {
-                                            viewModel.firestore.collection("gamerProfile")
-                                                .document(player.playerId)
-                                                .get().addOnSuccessListener { document ->
-                                                    if (document.exists()) {
-                                                        pref.save(
-                                                            "needProfile",
-                                                            false
-                                                        )
-                                                        loadProfileFromServer()
-                                                        Log.d(TAG, "Profile exists!")
-                                                        toast("Profile Exists and Loaded!")
-                                                    } else {
-                                                        Log.d(TAG, "Profile does not exist!")
-                                                        setupNewUserProfile()
-                                                    }
-                                                }.addOnFailureListener {
-                                                    Log.d(TAG, "Failed with: ", it)
-                                                    viewModel.onlineStatus = "needReload"
-                                                    viewModel.setLoading(false)
-                                                }
-                                        } else loadProfileFromServer()
-                                    }
-                                    updateUI(ErrorType.NoError)
-                                    // Continue with Play Games Services
-                                } else {
-                                    Log.d(TAG, "gamesSignInClient. isAuthenticated false")
-                                    // Disable your integration with Play Games Services or show a
-                                    // login button to ask  players to sign-in. Clicking it should
-                                    // call GamesSignInClient.signIn()
-                                    updateUI(ErrorType.AuthenticationFailure)
-                                    viewModel.onlineStatus = "needReload"
-                                    viewModel.setLoading(false)
-                                }
-                            }
-                            .addOnFailureListener {
-                                // If sign in fails, display a message to the user.
-                                Log.d(TAG, "firebaseAuth signInWithCredential: failure: $it")
-                                updateUI(ErrorType.AuthenticationFailure)
-                                viewModel.onlineStatus = "needReload"
-                                viewModel.setLoading(false)
-                            }
-                    }.addOnFailureListener {
-                        // Failed to retrieve authentication code.
-                        Log.d(TAG, "requestServerSideAccess:failure authentication code $it")
-                        updateUI(ErrorType.PlayServiceNeeded)
-                        viewModel.onlineStatus = "needReload"
-                        viewModel.setLoading(false)
-                    }
-                } else {
-                    Log.d(TAG, "No Internet")
-                    updateUI(ErrorType.NoInternet)
-                    viewModel.onlineStatus = "needReload"
-                    viewModel.setLoading(false)
-                }
-
-            }.addOnFailureListener {
-                // Disable your integration with Play Games Services or show a
-                // login button to ask  players to sign-in. Clicking it should
-                // call GamesSignInClient.signIn()
-                Log.d(TAG, "gamesSignInClient. isAuthenticated failure: $it")
-                updateUI(ErrorType.PlayServiceNeeded)
-                viewModel.onlineStatus = "needReload"
-                viewModel.setLoading(false)
-            }
-    }
-
-    private fun loadProfileFromServer() {
-        viewModel.firestore.collection("gamerProfile")
-            .document(viewModel.playerId).get()
-            .addOnSuccessListener {
-                it.toObject<GameProfile>()?.let { profile ->
-                    viewModel.gameProfile = profile
-                }
-            }
-        viewModel.onlineStatus = "pass"
-        viewModel.setLoading(false)
-    }
-
-    private fun setupNewUserProfile() {
-        CoroutineScope(Dispatchers.IO).launch {
-            val gameProfile = GameProfile()
-            gameProfile.playerId = viewModel.playerId
-            val countryPair = tryGet {
-                val doc = Jsoup.connect(Constants.IP_INFO_URL).ignoreContentType(true).get()
-                Log.d(TAG, "getLocation: Success")
-                val bodyTxt = doc.body().text()
-                val countryInfo = Gson().fromJson(bodyTxt, CountryInfo::class.java)
-                Log.d(TAG, "getLocation: $countryInfo")
-                gameProfile.query = countryInfo.query
-                gameProfile.cityNm = countryInfo.city
-                GameUtils.countryList.find { it.first == countryInfo.country }
-                    ?: GameUtils.countryList.find {
-                        it.first.contains(
-                            countryInfo.country,
-                            ignoreCase = true
-                        )
-                    }
-            } ?: ("Palestina" to "🇵🇸")
-
-            Log.d(TAG, "onCreate: country ${countryPair.first}, emoji ${countryPair.second}")
-
-            gameProfile.countryNm = countryPair.first
-            gameProfile.countryEmoji = countryPair.second
-
-            gameProfile.apply()
-
-            viewModel.firestore.collection("gamerProfile").document(viewModel.playerId)
-                .set(gameProfile)
-                .addOnSuccessListener {
-                    pref.save("needProfile", false)
-                    viewModel.onlineStatus = "pass"
-                    viewModel.setLoading(false)
-                    Log.d(TAG, "onSuccess: Profile Created")
-                }
-                .addOnFailureListener {
-                    Log.d("TAG", "onSuccess: Profile Creation Failed")
-                    viewModel.onlineStatus = "needReload"
-                    viewModel.setLoading(false)
-                }
-        }
     }
 
     @SuppressLint("SetTextI18n")

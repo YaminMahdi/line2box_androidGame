@@ -1,11 +1,12 @@
 package com.diu.yk_games.line2box.presentation.online
 
+import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.app.AlertDialog
-import android.media.MediaPlayer
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.view.animation.DecelerateInterpolator
 import android.widget.LinearLayout
 import androidx.core.graphics.drawable.toDrawable
 import androidx.lifecycle.lifecycleScope
@@ -15,16 +16,15 @@ import com.diu.yk_games.line2box.databinding.FragmentDisplayBinding
 import com.diu.yk_games.line2box.model.GameProfile
 import com.diu.yk_games.line2box.presentation.adapter.RankListAdapter
 import com.diu.yk_games.line2box.presentation.base.BaseFragment
+import com.diu.yk_games.line2box.util.IO
 import com.diu.yk_games.line2box.util.gone
 import com.diu.yk_games.line2box.util.onBackPressed
-import com.diu.yk_games.line2box.util.pref
 import com.diu.yk_games.line2box.util.setBounceClickListener
 import com.google.firebase.firestore.AggregateSource
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.toObject
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.tasks.await
 
 class LeaderBoardFragment : BaseFragment<FragmentDisplayBinding>(FragmentDisplayBinding::inflate) {
     private val rankListAdapter by lazy {
@@ -60,16 +60,25 @@ class LeaderBoardFragment : BaseFragment<FragmentDisplayBinding>(FragmentDisplay
                     e.printStackTrace()
                 }
             }
-        db.count().get(AggregateSource.SERVER)
-            .addOnSuccessListener {
-                lifecycleScope.launch {
-                    for (i in 0..it.count step 512) {
-                        delay(45.milliseconds)
-                        binding.status.text = "%,d".format(i)
+        lifecycleScope.launch {
+            try {
+                val snapshot = IO { db.count().get(AggregateSource.SERVER).await() }
+                val totalCount = snapshot.count
+
+                ValueAnimator.ofFloat(0f, 1f).apply {
+                    duration = 2000L
+                    interpolator = DecelerateInterpolator()
+                    addUpdateListener { animator ->
+                        val progress = animator.animatedValue as Float
+                        val current = (totalCount * progress).toLong()
+                        binding.status.text = "%,d".format(current)
                     }
-                    binding.status.text = "%,d".format(it.count)
+                    start()
                 }
+            } catch (e: Exception) {
+                Log.d(TAG, "onViewCreated: ${e.message}")
             }
+        }
         var itemClicked = false
         binding.btnBack.setBounceClickListener(::onBackPressed)
 
