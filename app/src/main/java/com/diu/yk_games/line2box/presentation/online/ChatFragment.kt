@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.ImageView
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -73,7 +74,7 @@ class ChatFragment : Fragment() {
         val context = LocalContext.current
         val messages by (if (mode == ChatMode.FRIENDLY) viewModel.friendsChatList else viewModel.globalChatList)
             .collectAsStateWithLifecycle()
-        var text by remember { mutableStateOf("") }
+        val fieldState = rememberTextFieldState()
         var profile by remember { mutableStateOf<GameProfile?>(null) }
         var emojiEnabled by remember { mutableStateOf(true) }
         var lastKey by remember { mutableStateOf("") }
@@ -81,9 +82,9 @@ class ChatFragment : Fragment() {
         fun send() {
             val sent =
                 if (mode == ChatMode.FRIENDLY) viewModel.sendMessage2FriendlyChat(
-                    text
-                ) else viewModel.sendMessage2GlobalChat(text)
-            if (sent != null) text = "" else context.toast("Write Something..")
+                    fieldState.value
+                ) else viewModel.sendMessage2GlobalChat(fieldState.value)
+            if (sent != null) fieldState.value = "" else context.toast("Write Something..")
         }
         LaunchedEffect(messages.firstOrNull()?.key, mode) {
             if (mode != ChatMode.FRIENDLY) return@LaunchedEffect
@@ -114,8 +115,7 @@ class ChatFragment : Fragment() {
         ChatScreen(
             messages = messages,
             playerId = viewModel.playerId,
-            text = text,
-            onTextChange = { text = it },
+            fieldState = fieldState,
             onSend = { if (mode == ChatMode.GLOBAL) viewModel.player.playPopSound(); send() },
             showEmoji = mode == ChatMode.FRIENDLY,
             emojiEnabled = emojiEnabled,
@@ -129,8 +129,12 @@ class ChatFragment : Fragment() {
                     .collection("gamerProfile").document(msg.playerId).get()
                     .addOnSuccessListener { profile = it.toObject<GameProfile>() }
             },
-            onMessageLongClick = { context.setClipBoardData(it.msgData, "Text copied") },
-            onCopyGameId = { context.setClipBoardData(it, "ID copied") },
+            onCommand = {
+                fieldState.value = ""
+                viewModel.player.playButtonClickSound()
+                // TODO: Handle commands
+            },
+            onCopy = { context.setClipBoardData(it, "ID copied") },
             onJoin = { msg ->
                 if (msg.gameId.isEmpty())
                     context.toast("Invalid ID")

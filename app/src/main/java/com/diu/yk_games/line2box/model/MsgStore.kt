@@ -7,19 +7,22 @@ import kotlinx.parcelize.Parcelize
 data class MsgStore(
     @Transient
     val key: String = "",
-    var playerId: String = "",
-    var time: Long = 0L,
-    var nmData: String = "",
-    var msgData: String = "Blue",
-    var lvlData: String = "1",
+    val playerId: String = "",
+    val time: Long = 0L,
+    val nmData: String = "",
+    val msgData: String? = null,
+    val lvlData: String = "1",
     val type: String = Type.Normal.name,
-    val gameId: String = ""
+    val gameId: String = "",
+    val user: GameProfile? = null
 ) : Parcelable {
     enum class Type {
         Normal,
         EnterText,
         ExitText,
-        Invitation
+        Invitation,
+        Command,
+        UserInfo
     }
 }
 
