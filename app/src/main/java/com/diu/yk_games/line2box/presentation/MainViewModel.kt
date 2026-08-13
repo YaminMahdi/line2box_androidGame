@@ -9,7 +9,7 @@ import androidx.lifecycle.serialization.saved
 import androidx.lifecycle.viewModelScope
 import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.model.*
-import com.diu.yk_games.line2box.model.MsgStore.Type
+import com.diu.yk_games.line2box.model.MsgStore.MessageType
 import com.diu.yk_games.line2box.presentation.navigation.Routes
 import com.diu.yk_games.line2box.util.*
 import com.google.android.gms.games.PlayGames
@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import org.jsoup.Jsoup
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
@@ -47,10 +48,14 @@ class MainViewModel(
     val firestore by lazy { Firebase.firestore }
     val globalChatRef by lazy { database.getReference("globalChat") }
     val multiPlayerRef by lazy { database.getReference("MultiPlayer") }
+    val friendlyChatRef
+        get() = multiPlayerRef.child(matchKey)
+            .child("friendlyChat")
+            .takeIf { matchKey.isNotEmpty() }
     val gamerProfileRef by lazy { firestore.collection("gamerProfile") }
 
     @OptIn(ExperimentalUuidApi::class)
-    val scoreBoardKey  //fake key
+    val uuidV7  //fake key
         get() = Uuid.generateV7().toString()
 
     var onlineStatus = ""
@@ -340,7 +345,7 @@ class MainViewModel(
     fun clearFriendlyChat() {
         viewModelScope.launch(Dispatchers.IO) {
             savedStateHandle["friendsChatList"] = emptyList<MsgStore>()
-            friendlyValueListener?.also { friendlyChatRef?.removeEventListener(it) }
+            friendlyValueListener?.also { _friendlyChatRef?.removeEventListener(it) }
         }
     }
 
@@ -348,6 +353,7 @@ class MainViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             savedStateHandle["friendsChatList"] = emptyList<MsgStore>()
             tempKeys.forEach {
+                if (it.isEmpty()) return@forEach
                 if (it == matchKey)
                     matchKey = ""
                 multiPlayerRef.child(it).removeValue()
@@ -395,7 +401,7 @@ class MainViewModel(
 
     fun fetchGlobalChat() {
         viewModelScope.launch {
-            globalChatRef.limitToLast(200).addValueEventListener(object : ValueEventListener {
+            globalChatRef.limitToLast(150).addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     val chatList = snapshot.children.mapNotNull {
                         val key = it.key
@@ -411,50 +417,79 @@ class MainViewModel(
         }
     }
 
-    var friendlyValueListener: ValueEventListener? = null
-    var friendlyChatRef: DatabaseReference? = null
+    private var friendlyValueListener: ValueEventListener? = null
+    private var _friendlyChatRef: DatabaseReference? = null
 
-    fun fetchFriendlyChat(gameRoomKey: String = matchKey) {
+    fun fetchFriendlyChat() {
         viewModelScope.launch {
-            if (gameRoomKey.isEmpty()) return@launch
-            val friendsChatRef = multiPlayerRef.child(gameRoomKey).child("friendlyChat")
-            friendlyValueListener?.also { friendlyChatRef?.removeEventListener(it) }
-            friendlyChatRef = friendsChatRef
+            val matchKey = matchKey
+            if (matchKey.isEmpty()) return@launch
+            friendlyValueListener?.also {
+                _friendlyChatRef?.removeEventListener(it)
+                friendlyValueListener = null
+                _friendlyChatRef = null
+            }
+            _friendlyChatRef = friendlyChatRef
             friendlyValueListener =
-                friendsChatRef.limitToLast(100).addValueEventListener(object : ValueEventListener {
-                    override fun onDataChange(snapshot: DataSnapshot) {
-                        val chatList = snapshot.children.mapNotNull {
-                            val key = it.key
-                            val ms = it.getValue<MsgStore>()
-                            if (key == null || ms == null) return@mapNotNull null
-                            if (ms.type.typeEnum == Type.ExitText)
-                                localPlayerCount--
-                            ms.copy(key = key)
-                        }.reversed()
-                        savedStateHandle["friendsChatList"] = chatList
-                    }
+                _friendlyChatRef?.limitToLast(100)
+                    ?.addValueEventListener(object : ValueEventListener {
+                        override fun onDataChange(snapshot: DataSnapshot) {
+                            val chatList = snapshot.children.mapNotNull {
+                                val key = it.key
+                                val ms = it.getValue<MsgStore>()
+                                if (key == null || ms == null) return@mapNotNull null
+                                if (ms.type.typeEnum == MessageType.ExitText)
+                                    localPlayerCount--
+                                ms.copy(key = key)
+                            }.reversed()
+                            savedStateHandle["friendsChatList"] = chatList
+                        }
 
-                    override fun onCancelled(databaseError: DatabaseError) {}
-                })
+                        override fun onCancelled(databaseError: DatabaseError) {}
+                    })
         }
     }
 
-    fun sendMessage2FriendlyChat(text: String, type: Type = Type.Normal): Unit? {
-        if (text.isEmpty()) return null
-        val friendlyChatRef = multiPlayerRef.child(matchKey).child("friendlyChat")
+    fun getMessageType(msg: String, default: MessageType = MessageType.Normal): MessageType {
+        val command = ChatCommand.entries.find {
+            msg.lowercase().startsWith(it.command.lowercase())
+        }
+        return if (command != null) MessageType.Command else default
+    }
+
+    fun sendMessage2FriendlyChat(
+        text: String,
+        type: MessageType = Normal,
+        command: ChatCommand? = null,
+        flag: ChatFlag? = null
+    ): Unit? {
+        // TODO: IMPROVE
+        if (text.isEmpty() || matchKey.isEmpty()) return null
         viewModelScope.launch(Dispatchers.IO) {
-            friendlyChatRef.push().setValue(
-                gameProfile.toMessage(playerId = playerId, msg = text, type = type)
+            friendlyChatRef?.push()?.setValue(
+                gameProfile.toMessage(
+                    playerId = playerId,
+                    msg = text,
+                    type = getMessageType(text, type)
+                )
             )
         }
         return Unit
     }
 
-    fun sendMessage2GlobalChat(text: String): Unit? {
+    fun sendMessage2GlobalChat(
+        text: String,
+        command: ChatCommand? = null,
+        flag: ChatFlag? = null
+    ): Unit? {
         if (text.isEmpty()) return null
         viewModelScope.launch(Dispatchers.IO) {
             globalChatRef.push().setValue(
-                gameProfile.toMessage(playerId = playerId, msg = text)
+                gameProfile.toMessage(
+                    playerId = playerId,
+                    msg = text,
+                    type = getMessageType(text)
+                )
             )
         }
         return Unit
@@ -466,15 +501,78 @@ class MainViewModel(
             globalChatRef.push().setValue(
                 gameProfile.toMessage(playerId = playerId, msg = text).copy(
                     gameId = gameId,
-                    type = Type.Invitation.name
+                    type = MessageType.Invitation.name
                 )
             )
         }
     }
 
+    fun sendCommand(command: ChatCommand, text: String, mode: ChatMode) {
+        player.playButtonClickSound()
+        val ref = if (mode == ChatMode.GLOBAL) globalChatRef else multiPlayerRef
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                sendCommandMessage(ref, command)
+                when (command) {
+                    ChatCommand.DeleteLast -> deleteLastMessage(ref)
+                    ChatCommand.ClearAll -> clearChat(ref)
+                    ChatCommand.LastUser -> showLastUser(ref)
+                }
+            } catch (e: Exception) {
+                Log.d(TAG, "sendCommand: ${e.message}")
+            }
+        }
+    }
+
+    private suspend fun deleteLastMessage(ref: DatabaseReference) {
+        globalChatList.value.firstOrNull()?.let {
+            ref.child(it.key)
+                .removeValue()
+                .await()
+        } ?: error("No message to delete")
+    }
+
+    private suspend fun clearChat(ref: DatabaseReference) {
+        ref.push().setValue(
+            ChatCommand.bot.copy(
+                playerId = playerId,
+                msgData = "\uFE0E\n\n\n\n\n\n\n\n\n\n\n\n\n\n" +
+                        "\uFE0Eㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤ\uFE0E" +
+                        "\uFE0Eㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤ\uFE0E" +
+                        "\uFE0Eㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤ\uFE0E" +
+                        "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\uFE0E"
+            )
+        ).await()
+    }
+
+    private suspend fun showLastUser(ref: DatabaseReference) {
+        globalChatList.value.find { it.type == MessageType.Normal.name && it.playerId != playerId }?.playerId?.let { playerId ->
+            val playerInfo =
+                gamerProfileRef.document(playerId).get().await().toObject<GameProfile>()
+                    ?: error("No player found")
+            globalChatRef.push().setValue(
+                ChatCommand.bot.copy(
+                    playerId = playerInfo.playerId,
+                    type = MessageType.UserInfo.name,
+                    user = playerInfo
+                )
+            )
+        } ?: error("No message to show")
+    }
+
+    private suspend fun sendCommandMessage(ref: DatabaseReference, command: ChatCommand) {
+        ref.push().setValue(
+            gameProfile.toMessage(
+                playerId = playerId,
+                msg = command.name,
+                type = MessageType.Command
+            )
+        ).await()
+    }
+
     fun clearMultiPlayerDB() {
         viewModelScope.launch(Dispatchers.IO) {
-            database.getReference("MultiPlayer").removeValue()
+            multiPlayerRef.removeValue()
         }
 
     }
@@ -552,6 +650,7 @@ class MainViewModel(
     }
 
     fun getJoinRoute(msg: MsgStore): Result<Routes.GameOnline> {
+        // TODO: IMPROVE
         fun defError(): Result<Routes.GameOnline> {
             if (matches.value.isNotEmpty())
                 globalChatRef.child(msg.key).removeValue()
@@ -560,6 +659,7 @@ class MainViewModel(
         if (msg.gameId.length != 4) return defError()
         val gameRoom = getValidMatch(msg.gameId) ?: return defError()
         val fullKey = gameRoom.key
+        if (fullKey.isEmpty()) return Result.failure(Exception("Match expired."))
         pref.save("tmpKey", fullKey)
 
         if (gameRoom.playerCount == "-1")
@@ -569,25 +669,19 @@ class MainViewModel(
         if (gameRoom.playerCount == "2")
             return Result.failure(Exception("Match already started."))
 
-        // Update player2 and player count
-        multiPlayerRef.child(fullKey).apply {
-            child("player2").setValue(gameProfile.toPlayerInfo())
-            child("playerCount").setValue("2")
-            //remove
-            child("playerInfo").child("nm2").setValue(gameProfile.nm)
-            child("playerInfo").child("lvl2").setValue(gameProfile.lvlByCal())
-            //remove
-        }
-        val friendsChatRef = multiPlayerRef.child(fullKey).child("friendlyChat")
-
-        // Send join message
-        friendsChatRef.push().setValue(
-            gameProfile.toMessage(
-                playerId = playerId,
-                msg = "Joined the match.",
-                type = Type.EnterText
-            )
-        )
+        sendInitialMessage(gameRoom)
+        /*        multiPlayerRef.child(fullKey).apply {
+                    child("player2").setValue(gameProfile.toPlayerInfo())
+                    child("playerCount").setValue("2")
+                }
+                // Send join message
+                friendlyChatRef?.push()?.setValue(
+                    gameProfile.toMessage(
+                        playerId = playerId,
+                        msg = "Joined the match.",
+                        type = MessageType.EnterText
+                    )
+                )*/
         return Result.success(
             Routes.GameOnline(
                 gameKey = fullKey,
@@ -600,6 +694,37 @@ class MainViewModel(
                 lvl2 = gameProfile.lvlByCal()
             )
         )
+    }
+
+    fun sendInitialMessage(gameRoom: GameRoom, isPlyr1: Boolean = false) {
+        matchKey = gameRoom.key
+        val ms = gameProfile.toMessage(
+            playerId = playerId,
+            msg = if (isPlyr1) "Created the match." else "Joined the match.",
+            type = MessageType.EnterText
+        )
+        if (isPlyr1) {
+            // Player 1: Create room with initial message
+            multiPlayerRef.child(gameRoom.key).setValue(
+                gameRoom.copy(
+                    player1 = gameProfile.toPlayerInfo(),
+                    friendlyChat = mapOf(getFriendlyChatKey() to ms)
+                )
+            )
+        } else {
+            // Player 2: Join existing room
+            multiPlayerRef.child(gameRoom.key).updateChildren(
+                mapOf(
+                    "playerCount" to "2",
+                    "player2" to gameProfile.toPlayerInfo(),
+                    "friendlyChat" to gameRoom.friendlyChat + mapOf(getFriendlyChatKey() to ms)
+                )
+            )
+        }
+    }
+
+    fun getFriendlyChatKey(): String {
+        return friendlyChatRef?.push()?.key ?: uuidV7
     }
 
     private companion object {

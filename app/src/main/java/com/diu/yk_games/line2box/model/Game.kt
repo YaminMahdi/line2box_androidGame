@@ -16,7 +16,6 @@ data class GameRoom(
     val player1: PlayerInfo = PlayerInfo(),
     val player2: PlayerInfo = PlayerInfo(),
     val playerCount: String = "1",
-    val plr2Cup: String = "0",
     val friendlyChat: Map<String, MsgStore> = mapOf(),
     val key: String = ""
 ) : Parcelable

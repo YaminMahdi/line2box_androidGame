@@ -1,6 +1,9 @@
 package com.diu.yk_games.line2box.ui.theme
 
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
+import com.diu.yk_games.line2box.R
 
 val primary = Color(0xFFC55FD6)
 val onPrimary = Color(0xFFD0C3CC)
@@ -37,3 +40,15 @@ val surfaceContainerLow = Color(0xFF1F1A1F)
 val surfaceContainer = Color(0xFF231E23)
 val surfaceContainerHigh = Color(0xFF2E282D)
 val surfaceContainerHighest = Color(0xFF393338)
+
+@get:Composable
+val cocX get() = colorResource(R.color.cocX)
+
+@get:Composable
+val cocXx get() = colorResource(R.color.cocXx)
+
+@get:Composable
+val cocZ get() = colorResource(R.color.cocZ)
+
+@get:Composable
+val cocZz get() = colorResource(R.color.cocZz)

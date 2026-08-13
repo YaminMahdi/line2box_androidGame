@@ -8,6 +8,8 @@ import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.insert
+import androidx.compose.foundation.text.input.placeCursorAtEnd
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.*
@@ -145,3 +147,31 @@ var TextFieldState.value: String
     set(value) = edit {
         replace(0, length, value)
     }
+
+/**
+ * Replaces the partial word currently being typed at the cursor position
+ * matching the given [prefix] (e.g. "/" or "--") with the [replacement].
+ */
+fun TextFieldState.insertOrReplaceToken(prefix: String, replacement: String) {
+    edit {
+        val currentText = asCharSequence().toString()
+        val cursorIndex = selection.end
+
+        // Take text up to current cursor position
+        val textBeforeCursor = currentText.take(cursorIndex)
+        val tokenStartIndex = textBeforeCursor.lastIndexOf(prefix)
+
+        val textToInsert = "$replacement "
+
+        if (tokenStartIndex != -1) {
+            // Replace from prefix index to current cursor position
+            replace(tokenStartIndex, cursorIndex, textToInsert)
+        } else {
+            // Fallback: Insert directly at cursor position
+            insert(cursorIndex, textToInsert)
+        }
+
+        // Move cursor cleanly to the end of the field
+        placeCursorAtEnd()
+    }
+}

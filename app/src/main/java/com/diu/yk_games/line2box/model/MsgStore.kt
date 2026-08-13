@@ -12,11 +12,11 @@ data class MsgStore(
     val nmData: String = "",
     val msgData: String? = null,
     val lvlData: String = "1",
-    val type: String = Type.Normal.name,
+    val type: String = MessageType.Normal.name,
     val gameId: String = "",
     val user: GameProfile? = null
 ) : Parcelable {
-    enum class Type {
+    enum class MessageType {
         Normal,
         EnterText,
         ExitText,
@@ -26,12 +26,13 @@ data class MsgStore(
     }
 }
 
-val String?.typeEnum get() = MsgStore.Type.entries.find { it.name == this } ?: MsgStore.Type.Normal
+val String?.typeEnum get() = MsgStore.MessageType.entries.find { it.name == this } ?: MsgStore.MessageType.Normal
 
 fun GameProfile.toMessage(
     playerId: String,
     msg: String,
-    type: MsgStore.Type = MsgStore.Type.Normal
+    type: MsgStore.MessageType = MsgStore.MessageType.Normal,
+    user: GameProfile? = null
 ) =
     MsgStore(
         playerId = playerId,
@@ -39,5 +40,6 @@ fun GameProfile.toMessage(
         nmData = nm,
         lvlData = lvlByCal().toString(),
         msgData = msg,
-        type = type.name
+        type = type.name,
+        user = user
     )

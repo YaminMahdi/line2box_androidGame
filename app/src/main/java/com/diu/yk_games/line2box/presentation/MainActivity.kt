@@ -215,6 +215,7 @@ class MainActivity : AppCompatActivity() {
         dialogBinding.buttonNo.text = "NO"
         alertDialog.window?.setBackgroundDrawable(0.toDrawable())
         dialogBinding.buttonYes.setBounceClickListener {
+            if (viewModel.gameOnline.gameKey.isEmpty()) return@setBounceClickListener
             viewModel.player.playButtonClickSound()
             if (isOnline) {
                 if (viewModel.localPlayerCount != 2)
@@ -222,7 +223,7 @@ class MainActivity : AppCompatActivity() {
                 else {
                     viewModel.sendMessage2FriendlyChat(
                         text = "Left the match.",
-                        type = MsgStore.Type.ExitText
+                        type = MsgStore.MessageType.ExitText,
                     )
                     viewModel.multiPlayerRef.child(viewModel.gameOnline.gameKey)
                         .child("playerCount")

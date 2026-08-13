@@ -7,8 +7,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Send
@@ -30,35 +28,19 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.diu.yk_games.line2box.R
-import com.diu.yk_games.line2box.model.ChatCommand
-import com.diu.yk_games.line2box.model.GameProfile
-import com.diu.yk_games.line2box.model.MsgStore
-import com.diu.yk_games.line2box.model.typeEnum
-import com.diu.yk_games.line2box.ui.theme.Line2BoxTheme
+import com.diu.yk_games.line2box.model.*
+import com.diu.yk_games.line2box.ui.theme.*
+import com.diu.yk_games.line2box.util.ChatTextField
 import com.diu.yk_games.line2box.util.bounceOnClick
 import com.diu.yk_games.line2box.util.toDateTime
+import com.diu.yk_games.line2box.util.value
 
-@get:Composable
-private val cocX get() = colorResource(R.color.cocX)
-
-@get:Composable
-private val cocXx get() = colorResource(R.color.cocXx)
-
-@get:Composable
-private val outline get() = colorResource(R.color.cocZ)
-
-@get:Composable
-private val cocZz get() = colorResource(R.color.cocZz)
-
-@get:Composable
-private val fieldBg get() = cocXx.copy(.6f)
 private val barBrush =
     Brush.verticalGradient(listOf(Color(0xFF7B775C), Color(0xFF9A9465), Color(0xFF706C4F)))
 
@@ -70,8 +52,10 @@ fun ChatScreen(
     messages: List<MsgStore>,
     playerId: String,
     fieldState: TextFieldState,
+    focusRequester: FocusRequester,
     onSend: () -> Unit,
     onCommand: (ChatCommand) -> Unit,
+    onFlag: (ChatFlag) -> Unit,
     showEmoji: Boolean,
     emojiEnabled: Boolean,
     onEmoji: (String) -> Unit,
@@ -82,13 +66,8 @@ fun ChatScreen(
 ) {
     val state = rememberLazyListState()
     val focus = remember { FocusRequester() }
-    val commands = if (fieldState.text.isEmpty()) {
-        listOf()
-    } else if (fieldState.text == "/") {
-        ChatCommand.visibleEntries
-    } else fieldState.text.let { input ->
-        ChatCommand.visibleEntries.filter { input.startsWith(it.command.take(input.length)) }
-    }
+    val (commands, flags) =
+        getSuggestions(text = fieldState.value)
 
     LaunchedEffect(messages.firstOrNull()?.key) {
         if (messages.isNotEmpty()) state.scrollToItem(0)
@@ -129,7 +108,13 @@ fun ChatScreen(
                 AnimatedVisibility(commands.isNotEmpty()) {
                     CommandCard(
                         commands = commands,
-                        onCommand = onCommand
+                        onClick = onCommand
+                    )
+                }
+                AnimatedVisibility(flags.isNotEmpty()) {
+                    CommandCard(
+                        commands = flags,
+                        onClick = onFlag
                     )
                 }
             }
@@ -138,6 +123,7 @@ fun ChatScreen(
             EmojiBar(enabled = emojiEnabled, onEmoji = onEmoji)
         InputBar(
             fieldState = fieldState,
+            focusRequester = focusRequester,
             onSend = onSend,
             modifier = Modifier.focusRequester(focus)
         )
@@ -186,22 +172,24 @@ private fun MessageRow(
             Spacer(Modifier.weight(1f))
             Text(
                 text = msg.time.toDateTime(),
-                color = colorResource(R.color.cocZ),
+                color = cocZ,
                 fontSize = 11.sp,
                 lineHeight = 13.sp
             )
         }
         msg.msgData?.let {
             Text(
-                text = if (msg.type.typeEnum == MsgStore.Type.Invitation)
+                text = if (msg.type.typeEnum == MsgStore.MessageType.Invitation)
                     msg.msgData.substringBefore("Match ID").trim()
                 else
                     msg.msgData,
                 color = when (msg.type.typeEnum) {
-                    MsgStore.Type.EnterText, MsgStore.Type.Command ->
+                    MsgStore.MessageType.EnterText, MsgStore.MessageType.Command ->
                         colorResource(R.color.color_match_action)
-                    MsgStore.Type.ExitText ->
+
+                    MsgStore.MessageType.ExitText ->
                         colorResource(R.color.color_left_match)
+
                     else -> if (ChatCommand.isCommand(it))
                         colorResource(R.color.color_match_action)
                     else
@@ -212,7 +200,7 @@ private fun MessageRow(
             )
         }
         when (msg.type.typeEnum) {
-            MsgStore.Type.Invitation -> {
+            MsgStore.MessageType.Invitation -> {
                 InvitationActions(
                     id = msg.gameId,
                     enabled = !isOwn,
@@ -223,16 +211,16 @@ private fun MessageRow(
                 )
             }
 
-            MsgStore.Type.UserInfo if msg.user != null -> UserInfoCard(msg.user)
+            MsgStore.MessageType.UserInfo if msg.user != null -> UserInfoCard(msg.user)
             else -> Unit
         }
     }
 }
 
 @Composable
-fun CommandCard(
-    commands: List<ChatCommand>,
-    onCommand: (ChatCommand) -> Unit,
+fun <T> CommandCard(
+    commands: List<T>,
+    onClick: (T) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -249,14 +237,14 @@ fun CommandCard(
         ) {
             commands.forEach {
                 Text(
-                    text = it.command,
+                    text = it.toString(),
                     color = colorResource(R.color.color_match_action),
                     fontSize = 15.sp,
                     lineHeight = 15.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable(onClick = { onCommand(it) })
+                        .clickable(onClick = { onClick(it) })
                         .padding(vertical = 10.dp, horizontal = 12.dp)
                 )
             }
@@ -397,7 +385,7 @@ fun UserInfoCard(user: GameProfile, modifier: Modifier = Modifier) {
                     )
                     Text(
                         text = user.query,
-                        color = colorResource(R.color.cocZ),
+                        color = cocZ,
                         fontSize = 10.sp,
                         lineHeight = 12.sp,
                         maxLines = 1,
@@ -482,6 +470,7 @@ private fun EmojiBar(enabled: Boolean, onEmoji: (String) -> Unit) {
 @Composable
 private fun InputBar(
     fieldState: TextFieldState,
+    focusRequester: FocusRequester,
     onSend: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -492,36 +481,45 @@ private fun InputBar(
             .background(barBrush),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        OutlinedTextField(
+        ChatTextField(
             state = fieldState,
-            lineLimits = TextFieldLineLimits.SingleLine,
-            placeholder = {
-                Text(
-                    stringResource(R.string.type_here),
-                    color = colorResource(R.color.cocZ),
-                    fontSize = 16.sp,
-                    lineHeight = 18.sp
-                )
-            },
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
-            onKeyboardAction = { onSend() },
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedTextColor = cocZz,
-                unfocusedTextColor = cocZz,
-                focusedContainerColor = fieldBg,
-                unfocusedContainerColor = fieldBg,
-                focusedBorderColor = outline,
-                unfocusedBorderColor = outline,
-            ),
-            textStyle = MaterialTheme.typography.bodyMedium.copy(
-                fontSize = 16.sp,
-                lineHeight = 18.sp
-            ),
-            shape = RoundedCornerShape(15.dp),
+            onSend = onSend,
             modifier = modifier
                 .weight(1f)
-                .padding(start = 5.dp, top = 5.dp, bottom = 5.dp),
+                .padding(start = 5.dp, top = 5.dp, bottom = 5.dp)
+                .focusRequester(focusRequester)
         )
+//        OutlinedTextField(
+//            state = fieldState,
+////            visualTransformation = CommandHighlighterTransformation(),
+//            lineLimits = TextFieldLineLimits.SingleLine,
+//            placeholder = {
+//                Text(
+//                    stringResource(R.string.type_here),
+//                    color = cocZ,
+//                    fontSize = 16.sp,
+//                    lineHeight = 18.sp
+//                )
+//            },
+//            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
+//            onKeyboardAction = { onSend() },
+//            colors = OutlinedTextFieldDefaults.colors(
+//                focusedTextColor = cocZz,
+//                unfocusedTextColor = cocZz,
+//                focusedContainerColor = fieldBg,
+//                unfocusedContainerColor = fieldBg,
+//                focusedBorderColor = cocZ,
+//                unfocusedBorderColor = cocZ,
+//            ),
+//            textStyle = MaterialTheme.typography.bodyMedium.copy(
+//                fontSize = 16.sp,
+//                lineHeight = 18.sp
+//            ),
+//            shape = RoundedCornerShape(15.dp),
+//            modifier = modifier
+//                .weight(1f)
+//                .padding(start = 5.dp, top = 5.dp, bottom = 5.dp),
+//        )
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier
@@ -550,7 +548,7 @@ fun ProfileDialog(profile: GameProfile, onDismiss: () -> Unit) {
         Surface(
             color = cocXx.copy(.9f),
             shape = RoundedCornerShape(25.dp),
-            border = BorderStroke(2.dp, outline),
+            border = BorderStroke(2.dp, cocZ),
             modifier = Modifier
                 .padding(end = 80.dp)
                 .fillMaxWidth(.8f)
@@ -688,6 +686,36 @@ private fun ProfileStat(icon: ImageVector, label: String, value: Int) {
     }
 }
 
+fun getSuggestions(text: String): Pair<List<ChatCommand>, List<ChatFlag>> {
+    // Split text into words and get the last word
+    val words = text.split(' ')
+    val lastWord = words.lastOrNull() ?: ""
+
+    // Check if we're currently typing a command or flag
+    val isTypingCommand = lastWord.startsWith("/")
+    val isTypingFlag = lastWord.startsWith("--")
+
+    val commands = if (isTypingCommand) {
+        // Get all visible commands, but exclude those that are already fully written
+        ChatCommand.visibleEntries
+            .filter { it.command.startsWith(lastWord) }
+            .filterNot { it.command == lastWord } // Exclude if full command is already typed
+    } else {
+        emptyList()
+    }
+
+    val flags = if (isTypingFlag) {
+        // Get all flags, but exclude those that are already fully written
+        ChatFlag.entries
+            .filter { it.flag.startsWith(lastWord) }
+            .filterNot { it.flag == lastWord } // Exclude if full flag is already typed
+    } else {
+        emptyList()
+    }
+
+    return commands to flags
+}
+
 @Preview(showBackground = true, backgroundColor = 0xFF444540)
 @Composable
 private fun ChatPreview() = Line2BoxTheme {
@@ -698,20 +726,20 @@ private fun ChatPreview() = Line2BoxTheme {
                 key = "2",
                 nmData = "Player 2",
                 msgData = "Join Match ID",
-                type = MsgStore.Type.Invitation.name,
+                type = MsgStore.MessageType.Invitation.name,
                 gameId = "ABCD"
             ),
             MsgStore(key = "3", nmData = "Player 1", msgData = "Hello!"),
             MsgStore(
                 key = "4",
                 nmData = "Player 2",
-                msgData = ChatCommand.ClearLastMsg.command,
-                type = MsgStore.Type.Command.name
+                msgData = ChatCommand.DeleteLast.command,
+                type = MsgStore.MessageType.Command.name
             ),
             MsgStore(
                 key = "5",
                 nmData = "Bot",
-                type = MsgStore.Type.UserInfo.name,
+                type = MsgStore.MessageType.UserInfo.name,
                 user = GameProfile(
                     nm = "John Doe",
                     cityNm = "New York",
@@ -728,8 +756,10 @@ private fun ChatPreview() = Line2BoxTheme {
         ),
         playerId = "me",
         fieldState = fieldState,
+        focusRequester = FocusRequester(),
         onSend = {},
         onCommand = {},
+        onFlag = {},
         showEmoji = true,
         emojiEnabled = true,
         onEmoji = {},

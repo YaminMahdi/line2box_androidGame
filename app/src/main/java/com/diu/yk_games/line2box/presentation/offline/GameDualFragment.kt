@@ -28,8 +28,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 
 class GameDualFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDualBinding::inflate) {
     private lateinit var scoreRedView: TextView
@@ -216,10 +214,7 @@ class GameDualFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDualB
                         .update("info", info)
                 }
             }
-        //multiple
-        @OptIn(ExperimentalUuidApi::class)
-        val key = Uuid.generateV7().toString()
-        db.collection("ScoreBoard").document(key).set(ds)
+        db.collection("ScoreBoard").document(viewModel.uuidV7).set(ds)
             .addOnCompleteListener { success.set(true) }
         return success.get()
     }

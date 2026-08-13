@@ -8,6 +8,7 @@ import android.widget.ImageView
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
@@ -16,6 +17,8 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.compose.content
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.diu.yk_games.line2box.R
+import com.diu.yk_games.line2box.model.ChatCommand
+import com.diu.yk_games.line2box.model.ChatFlag
 import com.diu.yk_games.line2box.model.ChatMode
 import com.diu.yk_games.line2box.model.GameProfile
 import com.diu.yk_games.line2box.presentation.MainViewModel
@@ -72,19 +75,36 @@ class ChatFragment : Fragment() {
         modifier: Modifier = Modifier
     ) {
         val context = LocalContext.current
+        val focusRequester = remember { FocusRequester() }
         val messages by (if (mode == ChatMode.FRIENDLY) viewModel.friendsChatList else viewModel.globalChatList)
             .collectAsStateWithLifecycle()
         val fieldState = rememberTextFieldState()
         var profile by remember { mutableStateOf<GameProfile?>(null) }
+        var command by remember { mutableStateOf<ChatCommand?>(null) }
+        var flag by remember { mutableStateOf<ChatFlag?>(null) }
         var emojiEnabled by remember { mutableStateOf(true) }
         var lastKey by remember { mutableStateOf("") }
 
         fun send() {
+            if (mode == ChatMode.GLOBAL)
+                viewModel.player.playPopSound()
             val sent =
-                if (mode == ChatMode.FRIENDLY) viewModel.sendMessage2FriendlyChat(
-                    fieldState.value
-                ) else viewModel.sendMessage2GlobalChat(fieldState.value)
-            if (sent != null) fieldState.value = "" else context.toast("Write Something..")
+                if (mode == ChatMode.FRIENDLY)
+                    viewModel.sendMessage2FriendlyChat(
+                        text = fieldState.value,
+                        command = command,
+                        flag = flag
+                    )
+                else
+                    viewModel.sendMessage2GlobalChat(
+                        text = fieldState.value,
+                        command = command,
+                        flag = flag
+                    )
+            if (sent != null)
+                fieldState.value = ""
+            else
+                context.toast("Write Something..")
         }
         LaunchedEffect(messages.firstOrNull()?.key, mode) {
             if (mode != ChatMode.FRIENDLY) return@LaunchedEffect
@@ -116,12 +136,13 @@ class ChatFragment : Fragment() {
             messages = messages,
             playerId = viewModel.playerId,
             fieldState = fieldState,
-            onSend = { if (mode == ChatMode.GLOBAL) viewModel.player.playPopSound(); send() },
+            focusRequester = focusRequester,
             showEmoji = mode == ChatMode.FRIENDLY,
             emojiEnabled = emojiEnabled,
             onEmoji = {
-                viewModel.sendMessage2FriendlyChat(it); viewModel.ignoreDrawerClosesSound =
-                true; onCloseDrawer()
+                viewModel.sendMessage2FriendlyChat(it)
+                viewModel.ignoreDrawerClosesSound = true
+                onCloseDrawer()
             },
             onMessageClick = { msg ->
                 viewModel.player.playButtonClickSound()
@@ -129,12 +150,24 @@ class ChatFragment : Fragment() {
                     .collection("gamerProfile").document(msg.playerId).get()
                     .addOnSuccessListener { profile = it.toObject<GameProfile>() }
             },
-            onCommand = {
-                fieldState.value = ""
-                viewModel.player.playButtonClickSound()
-                // TODO: Handle commands
+            onSend = ::send,
+            onCommand = { selectedCommand ->
+                command = selectedCommand
+                fieldState.insertOrReplaceToken(
+                    prefix = "/",
+                    replacement = selectedCommand.command
+                )
+                focusRequester.requestFocus()
             },
-            onCopy = { context.setClipBoardData(it, "ID copied") },
+            onFlag = { selectedFlag ->
+                flag = selectedFlag
+                fieldState.insertOrReplaceToken(
+                    prefix = "--",
+                    replacement = selectedFlag.flag
+                )
+                focusRequester.requestFocus()
+            },
+            onCopy = { context.setClipBoardData(it, "Copied!") },
             onJoin = { msg ->
                 if (msg.gameId.isEmpty())
                     context.toast("Invalid ID")

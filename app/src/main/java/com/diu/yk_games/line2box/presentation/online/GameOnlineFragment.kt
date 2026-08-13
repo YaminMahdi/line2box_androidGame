@@ -45,7 +45,6 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
     private var blueX = 0
     private var blueY = 0
     lateinit var matchRef: DatabaseReference
-    lateinit var chatRef: DatabaseReference
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -88,6 +87,7 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
                 .toRoute<Routes.GameOnline>()
             arg.log()
             viewModel.matchInfo = arg
+            viewModel.matchKey = arg.gameKey
             gameUtils.plyrTurn = arg.isPlyr1
             gameUtils.nm1 = arg.nm1
             gameUtils.nm2 = arg.nm2
@@ -95,8 +95,7 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
             binding.nm1Id.text = "(${arg.nm1})"
             binding.nm2Id.text = "(${arg.nm2})"
             matchRef = viewModel.multiPlayerRef.child(arg.gameKey).child("matchInfo")
-            chatRef = viewModel.multiPlayerRef.child(arg.gameKey).child("friendlyChat")
-            viewModel.fetchServerLineClick(gameKey = arg.gameKey, isPlyr1 = arg.isPlyr1)
+//            viewModel.fetchServerLineClick(gameKey = arg.gameKey, isPlyr1 = arg.isPlyr1)
         } catch (e: Exception) {
             e.printStackTrace()
             toast("Couldn't find the game")
@@ -175,10 +174,10 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
                 lvlData = viewModel.matchInfo.currentPlayerLevel.toString(),
                 time = System.currentTimeMillis(),
                 msgData = "Won the match.",
-                type = MsgStore.Type.EnterText.name
+                type = MsgStore.MessageType.EnterText.name
             )
 
-            chatRef.push().setValue(ms)
+            viewModel.friendlyChatRef?.push()?.setValue(ms)
         }
 
         fun handleLoss() {
@@ -355,11 +354,10 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
                         .update("info", it)
                 }
             }
-        val key = viewModel.scoreBoardKey
         plr2CupRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 ds.plr2Cup = snapshot.getValue<String>() ?: return
-                firestore.collection("ScoreBoard").document(key).set(ds)
+                firestore.collection("ScoreBoard").document(viewModel.uuidV7).set(ds)
             }
 
             override fun onCancelled(error: DatabaseError) {}

@@ -28,9 +28,6 @@ import com.diu.yk_games.line2box.databinding.DialogLayoutProfileBinding
 import com.diu.yk_games.line2box.databinding.DialogLayoutUpdateBinding
 import com.diu.yk_games.line2box.databinding.FragmentMultiplayerBinding
 import com.diu.yk_games.line2box.model.GameRoom
-import com.diu.yk_games.line2box.model.MsgStore
-import com.diu.yk_games.line2box.model.toMessage
-import com.diu.yk_games.line2box.model.toPlayerInfo
 import com.diu.yk_games.line2box.presentation.base.BaseFragment
 import com.diu.yk_games.line2box.presentation.main.SettingsFragment
 import com.diu.yk_games.line2box.presentation.navigation.Routes
@@ -159,11 +156,11 @@ class MultiplayerFragment : BaseFragment<FragmentMultiplayerBinding>(FragmentMul
             viewModel.gameOnline.gameKey = gameRoom.key
             if (gameRoom.playerCount == "1") {
                 amiThePayer = true
-
-                val ms = viewModel.gameProfile.toMessage(
+                viewModel.sendInitialMessage(gameRoom)
+/*                val ms = viewModel.gameProfile.toMessage(
                     playerId = viewModel.playerId,
                     msg = "Joined the match.",
-                    type = MsgStore.Type.EnterText
+                    type = MsgStore.MessageType.EnterText
                 )
                 viewModel.multiPlayerRef.child(gameRoom.key).updateChildren(
                     mapOf(
@@ -173,14 +170,14 @@ class MultiplayerFragment : BaseFragment<FragmentMultiplayerBinding>(FragmentMul
                             put(getFriendlyChatKey(gameRoom.key), ms)
                         }
                     )
-                )
+                )*/
                 binding.startMatchBtn.isEnabled = true
                 viewModel.gameOnline.apply {
                     plr1Id = gameRoom.player1.id
                     nm1 = gameRoom.player1.nm
                     lvl1 = gameRoom.player1.lvl
                 }
-                viewModel.matchKey = gameRoom.key
+//                viewModel.matchKey = gameRoom.key
                 viewModel.friendsChatList.collectWithLifecycle {
                     if (it.isEmpty()) return@collectWithLifecycle
                     bubbleTabBar.setSelected(1, true)
@@ -228,7 +225,7 @@ class MultiplayerFragment : BaseFragment<FragmentMultiplayerBinding>(FragmentMul
                             binding.joinInputId.setText("")
                             viewModel.clearTempMatches()
                             val key =
-                                viewModel.multiPlayerRef.push().key.orEmpty().ifEmpty { return }
+                                viewModel.multiPlayerRef.push().key ?: viewModel.uuidV7
                             viewModel.gameOnline.apply {
                                 plr1Id = viewModel.playerId
                                 nm1 = viewModel.gameProfile.nm
@@ -237,10 +234,15 @@ class MultiplayerFragment : BaseFragment<FragmentMultiplayerBinding>(FragmentMul
                                 isPlyr1 = true
                             }
                             Log.d("TAG", "onCreate key: $key")
+                            viewModel.sendInitialMessage(
+                                gameRoom = GameRoom(key = key),
+                                isPlyr1 = true
+                            )
+/*
                             val msg = viewModel.gameProfile.toMessage(
                                 playerId = viewModel.playerId,
                                 msg = "Created the match.",
-                                type = MsgStore.Type.EnterText
+                                type = MsgStore.MessageType.EnterText
                             )
                             val gameRoom = GameRoom(
                                 key = key,
@@ -249,9 +251,10 @@ class MultiplayerFragment : BaseFragment<FragmentMultiplayerBinding>(FragmentMul
                             )
                             viewModel.multiPlayerRef.child(key)
                                 .setValue(gameRoom)
+                                */
                             bubbleTabBar.setSelected(1, true)
                             viewModel.isStickySwitchRight = true
-                            viewModel.matchKey = key
+//                            viewModel.matchKey = key
                             fetchJoiningPlayerInfo(key)
                             lifecycleScope.launch {
                                 delay(400.milliseconds)
@@ -301,12 +304,6 @@ class MultiplayerFragment : BaseFragment<FragmentMultiplayerBinding>(FragmentMul
             binding.joinInputId.setText("")
             startBtn()
         }
-    }
-
-    private fun getFriendlyChatKey(key: String): String {
-        return viewModel.multiPlayerRef.child(key)
-            .child("friendlyChat").push().key.orEmpty()
-            .ifEmpty { "0" }
     }
 
     private fun fetchJoiningPlayerInfo(key: String = viewModel.matchKey) {
@@ -582,6 +579,7 @@ class MultiplayerFragment : BaseFragment<FragmentMultiplayerBinding>(FragmentMul
     }
 
     private fun startBtn() {
+        if (viewModel.gameOnline.gameKey.isEmpty()) return
         viewModel.player.playButtonClickSound()
         navigateSafe(viewModel.gameOnline)
         binding.startMatchBtn.isEnabled = false
