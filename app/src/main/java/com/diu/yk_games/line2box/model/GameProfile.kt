@@ -1,10 +1,12 @@
 package com.diu.yk_games.line2box.model
 
 import android.os.Parcelable
+import com.google.firebase.firestore.IgnoreExtraProperties
 import kotlinx.parcelize.Parcelize
 import kotlin.math.sqrt
 
 @Parcelize
+@IgnoreExtraProperties
 data class GameProfile(
     var nm: String = "Noob" + (100..999).random(),
     var cityNm: String = "",

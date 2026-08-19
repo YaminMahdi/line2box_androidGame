@@ -35,9 +35,10 @@
     <string name="preference_file_key">com.diu.yk_games.line2box.Mahdi\'sLab</string>
     <string name="ul_src"><u>(Open Source)</u></string>
     <string name="my_string_value">I am .</string>
-    <string name="play_services"><u>1. Update "'"Google Play Services"'"</u></string>
-    <string name="play_game"><u>2. Update "'"Google Play Game"'"</u></string>
-    <string name="reboot_device"><u>3. Restart your device</u></string>
+    <string name="play_store"><u>1. Update "'"Google Play Store"'"</u></string>
+    <string name="play_services"><u>2. Update "'"Google Play Services"'"</u></string>
+    <string name="play_game"><u>3. Update "'"Google Play Game"'"</u></string>
+    <string name="reboot_device"><u>4. Restart your device</u></string>
     <string name="logo">logo</string>
     <string name="_0">0</string>
     <string name="total_player">Total Player-</string>
@@ -85,4 +86,6 @@
     <string name="you_must_have_internet_connection_for_the_first_time_to_run_the_game">You must have INTERNET connection for the first time to run the game</string>
     <string name="global_score_board">Global Score Board</string>
     <string name="global_rank_list">Global Rank List</string>
+    <string name="warning">Warning!</string>
+    <string name="not_in_match">You are not in a match.</string>
 </resources>

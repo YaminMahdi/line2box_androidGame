@@ -1,253 +1,211 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:layout_marginTop="@dimen/_5sdp"
     android:orientation="vertical"
     tools:context=".presentation.online.MultiplayerFragment">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/multiConstraintLyt"
+    <LinearLayout
+        android:id="@+id/linearLayoutStart1"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginTop="@dimen/_5sdp"
-        android:orientation="vertical">
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
 
         <LinearLayout
-            android:id="@+id/linearLayoutStart1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
-
+            android:layout_marginHorizontal="@dimen/_16sdp"
+            android:baselineAligned="false">
 
             <LinearLayout
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="@dimen/_16sdp"
-                android:baselineAligned="false">
+                android:layout_weight="1"
+                android:orientation="horizontal"
 
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="horizontal"
-
-                    >
-
-                    <androidx.appcompat.widget.AppCompatImageButton
-                        android:id="@+id/homeBtn"
-                        android:layout_width="@dimen/_36sdp"
-                        android:layout_height="@dimen/_36sdp"
-                        android:layout_gravity="end"
-                        android:layout_marginEnd="@dimen/_8sdp"
-                        android:background="@drawable/btn_grn_bg"
-                        android:fontFamily="@font/sortie"
-                        android:src="@drawable/icon_home" />
-
-                    <androidx.appcompat.widget.AppCompatImageButton
-                        android:id="@+id/scoreBoardBtn"
-                        android:layout_width="@dimen/_36sdp"
-                        android:layout_height="@dimen/_36sdp"
-                        android:layout_gravity="end"
-                        android:background="@drawable/btn_grn_bg"
-                        android:fontFamily="@font/sortie"
-                        android:src="@drawable/icon_globe" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="end">
-
-                    <androidx.appcompat.widget.AppCompatImageButton
-                        android:id="@+id/ideaBtn"
-                        android:layout_width="@dimen/_36sdp"
-                        android:layout_height="@dimen/_36sdp"
-                        android:layout_gravity="end"
-                        android:layout_marginEnd="10dp"
-                        android:background="@drawable/btn_ylw_bg"
-                        android:fontFamily="@font/sortie"
-                        android:paddingVertical="@dimen/_8sdp"
-                        android:src="@drawable/icon_idea"
-                        tools:ignore="SmallSp" />
-
-                    <androidx.appcompat.widget.AppCompatImageButton
-                        android:id="@+id/settingBtn"
-                        android:layout_width="@dimen/_36sdp"
-                        android:layout_height="@dimen/_36sdp"
-                        android:layout_gravity="end"
-                        android:background="@drawable/btn_gry_bg"
-                        android:fontFamily="@font/sortie"
-                        android:src="@drawable/icon_setting"
-                        tools:ignore="SmallSp" />
-                </LinearLayout>
-
-            </LinearLayout>
-
-            <FrameLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="@dimen/_16sdp"
-                android:layout_marginTop="@dimen/_8sdp">
+                >
 
                 <androidx.appcompat.widget.AppCompatImageButton
-                    android:id="@+id/leaderBoardBtn"
-                    android:layout_width="@dimen/_36sdp"
-                    android:layout_height="@dimen/_36sdp"
-                    android:background="@drawable/btn_grn_bg"
-                    android:fontFamily="@font/sortie"
-                    android:src="@drawable/icon_leaderboard" />
-
-                <androidx.appcompat.widget.AppCompatImageButton
-                    android:id="@+id/profileBtn"
+                    android:id="@+id/homeBtn"
                     android:layout_width="@dimen/_36sdp"
                     android:layout_height="@dimen/_36sdp"
                     android:layout_gravity="end"
-                    android:background="@drawable/btn_coc_bg"
+                    android:layout_marginEnd="@dimen/_8sdp"
+                    android:background="@drawable/btn_grn_bg"
                     android:fontFamily="@font/sortie"
-                    android:src="@drawable/icon_profile" />
+                    android:src="@drawable/icon_home" />
 
-
-            </FrameLayout>
+                <androidx.appcompat.widget.AppCompatImageButton
+                    android:id="@+id/scoreBoardBtn"
+                    android:layout_width="@dimen/_36sdp"
+                    android:layout_height="@dimen/_36sdp"
+                    android:layout_gravity="end"
+                    android:background="@drawable/btn_grn_bg"
+                    android:fontFamily="@font/sortie"
+                    android:src="@drawable/icon_globe" />
+            </LinearLayout>
 
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="end"
-                android:layout_marginTop="@dimen/_12sdp"
-                android:layout_marginEnd="@dimen/_12sdp">
+                android:layout_gravity="end">
 
-                <TextView
-                    android:id="@+id/trophyTextId"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:fontFamily="@font/sortie"
-                    android:text="@string/_0"
-                    android:textColor="@color/white"
-                    android:textSize="@dimen/_22ssp"
-
-
-                    />
-
-                <androidx.appcompat.widget.AppCompatImageView
-                    android:layout_width="@dimen/_42sdp"
-                    android:layout_height="@dimen/_42sdp"
+                <androidx.appcompat.widget.AppCompatImageButton
+                    android:id="@+id/ideaBtn"
+                    android:layout_width="@dimen/_36sdp"
+                    android:layout_height="@dimen/_36sdp"
                     android:layout_gravity="end"
+                    android:layout_marginEnd="10dp"
+                    android:background="@drawable/btn_ylw_bg"
                     android:fontFamily="@font/sortie"
-                    android:paddingVertical="@dimen/_4sdp"
-                    android:src="@drawable/icon_trophy" />
+                    android:paddingVertical="@dimen/_8sdp"
+                    android:src="@drawable/icon_idea"
+                    tools:ignore="SmallSp" />
+
+                <androidx.appcompat.widget.AppCompatImageButton
+                    android:id="@+id/settingBtn"
+                    android:layout_width="@dimen/_36sdp"
+                    android:layout_height="@dimen/_36sdp"
+                    android:layout_gravity="end"
+                    android:background="@drawable/btn_gry_bg"
+                    android:fontFamily="@font/sortie"
+                    android:src="@drawable/icon_setting"
+                    tools:ignore="SmallSp" />
             </LinearLayout>
 
         </LinearLayout>
 
-        <RelativeLayout
-            android:id="@+id/centerBox"
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/_16sdp"
+            android:layout_marginTop="@dimen/_8sdp">
+
+            <androidx.appcompat.widget.AppCompatImageButton
+                android:id="@+id/leaderBoardBtn"
+                android:layout_width="@dimen/_36sdp"
+                android:layout_height="@dimen/_36sdp"
+                android:background="@drawable/btn_grn_bg"
+                android:fontFamily="@font/sortie"
+                android:src="@drawable/icon_leaderboard" />
+
+            <androidx.appcompat.widget.AppCompatImageButton
+                android:id="@+id/profileBtn"
+                android:layout_width="@dimen/_36sdp"
+                android:layout_height="@dimen/_36sdp"
+                android:layout_gravity="end"
+                android:background="@drawable/btn_coc_bg"
+                android:fontFamily="@font/sortie"
+                android:src="@drawable/icon_profile" />
+
+
+        </FrameLayout>
+
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@drawable/box"
-            android:paddingHorizontal="@dimen/_55sdp"
-            android:paddingTop="@dimen/_30sdp"
-            app:layout_constraintBottom_toTopOf="@+id/startMatchBtn"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/linearLayoutStart1">
+            android:layout_gravity="end"
+            android:layout_marginTop="@dimen/_12sdp"
+            android:layout_marginEnd="@dimen/_12sdp">
 
-            <io.ghyeok.stickyswitch.widget.StickySwitch
-                android:id="@+id/sticky_switch"
-                android:layout_width="@dimen/_145sdp"
-                android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
-                app:ss_animationDuration="800"
-                app:ss_animationType="curved"
-                app:ss_iconPadding="@dimen/_12sdp"
-                app:ss_iconSize="@dimen/_30sdp"
-                app:ss_leftIcon="@drawable/icon_arrow_right"
-                app:ss_leftText="Join"
-                app:ss_rightIcon="@drawable/icon_add"
-                app:ss_rightText="Create"
-                app:ss_selectedTextSize="@dimen/_11ssp"
-                app:ss_sliderBackgroundColor="#80252525"
-                app:ss_textSize="@dimen/_10ssp" />
-
-            <LinearLayout
+            <TextView
+                android:id="@+id/trophyTextId"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="@dimen/_90sdp"
-                android:layout_marginBottom="@dimen/_14sdp"
-                android:gravity="center"
-                android:orientation="horizontal">
+                android:layout_gravity="center"
+                android:fontFamily="@font/sortie"
+                android:text="@string/_0"
+                android:textColor="@color/white"
+                android:textSize="@dimen/_22ssp" />
 
-                <FrameLayout
-                    android:layout_width="@dimen/_80ssp"
-                    android:layout_height="wrap_content">
+            <androidx.appcompat.widget.AppCompatImageView
+                android:layout_width="@dimen/_42sdp"
+                android:layout_height="@dimen/_42sdp"
+                android:layout_gravity="end"
+                android:fontFamily="@font/sortie"
+                android:paddingVertical="@dimen/_4sdp"
+                android:src="@drawable/icon_trophy" />
+        </LinearLayout>
 
-                    <EditText
-                        android:id="@+id/joinInputId"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:background="#0000"
-                        android:fontFamily="@font/sortie"
-                        android:hint="@string/game_id"
-                        android:importantForAutofill="no"
-                        android:inputType="textCapCharacters|textAutoCorrect"
-                        android:maxLength="4"
-                        android:paddingVertical="@dimen/_14sdp"
-                        android:textColor="@color/white"
-                        android:textColorHint="@color/whiteY"
-                        android:textSize="@dimen/_22ssp" />
+    </LinearLayout>
 
-                </FrameLayout>
-
-
-                <androidx.appcompat.widget.AppCompatImageButton
-                    android:id="@+id/copyPastBtn"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/btn_special_bg"
-                    android:padding="@dimen/_8sdp"
-                    android:src="@drawable/icon_paste" />
-
-            </LinearLayout>
-
-
-        </RelativeLayout>
-
-        <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/startMatchBtn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginBottom="@dimen/_80sdp"
-            android:background="@drawable/btn_grnx_bg"
-            android:enabled="false"
-            android:fontFamily="@font/sortie"
-            android:paddingHorizontal="@dimen/_20sdp"
-            android:paddingVertical="@dimen/_16sdp"
-            android:text="@string/start_match"
-            android:textColor="@color/btn_white_state"
-            android:textSize="@dimen/_20ssp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <androidx.appcompat.widget.AppCompatImageView
-        android:id="@+id/emojiPlay"
-        android:layout_width="@dimen/_65sdp"
-        android:layout_height="@dimen/_65sdp"
-        android:layout_gravity="end|bottom"
-        android:layout_margin="@dimen/_15sdp"
-        android:contentDescription="@string/logo"
+    <RelativeLayout
+        android:id="@+id/centerBox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/_100sdp"
+        android:background="@drawable/box"
+        android:paddingHorizontal="@dimen/_55sdp"
+        android:paddingTop="@dimen/_30sdp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        tools:src="@drawable/emoji_haha" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayoutStart1">
 
-</FrameLayout>
+        <io.ghyeok.stickyswitch.widget.StickySwitch
+            android:id="@+id/sticky_switch"
+            android:layout_width="@dimen/_145sdp"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            app:ss_animationDuration="800"
+            app:ss_animationType="curved"
+            app:ss_iconPadding="@dimen/_12sdp"
+            app:ss_iconSize="@dimen/_30sdp"
+            app:ss_leftIcon="@drawable/icon_arrow_right"
+            app:ss_leftText="Join"
+            app:ss_rightIcon="@drawable/icon_add"
+            app:ss_rightText="Create"
+            app:ss_selectedTextSize="@dimen/_11ssp"
+            app:ss_sliderBackgroundColor="#80252525"
+            app:ss_textSize="@dimen/_10ssp" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="@dimen/_90sdp"
+            android:layout_marginBottom="@dimen/_14sdp"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <FrameLayout
+                android:layout_width="@dimen/_80ssp"
+                android:layout_height="wrap_content">
+
+                <EditText
+                    android:id="@+id/joinInputId"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:background="#0000"
+                    android:fontFamily="@font/sortie"
+                    android:hint="@string/game_id"
+                    android:importantForAutofill="no"
+                    android:inputType="textCapCharacters|textAutoCorrect"
+                    android:maxLength="4"
+                    android:paddingVertical="@dimen/_14sdp"
+                    android:textColor="@color/white"
+                    android:textColorHint="@color/whiteY"
+                    android:textSize="@dimen/_22ssp" />
+            </FrameLayout>
+
+
+            <androidx.appcompat.widget.AppCompatImageButton
+                android:id="@+id/copyPastBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/btn_special_bg"
+                android:padding="@dimen/_8sdp"
+                android:src="@drawable/icon_paste" />
+        </LinearLayout>
+
+    </RelativeLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

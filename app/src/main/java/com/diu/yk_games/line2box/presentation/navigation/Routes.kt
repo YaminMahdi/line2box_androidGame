@@ -1,5 +1,6 @@
 package com.diu.yk_games.line2box.presentation.navigation
 
+import com.diu.yk_games.line2box.model.PlayerColor
 import com.diu.yk_games.line2box.util.isTrue
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
@@ -27,6 +28,7 @@ sealed class Routes {
         val currentPlayerId get() = if (isPlyr1) plr1Id else plr2Id
         val currentPlayerName get() = if (isPlyr1) nm1 else nm2
         val currentPlayerLevel get() = if (isPlyr1) lvl1 else lvl2
+        val currentPlayerColor get() = if (isPlyr1) PlayerColor.Red else PlayerColor.Blue
     }
 }
 

@@ -41,6 +41,57 @@ val surfaceContainer = Color(0xFF231E23)
 val surfaceContainerHigh = Color(0xFF2E282D)
 val surfaceContainerHighest = Color(0xFF393338)
 
+val primaryChat = Color(0xFF9A9465)
+val onPrimaryChat = Color(0xFFF5F1D8)
+
+val primaryContainerChat = Color(0xFF5B583C)
+val onPrimaryContainerChat = Color(0xFFF0EBC4)
+
+val secondaryChat = Color(0xFF9A9465)
+val onSecondaryChat = Color(0xFFF5F1D8)
+
+val secondaryContainerChat = Color(0xFF4E4C3D)
+val onSecondaryContainerChat = Color(0xFFF0EBC4)
+
+val tertiaryChat = Color(0xFF7E987E)
+val onTertiaryChat = Color(0xFFE4F1E5)
+
+val tertiaryContainerChat = Color(0xFF3F5141)
+val onTertiaryContainerChat = Color(0xFFD8EBDC)
+
+val errorChat = Color(0xFFE68A82)
+val onErrorChat = Color(0xFFFFF8F7)
+
+val errorContainerChat = Color(0xFF6B2925)
+val onErrorContainerChat = Color(0xFFFFDAD6)
+
+val backgroundChat = Color(0xFF444540)
+val onBackgroundChat = Color(0xFFC4BE91)
+
+val surfaceChat = Color(0xFF444540)
+val onSurfaceChat = Color(0xFFC4BE91)
+
+val surfaceVariantChat = Color(0xFF4E4C3D)
+val onSurfaceVariantChat = Color(0xFFD8D5BE)
+
+val outlineChat = Color(0xFF9A9465)
+val outlineVariantChat = Color(0xFF666551)
+
+val scrimChat = Color(0xFF000000)
+
+val inverseSurfaceChat = Color(0xFFE4E1D0)
+val inverseOnSurfaceChat = Color(0xFF30312D)
+val inversePrimaryChat = Color(0xFF66603F)
+
+val surfaceDimChat = Color(0xFF3B3C38)
+val surfaceBrightChat = Color(0xFF4E4F4A)
+
+val surfaceContainerLowestChat = Color(0xFF383934)
+val surfaceContainerLowChat = Color(0xFF41423E)
+val surfaceContainerChat = Color(0xFF444540)
+val surfaceContainerHighChat = Color(0xFF4A4B46)
+val surfaceContainerHighestChat = Color(0xFF51524D)
+
 @get:Composable
 val cocX get() = colorResource(R.color.cocX)
 

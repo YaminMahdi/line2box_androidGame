@@ -32,8 +32,10 @@ class ScoreListAdapter : ListAdapter<DataStore, ScoreListAdapter.ViewHolder>(Dat
         fun bind(item: DataStore) {
             binding.apply {
                 playFromImg.setImageResource(
-                    if (item.starData == "globe") R.drawable.icon_globe
-                    else R.drawable.icon_friends
+                    if (item.starData == "globe")
+                        R.drawable.icon_globe
+                    else
+                        R.drawable.icon_friends
                 )
                 timeId.text = "Time:  ${item.time.toDateTime()}"
                 redShow.text = item.redData

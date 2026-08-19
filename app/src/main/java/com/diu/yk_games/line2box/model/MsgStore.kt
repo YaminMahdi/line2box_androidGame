@@ -1,9 +1,11 @@
 package com.diu.yk_games.line2box.model
 
 import android.os.Parcelable
+import com.google.firebase.database.IgnoreExtraProperties
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
+@IgnoreExtraProperties
 data class MsgStore(
     @Transient
     val key: String = "",
@@ -22,7 +24,7 @@ data class MsgStore(
         ExitText,
         Invitation,
         Command,
-        UserInfo
+        Bot
     }
 }
 

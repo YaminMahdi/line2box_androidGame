@@ -3,13 +3,16 @@ package com.diu.yk_games.line2box.presentation.main
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
-import androidx.core.app.ActivityCompat.recreate
+import android.widget.TextView
 import androidx.core.graphics.drawable.toDrawable
 import com.diu.yk_games.line2box.BuildConfig
 import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.DialogLayoutUpdateuiBinding
 import com.diu.yk_games.line2box.databinding.FragmentStartBinding
+import com.diu.yk_games.line2box.model.ErrorType
+import com.diu.yk_games.line2box.model.OnlineStatus
 import com.diu.yk_games.line2box.presentation.base.BaseFragment
 import com.diu.yk_games.line2box.presentation.navigation.Routes
 import com.diu.yk_games.line2box.util.*
@@ -54,7 +57,10 @@ class StartFragment : BaseFragment<FragmentStartBinding>(FragmentStartBinding::i
             ideaBtn()
         }
         binding.scrBrdBtn.setBounceClickListener {
-            navigateToScoreBoard()
+            if (viewModel.isConnected)
+                navigateToScoreBoard()
+            else
+                toast(ErrorType.NoInternet.description)
         }
         binding.logo.setBounceClickListener {
             if (BuildConfig.DEBUG) {
@@ -83,33 +89,69 @@ class StartFragment : BaseFragment<FragmentStartBinding>(FragmentStartBinding::i
         gameUtils.playButtonClickSound()
 
         when (binding.motionLayout.currentState) {
-            R.id.next -> {
-                if (viewModel.onlineStatus == "pass") {
-                    navigateSafe(Routes.MultiPlayer)
-                } else if (viewModel.onlineStatus == "needReload") {
-                    //updateUI()
-                    val builder = AlertDialog.Builder(parentActivity)
-                    val dialogBinding =
-                        DialogLayoutUpdateuiBinding.inflate(layoutInflater)
-
-                    builder.setView(dialogBinding.root)
-                    builder.setCancelable(false)
-                    dialogBinding.googlePlayWarning.gone()
-                    dialogBinding.updateInfo.text =
-                        "You must have INTERNET connection to play in ONLINE mode"
-                    val alertDialog = builder.create()
-                    dialogBinding.buttonUpdate.setBounceClickListener {
-                        gameUtils.playButtonClickSound()
-                        recreate(requireActivity())
-                        runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
-                    }
-                    alertDialog.window?.setBackgroundDrawable(0.toDrawable())
-                    runCatching { alertDialog.show() }
-                }
-            }
-
+            R.id.next -> if (viewModel.isConnected)
+                navigateSafe(Routes.MultiPlayer)
+            else
+                showPlayServiceRequirementDialog()
             R.id.previous -> navigateSafe(Routes.ChangeName)
             R.id.start -> navigateSafe(Routes.GameBot)
         }
+    }
+
+    @SuppressLint("SetTextI18n")
+    fun showPlayServiceRequirementDialog() {
+        val builder = AlertDialog.Builder(parentActivity)
+        val dialogBinding = DialogLayoutUpdateuiBinding.inflate(LayoutInflater.from(parentActivity))
+        builder.setView(dialogBinding.root)
+        builder.setCancelable(false)
+        val alertDialog = builder.create()
+
+        when {
+            !ConnectivityObserver.isConnected -> {
+                dialogBinding.updateInfo.text =
+                    "No internet!\nOnline mode requires an internet connection."
+                dialogBinding.buttonUpdate.text = "Dismiss"
+                dialogBinding.googlePlayWarning.gone()
+            }
+
+            viewModel.onlineStatus == OnlineStatus.Offline -> {
+                dialogBinding.warningMessage.text = ErrorType.PlayServiceNeeded.description
+                dialogBinding.updateInfo.text =
+                    "Online mode requires Google Play Games Services to play!\n"
+                        .plus("You may need to UPDATE an app.\n(Link Below)")
+                dialogBinding.googlePlayWarning.show()
+            }
+
+            else -> {
+                toast("Something went wrong!")
+                return
+            }
+        }
+
+        dialogBinding.buttonUpdate.setBounceClickListener {
+            viewModel.player.playButtonClickSound()
+            runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
+            if (viewModel.onlineStatus == OnlineStatus.Offline && ConnectivityObserver.isConnected)
+                viewModel.initializePlayGameUser(parentActivity)
+        }
+
+        fun TextView.bindMarketLink(url: String, marketUrl: String) = setBounceClickListener {
+            setTextColor(parentActivity.getColor(R.color.teal_700))
+            viewModel.player.playButtonClickSound()
+            parentActivity.showCustomTab(url) ?: parentActivity.showOnMarket(marketUrl)
+        }
+
+        dialogBinding.playStoreLink.bindMarketLink(Constants.PLAY_STORE_APP_URL, Constants.PLAY_STORE)
+        dialogBinding.playSvLink.bindMarketLink(Constants.PLAY_SERVICES_APP_URL, Constants.PLAY_SERVICES)
+        dialogBinding.playGmLink.bindMarketLink(Constants.PLAY_GAMES_APP_URL, Constants.PLAY_GAMES)
+
+        dialogBinding.restartLink.setBounceClickListener {
+            dialogBinding.restartLink.setTextColor(parentActivity.getColor(R.color.teal_700))
+            viewModel.player.playButtonClickSound()
+            parentActivity.showCustomTab(Constants.RESTART_YOUTUBE_URL)
+        }
+
+        alertDialog.window?.setBackgroundDrawable(0.toDrawable())
+        runCatching { alertDialog.show() }
     }
 }

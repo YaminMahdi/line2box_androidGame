@@ -5,4 +5,11 @@ enum class ChatFlag(val flag: String) {
     Count("--count");
 
     override fun toString() = flag
+
+    companion object {
+        fun find(text: String) = ChatFlag.entries.find { text.contains(it.flag) }
+        fun findAll(text: String): List<ChatFlag> {
+            return ChatFlag.entries.filter { text.contains(it.flag) }
+        }
+    }
 }

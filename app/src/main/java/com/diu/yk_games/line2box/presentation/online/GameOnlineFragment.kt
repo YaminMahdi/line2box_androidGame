@@ -22,12 +22,16 @@ import com.diu.yk_games.line2box.databinding.DialogLayoutGameOverBinding
 import com.diu.yk_games.line2box.databinding.FragmentGameDualBinding
 import com.diu.yk_games.line2box.model.DataStore
 import com.diu.yk_games.line2box.model.MsgStore
+import com.diu.yk_games.line2box.model.PlayerColor
 import com.diu.yk_games.line2box.presentation.base.BaseFragment
 import com.diu.yk_games.line2box.presentation.navigation.Routes
 import com.diu.yk_games.line2box.util.*
 import com.google.android.play.core.review.ReviewManagerFactory
 import com.google.firebase.Firebase
-import com.google.firebase.database.*
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.getValue
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -44,7 +48,6 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
     private var redY = 0
     private var blueX = 0
     private var blueY = 0
-    lateinit var matchRef: DatabaseReference
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -61,12 +64,43 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
         )
         setupUI()
         gameUtils.setupListener(onLineClick = ::performClick)
-        viewModel.viewIdFromServer.collectWithLifecycle(minActiveState = Lifecycle.State.CREATED) { viewId ->
-            cat("viewIdFromServer: $viewId")
-            gameUtils.plyrTurn = true
+        binding.root.post {
+            setupObserver()
+        }
+    }
+
+    private fun setupObserver() {
+        fun onClick(map: Map.Entry<String, PlayerColor>) {
+            val (lineId, color) = map
+            cat("viewIdFromServer: $lineId")
             val viewId = resources
-                .getIdentifier(viewId, "id", parentActivity.packageName)
-            performClick(parentActivity.findViewById(viewId))
+                .getIdentifier(lineId, "id", parentActivity.packageName)
+            performClick(
+                view = parentActivity.findViewById(viewId),
+                color = color,
+                serverTurn = true
+            )
+        }
+
+        var lastServerEvent: Map<String, PlayerColor> = mapOf()
+
+        viewModel.lineIdsFromServer.collectWithLifecycle(minActiveState = Lifecycle.State.CREATED) { newServerEvent ->
+            val delta = newServerEvent.size - lastServerEvent.size
+
+            if (delta > 0 && lastServerEvent.isNotEmpty()) {
+                var found = 0
+                for (entry in newServerEvent) {
+                    if (entry.key !in lastServerEvent) {
+                        onClick(entry)
+                        if (++found == delta) break
+                    }
+                }
+                if (found != delta) newServerEvent.forEach(::onClick) // mismatch fallback
+            } else {
+                newServerEvent.forEach(::onClick)
+            }
+
+            lastServerEvent = newServerEvent
         }
     }
 
@@ -86,16 +120,13 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
             val arg = findNavController().getBackStackEntry<Routes.GameOnline>()
                 .toRoute<Routes.GameOnline>()
             arg.log()
-            viewModel.matchInfo = arg
-            viewModel.matchKey = arg.gameKey
+            viewModel.matchRouteInfo = arg
             gameUtils.plyrTurn = arg.isPlyr1
             gameUtils.nm1 = arg.nm1
             gameUtils.nm2 = arg.nm2
 
             binding.nm1Id.text = "(${arg.nm1})"
             binding.nm2Id.text = "(${arg.nm2})"
-            matchRef = viewModel.multiPlayerRef.child(arg.gameKey).child("matchInfo")
-//            viewModel.fetchServerLineClick(gameKey = arg.gameKey, isPlyr1 = arg.isPlyr1)
         } catch (e: Exception) {
             e.printStackTrace()
             toast("Couldn't find the game")
@@ -104,48 +135,47 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
     }
 
     @SuppressLint("SetTextI18n")
-    fun performClick(view: View) {
+    fun performClick(
+        view: View,
+        color: PlayerColor = viewModel.matchRouteInfo.currentPlayerColor,
+        serverTurn: Boolean = false
+    ) {
         Log.d(TAG, "After performClick (plyrTurn): ${gameUtils.plyrTurn}")
         //Toast.makeText(parentActivity, "clicked", Toast.LENGTH_SHORT).show()
-        val idNm = resources.getResourceEntryName(view.id)
+        val idNm = resources.getResourceEntryName(view.id) ?: return
         val aroundIds = gameUtils.getAroundIdNames(idNm)
         val bg = view.background as GradientDrawable
-        val color = gameUtils.getColorGrad(bg)
-        if (color == gameUtils.whiteX && gameUtils.plyrTurn) {
+        val lineColor = gameUtils.getColorGrad(bg)
+        if (lineColor == gameUtils.whiteX && (gameUtils.plyrTurn || serverTurn)) {
             gameUtils.playLineClickSound()
-            gameUtils.clickCount++
-            val isRedTurn = gameUtils.clickCount % 2 == 1
-            bg.setColor(if (isRedTurn) gameUtils.redX else gameUtils.blueX)
+//            gameUtils.clickCount++
+//            val isRedTurn = color == LineColor.Red
+//            val isRedTurn = gameUtils.clickCount % 2 == 1
+            bg.setColor(if (color.isRed) gameUtils.redX else gameUtils.blueX)
 
-            if (viewModel.matchInfo.isPlyr1 && isRedTurn) {
-                matchRef.child("plyr1").push()
-                    .setValue(view.resources.getResourceEntryName(view.id))
-            } else if (!viewModel.matchInfo.isPlyr1 && !isRedTurn) {
-                matchRef.child("plyr2").push()
-                    .setValue(view.resources.getResourceEntryName(view.id))
-            }
+            viewModel.sendClick2Server(idNm, color)
 
             val extraTurn = gameUtils.handleBoxPair(
                 aroundIds = aroundIds,
-                isRedTurn = isRedTurn
+                isRedTurn = color.isRed
             )
 
-            if (extraTurn) {
-                if (isRedTurn) {
-                    if (!viewModel.matchInfo.isPlyr1) gameUtils.plyrTurn = false
-                } else {
-                    if (viewModel.matchInfo.isPlyr1) gameUtils.plyrTurn = false
-                }
-                gameUtils.clickCount--
-            } else {
-                gameUtils.changePlayerTurn(
-                    isRedTurn = isRedTurn,
-                    isPlyr1 = viewModel.matchInfo.isPlyr1
+            val isMe = (viewModel.matchRouteInfo.isPlyr1 && color.isRed) ||
+                    (!viewModel.matchRouteInfo.isPlyr1 && !color.isRed)
+            gameUtils.plyrTurn = isMe && extraTurn || !isMe && !extraTurn
+            Log.d(TAG, "performClick: plyrTurn: ${gameUtils.plyrTurn}, extraTurn: $extraTurn, isMe: $isMe")
+
+            if (!gameUtils.plyrTurn) {
+                gameUtils.changePlayerTurnUi(
+                    isRedTurn = color.isRed
                 )
             }
             if (gameUtils.totalScore == 36) {
                 finishGame()
             }
+        }
+        else {
+            Log.d(TAG, "performClick: not your turn")
         }
     }
 
@@ -169,9 +199,9 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
             wCoin = "+$winCoin"
 
             val ms = MsgStore(
-                playerId = viewModel.matchInfo.currentPlayerId,
-                nmData = viewModel.matchInfo.currentPlayerName,
-                lvlData = viewModel.matchInfo.currentPlayerLevel.toString(),
+                playerId = viewModel.matchRouteInfo.currentPlayerId,
+                nmData = viewModel.matchRouteInfo.currentPlayerName,
+                lvlData = viewModel.matchRouteInfo.currentPlayerLevel.toString(),
                 time = System.currentTimeMillis(),
                 msgData = "Won the match.",
                 type = MsgStore.MessageType.EnterText.name
@@ -194,7 +224,7 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
 
         when {
             gameUtils.scoreRed > gameUtils.scoreBlue -> {
-                if (viewModel.matchInfo.isPlyr1) {
+                if (viewModel.matchRouteInfo.isPlyr1) {
                     handleWin()
                     plr1Cup = "+$winCoin"
                 } else {
@@ -204,7 +234,7 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
             }
 
             gameUtils.scoreRed < gameUtils.scoreBlue -> {
-                if (!viewModel.matchInfo.isPlyr1) {
+                if (!viewModel.matchRouteInfo.isPlyr1) {
                     handleWin()
                     plr2Cup = "+$winCoin"
                 } else {
@@ -252,8 +282,8 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
         dialogBinding.buttonNo.setBounceClickListener {
             gameUtils.playButtonClickSound()
             dismissDialog(alertDialog)
-            if (viewModel.matchInfo.isPlyr1 && viewModel.matchKey.isNotEmpty()) {
-                viewModel.multiPlayerRef.child(viewModel.matchKey).removeValue()
+            if (viewModel.matchRouteInfo.isPlyr1 && viewModel.matchRouteInfo.gameKey.isNotEmpty()) {
+                viewModel.multiPlayerRef.child(viewModel.matchRouteInfo.gameKey).removeValue()
             }
             openDrawerOrReview(matchWinMulti, openDrawer = false)
         }
@@ -267,7 +297,7 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
     }
 
     private fun openDrawerOrReview(matchWinMulti: Int, openDrawer: Boolean) {
-        if (matchWinMulti > 2) {
+        if (matchWinMulti > 1) {
             showReviewFlow(openDrawer)
         } else {
             if (openDrawer) drawerLayout.openDrawer(GravityCompat.START)
@@ -313,25 +343,25 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
 
     private fun saveToFirebase(plr1Cup: String, plr2Cup: String) {
         val firestore = Firebase.firestore
-        if (viewModel.matchKey.isEmpty()) return
+        if (viewModel.matchRouteInfo.gameKey.isEmpty()) return
         val plr2CupRef = viewModel.multiPlayerRef
-            .child(viewModel.matchKey)
+            .child(viewModel.matchRouteInfo.gameKey)
             .child("plr2Cup") //hehe
-        if (!viewModel.matchInfo.isPlyr1) {
+        if (!viewModel.matchRouteInfo.isPlyr1) {
             plr2CupRef.setValue(plr2Cup)
             return
         }
         val ds = DataStore(
             time = System.currentTimeMillis(),
             redData = "${
-                viewModel.matchInfo.nm1.trim().split("\n", " ").firstOrNull()
+                viewModel.matchRouteInfo.nm1.trim().split("\n", " ").firstOrNull()
             }: ${gameUtils.scoreRed}",
             blueData = "${
-                viewModel.matchInfo.nm2.trim().split("\n", " ").firstOrNull()
+                viewModel.matchRouteInfo.nm2.trim().split("\n", " ").firstOrNull()
             }: ${gameUtils.scoreBlue}",
             starData = "globe",
-            plr1Id = viewModel.matchInfo.plr1Id,
-            plr2Id = viewModel.matchInfo.plr2Id,
+            plr1Id = viewModel.matchRouteInfo.plr1Id,
+            plr2Id = viewModel.matchRouteInfo.plr2Id,
             plr1Cup = plr1Cup,
             plr2Cup = "0"
         )

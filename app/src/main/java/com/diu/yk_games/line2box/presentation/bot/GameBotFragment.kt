@@ -90,7 +90,7 @@ class GameBotFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDualBi
             if (extraTurn)
                 gameUtils.clickCount--
             else
-                gameUtils.changePlayerTurn(isBot)
+                gameUtils.changePlayerTurnUi(isBot)
             cat("idNm $idNm, extraTurn $extraTurn, isBot $isBot, recursion $recursion, lineIDs.size ${lineIDs.size}")
             if (((extraTurn && isBot) || (!extraTurn && !isBot)) && lineIDs.isNotEmpty())
                 handleAI(idNm, aroundIds)

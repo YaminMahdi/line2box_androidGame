@@ -18,14 +18,13 @@ import com.google.firebase.auth.PlayGamesAuthProvider
 import com.google.firebase.auth.auth
 import com.google.firebase.database.*
 import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.firestore
 import com.google.firebase.firestore.toObject
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -39,8 +38,8 @@ class MainViewModel(
 ) : AndroidViewModel(context) {
     private var hasInitializedPlayGameUser = false
 
-    val uiEvents: SharedFlow<MainUiEvent>
-        field = MutableSharedFlow<MainUiEvent>()
+    val uiEvents = MutableStateFlow<MainUiEvent?>(null)
+    var currentRoute: Routes = Routes.Home
 
     var lastMotionState: Int? = null
     val firebaseAuth by lazy { Firebase.auth }
@@ -48,64 +47,41 @@ class MainViewModel(
     val firestore by lazy { Firebase.firestore }
     val globalChatRef by lazy { database.getReference("globalChat") }
     val multiPlayerRef by lazy { database.getReference("MultiPlayer") }
-    val friendlyChatRef
-        get() = multiPlayerRef.child(matchKey)
-            .child("friendlyChat")
-            .takeIf { matchKey.isNotEmpty() }
     val gamerProfileRef by lazy { firestore.collection("gamerProfile") }
 
+    val matchRef
+        get() = multiPlayerRef.child(matchRouteInfo.gameKey)
+            .takeIf { matchRouteInfo.gameKey.isNotEmpty() }
+    val friendlyChatRef
+        get() = matchRef?.child("friendlyChat")
+    val matchLiveRef
+        get() = matchRef?.child("matchInfo")
+
     @OptIn(ExperimentalUuidApi::class)
-    val uuidV7  //fake key
+    val uuidV7  // uuid as fallback
         get() = Uuid.generateV7().toString()
 
-    var onlineStatus = ""
+    var onlineStatus by savedStateHandle.saved { OnlineStatus.Offline }
+    val isConnected
+        get() = onlineStatus == OnlineStatus.Online || ConnectivityObserver.isConnected
 
     val isLoading = savedStateHandle.getStateFlow("isLoading", true)
     val globalChatList = savedStateHandle.getStateFlow("globalChatList", emptyList<MsgStore>())
-    val friendsChatList = savedStateHandle.getStateFlow("friendsChatList", emptyList<MsgStore>())
+    val friendlyChatList = savedStateHandle.getStateFlow("friendlyChatList", emptyList<MsgStore>())
 
     val matches = savedStateHandle.getStateFlow("matches", emptyList<GameRoom>())
 
     var ignoreDrawerClosesSound = false
     var localPlayerCount = 2
 
-    var gameId
-        get() = savedStateHandle["gameId"] ?: ""
-        set(value) {
-            savedStateHandle["gameId"] = value
-        }
+    var playerId by savedStateHandle.saved { "" }
 
-    var playerId
-        get() = savedStateHandle["playerId"] ?: ""
-        set(value) {
-            savedStateHandle["playerId"] = value
-        }
+    var matchRouteInfo by savedStateHandle.saved { Routes.GameOnline() }
 
-    var matchInfo by savedStateHandle.saved { Routes.GameOnline() }
+    var tempKeys by savedStateHandle.saved { emptyList<String>() }
 
-    var matchKey
-        get() = savedStateHandle["matchKey"] ?: ""
-        set(value) {
-            savedStateHandle["matchKey"] = value
-            if (value.isNotEmpty()) {
-                fetchFriendlyChat()
-                addTempKey(value)
-            }
-        }
-
-    var gameOnline = Routes.GameOnline()
-
-    val tempKeys
-        get() = savedStateHandle.get<List<String>>("tempKeys") ?: emptyList()
-
-    var isStickySwitchRight
-        get() = savedStateHandle.get<Boolean>("isStickySwitchRight") == true
-        set(value) {
-            savedStateHandle["isStickySwitchRight"] = value
-        }
-
+    var isStickySwitchRight by savedStateHandle.saved { false }
     val isNewMsgBoltVisible = savedStateHandle.getStateFlow("isNewMsgBoltVisible", false)
-
     val gameProfileState: StateFlow<GameProfile>
         field = MutableStateFlow(GameProfile())
 
@@ -129,6 +105,11 @@ class MainViewModel(
 
     override fun onCleared() {
         clearTempMatches()
+        removeProfileFromServerListener()
+        removeGlobalChatListener()
+        removeFriendlyChatListener()
+        removeActiveMatchesListener()
+        removeServerLineClickListener()
         player.release()
     }
 
@@ -174,10 +155,10 @@ class MainViewModel(
         }
 
         // 3. Execute Firestore update with error handling
-        gamerProfileRef.document(matchInfo.currentPlayerId)
+        gamerProfileRef.document(matchRouteInfo.currentPlayerId)
             .update(updates)
-            .addOnFailureListener { exception ->
-                Log.d(TAG, "doOnMatchEnd: failure", exception)
+            .addOnFailureListener {
+                it.logError("doOnMatchEnd")
             }
     }
 
@@ -201,7 +182,7 @@ class MainViewModel(
                             .addOnSuccessListener {
                                 Log.d(TAG, "signInWithCredential: success")
                                 if (settings.showHadith)
-                                    uiEvents.tryEmit(MainUiEvent.ShowHadith)
+                                    uiEvents.value = MainUiEvent.ShowHadith
 
                                 val user = firebaseAuth.currentUser
                                 if (isAuthenticated && user != null) {
@@ -209,31 +190,29 @@ class MainViewModel(
                                         val profileNeeded = playerId != player.playerId
                                         playerId = player.playerId
                                         player.playerId.log("playerId")
-                                        if (profileNeeded || pref.read("needProfile", true)) {
+                                        if (profileNeeded) {
                                             firestore.collection("gamerProfile")
                                                 .document(player.playerId)
                                                 .get().addOnSuccessListener { document ->
                                                     if (document.exists()) {
-                                                        pref.save("needProfile", false)
                                                         loadProfileFromServer()
                                                         Log.d(TAG, "Profile exists!")
-                                                        uiEvents.tryEmit(
+                                                        uiEvents.value =
                                                             MainUiEvent.ShowToast("Profile Exists and Loaded!")
-                                                        )
                                                     } else {
                                                         Log.d(TAG, "Profile does not exist!")
                                                         setupNewUserProfile()
                                                     }
                                                 }.addOnFailureListener {
-                                                    Log.d(TAG, "Failed with: ", it)
-                                                    onlineStatus = "needReload"
-                                                    setLoading(false)
+                                                    authenticationFailed(
+                                                        ErrorType.ServerResponseFailure,
+                                                        it
+                                                    )
                                                 }
                                         } else {
                                             loadProfileFromServer()
                                         }
                                     }
-                                    uiEvents.tryEmit(MainUiEvent.UpdateUi(ErrorType.NoError))
                                 } else {
                                     Log.d(TAG, "gamesSignInClient. isAuthenticated false")
                                     authenticationFailed(ErrorType.AuthenticationFailure)
@@ -241,11 +220,11 @@ class MainViewModel(
                             }
                             .addOnFailureListener {
                                 Log.d(TAG, "firebaseAuth signInWithCredential: failure: $it")
-                                authenticationFailed(ErrorType.AuthenticationFailure)
+                                authenticationFailed(ErrorType.AuthenticationFailure, it)
                             }
                     }.addOnFailureListener {
                         Log.d(TAG, "requestServerSideAccess:failure authentication code $it")
-                        authenticationFailed(ErrorType.PlayServiceNeeded)
+                        authenticationFailed(ErrorType.PlayServiceNeeded, it)
                     }
                 } else {
                     Log.d(TAG, "No Internet")
@@ -253,28 +232,45 @@ class MainViewModel(
                 }
             }.addOnFailureListener {
                 Log.d(TAG, "gamesSignInClient. isAuthenticated failure: $it")
-                authenticationFailed(ErrorType.PlayServiceNeeded)
+                authenticationFailed(ErrorType.PlayServiceNeeded, it)
             }
     }
 
-    private fun authenticationFailed(errorType: ErrorType) {
-        uiEvents.tryEmit(MainUiEvent.UpdateUi(errorType))
-        onlineStatus = "needReload"
+    private fun authenticationFailed(errorType: ErrorType, exception: Exception? = null) {
+        exception?.logError("authenticationFailed")
+        hasInitializedPlayGameUser = false
+        uiEvents.value = MainUiEvent.UpdateUi(errorType)
+        onlineStatus = OnlineStatus.Offline
         setLoading(false)
+    }
+
+    private var profileFromServerListener: ListenerRegistration? = null
+
+    fun removeProfileFromServerListener() {
+        profileFromServerListener?.remove()
+        profileFromServerListener = null
     }
 
     private fun loadProfileFromServer() {
-        if (playerId.isEmpty()) return
-        firestore.collection("gamerProfile")
+        removeProfileFromServerListener()
+        val playerId = playerId.takeIf { it.isNotEmpty() } ?: return
+        var firstError = false
+        profileFromServerListener = firestore.collection("gamerProfile")
             .document(playerId)
             .addSnapshotListener { snapshot, exception ->
-                exception?.let {
+                setLoading(false)
+                val profile = snapshot?.toObject<GameProfile>()
+                if (profile != null && exception == null) {
+                    onlineStatus = OnlineStatus.Online
+                    updateProfile(profile)
+                } else {
                     Log.d(TAG, "loadProfileFromServer: failure", exception)
+                    if (!firstError) {
+                        firstError = true
+                        authenticationFailed(ErrorType.ServerResponseFailure, exception)
+                    }
                 }
-                snapshot?.toObject<GameProfile>()?.let(::updateProfile)
             }
-        onlineStatus = "pass"
-        setLoading(false)
     }
 
     private fun setupNewUserProfile() {
@@ -303,14 +299,13 @@ class MainViewModel(
                 .set(profile)
                 .addOnSuccessListener {
                     pref.save("needProfile", false)
-                    onlineStatus = "pass"
+                    onlineStatus = OnlineStatus.Online
                     setLoading(false)
                     Log.d(TAG, "Profile Created")
                 }
                 .addOnFailureListener {
                     Log.d(TAG, "Profile Creation Failed")
-                    onlineStatus = "needReload"
-                    setLoading(false)
+                    authenticationFailed(ErrorType.ProfileCreationFailure, it)
                 }
         }
     }
@@ -325,110 +320,163 @@ class MainViewModel(
 
     fun initGameProfile() {
         gameProfileState.value = pref.read(PrefKeys.PROFILE, GameProfile())
+        playerId = gameProfile.playerId
     }
 
     fun initMultiplayer() {
-        gameOnline = Routes.GameOnline()
+        matchRouteInfo = Routes.GameOnline(
+            plr2Id = playerId,
+            nm2 = gameProfile.nm,
+            lvl2 = gameProfile.lvlByCal(),
+            isPlyr1 = false
+        )
         fetchGlobalChat()
         fetchActiveMatches()
     }
 
     fun addTempKey(key: String?) {
         if (key.isNullOrEmpty()) return
-        viewModelScope.launch(Dispatchers.IO) {
-            savedStateHandle["tempKeys"] = (tempKeys + key).distinct().filter(String::isNotEmpty)
-            pref.save("tmpKey", key)
-            tempKeys.log("tempKeys")
-        }
+        tempKeys = (tempKeys + key).distinct().filter(String::isNotEmpty)
     }
 
     fun clearFriendlyChat() {
         viewModelScope.launch(Dispatchers.IO) {
-            savedStateHandle["friendsChatList"] = emptyList<MsgStore>()
+            savedStateHandle["friendlyChatList"] = emptyList<MsgStore>()
             friendlyValueListener?.also { _friendlyChatRef?.removeEventListener(it) }
         }
     }
 
     fun clearTempMatches() {
-        viewModelScope.launch(Dispatchers.IO) {
-            savedStateHandle["friendsChatList"] = emptyList<MsgStore>()
-            tempKeys.forEach {
-                if (it.isEmpty()) return@forEach
-                if (it == matchKey)
-                    matchKey = ""
-                multiPlayerRef.child(it).removeValue()
-                savedStateHandle["tempKeys"] = tempKeys - it
-                pref.read<String?>("tmpKey", null)?.let { tmp ->
-                    if (tmp == it) pref.remove("tmpKey")
+        savedStateHandle["friendlyChatList"] = emptyList<MsgStore>()
+        tempKeys.forEach {
+            if (it.isEmpty()) return@forEach
+            if (it == matchRouteInfo.gameKey)
+                matchRouteInfo = Routes.GameOnline()
+            multiPlayerRef.child(it).removeValue()
+            tempKeys = tempKeys - it
+        }
+    }
+
+    suspend fun removeOlderMatches() {
+        runCatching {
+            // 1. Calculate the cutoff timestamp
+            val cutoffTime = System.currentTimeMillis() - Constants.DAY1_MILLIS
+
+            // 2. Query ONLY the rooms older than the cutoff
+            val olderMatches = multiPlayerRef
+                .orderByChild("seenAt")
+                .endAt(cutoffTime.toDouble())
+                .get()
+                .await()
+                .children
+
+            // 3. Perform an atomic multi-path update to delete all at once
+            val deleteUpdates = mutableMapOf<String, Any?>()
+            olderMatches.forEach { childSnapshot ->
+                childSnapshot.key?.let { key ->
+                    deleteUpdates[key] = null // Setting a key to null deletes it
                 }
             }
+
+            if (deleteUpdates.isNotEmpty())
+                multiPlayerRef.updateChildren(deleteUpdates).await()
+        }.onFailure {
+            it.logError("removeOlderMatches")
         }
     }
 
-    fun removeTempMatch() {
-        viewModelScope.launch(Dispatchers.IO) {
-            pref.read<String?>("tmpKey", null)?.let {
-                multiPlayerRef.child(it).removeValue()
-                pref.remove("tmpKey")
+    val lineIdsFromServer: StateFlow<Map<String, PlayerColor>>
+        field = MutableStateFlow(mapOf())
+
+    var fetchServerLineClickListeners = mapOf<PlayerColor, ChildEventListener>()
+
+    fun removeServerLineClickListener() {
+        fetchServerLineClickListeners.forEach {
+            matchLiveRef?.child(it.key.ref)
+                ?.removeEventListener(it.value)
+        }
+        fetchServerLineClickListeners = mapOf()
+    }
+
+    fun fetchServerLineClick() {
+        matchRouteInfo.log("fetchServerLineClick")
+        viewModelScope.launch {
+            lineIdsFromServer.value = mapOf()
+            removeServerLineClickListener()
+            val matchLiveRef = matchLiveRef ?: return@launch
+            fetchServerLineClickListeners = PlayerColor.entries.associateWith {
+                fetch4Player(matchLiveRef, it)
             }
         }
     }
 
-    val viewIdFromServer = MutableSharedFlow<String>()
+    private fun fetch4Player(
+        matchLiveRef: DatabaseReference,
+        color: PlayerColor
+    ): ChildEventListener = matchLiveRef.child(color.ref)
+        .addChildEventListener(object : ChildEventListener {
+            override fun onChildAdded(dataSnapshot: DataSnapshot, s: String?) {
+                val idFromServer = dataSnapshot.getValue<String>() ?: return
+                idFromServer.log("fetchServerLineClick idFromServer")
+                lineIdsFromServer.value = lineIdsFromServer.value.plus(idFromServer to color)
+            }
 
-    fun fetchServerLineClick(gameKey: String = matchKey, isPlyr1: Boolean) {
-        viewModelScope.launch {
-            matchKey = gameKey
-            val matchRef = multiPlayerRef.child(gameKey).child("matchInfo")
-            matchRef.child(if (isPlyr1) "plyr2" else "plyr1")
-                .addChildEventListener(object : ChildEventListener {
-                    override fun onChildAdded(dataSnapshot: DataSnapshot, s: String?) {
-                        val idFromServer = dataSnapshot.getValue<String>() ?: return
-                        viewModelScope.launch {
-                            viewIdFromServer.emit(idFromServer)
-                        }
-                    }
+            override fun onChildChanged(dataSnapshot: DataSnapshot, s: String?) {}
+            override fun onChildRemoved(dataSnapshot: DataSnapshot) {
+                val idFromServer = dataSnapshot.getValue<String>() ?: return
+                lineIdsFromServer.value = lineIdsFromServer.value.minus(idFromServer)
+            }
 
-                    override fun onChildChanged(dataSnapshot: DataSnapshot, s: String?) {}
-                    override fun onChildRemoved(dataSnapshot: DataSnapshot) {}
-                    override fun onChildMoved(dataSnapshot: DataSnapshot, s: String?) {}
-                    override fun onCancelled(databaseError: DatabaseError) {
-                        Log.w("TAG", "Failed to read value.", databaseError.toException())
-                    }
-                })
+            override fun onChildMoved(dataSnapshot: DataSnapshot, s: String?) {}
+            override fun onCancelled(databaseError: DatabaseError) {
+                Log.w("TAG", "Failed to read value.", databaseError.toException())
+            }
+        })
+
+    private var fetchGlobalChatListener: ValueEventListener? = null
+
+    fun removeGlobalChatListener() {
+        fetchGlobalChatListener?.let {
+            globalChatRef.removeEventListener(it)
+            fetchGlobalChatListener = null
         }
     }
 
     fun fetchGlobalChat() {
-        viewModelScope.launch {
-            globalChatRef.limitToLast(150).addValueEventListener(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    val chatList = snapshot.children.mapNotNull {
-                        val key = it.key
-                        val ms = it.getValue<MsgStore>()
-                        if (key == null || ms == null) return@mapNotNull null
-                        ms.copy(key = key)
-                    }.reversed()
-                    savedStateHandle["globalChatList"] = chatList
-                }
+        if (fetchGlobalChatListener != null) return
+        fetchGlobalChatListener = globalChatRef.limitToLast(150).addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val chatList = snapshot.children.mapNotNull {
+                    val key = it.key
+                    val ms = it.getValue<MsgStore>()
+                    if (key == null || ms == null) return@mapNotNull null
+                    ms.copy(key = key)
+                }.reversed()
+                savedStateHandle["globalChatList"] = chatList
+            }
 
-                override fun onCancelled(databaseError: DatabaseError) {}
-            })
-        }
+            override fun onCancelled(databaseError: DatabaseError) {
+                Log.w("TAG", "Failed to read value.", databaseError.toException())
+                fetchGlobalChatListener = null
+            }
+        })
     }
 
     private var friendlyValueListener: ValueEventListener? = null
     private var _friendlyChatRef: DatabaseReference? = null
 
+    fun removeFriendlyChatListener() {
+        friendlyValueListener?.let {
+            _friendlyChatRef?.removeEventListener(it)
+            friendlyValueListener = null
+            _friendlyChatRef = null
+        }
+    }
+
     fun fetchFriendlyChat() {
         viewModelScope.launch {
-            val matchKey = matchKey
-            if (matchKey.isEmpty()) return@launch
-            friendlyValueListener?.also {
-                _friendlyChatRef?.removeEventListener(it)
-                friendlyValueListener = null
-                _friendlyChatRef = null
-            }
+            removeFriendlyChatListener()
+            if (matchRouteInfo.gameKey.isEmpty()) return@launch
             _friendlyChatRef = friendlyChatRef
             friendlyValueListener =
                 _friendlyChatRef?.limitToLast(100)
@@ -442,7 +490,7 @@ class MainViewModel(
                                     localPlayerCount--
                                 ms.copy(key = key)
                             }.reversed()
-                            savedStateHandle["friendsChatList"] = chatList
+                            savedStateHandle["friendlyChatList"] = chatList
                         }
 
                         override fun onCancelled(databaseError: DatabaseError) {}
@@ -450,53 +498,76 @@ class MainViewModel(
         }
     }
 
-    fun getMessageType(msg: String, default: MessageType = MessageType.Normal): MessageType {
-        val command = ChatCommand.entries.find {
-            msg.lowercase().startsWith(it.command.lowercase())
-        }
-        return if (command != null) MessageType.Command else default
+    private data class ParsedCommand(
+        val command: ChatCommand?,
+        val flagWithCount: Map<ChatFlag, Int?>,
+    ) {
+        val isCommand: Boolean get() = command != null || flagWithCount.isNotEmpty()
     }
 
-    fun sendMessage2FriendlyChat(
+    private fun parseCommandAndFlags(text: String): ParsedCommand {
+        val command = ChatCommand.find(text)
+        val flags = ChatFlag.findAll(text)
+        val flagWithCount = flags.associateWith { chatFlag ->
+            // Matches the flag followed by whitespace and captures digits
+            val regex = Regex("""${Regex.escape(chatFlag.flag)}\s+(\d+)""")
+            regex.find(text)?.groupValues?.get(1)?.toIntOrNull()
+        }
+        return ParsedCommand(command, flagWithCount)
+    }
+
+    fun sendMessage(
         text: String,
-        type: MessageType = Normal,
-        command: ChatCommand? = null,
-        flag: ChatFlag? = null
+        chatMode: ChatMode,
+        type: MessageType = MessageType.Normal,
+        chatRef: DatabaseReference? = if (chatMode.isGlobal) globalChatRef else friendlyChatRef
     ): Unit? {
-        // TODO: IMPROVE
-        if (text.isEmpty() || matchKey.isEmpty()) return null
-        viewModelScope.launch(Dispatchers.IO) {
-            friendlyChatRef?.push()?.setValue(
+        if (text.isEmpty() || chatRef == null) return null
+        val parsed = parseCommandAndFlags(text)
+        val currentChats = (if (chatMode.isGlobal) globalChatList else friendlyChatList).value
+
+        if (!parsed.flagWithCount.contains(ChatFlag.Silent)) {
+            chatRef.push().setValue(
                 gameProfile.toMessage(
                     playerId = playerId,
                     msg = text,
-                    type = getMessageType(text, type)
+                    type = if (parsed.isCommand) MessageType.Command else type
                 )
+            )
+        }
+
+        parsed.command?.let {
+            sendCommand(
+                command = it,
+                flags = parsed.flagWithCount,
+                currentChats = currentChats,
+                chatRef = chatRef
             )
         }
         return Unit
     }
 
-    fun sendMessage2GlobalChat(
-        text: String,
-        command: ChatCommand? = null,
-        flag: ChatFlag? = null
-    ): Unit? {
-        if (text.isEmpty()) return null
+    fun sendCommand(
+        command: ChatCommand,
+        flags: Map<ChatFlag, Int?> = emptyMap(),
+        currentChats: List<MsgStore> = emptyList(),
+        chatRef: DatabaseReference
+    ) {
         viewModelScope.launch(Dispatchers.IO) {
-            globalChatRef.push().setValue(
-                gameProfile.toMessage(
-                    playerId = playerId,
-                    msg = text,
-                    type = getMessageType(text)
-                )
-            )
+            try {
+                when (command) {
+                    ChatCommand.DeleteLast -> deleteLastMessage(currentChats, chatRef, flags)
+                    ChatCommand.ClearAll -> clearChat(chatRef)
+                    ChatCommand.LastUser -> showLastUser(currentChats, chatRef)
+                }
+            } catch (e: Exception) {
+                e.logError("sendCommand")
+            }
         }
-        return Unit
     }
 
-    fun sendInvitation2Chat(gameId: String?, text: String): Job? {
-        if (gameId.isNullOrEmpty()) return null
+    fun sendInvitation2Chat(gameId: String = getKey4(), text: String): Job? {
+        if (gameId.isEmpty()) return null
         return viewModelScope.launch(Dispatchers.IO) {
             globalChatRef.push().setValue(
                 gameProfile.toMessage(playerId = playerId, msg = text).copy(
@@ -507,33 +578,24 @@ class MainViewModel(
         }
     }
 
-    fun sendCommand(command: ChatCommand, text: String, mode: ChatMode) {
-        player.playButtonClickSound()
-        val ref = if (mode == ChatMode.GLOBAL) globalChatRef else multiPlayerRef
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                sendCommandMessage(ref, command)
-                when (command) {
-                    ChatCommand.DeleteLast -> deleteLastMessage(ref)
-                    ChatCommand.ClearAll -> clearChat(ref)
-                    ChatCommand.LastUser -> showLastUser(ref)
-                }
-            } catch (e: Exception) {
-                Log.d(TAG, "sendCommand: ${e.message}")
-            }
+    private suspend fun deleteLastMessage(
+        currentChats: List<MsgStore>,
+        chatRef: DatabaseReference,
+        flags: Map<ChatFlag, Int?>
+    ) {
+        if (currentChats.firstOrNull()?.msgData?.contains(ChatCommand.DeleteLast.command) == true)
+            return
+        val count = flags[ChatFlag.Count]?.coerceIn(1, 10) ?: 1
+
+        globalChatList.value.take(count).forEach {
+            chatRef.child(it.key)
+                .removeValue()
+                .await()
         }
     }
 
-    private suspend fun deleteLastMessage(ref: DatabaseReference) {
-        globalChatList.value.firstOrNull()?.let {
-            ref.child(it.key)
-                .removeValue()
-                .await()
-        } ?: error("No message to delete")
-    }
-
-    private suspend fun clearChat(ref: DatabaseReference) {
-        ref.push().setValue(
+    private suspend fun clearChat(chatRef: DatabaseReference) {
+        chatRef.push().setValue(
             ChatCommand.bot.copy(
                 playerId = playerId,
                 msgData = "\uFE0E\n\n\n\n\n\n\n\n\n\n\n\n\n\n" +
@@ -545,29 +607,24 @@ class MainViewModel(
         ).await()
     }
 
-    private suspend fun showLastUser(ref: DatabaseReference) {
-        globalChatList.value.find { it.type == MessageType.Normal.name && it.playerId != playerId }?.playerId?.let { playerId ->
-            val playerInfo =
-                gamerProfileRef.document(playerId).get().await().toObject<GameProfile>()
-                    ?: error("No player found")
-            globalChatRef.push().setValue(
-                ChatCommand.bot.copy(
-                    playerId = playerInfo.playerId,
-                    type = MessageType.UserInfo.name,
-                    user = playerInfo
-                )
-            )
-        } ?: error("No message to show")
-    }
-
-    private suspend fun sendCommandMessage(ref: DatabaseReference, command: ChatCommand) {
-        ref.push().setValue(
-            gameProfile.toMessage(
-                playerId = playerId,
-                msg = command.name,
-                type = MessageType.Command
-            )
-        ).await()
+    private suspend fun showLastUser(
+        currentChats: List<MsgStore>,
+        chatRef: DatabaseReference
+    ) {
+        currentChats
+            .find { it.type == MessageType.Normal.name && it.playerId != playerId }
+            ?.playerId
+            ?.let { playerId ->
+                val playerInfo =
+                    gamerProfileRef.document(playerId).get().await().toObject<GameProfile>()
+                        ?: error("No player found")
+                chatRef.push().setValue(
+                    ChatCommand.bot.copy(
+                        playerId = playerInfo.playerId,
+                        user = playerInfo
+                    )
+                ).await()
+            } ?: error("No message to show")
     }
 
     fun clearMultiPlayerDB() {
@@ -578,8 +635,8 @@ class MainViewModel(
     }
 
     fun fuckIL() {
-        Firebase.firestore.collection("gamerProfile").whereEqualTo("countryEmoji", "🇮🇱")
-            .addSnapshotListener { qs, _ ->
+        Firebase.firestore.collection("gamerProfile").whereEqualTo("countryEmoji", "🇮🇱").get()
+            .addOnSuccessListener { qs ->
                 qs?.documents?.mapNotNull { it?.toObject<GameProfile>() }?.forEach {
                     it.countryEmoji = "🇵🇸"
                     it.countryNm = "Palestina"
@@ -588,54 +645,69 @@ class MainViewModel(
             }
     }
 
+    private var fetchActiveMatchesListener: ChildEventListener? = null
+
+    fun removeActiveMatchesListener() {
+        fetchActiveMatchesListener?.let {
+            multiPlayerRef.removeEventListener(it)
+            fetchActiveMatchesListener = null
+        }
+    }
+
     fun fetchActiveMatches() {
+        if (fetchActiveMatchesListener != null) return
         viewModelScope.launch(Dispatchers.IO) {
-            multiPlayerRef.limitToLast(100).addChildEventListener(object : ChildEventListener {
-                override fun onChildAdded(dataSnapshot: DataSnapshot, s: String?) {
-                    Log.d("addList", "onChildAdded: " + dataSnapshot.key)
-                    runCatching {
-                        dataSnapshot.getValue<GameRoom>()?.let { game ->
-                            savedStateHandle["matches"] =
-                                (matches.value + game.copy(key = dataSnapshot.key.orEmpty())).distinctBy { it.key }
+            removeOlderMatches()
+            fetchActiveMatchesListener =
+                multiPlayerRef.limitToLast(100).addChildEventListener(object : ChildEventListener {
+                    override fun onChildAdded(dataSnapshot: DataSnapshot, s: String?) {
+                        Log.d("addList", "onChildAdded: " + dataSnapshot.key)
+                        runCatching {
+                            dataSnapshot.getValue<GameRoom>()?.let { game ->
+                                savedStateHandle["matches"] =
+                                    (matches.value + game.copy(key = dataSnapshot.key.orEmpty())).distinctBy { it.key }
+                            }
                         }
                     }
-                }
 
-                override fun onChildChanged(dataSnapshot: DataSnapshot, s: String?) {
-                    removeByKey(dataSnapshot.key)
-                    runCatching {
-                        dataSnapshot.getValue<GameRoom>()?.let { game ->
-                            savedStateHandle["matches"] =
-                                (matches.value + game.copy(key = dataSnapshot.key.orEmpty()))
+                    override fun onChildChanged(dataSnapshot: DataSnapshot, s: String?) {
+                        removeByKey(dataSnapshot.key)
+                        runCatching {
+                            dataSnapshot.getValue<GameRoom>()?.let { game ->
+                                savedStateHandle["matches"] =
+                                    (matches.value + game.copy(key = dataSnapshot.key.orEmpty()))
+                            }
                         }
                     }
-                }
 
-                override fun onChildRemoved(dataSnapshot: DataSnapshot) {
-                    removeByKey(dataSnapshot.key)
-                }
+                    override fun onChildRemoved(dataSnapshot: DataSnapshot) {
+                        removeByKey(dataSnapshot.key)
+                    }
 
-                private fun removeByKey(key: String?) {
-                    key?.let { key ->
-                        matches.value.toMutableList().apply {
-                            if (removeIf { it.key == key })
-                                savedStateHandle["matches"] = toList()
+                    private fun removeByKey(key: String?) {
+                        key?.let { key ->
+                            matches.value.toMutableList().apply {
+                                if (removeIf { it.key == key })
+                                    savedStateHandle["matches"] = toList()
+                            }
                         }
                     }
-                }
 
-                override fun onChildMoved(dataSnapshot: DataSnapshot, s: String?) {}
-                override fun onCancelled(databaseError: DatabaseError) {
-                    Log.w("TAG", "Failed to read value.", databaseError.toException())
-                }
-            })
+                    override fun onChildMoved(dataSnapshot: DataSnapshot, s: String?) {}
+                    override fun onCancelled(databaseError: DatabaseError) {
+                        Log.w("TAG", "Failed to read value.", databaseError.toException())
+                        fetchActiveMatchesListener = null
+                    }
+                })
         }
     }
 
     fun getValidMatch(shortKey: String): GameRoom? =
-        matches.value.find { getKey4(it.key) == shortKey }
+        matches.value
+            .find { getKey4(it.key) == shortKey }
+            .takeIf { !it?.key.isNullOrBlank() }
 
-    fun getKey4(key: String = matchKey): String {
+    fun getKey4(key: String = matchRouteInfo.gameKey): String {
         if (key.isEmpty()) return ""
         return buildString {
             for (i in 4..key.length) {
@@ -650,7 +722,6 @@ class MainViewModel(
     }
 
     fun getJoinRoute(msg: MsgStore): Result<Routes.GameOnline> {
-        // TODO: IMPROVE
         fun defError(): Result<Routes.GameOnline> {
             if (matches.value.isNotEmpty())
                 globalChatRef.child(msg.key).removeValue()
@@ -658,69 +729,127 @@ class MainViewModel(
         }
         if (msg.gameId.length != 4) return defError()
         val gameRoom = getValidMatch(msg.gameId) ?: return defError()
-        val fullKey = gameRoom.key
-        if (fullKey.isEmpty()) return Result.failure(Exception("Match expired."))
-        pref.save("tmpKey", fullKey)
+        gameRoom.log("getJoinRoute")
+        pref.save("tmpKey", gameRoom.key)
 
-        if (gameRoom.playerCount == "-1")
-            return defError()
-        if (gameRoom.player1.id == playerId || gameRoom.player2.id == playerId)
-            return Result.failure(Exception("You are already in the match."))
-        if (gameRoom.playerCount == "2")
+        if (currentRoute is Routes.GameOnline)
+            return Result.failure(Exception("You are already in a match."))
+        val isPlayer1 = gameRoom.player1.id == playerId
+        val isPlayer2 = gameRoom.player2.id == playerId
+        val isParticipant = isPlayer1 || isPlayer2
+
+        val isRoomFull = gameRoom.player1.id.isNotEmpty() &&
+                gameRoom.player2.id.isNotEmpty()
+
+        // Reject if the player isn't in the room AND the room cannot accept new players
+        if (!isParticipant && isRoomFull)
             return Result.failure(Exception("Match already started."))
 
-        sendInitialMessage(gameRoom)
-        /*        multiPlayerRef.child(fullKey).apply {
-                    child("player2").setValue(gameProfile.toPlayerInfo())
-                    child("playerCount").setValue("2")
-                }
-                // Send join message
-                friendlyChatRef?.push()?.setValue(
-                    gameProfile.toMessage(
-                        playerId = playerId,
-                        msg = "Joined the match.",
-                        type = MessageType.EnterText
-                    )
-                )*/
-        return Result.success(
-            Routes.GameOnline(
-                gameKey = fullKey,
-                isPlyr1 = false,
-                plr1Id = gameRoom.player1.id,
-                nm1 = gameRoom.player1.nm,
-                lvl1 = gameRoom.player1.lvl,
-                plr2Id = playerId,
-                nm2 = gameProfile.nm,
-                lvl2 = gameProfile.lvlByCal()
-            )
+        val isPlyr1 = gameRoom.player1.id.isEmpty() || isPlayer1
+        matchRouteInfo = Routes.GameOnline(
+            gameKey = gameRoom.key,
+            isPlyr1 = isPlyr1,
+            plr1Id = if (isPlyr1) playerId else gameRoom.player1.id,
+            nm1 = if (isPlyr1) gameProfile.nm else gameRoom.player1.nm,
+            lvl1 = if (isPlyr1) gameProfile.lvlByCal() else gameRoom.player1.lvl,
+            plr2Id = if (isPlyr1) gameRoom.player2.id else playerId,
+            nm2 = if (isPlyr1) gameRoom.player2.nm else gameProfile.nm,
+            lvl2 = if (isPlyr1) gameRoom.player2.lvl else gameProfile.lvlByCal()
         )
+        matchRouteInfo.log("getJoinRoute")
+        sendInitialMessage(gameRoom, false)
+        fetchServerLineClick()
+        fetchFriendlyChat()
+        return Result.success(matchRouteInfo)
     }
 
-    fun sendInitialMessage(gameRoom: GameRoom, isPlyr1: Boolean = false) {
-        matchKey = gameRoom.key
-        val ms = gameProfile.toMessage(
+    fun sendInitialMessage(gameRoom: GameRoom, isNewRoom: Boolean) {
+        val chatKey = getFriendlyChatKey()
+        val initialMsg = gameProfile.toMessage(
             playerId = playerId,
-            msg = if (isPlyr1) "Created the match." else "Joined the match.",
+            msg = if (isNewRoom) "Created the match." else "Joined the match.",
             type = MessageType.EnterText
         )
-        if (isPlyr1) {
-            // Player 1: Create room with initial message
-            multiPlayerRef.child(gameRoom.key).setValue(
-                gameRoom.copy(
-                    player1 = gameProfile.toPlayerInfo(),
-                    friendlyChat = mapOf(getFriendlyChatKey() to ms)
-                )
+
+        if (isNewRoom) {
+            // Player 1: Initialize new room
+            val newRoomData = gameRoom.copy(
+                player1 = gameProfile.toPlayerInfo(),
+                friendlyChat = mapOf(chatKey to initialMsg)
             )
-        } else {
-            // Player 2: Join existing room
-            multiPlayerRef.child(gameRoom.key).updateChildren(
-                mapOf(
-                    "playerCount" to "2",
-                    "player2" to gameProfile.toPlayerInfo(),
-                    "friendlyChat" to gameRoom.friendlyChat + mapOf(getFriendlyChatKey() to ms)
-                )
-            )
+            multiPlayerRef.child(gameRoom.key).setValue(newRoomData)
+            return
         }
+
+        val updates = mutableMapOf(
+            "friendlyChat/$chatKey" to initialMsg,
+            "playerCount" to "2"
+        )
+
+        when {
+            gameRoom.player2.id.isEmpty() -> {
+                // Player 2 fills empty slot
+                updates["player2"] = gameProfile.toPlayerInfo(
+                    score = gameRoom.player2.score,
+                    cup = gameRoom.player2.cup
+                )
+                updates["playerCount"] = "2"
+            }
+            gameRoom.player1.id.isEmpty() -> {
+                // Fallback: Player 1 slot was vacant
+                updates["player1"] = gameProfile.toPlayerInfo(
+                    score = gameRoom.player1.score,
+                    cup = gameRoom.player1.cup
+                )
+                updates["playerCount"] = "2"
+            }
+            else -> return // Room is full, abort update
+        }
+
+        multiPlayerRef.child(gameRoom.key).updateChildren(updates)
+    }
+
+    fun sendClick2Server(lineId: String, color: PlayerColor) {
+        val isPlyr1 = matchRouteInfo.isPlyr1
+        val isMe = (isPlyr1 && color.isRed) || (!isPlyr1 && !color.isRed)
+        if (!isMe) return
+        if (lineIdsFromServer.value.containsKey(lineId)) return
+        pushLineClick(lineId)
+    }
+
+    private fun pushLineClick(lineId: String) {
+        val matchRef = matchRef ?: return
+        val matchLiveRef = matchLiveRef ?: return
+        val isPlyr1 = matchRouteInfo.isPlyr1
+
+        val playerMatchKey = if (isPlyr1) "plyr1" else "plyr2"
+        val playerInfoKey = if (isPlyr1) "player1" else "player2"
+
+        // Generate a unique push key under matchLiveRef
+        val clickKey = matchLiveRef.child(playerMatchKey).push().key ?: uuidV7
+
+        val serverTimestamp = ServerValue.TIMESTAMP
+
+        // Perform an atomic multi-location update across both nodes
+        val updates = mapOf(
+            "matchInfo/$playerMatchKey/$clickKey" to lineId,
+            "pingAt" to serverTimestamp,
+            "$playerInfoKey/seenAt" to serverTimestamp
+        )
+        matchRef.updateChildren(updates)
+    }
+
+    fun pingCurrentMatch() {
+        matchRef?.child("pingAt")
+            ?.setValue(ServerValue.TIMESTAMP)
+    }
+
+    fun pingActiveStatus() {
+        val playerInfoKey =
+            if (matchRouteInfo.isPlyr1) "player1" else "player2"
+        matchRef?.child(playerInfoKey)
+            ?.child("seenAt")
+            ?.setValue(ServerValue.TIMESTAMP)
     }
 
     fun getFriendlyChatKey(): String {

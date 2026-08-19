@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
+import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.activityViewModels
 import com.diu.yk_games.line2box.BuildConfig
 import com.diu.yk_games.line2box.R
@@ -21,6 +22,15 @@ class ShareDialogFragment : BottomSheetDialogFragment() {
     lateinit var binding: DialogFragmentShareBinding
     private val viewModel by activityViewModels<MainViewModel>()
 
+    lateinit var parentActivity: FragmentActivity
+
+    private val drawerLayout: DrawerLayout by lazy {
+        parentActivity.findViewById(R.id.drawer_layout)
+    }
+    private val bubbleTabBar: BubbleTabBar by lazy {
+        parentActivity.findViewById(R.id.bubbleTabBar)
+    }
+
     override fun getTheme(): Int {
         return R.style.TransparentBottomSheetDialog
     }
@@ -31,17 +41,18 @@ class ShareDialogFragment : BottomSheetDialogFragment() {
         savedInstanceState: Bundle?
     ): View {
         binding = DialogFragmentShareBinding.inflate(inflater, container, false)
+        parentActivity = requireActivity()
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        binding.gameId.text = viewModel.gameId
+        binding.gameId.text = viewModel.getKey4()
         val gameLink = "https://play.google.com/store/apps/details?id=${BuildConfig.APPLICATION_ID}"
 
         val message = "Hey there! \uD83C\uDFAE\n\n" +
                 "I’ve found an awesome game called *Line2Box*, and I’d love for you to join me!\n\n" +
                 "\uD83D\uDC49 Game Link: $gameLink\n\n" +
-                "Joining ID: *${viewModel.gameId}*\n\n" +
+                "Joining ID: *${viewModel.getKey4()}*\n\n" +
                 "Let's have some fun! \uD83D\uDE80\uD83D\uDD25"
 
         val intent = Intent(Intent.ACTION_SEND).apply {
@@ -51,17 +62,15 @@ class ShareDialogFragment : BottomSheetDialogFragment() {
         }
         binding.apply {
             btnCopy.setBounceClickListener {
-                context.setClipBoardData(viewModel.gameId, "ID copied")
+                context.setClipBoardData(viewModel.getKey4(), "ID copied")
             }
             btnSend2Chat.setBounceClickListener {
                 viewModel.sendInvitation2Chat(
-                    gameId = viewModel.gameId,
-//                    text = getString(R.string.join_my_match)
-                    text = "${getString(R.string.join_my_match)}\n\nMatch ID: ${viewModel.gameId}"
+                    text = "${getString(R.string.join_my_match)}\n\nMatch ID: ${viewModel.getKey4()}"
                 )
                 dismiss()
-                activity?.findViewById<DrawerLayout>(R.id.drawer_layout)?.openDrawer(GravityCompat.START)
-                activity?.findViewById<BubbleTabBar>(R.id.bubbleTabBar)?.setSelected(0, true)
+                drawerLayout.openDrawer(GravityCompat.START)
+                bubbleTabBar.setSelected(0, true)
             }
             btnSend2WhatsApp.setBounceClickListener {
                 try {

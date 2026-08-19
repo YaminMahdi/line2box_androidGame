@@ -70,71 +70,71 @@ class ScoreBoardFragment : BaseFragment<FragmentDisplayBinding>(FragmentDisplayB
         binding.btnBack.setBounceClickListener(::onBackPressed)
 
         scoreListAdapter.onClickListener = run@{ gamerPro ->
-            if(itemClicked && gamerPro.plr1Id == "offline") return@run
+            if(itemClicked && gamerPro.starData == "friendly") return@run
             itemClicked = true
             gamerPro.log("scoreListAdapter")
-            if (gamerPro.plr1Id == "offline")
+            if (gamerPro.starData == "friendly") {
                 toast("Offline matches don't have match details.")
-            else {
-                viewModel.player.playButtonClickSound()
-                val dialogBinding = DialogLayoutScrGlobeBinding.inflate(layoutInflater)
-                val alertDialog = AlertDialog.Builder(parentActivity)
-                    .setView(dialogBinding.root).create()
-                alertDialog.setOnDismissListener {
-                    itemClicked = false
-                }
-                Log.d(TAG, "onItemClick: 1id " + gamerPro.plr1Id)
-                Log.d(TAG, "onItemClick: 2id " + gamerPro.plr2Id)
-                viewModel.firestore.collection("gamerProfile").document(gamerPro.plr1Id)
-                    .get()
-                    .addOnSuccessListener { documentSnapshot ->
-                        val gp = documentSnapshot.toObject<GameProfile>() ?: return@addOnSuccessListener
-                        val scr = gamerPro.redData.split(" ").dropLastWhile { it.isEmpty() }
-                        Log.d(TAG, "onSuccess: scr " + scr[scr.size - 1])
-                        dialogBinding.plr1Score.text = scr[scr.size - 1]
-                        dialogBinding.plr1Cup.text = gamerPro.plr1Cup
-                        Log.d(TAG, "onSuccess: cup " + gamerPro.plr1Cup)
-                        p1Pro = gp
-                        if (p1Pro.countryEmoji != "")
-                            dialogBinding.plr1Flag.text = p1Pro.countryEmoji
-                        dialogBinding.plr1Nm.text = p1Pro.nm
-                        Log.d(TAG, "onSuccess: nm " + p1Pro.nm)
-                        dialogBinding.plr1Lvl.text = "" + p1Pro.lvl
-                    }
-                viewModel.firestore.collection("gamerProfile").document(gamerPro.plr2Id)
-                    .get().addOnSuccessListener { documentSnapshot ->
-                        val gp = documentSnapshot.toObject<GameProfile>() ?: return@addOnSuccessListener
-                        val scr = gamerPro.blueData.split(" ").dropLastWhile { it.isEmpty() }
-                        dialogBinding.plr2Score.text = scr[scr.size - 1]
-                        dialogBinding.plr2Cup.text = gamerPro.plr2Cup
-                        p2Pro = gp
-                        if (p2Pro.countryEmoji != "")
-                            dialogBinding.plr2Flag.text = p2Pro.countryEmoji
-                        dialogBinding.plr2Nm.text = p2Pro.nm
-                        dialogBinding.plr2Lvl.text = "" + p2Pro.lvl
-                        alertDialog.window?.setBackgroundDrawable(0.toDrawable())
-                        runCatching { alertDialog.show() }
-                        
-                    }
-                var itemClicked2 =false
-                var itemClicked3 =false
-                dialogBinding.linLayoutPlr1
-                    .setBounceClickListener {
-                        if(itemClicked2) return@setBounceClickListener
-                        itemClicked2 = true
-                        onPlayerProfileClick(p1Pro, 60){
-                            itemClicked2 = false
-                        }
-                    }
-                dialogBinding.linLayoutPlr2
-                    .setBounceClickListener {
-                        if(itemClicked3) return@setBounceClickListener
-                        itemClicked3 = true
-                        onPlayerProfileClick(p2Pro, 420){
-                            itemClicked3 = false
-                        }
-                    }
+                return@run
             }
+            viewModel.player.playButtonClickSound()
+            val dialogBinding = DialogLayoutScrGlobeBinding.inflate(layoutInflater)
+            val alertDialog = AlertDialog.Builder(parentActivity)
+                .setView(dialogBinding.root).create()
+            alertDialog.setOnDismissListener {
+                itemClicked = false
+            }
+            Log.d(TAG, "onItemClick: 1id " + gamerPro.plr1Id)
+            Log.d(TAG, "onItemClick: 2id " + gamerPro.plr2Id)
+            viewModel.firestore.collection("gamerProfile").document(gamerPro.plr1Id)
+                .get()
+                .addOnSuccessListener { documentSnapshot ->
+                    val gp = documentSnapshot.toObject<GameProfile>() ?: return@addOnSuccessListener
+                    val scr = gamerPro.redData.split(" ").dropLastWhile { it.isEmpty() }
+                    Log.d(TAG, "onSuccess: scr " + scr[scr.size - 1])
+                    dialogBinding.plr1Score.text = scr[scr.size - 1]
+                    dialogBinding.plr1Cup.text = gamerPro.plr1Cup
+                    Log.d(TAG, "onSuccess: cup " + gamerPro.plr1Cup)
+                    p1Pro = gp
+                    if (p1Pro.countryEmoji != "")
+                        dialogBinding.plr1Flag.text = p1Pro.countryEmoji
+                    dialogBinding.plr1Nm.text = p1Pro.nm
+                    Log.d(TAG, "onSuccess: nm " + p1Pro.nm)
+                    dialogBinding.plr1Lvl.text = "" + p1Pro.lvl
+                }
+            viewModel.firestore.collection("gamerProfile").document(gamerPro.plr2Id)
+                .get().addOnSuccessListener { documentSnapshot ->
+                    val gp = documentSnapshot.toObject<GameProfile>() ?: return@addOnSuccessListener
+                    val scr = gamerPro.blueData.split(" ").dropLastWhile { it.isEmpty() }
+                    dialogBinding.plr2Score.text = scr[scr.size - 1]
+                    dialogBinding.plr2Cup.text = gamerPro.plr2Cup
+                    p2Pro = gp
+                    if (p2Pro.countryEmoji != "")
+                        dialogBinding.plr2Flag.text = p2Pro.countryEmoji
+                    dialogBinding.plr2Nm.text = p2Pro.nm
+                    dialogBinding.plr2Lvl.text = "" + p2Pro.lvl
+                    alertDialog.window?.setBackgroundDrawable(0.toDrawable())
+                    runCatching { alertDialog.show() }
+
+                }
+            var itemClicked2 =false
+            var itemClicked3 =false
+            dialogBinding.linLayoutPlr1
+                .setBounceClickListener {
+                    if(itemClicked2) return@setBounceClickListener
+                    itemClicked2 = true
+                    onPlayerProfileClick(p1Pro, 60){
+                        itemClicked2 = false
+                    }
+                }
+            dialogBinding.linLayoutPlr2
+                .setBounceClickListener {
+                    if(itemClicked3) return@setBounceClickListener
+                    itemClicked3 = true
+                    onPlayerProfileClick(p2Pro, 420){
+                        itemClicked3 = false
+                    }
+                }
         }
     }
 

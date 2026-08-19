@@ -35,10 +35,6 @@ import com.diu.yk_games.line2box.util.*
 import com.google.android.gms.common.images.ImageManager
 import com.google.android.gms.games.PlayGames
 import com.google.firebase.Firebase
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.ValueEventListener
-import com.google.firebase.database.getValue
 import com.google.firebase.firestore.firestore
 import io.ak1.BubbleTabBar
 import io.ghyeok.stickyswitch.widget.StickySwitch
@@ -49,7 +45,8 @@ import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
 
 @SuppressLint("SetTextI18n")
-class MultiplayerFragment : BaseFragment<FragmentMultiplayerBinding>(FragmentMultiplayerBinding::inflate) {
+class MultiplayerFragment :
+    BaseFragment<FragmentMultiplayerBinding>(FragmentMultiplayerBinding::inflate) {
     private val drawerLayout: DrawerLayout by lazy {
         parentActivity.findViewById(R.id.drawer_layout)
     }
@@ -63,10 +60,7 @@ class MultiplayerFragment : BaseFragment<FragmentMultiplayerBinding>(FragmentMul
         viewModel.initGameProfile()
         binding.trophyTextId.text = "" + viewModel.gameProfile.coin
         lvlUpgrade()
-        viewModel.fetchFriendlyChat()
         if (viewModel.isStickySwitchRight) {
-            viewModel.gameOnline.isPlyr1 = true
-            fetchJoiningPlayerInfo()
             binding.apply {
                 stickySwitch.setDirection(
                     direction = StickySwitch.Direction.RIGHT,
@@ -74,7 +68,6 @@ class MultiplayerFragment : BaseFragment<FragmentMultiplayerBinding>(FragmentMul
                     shouldTriggerSelected = false
                 )
                 joinInputId.isEnabled = false
-                startMatchBtn.isEnabled = false
                 joinInputId.hint = viewModel.getKey4()
                 copyPastBtn.setImageResource(R.drawable.icon_share)
                 copyPastBtn.tag = R.drawable.icon_share
@@ -87,22 +80,14 @@ class MultiplayerFragment : BaseFragment<FragmentMultiplayerBinding>(FragmentMul
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         viewModel.initMultiplayer()
-        viewModel.gameOnline.apply {
-            plr2Id = viewModel.playerId
-            nm2 = viewModel.gameProfile.nm
-            lvl2 = viewModel.gameProfile.lvlByCal()
-            isPlyr1 = false
-        }
         Log.d("TAG", "onCreate: local" + viewModel.gameProfile.coin)
         binding.trophyTextId.text = "" + viewModel.gameProfile.coin
-        binding.emojiPlay.gone()
         val tmpNm = viewModel.gameProfile.nm
         if (pref.read("needName", true) || tmpNm.contains("Noob"))
             changeNameNeeded()
         lvlUpgrade()
         binding.copyPastBtn.setImageResource(R.drawable.icon_paste)
         binding.copyPastBtn.tag = R.drawable.icon_paste
-        binding.startMatchBtn.isEnabled = false
 
         setupListener()
         setupObserver()
@@ -144,47 +129,20 @@ class MultiplayerFragment : BaseFragment<FragmentMultiplayerBinding>(FragmentMul
                 toast("Invalid Key")
                 return@doAfterTextChanged
             }
-            if (gameRoom.key.isEmpty()) {
-                toast("Invalid Key")
-                return@doAfterTextChanged
-            }
-            Log.d(
-                "getKey",
-                "afterTextChanged: " + gameRoom.key + " " + binding.joinInputId.text.toString().length
-            )
+            Log.d("getKey", "afterTextChanged: " + gameRoom.key)
             closeKeyboard()
-            viewModel.gameOnline.gameKey = gameRoom.key
-            if (gameRoom.playerCount == "1") {
-                amiThePayer = true
-                viewModel.sendInitialMessage(gameRoom)
-/*                val ms = viewModel.gameProfile.toMessage(
-                    playerId = viewModel.playerId,
-                    msg = "Joined the match.",
-                    type = MsgStore.MessageType.EnterText
-                )
-                viewModel.multiPlayerRef.child(gameRoom.key).updateChildren(
-                    mapOf(
-                        "playerCount" to "2",
-                        "player2" to viewModel.gameProfile.toPlayerInfo(),
-                        "friendlyChat" to gameRoom.friendlyChat.toMutableMap().apply {
-                            put(getFriendlyChatKey(gameRoom.key), ms)
-                        }
-                    )
-                )*/
-                binding.startMatchBtn.isEnabled = true
-                viewModel.gameOnline.apply {
-                    plr1Id = gameRoom.player1.id
-                    nm1 = gameRoom.player1.nm
+            if (gameRoom.player2.id.isEmpty() || gameRoom.player2.id == viewModel.playerId) {
+                viewModel.matchRouteInfo = viewModel.matchRouteInfo.copy(
+                    gameKey = gameRoom.key,
+                    plr1Id = gameRoom.player1.id,
+                    nm1 = gameRoom.player1.nm,
                     lvl1 = gameRoom.player1.lvl
-                }
-//                viewModel.matchKey = gameRoom.key
-                viewModel.friendsChatList.collectWithLifecycle {
-                    if (it.isEmpty()) return@collectWithLifecycle
-                    bubbleTabBar.setSelected(1, true)
-                    cancel()
-                }
+                )
+                amiThePayer = true
+                viewModel.sendInitialMessage(gameRoom, false)
+                bubbleTabBar.setSelected(1, true)
+                startMatch()
             } else if (!amiThePayer) {
-                binding.startMatchBtn.isEnabled = false
                 toast("Match already started")
             }
         }
@@ -195,16 +153,14 @@ class MultiplayerFragment : BaseFragment<FragmentMultiplayerBinding>(FragmentMul
                     when (direction) {
                         StickySwitch.Direction.LEFT -> {
                             binding.joinInputId.isEnabled = true
-                            binding.startMatchBtn.isEnabled = false
                             binding.joinInputId.hint = ""
                             binding.joinInputId.setText("")
-                            viewModel.gameOnline.apply {
-                                plr2Id = viewModel.playerId
-                                nm2 = viewModel.gameProfile.nm
-                                lvl2 = viewModel.gameProfile.lvlByCal()
+                            viewModel.matchRouteInfo = Routes.GameOnline(
+                                plr2Id = viewModel.playerId,
+                                nm2 = viewModel.gameProfile.nm,
+                                lvl2 = viewModel.gameProfile.lvlByCal(),
                                 isPlyr1 = false
-                            }
-
+                            )
                             bubbleTabBar.setSelected(0, true)
                             viewModel.clearFriendlyChat()
                             viewModel.setNewMsgBoltVisible(false)
@@ -220,45 +176,27 @@ class MultiplayerFragment : BaseFragment<FragmentMultiplayerBinding>(FragmentMul
 
                         StickySwitch.Direction.RIGHT -> {
                             binding.joinInputId.isEnabled = false
-                            binding.startMatchBtn.isEnabled = false
                             binding.joinInputId.hint = ""
                             binding.joinInputId.setText("")
                             viewModel.clearTempMatches()
                             val key =
                                 viewModel.multiPlayerRef.push().key ?: viewModel.uuidV7
-                            viewModel.gameOnline.apply {
-                                plr1Id = viewModel.playerId
-                                nm1 = viewModel.gameProfile.nm
-                                lvl1 = viewModel.gameProfile.lvlByCal()
-                                gameKey = key
+                            viewModel.addTempKey(key)
+                            viewModel.matchRouteInfo = Routes.GameOnline(
+                                plr1Id = viewModel.playerId,
+                                nm1 = viewModel.gameProfile.nm,
+                                lvl1 = viewModel.gameProfile.lvlByCal(),
+                                gameKey = key,
                                 isPlyr1 = true
-                            }
+                            )
                             Log.d("TAG", "onCreate key: $key")
-                            viewModel.sendInitialMessage(
-                                gameRoom = GameRoom(key = key),
-                                isPlyr1 = true
-                            )
-/*
-                            val msg = viewModel.gameProfile.toMessage(
-                                playerId = viewModel.playerId,
-                                msg = "Created the match.",
-                                type = MsgStore.MessageType.EnterText
-                            )
-                            val gameRoom = GameRoom(
-                                key = key,
-                                player1 = viewModel.gameProfile.toPlayerInfo(),
-                                friendlyChat = mapOf(getFriendlyChatKey(key) to msg)
-                            )
-                            viewModel.multiPlayerRef.child(key)
-                                .setValue(gameRoom)
-                                */
+                            viewModel.sendInitialMessage(GameRoom(key = key), true)
                             bubbleTabBar.setSelected(1, true)
                             viewModel.isStickySwitchRight = true
-//                            viewModel.matchKey = key
                             fetchJoiningPlayerInfo(key)
                             lifecycleScope.launch {
                                 delay(400.milliseconds)
-                                binding.joinInputId.hint = viewModel.getKey4()
+                                binding.joinInputId.hint = viewModel.getKey4(key)
                                 binding.copyPastBtn.setImageResource(R.drawable.icon_share)
                                 binding.copyPastBtn.tag = R.drawable.icon_share
                                 binding.stickySwitch.switchColor =
@@ -272,7 +210,6 @@ class MultiplayerFragment : BaseFragment<FragmentMultiplayerBinding>(FragmentMul
             viewModel.player.playButtonClickSound()
             when (binding.stickySwitch.getDirection()) {
                 StickySwitch.Direction.RIGHT -> {
-                    viewModel.gameId = viewModel.getKey4()
                     ShareDialogFragment().show(childFragmentManager, "share")
                 }
 
@@ -300,54 +237,37 @@ class MultiplayerFragment : BaseFragment<FragmentMultiplayerBinding>(FragmentMul
         binding.profileBtn.setBounceClickListener {
             profileBtn()
         }
-        binding.startMatchBtn.setBounceClickListener {
-            binding.joinInputId.setText("")
-            startBtn()
-        }
     }
 
-    private fun fetchJoiningPlayerInfo(key: String = viewModel.matchKey) {
-        viewModel.friendsChatList.collectWithLifecycle {
-            if (it.isEmpty()) return@collectWithLifecycle
-            bubbleTabBar.setSelected(1, true)
-            cancel()
-        }
-        viewModel.multiPlayerRef.child(key)
-            .addValueEventListener(object : ValueEventListener {
-                override fun onDataChange(dataSnapshot: DataSnapshot) {
-                    val gameRoom = dataSnapshot.getValue<GameRoom>() ?: run {
-                        binding.startMatchBtn.isEnabled = false
-                        return
+    private fun fetchJoiningPlayerInfo(key: String) {
+        viewModel.multiPlayerRef.child(key).asValueFlow<GameRoom>()
+            .collectWithLifecycle { gameRoom ->
+                if (binding.stickySwitch.getDirection() == StickySwitch.Direction.LEFT || key != gameRoom.key) {
+                    cancel()
+                    return@collectWithLifecycle
+                }
+                viewModel.matchRouteInfo = viewModel.matchRouteInfo.copy(
+                    plr2Id = gameRoom.player2.id,
+                    nm2 = gameRoom.player2.nm,
+                    lvl2 = gameRoom.player2.lvl
+                )
+                when (gameRoom.playerCount) {
+                    "2" -> {
+                        cancel()
+                        bubbleTabBar.setSelected(1, true)
+                        startMatch()
                     }
-                    viewModel.gameOnline.apply {
-                        if (binding.stickySwitch.getDirection() == StickySwitch.Direction.LEFT) return@apply
-                        plr2Id = gameRoom.player2.id
-                        nm2 = gameRoom.player2.nm
-                        lvl2 = gameRoom.player2.lvl
-                    }
-                    when (gameRoom.playerCount) {
-                        "2" -> {
-                            binding.startMatchBtn.isEnabled = true
-                            bubbleTabBar.setSelected(1, true)
-                        }
 
-                        "-1" -> {
-                            viewModel.multiPlayerRef.child(key).removeEventListener(this)
-                            binding.stickySwitch.setDirection(StickySwitch.Direction.LEFT)
-                        }
+                    "-1" -> {
+                        cancel()
+                        binding.stickySwitch.setDirection(StickySwitch.Direction.LEFT)
                     }
                 }
-
-                override fun onCancelled(error: DatabaseError) {
-                    // Failed to read value
-                    Log.w("TAG", "Failed to read value.", error.toException())
-                }
-            })
+            }
     }
 
     private fun View.animateCenterBox(bottomMargin: Int) {
-        if (drawerLayout.isDrawerOpen(GravityCompat.START)
-        ) return
+        if (drawerLayout.isDrawerOpen(GravityCompat.START)) return
         val parent = parent as? ConstraintLayout ?: return
         val constraintSet = ConstraintSet()
         constraintSet.clone(parent)
@@ -578,11 +498,21 @@ class MultiplayerFragment : BaseFragment<FragmentMultiplayerBinding>(FragmentMul
         onBackPressed()
     }
 
-    private fun startBtn() {
-        if (viewModel.gameOnline.gameKey.isEmpty()) return
+    private fun startMatch() {
+        if (viewModel.matchRouteInfo.gameKey.isEmpty()) return
+        drawerLayout.closeDrawer(GravityCompat.START)
         viewModel.player.playButtonClickSound()
-        navigateSafe(viewModel.gameOnline)
-        binding.startMatchBtn.isEnabled = false
+        viewModel.fetchServerLineClick()
+        viewModel.fetchFriendlyChat()
+        binding.joinInputId.hint = ""
+        binding.joinInputId.setText("")
+        viewModel.isStickySwitchRight = false
+        binding.stickySwitch.setDirection(
+            direction = StickySwitch.Direction.LEFT,
+            isAnimate = false,
+            shouldTriggerSelected = false
+        )
+        navigateSafe(viewModel.matchRouteInfo)
     }
 
     fun openPlayGamesProfileChooser() {

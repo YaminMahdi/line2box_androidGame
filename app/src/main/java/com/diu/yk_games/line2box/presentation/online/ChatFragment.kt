@@ -17,17 +17,16 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.compose.content
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.diu.yk_games.line2box.R
-import com.diu.yk_games.line2box.model.ChatCommand
-import com.diu.yk_games.line2box.model.ChatFlag
 import com.diu.yk_games.line2box.model.ChatMode
 import com.diu.yk_games.line2box.model.GameProfile
 import com.diu.yk_games.line2box.presentation.MainViewModel
 import com.diu.yk_games.line2box.presentation.navigation.Routes
-import com.diu.yk_games.line2box.ui.theme.Line2BoxTheme
+import com.diu.yk_games.line2box.ui.theme.Line2BoxChatTheme
 import com.diu.yk_games.line2box.util.*
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import com.google.firebase.firestore.toObject
+import io.ak1.BubbleTabBar
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -37,6 +36,12 @@ class ChatFragment : Fragment() {
 
     private val drawerLayout: DrawerLayout by lazy {
         parentActivity.findViewById(R.id.drawer_layout)
+    }
+    private val bubbleTabBar: BubbleTabBar by lazy {
+        parentActivity.findViewById(R.id.bubbleTabBar)
+    }
+    private val emojiPlay: ImageView by lazy {
+        parentActivity.findViewById(R.id.emojiPlay)
     }
 
     private val mode: ChatMode by lazy {
@@ -48,18 +53,17 @@ class ChatFragment : Fragment() {
         savedInstanceState: Bundle?
     ) = content {
         parentActivity = requireActivity()
-        Line2BoxTheme {
+        Line2BoxChatTheme {
             ChatRoute(
                 mode = mode,
-                viewModel = viewModel,
                 onCloseDrawer = { drawerLayout.closeDrawer(GravityCompat.START) },
                 onNavigate = ::navigateSafe,
                 onPlayEmoji = { drawable, sound ->
                     viewModel.player.playSound(sound)
-                    parentActivity.findViewById<ImageView>(R.id.emojiPlay)
-                        .apply { loadDrawable(drawable); show() }
+                    emojiPlay.loadDrawable(drawable)
+                    emojiPlay.show()
                 },
-                onHideEmoji = { parentActivity.findViewById<ImageView>(R.id.emojiPlay).gone() },
+                onHideEmoji = { emojiPlay.gone() },
             )
         }
     }
@@ -67,7 +71,6 @@ class ChatFragment : Fragment() {
     @Composable
     internal fun ChatRoute(
         mode: ChatMode,
-        viewModel: MainViewModel,
         onCloseDrawer: () -> Unit,
         onNavigate: (Routes.GameOnline) -> Unit,
         onPlayEmoji: (drawableRes: Int, rawRes: Int) -> Unit,
@@ -76,31 +79,20 @@ class ChatFragment : Fragment() {
     ) {
         val context = LocalContext.current
         val focusRequester = remember { FocusRequester() }
-        val messages by (if (mode == ChatMode.FRIENDLY) viewModel.friendsChatList else viewModel.globalChatList)
+        val messages by (if (mode == ChatMode.FRIENDLY) viewModel.friendlyChatList else viewModel.globalChatList)
             .collectAsStateWithLifecycle()
         val fieldState = rememberTextFieldState()
         var profile by remember { mutableStateOf<GameProfile?>(null) }
-        var command by remember { mutableStateOf<ChatCommand?>(null) }
-        var flag by remember { mutableStateOf<ChatFlag?>(null) }
         var emojiEnabled by remember { mutableStateOf(true) }
         var lastKey by remember { mutableStateOf("") }
 
         fun send() {
-            if (mode == ChatMode.GLOBAL)
+            if (mode.isGlobal)
                 viewModel.player.playPopSound()
-            val sent =
-                if (mode == ChatMode.FRIENDLY)
-                    viewModel.sendMessage2FriendlyChat(
-                        text = fieldState.value,
-                        command = command,
-                        flag = flag
-                    )
-                else
-                    viewModel.sendMessage2GlobalChat(
-                        text = fieldState.value,
-                        command = command,
-                        flag = flag
-                    )
+            val sent = viewModel.sendMessage(
+                text = fieldState.value,
+                chatMode = mode
+            )
             if (sent != null)
                 fieldState.value = ""
             else
@@ -122,10 +114,10 @@ class ChatFragment : Fragment() {
                 viewModel.player.playPopSound()
                 viewModel.setNewMsgBoltVisible(true)
             } else {
-                emojiEnabled = false; viewModel.setNewMsgBoltVisible(false); onPlayEmoji(
-                    emoji.first,
-                    emoji.second
-                )
+                emojiEnabled = false
+                viewModel.setNewMsgBoltVisible(false)
+                onCloseDrawer()
+                onPlayEmoji(emoji.first, emoji.second)
                 delay(2500.milliseconds)
                 onHideEmoji()
                 emojiEnabled = true
@@ -133,14 +125,17 @@ class ChatFragment : Fragment() {
             lastKey = newest.key
         }
         ChatScreen(
+            mode = mode,
             messages = messages,
-            playerId = viewModel.playerId,
             fieldState = fieldState,
             focusRequester = focusRequester,
             showEmoji = mode == ChatMode.FRIENDLY,
             emojiEnabled = emojiEnabled,
             onEmoji = {
-                viewModel.sendMessage2FriendlyChat(it)
+                viewModel.sendMessage(
+                    text = it,
+                    chatMode = mode
+                )
                 viewModel.ignoreDrawerClosesSound = true
                 onCloseDrawer()
             },
@@ -152,7 +147,6 @@ class ChatFragment : Fragment() {
             },
             onSend = ::send,
             onCommand = { selectedCommand ->
-                command = selectedCommand
                 fieldState.insertOrReplaceToken(
                     prefix = "/",
                     replacement = selectedCommand.command
@@ -160,7 +154,6 @@ class ChatFragment : Fragment() {
                 focusRequester.requestFocus()
             },
             onFlag = { selectedFlag ->
-                flag = selectedFlag
                 fieldState.insertOrReplaceToken(
                     prefix = "--",
                     replacement = selectedFlag.flag
@@ -172,7 +165,11 @@ class ChatFragment : Fragment() {
                 if (msg.gameId.isEmpty())
                     context.toast("Invalid ID")
                 else viewModel.getJoinRoute(msg)
-                    .onSuccess { onCloseDrawer(); onNavigate(it) }
+                    .onSuccess {
+                        bubbleTabBar.setSelected(1, true)
+                        onCloseDrawer()
+                        onNavigate(it)
+                    }
                     .onFailure { context.toast(it.message.toString()) }
             },
             modifier = modifier

@@ -517,20 +517,18 @@ class GameUtils(
         }
     }
 
-    fun changePlayerTurn(isRedTurn: Boolean, isPlyr1: Boolean = false) {
+    fun changePlayerTurnUi(isRedTurn: Boolean) {
         val binding = binding ?: return
         if (isRedTurn) {
             binding.red.textSize = 30f
             binding.red.setTextColor(whiteT)
             binding.blue.textSize = 35f
             binding.blue.setTextColor(white)
-            if (isPlyr1) plyrTurn = false
         } else {
             binding.blue.textSize = 30f
             binding.blue.setTextColor(whiteT)
             binding.red.textSize = 35f
             binding.red.setTextColor(white)
-            if (!isPlyr1) plyrTurn = false
         }
     }
 

@@ -5,7 +5,6 @@ import android.app.AlertDialog
 import android.content.Context
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.TextView
@@ -26,7 +25,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.util.concurrent.atomic.AtomicBoolean
+import kotlinx.coroutines.tasks.await
 import kotlin.time.Duration.Companion.milliseconds
 
 class GameDualFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDualBinding::inflate) {
@@ -100,12 +99,12 @@ class GameDualFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDualB
             if (extraTurn)
                 gameUtils.clickCount--
             else
-                gameUtils.changePlayerTurn(isRedTurn)
+                gameUtils.changePlayerTurnUi(isRedTurn)
 
             if (gameUtils.totalScore == 36) {
-                var winOffline = pref.read("winOffline", 0)
-                pref.save("winOffline", ++winOffline)
                 lifecycleScope.launch {
+                    var winOffline = IO { pref.read("winOffline", 0) }
+                    pref.save("winOffline", ++winOffline)
                     delay(800.milliseconds)
                     viewModel.player.playWinSound()
                     redTxt.textSize = 30f
@@ -124,7 +123,7 @@ class GameDualFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDualB
     }
 
     @SuppressLint("SetTextI18n")
-    fun onGameOver(winMsg: String, winOffline: Int) {
+    suspend fun onGameOver(winMsg: String, winOffline: Int) {
         val builder = AlertDialog.Builder(parentActivity)
 
         val binding = DialogLayoutAlertBinding.inflate(LayoutInflater.from(parentActivity))
@@ -132,7 +131,8 @@ class GameDualFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDualB
 
         builder.setView(view)
 
-        if (saveToFirebase()) toast("Score Saved to Online Score Board")
+        if (saveToFirebase())
+            toast("Score Saved to Online Score Board")
 
         binding.textMessage.text = winMsg
         binding.buttonNo.text = "Exit"
@@ -143,7 +143,7 @@ class GameDualFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDualB
         binding.buttonYes.setBounceClickListener {
             viewModel.player.playButtonClickSound()
             runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
-            if (winOffline > 5) {
+            if (winOffline > 2 && viewModel.isConnected) {
                 val manager = ReviewManagerFactory.create(parentActivity)
                 val request = manager.requestReviewFlow()
                 request.addOnCompleteListener { task ->
@@ -177,46 +177,57 @@ class GameDualFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDualB
         }
     }
 
-    fun saveToFirebase(): Boolean {
-        val success = AtomicBoolean(false)
-        val starData = "friendly"
-        val redData = "${gameUtils.nm1}: ${gameUtils.scoreRed}"
-        val blueData = "${gameUtils.nm2}: ${gameUtils.scoreBlue}"
+    suspend fun saveToFirebase(): Boolean {
+        if (!viewModel.isConnected) return false
+
+        val redScore = gameUtils.scoreRed
+        val blueScore = gameUtils.scoreBlue
+        val redData = "${gameUtils.nm1}: $redScore"
+        val blueData = "${gameUtils.nm2}: $blueScore"
+
         val ds = DataStore(
             time = System.currentTimeMillis(),
             redData = redData,
             blueData = blueData,
-            starData = starData,
-            plr1Id = "offline",
+            starData = "friendly",
+            plr1Id = "",
             plr2Id = "",
             plr1Cup = "",
             plr2Cup = ""
         )
 
-        //single
-        val db = Firebase.firestore
-        //Source source = Source.CACHE;
-        db.collection("LastBestPlayer").document("LastBestPlayer")
-            .get().addOnSuccessListener {
-                val map = it.data ?: return@addOnSuccessListener
-                Log.d("TAG", "Cached document data: $map")
-                val bestScore = map["info"]
-                    .toString()
-                    .substringAfterLast(": ")
-                    .toIntOrNull() ?: 0
-                val data = when {
-                    bestScore <= gameUtils.scoreRed -> ds.redData
-                    bestScore <= gameUtils.scoreBlue -> ds.blueData
-                    else -> null
+        return IO {
+            runCatching {
+                val db = Firebase.firestore
+
+                // 1. Save user's score to ScoreBoard
+                db.collection("ScoreBoard")
+                    .document(viewModel.uuidV7)
+                    .set(ds)
+                    .await()
+
+                // 2. Check and update LastBestPlayer atomically via Transaction
+                val highestLocalData = when {
+                    redScore >= blueScore -> redData
+                    else -> blueData
                 }
-                data?.let { info ->
-                    db.collection("LastBestPlayer").document("LastBestPlayer")
-                        .update("info", info)
-                }
-            }
-        db.collection("ScoreBoard").document(viewModel.uuidV7).set(ds)
-            .addOnCompleteListener { success.set(true) }
-        return success.get()
+                val maxScore = maxOf(redScore, blueScore)
+
+                val docRef = db.collection("LastBestPlayer").document("LastBestPlayer")
+
+                db.runTransaction { transaction ->
+                    val snapshot = transaction.get(docRef)
+                    val currentInfo = snapshot.getString("info") ?: ""
+                    val currentBestScore = currentInfo.substringAfterLast(": ", "0").toIntOrNull() ?: 0
+
+                    if (maxScore > currentBestScore) {
+                        transaction.update(docRef, "info", highestLocalData)
+                    }
+                }.await()
+
+                true
+            }.getOrDefault(false)
+        }
     }
 
     companion object {

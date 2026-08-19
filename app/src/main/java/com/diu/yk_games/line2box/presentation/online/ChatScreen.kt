@@ -35,11 +35,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.model.*
-import com.diu.yk_games.line2box.ui.theme.*
-import com.diu.yk_games.line2box.util.ChatTextField
-import com.diu.yk_games.line2box.util.bounceOnClick
-import com.diu.yk_games.line2box.util.toDateTime
-import com.diu.yk_games.line2box.util.value
+import com.diu.yk_games.line2box.ui.theme.Line2BoxChatTheme
+import com.diu.yk_games.line2box.util.*
 
 private val barBrush =
     Brush.verticalGradient(listOf(Color(0xFF7B775C), Color(0xFF9A9465), Color(0xFF706C4F)))
@@ -47,10 +44,11 @@ private val barBrush =
 /**
  * Stateless chat UI. All screen state and business actions are hoisted to the caller.
  */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ChatScreen(
+    mode: ChatMode,
     messages: List<MsgStore>,
-    playerId: String,
     fieldState: TextFieldState,
     focusRequester: FocusRequester,
     onSend: () -> Unit,
@@ -75,8 +73,7 @@ fun ChatScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(cocX)
-            .imePadding()
+//            .imePadding()
     ) {
         Box(
             modifier = Modifier.weight(1f)
@@ -87,6 +84,19 @@ fun ChatScreen(
                 verticalArrangement = Arrangement.spacedBy(3.dp, Alignment.Bottom),
                 modifier = Modifier.fillMaxSize()
             ) {
+                if (messages.isEmpty()) item {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.fillParentMaxSize()
+                    ) {
+                        if (mode.isGlobal) ContainedLoadingIndicator(
+                            modifier = Modifier.padding(top = 100.dp)
+                        ) else Text(
+                            text = stringResource(R.string.not_in_match),
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                    }
+                }
                 items(
                     items = messages,
                     key = { it.key },
@@ -94,7 +104,6 @@ fun ChatScreen(
                 ) { msg ->
                     MessageRow(
                         msg = msg,
-                        isOwn = msg.playerId == playerId,
                         onClick = { onMessageClick(msg) },
                         onCopy = onCopy,
                         onJoin = { onJoin(msg) }
@@ -133,7 +142,6 @@ fun ChatScreen(
 @Composable
 private fun MessageRow(
     msg: MsgStore,
-    isOwn: Boolean,
     onClick: () -> Unit,
     onCopy: (String) -> Unit,
     onJoin: () -> Unit
@@ -145,13 +153,13 @@ private fun MessageRow(
             .combinedClickable(
                 onClick = onClick,
                 onLongClick = { onCopy(msg.msgData ?: msg.playerId) })
-            .background(cocXx)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .padding(horizontal = 11.dp, vertical = 5.dp)
     ) {
         Row {
             Text(
                 text = msg.nmData,
-                color = cocZz,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 12.sp,
                 lineHeight = 14.sp,
                 fontWeight = FontWeight.SemiBold
@@ -172,28 +180,29 @@ private fun MessageRow(
             Spacer(Modifier.weight(1f))
             Text(
                 text = msg.time.toDateTime(),
-                color = cocZ,
+                color = MaterialTheme.colorScheme.outline,
                 fontSize = 11.sp,
                 lineHeight = 13.sp
             )
         }
         msg.msgData?.let {
-            Text(
+            if (msg.type.typeEnum == MsgStore.MessageType.Command || ChatCommand.hasCommand(it)) Text(
+                text = it.toHighlightedCommandText(
+                    defaultTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    validCommandColor = colorResource(R.color.color_match_action),
+                    validFlagColor = colorResource(R.color.orangeY),
+                ),
+                fontSize = 17.sp,
+                lineHeight = 22.sp
+            ) else Text(
                 text = if (msg.type.typeEnum == MsgStore.MessageType.Invitation)
                     msg.msgData.substringBefore("Match ID").trim()
                 else
                     msg.msgData,
                 color = when (msg.type.typeEnum) {
-                    MsgStore.MessageType.EnterText, MsgStore.MessageType.Command ->
-                        colorResource(R.color.color_match_action)
-
-                    MsgStore.MessageType.ExitText ->
-                        colorResource(R.color.color_left_match)
-
-                    else -> if (ChatCommand.isCommand(it))
-                        colorResource(R.color.color_match_action)
-                    else
-                        colorResource(R.color.whiteY)
+                    MsgStore.MessageType.EnterText -> colorResource(R.color.color_match_action)
+                    MsgStore.MessageType.ExitText -> colorResource(R.color.color_left_match)
+                    else -> colorResource(R.color.whiteY)
                 },
                 fontSize = 17.sp,
                 lineHeight = 22.sp
@@ -203,7 +212,6 @@ private fun MessageRow(
             MsgStore.MessageType.Invitation -> {
                 InvitationActions(
                     id = msg.gameId,
-                    enabled = !isOwn,
                     onCopy = {
                         onCopy(msg.gameId)
                     },
@@ -211,7 +219,7 @@ private fun MessageRow(
                 )
             }
 
-            MsgStore.MessageType.UserInfo if msg.user != null -> UserInfoCard(msg.user)
+            MsgStore.MessageType.Bot if msg.user != null -> UserInfoCard(msg.user)
             else -> Unit
         }
     }
@@ -228,7 +236,7 @@ fun <T> CommandCard(
         shape = RoundedCornerShape(10.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 5.dp),
         colors = CardDefaults.cardColors(
-            containerColor = cocX.copy(.99f)
+            containerColor = MaterialTheme.colorScheme.background.copy(.99f)
         )
     ) {
         Column(
@@ -291,7 +299,7 @@ fun UserInfoCard(user: GameProfile, modifier: Modifier = Modifier) {
                 )
                 Text(
                     text = "${user.coin}",
-                    color = cocZz,
+                    color = MaterialTheme.colorScheme.onBackground,
                     fontSize = 13.sp,
                     lineHeight = 15.sp,
                     fontWeight = FontWeight.Medium,
@@ -385,7 +393,7 @@ fun UserInfoCard(user: GameProfile, modifier: Modifier = Modifier) {
                     )
                     Text(
                         text = user.query,
-                        color = cocZ,
+                        color = MaterialTheme.colorScheme.outline,
                         fontSize = 10.sp,
                         lineHeight = 12.sp,
                         maxLines = 1,
@@ -400,7 +408,6 @@ fun UserInfoCard(user: GameProfile, modifier: Modifier = Modifier) {
 @Composable
 private fun InvitationActions(
     id: String,
-    enabled: Boolean,
     onCopy: () -> Unit,
     onJoin: () -> Unit
 ) {
@@ -421,7 +428,7 @@ private fun InvitationActions(
                     Icon(
                         painterResource(R.drawable.icon_copy),
                         "Copy game ID",
-                        tint = cocZz,
+                        tint = MaterialTheme.colorScheme.onBackground,
                         modifier = Modifier.size(18.dp)
                     )
                 }
@@ -430,13 +437,15 @@ private fun InvitationActions(
         Spacer(Modifier.weight(1f))
         Button(
             onClick = onJoin,
-            enabled = enabled,
             colors = ButtonDefaults.buttonColors(containerColor = colorResource(R.color.greenY)),
             modifier = Modifier
                 .height(36.dp)
                 .bounceOnClick()
         ) {
-            Text(stringResource(R.string.join), fontSize = 13.sp)
+            Text(
+                text = stringResource(R.string.join),
+                fontSize = 13.sp
+            )
         }
     }
 }
@@ -489,37 +498,6 @@ private fun InputBar(
                 .padding(start = 5.dp, top = 5.dp, bottom = 5.dp)
                 .focusRequester(focusRequester)
         )
-//        OutlinedTextField(
-//            state = fieldState,
-////            visualTransformation = CommandHighlighterTransformation(),
-//            lineLimits = TextFieldLineLimits.SingleLine,
-//            placeholder = {
-//                Text(
-//                    stringResource(R.string.type_here),
-//                    color = cocZ,
-//                    fontSize = 16.sp,
-//                    lineHeight = 18.sp
-//                )
-//            },
-//            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
-//            onKeyboardAction = { onSend() },
-//            colors = OutlinedTextFieldDefaults.colors(
-//                focusedTextColor = cocZz,
-//                unfocusedTextColor = cocZz,
-//                focusedContainerColor = fieldBg,
-//                unfocusedContainerColor = fieldBg,
-//                focusedBorderColor = cocZ,
-//                unfocusedBorderColor = cocZ,
-//            ),
-//            textStyle = MaterialTheme.typography.bodyMedium.copy(
-//                fontSize = 16.sp,
-//                lineHeight = 18.sp
-//            ),
-//            shape = RoundedCornerShape(15.dp),
-//            modifier = modifier
-//                .weight(1f)
-//                .padding(start = 5.dp, top = 5.dp, bottom = 5.dp),
-//        )
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier
@@ -546,9 +524,9 @@ private fun InputBar(
 fun ProfileDialog(profile: GameProfile, onDismiss: () -> Unit) {
     Dialog(onDismissRequest = onDismiss) {
         Surface(
-            color = cocXx.copy(.9f),
+            color = MaterialTheme.colorScheme.surfaceVariant.copy(.9f),
             shape = RoundedCornerShape(25.dp),
-            border = BorderStroke(2.dp, cocZ),
+            border = BorderStroke(2.dp, MaterialTheme.colorScheme.outline),
             modifier = Modifier
                 .padding(end = 80.dp)
                 .fillMaxWidth(.8f)
@@ -579,7 +557,7 @@ private fun ProfileContent(profile: GameProfile) {
         Row {
             Text(
                 text = profile.nm,
-                color = cocZz,
+                color = MaterialTheme.colorScheme.onBackground,
                 fontSize = 20.sp,
                 lineHeight = 22.sp,
                 fontWeight = FontWeight.SemiBold
@@ -624,7 +602,7 @@ private fun ProfileContent(profile: GameProfile) {
             Spacer(Modifier.width(8.dp))
             Text(
                 text = profile.coin.toString(),
-                color = cocZz,
+                color = MaterialTheme.colorScheme.onBackground,
                 fontSize = 22.sp,
                 lineHeight = 22.sp,
                 fontWeight = FontWeight.Bold,
@@ -718,9 +696,10 @@ fun getSuggestions(text: String): Pair<List<ChatCommand>, List<ChatFlag>> {
 
 @Preview(showBackground = true, backgroundColor = 0xFF444540)
 @Composable
-private fun ChatPreview() = Line2BoxTheme {
+private fun ChatPreview() = Line2BoxChatTheme {
     val fieldState = TextFieldState()
     ChatScreen(
+        mode = ChatMode.GLOBAL,
         messages = listOf(
             MsgStore(
                 key = "2",
@@ -739,7 +718,7 @@ private fun ChatPreview() = Line2BoxTheme {
             MsgStore(
                 key = "5",
                 nmData = "Bot",
-                type = MsgStore.MessageType.UserInfo.name,
+                type = MsgStore.MessageType.Bot.name,
                 user = GameProfile(
                     nm = "John Doe",
                     cityNm = "New York",
@@ -754,7 +733,6 @@ private fun ChatPreview() = Line2BoxTheme {
                 )
             ),
         ),
-        playerId = "me",
         fieldState = fieldState,
         focusRequester = FocusRequester(),
         onSend = {},

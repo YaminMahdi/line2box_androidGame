@@ -7,8 +7,15 @@ data class Settings(
     val isMuted: Boolean = false,
     val isFirstRun: Boolean = true,
     val showHadith: Boolean = true,
+    val language: Language = Language.EN,
     val theme: Theme = Theme.BG1,
 ) {
+    enum class Language {
+        EN, BN;
+
+        fun flip(): Language = if (this == EN) BN else EN
+    }
+
     enum class Theme(@DrawableRes val background: Int) {
         BG1(R.drawable.bg1),
         BG2(R.drawable.bg2),

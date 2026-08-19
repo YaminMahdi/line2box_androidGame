@@ -17,10 +17,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.diu.yk_games.line2box.R
-import com.diu.yk_games.line2box.ui.theme.cocXx
-import com.diu.yk_games.line2box.ui.theme.cocZ
-import com.diu.yk_games.line2box.ui.theme.cocZz
-import com.diu.yk_games.line2box.ui.theme.outline
 
 @Composable
 fun ChatTextField(
@@ -34,7 +30,7 @@ fun ChatTextField(
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
         onKeyboardAction = { onSend() },
         outputTransformation = CommandHighlighterTransformation(
-            defaultTextColor = cocZz,
+            defaultTextColor = MaterialTheme.colorScheme.onBackground,
             validCommandColor = colorResource(R.color.color_match_action),
             validFlagColor = colorResource(R.color.orangeY),
         ),
@@ -46,18 +42,16 @@ fun ChatTextField(
         placeholder = {
             Text(
                 text = stringResource(R.string.type_here),
-                color = cocZ,
+                color = MaterialTheme.colorScheme.outline,
                 fontSize = 16.sp,
                 lineHeight = 18.sp
             )
         },
         colors = OutlinedTextFieldDefaults.colors(
-            focusedTextColor = Color.Unspecified,   // Set to Unspecified
-            unfocusedTextColor = Color.Unspecified, // Set to Unspecified
-            focusedContainerColor = cocXx.copy(.6f),
-            unfocusedContainerColor = cocXx.copy(.6f),
-            focusedBorderColor = outline,
-            unfocusedBorderColor = outline,
+            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .6f),
+            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .6f),
+            focusedBorderColor = MaterialTheme.colorScheme.outline,
+            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
         ),
         shape = RoundedCornerShape(15.dp),
         modifier = modifier

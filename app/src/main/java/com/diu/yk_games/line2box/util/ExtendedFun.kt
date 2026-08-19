@@ -269,7 +269,10 @@ fun Context?.setClipBoardData(data: String?, toastData: String? = null) {
     }
 }
 
-fun <T> T.getTag() = this?.javaClass?.simpleName ?: "TAG"
+fun <T> T?.getTag(): String = this?.javaClass
+    ?.simpleName
+    ?.takeIf { it.isNotBlank() }
+    ?: "TAG"
 
 fun Any.cat(message: String) {
     message.log(getTag())

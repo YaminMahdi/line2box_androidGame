@@ -3,6 +3,7 @@ package com.diu.yk_games.line2box.presentation
 import android.animation.LayoutTransition
 import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.graphics.Rect
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -13,6 +14,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.isVisible
+import androidx.core.view.updatePadding
 import androidx.customview.widget.ViewDragHelper
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.drawerlayout.widget.DrawerLayout.DrawerListener
@@ -23,13 +25,14 @@ import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.ActivityMainDrawerBinding
 import com.diu.yk_games.line2box.databinding.DialogLayoutAlertBinding
 import com.diu.yk_games.line2box.databinding.DialogLayoutShowHadithBinding
-import com.diu.yk_games.line2box.databinding.DialogLayoutUpdateuiBinding
-import com.diu.yk_games.line2box.model.*
+import com.diu.yk_games.line2box.model.ChatMode
+import com.diu.yk_games.line2box.model.HadithStore
+import com.diu.yk_games.line2box.model.MsgStore
+import com.diu.yk_games.line2box.model.Settings
 import com.diu.yk_games.line2box.presentation.adapter.ViewPagerAdapter
 import com.diu.yk_games.line2box.presentation.navigation.Routes
 import com.diu.yk_games.line2box.presentation.navigation.asRoute
 import com.diu.yk_games.line2box.presentation.navigation.setupNavGraph
-import com.diu.yk_games.line2box.presentation.online.BlankChatFragment
 import com.diu.yk_games.line2box.presentation.online.ChatFragment
 import com.diu.yk_games.line2box.util.*
 import com.google.firebase.firestore.AggregateSource
@@ -68,12 +71,10 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         inAppUpdate.onResume()
-        viewModel.removeTempMatch()
     }
 
     private fun setupUI() {
         binding.loader.loadDrawable(R.drawable.g_loading)
-        /*
         val activityRootView = window.decorView
         activityRootView.viewTreeObserver.addOnGlobalLayoutListener {
             val r = Rect()
@@ -92,10 +93,9 @@ class MainActivity : AppCompatActivity() {
             // Only update if the padding has actually changed
             if (bindingDrawer.chatFragmentLinerLayout.paddingBottom != targetPadding) {
                 bindingDrawer.chatFragmentLinerLayout.updatePadding(bottom = targetPadding)
-                bindingDrawer.navCloseButtonLayout.updatePadding(bottom = targetPadding)
+//                bindingDrawer.navCloseButtonLayout.updatePadding(bottom = targetPadding)
             }
         }
-        */
         bindingDrawer.root.addDrawerListener(object : DrawerListener {
             override fun onDrawerSlide(drawerView: View, slideOffset: Float) {}
             override fun onDrawerOpened(drawerView: View) {}
@@ -121,23 +121,14 @@ class MainActivity : AppCompatActivity() {
             listOf(
                 ChatFragment.newInstance(ChatMode.GLOBAL),
                 ChatFragment.newInstance(ChatMode.FRIENDLY),
-//                ChatFragmentGlobal(),
-//                ChatFragmentFriendly(),
-                BlankChatFragment()
             ), this
         )
         bindingDrawer.bubbleTabBar.addBubbleListener { id ->
-            if (id == R.id.globalChat)
-                chatPager.currentItem = 0
-            else
-                chatPager.currentItem = if (viewModel.friendsChatList.value.isNotEmpty()) 1 else 2
+            chatPager.currentItem = if (id == R.id.globalChat) 0 else 1
         }
         chatPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
-            override fun onPageSelected(position: Int) = when (position) {
-                0 -> bindingDrawer.bubbleTabBar.setSelected(0, true)
-                1 -> bindingDrawer.bubbleTabBar.setSelected(1, true)
-                else -> Unit
-            }
+            override fun onPageSelected(position: Int) =
+                bindingDrawer.bubbleTabBar.setSelected(position, false)
         })
         binding.openNavBtn.setBounceClickListener {
             openNavBtn()
@@ -150,7 +141,8 @@ class MainActivity : AppCompatActivity() {
     private fun setupListener() {
         binding.sideNavGroup.layoutTransition = LayoutTransition()
         navController.currentBackStackEntryFlow.collectWithLifecycle {
-            val route = it.destination.route.asRoute
+            val route = it.destination.route.asRoute ?: return@collectWithLifecycle
+            viewModel.currentRoute = route
             route.log("screen")
             when (route) {
                 Routes.Home, Routes.ScoreBoard, Routes.LeaderBoard, Routes.ChangeName,
@@ -215,20 +207,23 @@ class MainActivity : AppCompatActivity() {
         dialogBinding.buttonNo.text = "NO"
         alertDialog.window?.setBackgroundDrawable(0.toDrawable())
         dialogBinding.buttonYes.setBounceClickListener {
-            if (viewModel.gameOnline.gameKey.isEmpty()) return@setBounceClickListener
             viewModel.player.playButtonClickSound()
-            if (isOnline) {
-                if (viewModel.localPlayerCount != 2)
-                    viewModel.multiPlayerRef.child(viewModel.gameOnline.gameKey).removeValue()
-                else {
-                    viewModel.sendMessage2FriendlyChat(
-                        text = "Left the match.",
-                        type = MsgStore.MessageType.ExitText,
+            val route = viewModel.matchRouteInfo.copy()
+            if (isOnline && route.gameKey.isNotEmpty()) {
+                viewModel.sendMessage(
+                    text = "Left the match.",
+                    chatMode = ChatMode.FRIENDLY,
+                    type = MsgStore.MessageType.ExitText
+                )
+                val playerPath = if (route.isPlyr1) "player1/id" else "player2/id"
+                viewModel.multiPlayerRef
+                    .child(route.gameKey)
+                    .updateChildren(
+                        mapOf(
+                            "playerCount" to "1",
+                            playerPath to ""
+                        )
                     )
-                    viewModel.multiPlayerRef.child(viewModel.gameOnline.gameKey)
-                        .child("playerCount")
-                        .setValue("-1")
-                }
             }
             runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
             onBackPressedIgnoreCallback()
@@ -242,10 +237,12 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupObserver() {
         viewModel.uiEvents.collectWithLifecycle { event ->
+            event.log("uiEvents")
+            viewModel.uiEvents.value = null
             when (event) {
                 MainUiEvent.ShowHadith -> showAHadith()
                 is MainUiEvent.ShowToast -> toast(event.message)
-                is MainUiEvent.UpdateUi -> updateUI(event.errorType)
+                is MainUiEvent.UpdateUi -> toast(event.errorType.description)
             }
         }
         viewModel.isLoading.collectWithLifecycle {
@@ -270,7 +267,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun openNavBtn() {
         bindingDrawer.root.open()
-        if (viewModel.friendsChatList.value.isEmpty())
+        if (viewModel.friendlyChatList.value.isEmpty())
             bindingDrawer.bubbleTabBar.setSelected(0, true)
         viewModel.setNewMsgBoltVisible(false)
     }
@@ -279,80 +276,111 @@ class MainActivity : AppCompatActivity() {
     private fun showAHadith() {
         viewModel.firestore.collection("dailyHadith")
             .count().get(AggregateSource.SERVER)
-            .addOnCompleteListener {
-                if (!it.isSuccessful) return@addOnCompleteListener
-                val totalHadith = it.result.count
-                val randDocId = Random().nextInt(totalHadith.toInt()).toString()
-                Log.d(TAG, "showAHadith: $randDocId")
-                viewModel.firestore.collection("dailyHadith").document(randDocId)
+            .addOnSuccessListener { snapshot ->
+                val totalHadith = snapshot.count.toInt()
+                if (totalHadith <= 0) {
+                    Log.w(TAG, "No hadith documents found")
+                    return@addOnSuccessListener
+                }
+
+                val randomDocId = Random().nextInt(totalHadith).toString()
+                Log.d(TAG, "showAHadith: $randomDocId")
+
+                viewModel.firestore.collection("dailyHadith")
+                    .document(randomDocId)
                     .get()
                     .addOnSuccessListener { doc ->
                         val hadith = doc.toObject<HadithStore>() ?: return@addOnSuccessListener
-                        val builder = AlertDialog.Builder(this)
-                        val dialogBinding =
-                            DialogLayoutShowHadithBinding.inflate(LayoutInflater.from(this))
-                        builder.setView(dialogBinding.root)
-                        builder.setCancelable(false)
-                        val langBtn = dialogBinding.langBtn
-                        val narratorInfo = dialogBinding.narratorInfo
-                        val hadithTxt = dialogBinding.hadithTxt
-                        val headTxt = dialogBinding.warningMessage
-                        if (hadith.t == "h") headTxt.text =
-                            "Read a Hadith" else if (hadith.t == "q") headTxt.text =
-                            "Read from Quran"
-                        if (pref.read("lang", "bn") == "bn") {
-                            narratorInfo.text = hadith.b
-                            hadithTxt.text = hadith.bn
-                            narratorInfo.typeface = resources.getFont(R.font.paapri)
-                            hadithTxt.typeface = resources.getFont(R.font.paapri)
-                            hadithTxt.setLineSpacing(0f, 1f)
-                            langBtn.text = "EN"
-                        } else {
-                            narratorInfo.text = hadith.e
-                            hadithTxt.text = hadith.en
-                            narratorInfo.typeface = resources.getFont(R.font.comfortaa)
-                            hadithTxt.typeface = resources.getFont(R.font.comfortaa)
-                            hadithTxt.setLineSpacing(7f, 1f)
-                            langBtn.text = "BN"
-                        }
-                        dialogBinding.hadithInfo.text = hadith.ref
-                        val alertDialog = builder.create()
-                        langBtn.setBounceClickListener {
-                            viewModel.player.playButtonClickSound()
-                            if (langBtn.text == "EN") {
-                                narratorInfo.text = hadith.e
-                                hadithTxt.text = hadith.en
-                                narratorInfo.typeface = resources.getFont(R.font.comfortaa)
-                                hadithTxt.typeface = resources.getFont(R.font.comfortaa)
-                                hadithTxt.setLineSpacing(7f, 1f)
-                                pref.save("lang", "en")
-                                langBtn.text = "BN"
-                            } else {
-                                narratorInfo.text = hadith.b
-                                hadithTxt.text = hadith.bn
-                                narratorInfo.typeface = resources.getFont(R.font.paapri)
-                                hadithTxt.typeface = resources.getFont(R.font.paapri)
-                                hadithTxt.setLineSpacing(0f, 1f)
-                                pref.save("lang", "bn")
-                                langBtn.text = "EN"
-                            }
-                        }
-                        dialogBinding.buttonDone.setBounceClickListener {
-                            viewModel.player.playButtonClickSound()
-                            runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
-                        }
-                        dialogBinding.srcLink.setBounceClickListener {
-                            dialogBinding.srcLink.setTextColor(getColor(R.color.teal_700))
-                            viewModel.player.playButtonClickSound()
-                            var url = hadith.src
-                            if (hadith.t == "q" && langBtn.text == "BN") url =
-                                url.replace("bn", "en")
-                            showCustomTab(url)
-                        }
-                        alertDialog.window?.setBackgroundDrawable(0.toDrawable())
-                        runCatching { alertDialog.show() }
+                        showHadithDialog(hadith)
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e(TAG, "Failed to fetch hadith document", e)
                     }
             }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "Failed to get hadith count", e)
+            }
+    }
+
+    private fun showHadithDialog(hadith: HadithStore) {
+        val dialogBinding = DialogLayoutShowHadithBinding.inflate(LayoutInflater.from(this))
+        val alertDialog = AlertDialog.Builder(this)
+            .setView(dialogBinding.root)
+            .setCancelable(false)
+            .create()
+
+        // Set up UI elements
+        val headTxt = dialogBinding.warningMessage
+        headTxt.text = when (hadith.t) {
+            "h" -> "Read a Hadith"
+            "q" -> "Read from Quran"
+            else -> return
+        }
+
+        // Apply language settings
+        applyLanguageToUI(dialogBinding, hadith, viewModel.settings.language)
+        dialogBinding.hadithInfo.text = hadith.ref
+
+        // Language toggle button
+        dialogBinding.langBtn.setBounceClickListener {
+            viewModel.player.playButtonClickSound()
+            val newLanguage = viewModel.settings.language.flip()
+            applyLanguageToUI(dialogBinding, hadith, newLanguage)
+            viewModel.updateSettings { copy(language = newLanguage) }
+            dialogBinding.langBtn.text = newLanguage.name
+        }
+
+        // Done button
+        dialogBinding.buttonDone.setBounceClickListener {
+            viewModel.player.playButtonClickSound()
+            if (alertDialog.isShowing) {
+                alertDialog.dismiss()
+            }
+        }
+
+        // Source link
+        dialogBinding.srcLink.setBounceClickListener {
+            dialogBinding.srcLink.setTextColor(getColor(R.color.teal_700))
+            viewModel.player.playButtonClickSound()
+            var url = hadith.src
+            if (hadith.t == "q" && viewModel.settings.language == Settings.Language.EN) {
+                url = url.replace("bn", "en")
+            }
+            showCustomTab(url)
+        }
+
+        alertDialog.window?.setBackgroundDrawable(0.toDrawable())
+        alertDialog.show()
+    }
+
+    data class LangBaseUiState(
+        val narratorText: String,
+        val hadithText: String,
+        val fontRes: Int,
+        val lineSpacing: Float
+    )
+
+    private fun applyLanguageToUI(
+        binding: DialogLayoutShowHadithBinding,
+        hadith: HadithStore,
+        lang: Settings.Language
+    ) {
+        val state = if (lang == Settings.Language.BN)
+            LangBaseUiState(hadith.b, hadith.bn, R.font.paapri, 0f)
+        else
+            LangBaseUiState(hadith.e, hadith.en, R.font.comfortaa, 7f)
+
+
+        binding.narratorInfo.apply {
+            text = state.narratorText
+            typeface = resources.getFont(state.fontRes)
+        }
+
+        binding.hadithTxt.apply {
+            text = state.hadithText
+            typeface = resources.getFont(state.fontRes)
+            setLineSpacing(state.lineSpacing, 1f)
+        }
     }
 
     fun addSomeBlankHadith(startingIndex: Int) {
@@ -360,57 +388,6 @@ class MainActivity : AppCompatActivity() {
             viewModel.firestore.collection("dailyHadith").document(i.toString() + "")
                 .set(HadithStore())
         }
-    }
-
-    @SuppressLint("SetTextI18n")
-    fun updateUI(errorType: ErrorType) {
-        if (errorType == ErrorType.NoError) return
-        val builder = AlertDialog.Builder(this)
-        val dialogBinding = DialogLayoutUpdateuiBinding.inflate(LayoutInflater.from(this))
-        builder.setView(dialogBinding.root)
-        builder.setCancelable(false)
-        val alertDialog = builder.create()
-        dialogBinding.googlePlayWarning.gone()
-        dialogBinding.warningMessage.text = errorType.msg
-        val needProfile = pref.read("needProfile", true)
-        when (errorType) {
-            ErrorType.NoInternet -> {
-                if (!needProfile) {
-                    dialogBinding.updateInfo.text = "Some functionalities are disabled."
-                    dialogBinding.buttonUpdate.text = "Continue"
-                }
-            }
-
-            else -> {
-                if (needProfile) {
-                    dialogBinding.googlePlayWarning.show()
-                    dialogBinding.updateInfo.text = "You may need to UPDATE an app.\n(Link Below)"
-                }
-            }
-        }
-        dialogBinding.buttonUpdate.setBounceClickListener {
-            viewModel.player.playButtonClickSound()
-            runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
-            if (pref.read("needProfile", true))
-                recreate()
-        }
-        dialogBinding.playSvLink.setBounceClickListener {
-            dialogBinding.playSvLink.setTextColor(getColor(R.color.teal_700))
-            viewModel.player.playButtonClickSound()
-            showCustomTab(Constants.PLAY_SERVICES_APP_URL) ?: showOnMarket(Constants.PLAY_SERVICES)
-        }
-        dialogBinding.playGmLink.setBounceClickListener {
-            dialogBinding.playGmLink.setTextColor(getColor(R.color.teal_700))
-            viewModel.player.playButtonClickSound()
-            showCustomTab(Constants.PLAY_GAMES_APP_URL) ?: showOnMarket(Constants.PLAY_GAMES)
-        }
-        dialogBinding.restartLink.setBounceClickListener {
-            dialogBinding.restartLink.setTextColor(getColor(R.color.teal_700))
-            viewModel.player.playButtonClickSound()
-            showCustomTab(Constants.RESTART_YOUTUBE_URL)
-        }
-        alertDialog.window?.setBackgroundDrawable(0.toDrawable())
-        runCatching { alertDialog.show() }
     }
 
     companion object {
