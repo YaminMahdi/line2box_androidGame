@@ -25,11 +25,9 @@ import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.ActivityMainDrawerBinding
 import com.diu.yk_games.line2box.databinding.DialogLayoutAlertBinding
 import com.diu.yk_games.line2box.databinding.DialogLayoutShowHadithBinding
-import com.diu.yk_games.line2box.model.ChatMode
-import com.diu.yk_games.line2box.model.HadithStore
-import com.diu.yk_games.line2box.model.MsgStore
-import com.diu.yk_games.line2box.model.Settings
+import com.diu.yk_games.line2box.model.*
 import com.diu.yk_games.line2box.presentation.adapter.ViewPagerAdapter
+import com.diu.yk_games.line2box.presentation.component.installDynamicIsland
 import com.diu.yk_games.line2box.presentation.navigation.Routes
 import com.diu.yk_games.line2box.presentation.navigation.asRoute
 import com.diu.yk_games.line2box.presentation.navigation.setupNavGraph
@@ -130,15 +128,25 @@ class MainActivity : AppCompatActivity() {
             override fun onPageSelected(position: Int) =
                 bindingDrawer.bubbleTabBar.setSelected(position, false)
         })
+        binding.composeView.installDynamicIsland(
+            sourceView = binding.mainNavHost,
+            onClick = {
+                when(it) {
+                    is DynamicBubble.Message if it.text.isNotBlank()->
+                        openNavBtn()
+                    else -> Unit
+                }
+            }
+        )
+    }
+
+    private fun setupListener() {
         binding.openNavBtn.setBounceClickListener {
             openNavBtn()
         }
         bindingDrawer.closeNavBtn.setBounceClickListener {
             closeNavBtn()
         }
-    }
-
-    private fun setupListener() {
         binding.sideNavGroup.layoutTransition = LayoutTransition()
         navController.currentBackStackEntryFlow.collectWithLifecycle {
             val route = it.destination.route.asRoute ?: return@collectWithLifecycle
@@ -245,9 +253,9 @@ class MainActivity : AppCompatActivity() {
                 is MainUiEvent.UpdateUi -> toast(event.errorType.description)
             }
         }
-        viewModel.isLoading.collectWithLifecycle {
-            binding.loadingLayout.changeVisibility(it)
-        }
+//        viewModel.isLoading.collectWithLifecycle {
+//            binding.loadingLayout.changeVisibility(it)
+//        }
         viewModel.isNewMsgBoltVisible.collectWithLifecycle {
             binding.newMsgBoltu.changeVisibility(it)
         }

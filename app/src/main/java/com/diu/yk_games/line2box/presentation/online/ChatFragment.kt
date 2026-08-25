@@ -20,6 +20,7 @@ import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.model.ChatMode
 import com.diu.yk_games.line2box.model.GameProfile
 import com.diu.yk_games.line2box.presentation.MainViewModel
+import com.diu.yk_games.line2box.presentation.component.DynamicIslandController
 import com.diu.yk_games.line2box.presentation.navigation.Routes
 import com.diu.yk_games.line2box.ui.theme.Line2BoxChatTheme
 import com.diu.yk_games.line2box.util.*
@@ -110,10 +111,7 @@ class ChatFragment : Fragment() {
                 "🥱" -> R.drawable.emoji_yawn to R.raw.yawn
                 else -> null
             }
-            if (emoji == null) {
-                viewModel.player.playPopSound()
-                viewModel.setNewMsgBoltVisible(true)
-            } else {
+            if (emoji != null) {
                 emojiEnabled = false
                 viewModel.setNewMsgBoltVisible(false)
                 onCloseDrawer()
@@ -121,6 +119,11 @@ class ChatFragment : Fragment() {
                 delay(2500.milliseconds)
                 onHideEmoji()
                 emojiEnabled = true
+            }
+            else if (newest.playerId != viewModel.playerId) {
+                viewModel.player.playPopSound()
+                viewModel.setNewMsgBoltVisible(true)
+                DynamicIslandController.message(newest.nmData, newest.msgData)
             }
             lastKey = newest.key
         }

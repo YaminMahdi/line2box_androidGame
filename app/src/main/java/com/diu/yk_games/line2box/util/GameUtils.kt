@@ -58,25 +58,26 @@ class GameUtils(
     var nm2 = "Blue"
     var isFirstRun = false
     var isGameOver = false
+    var lastHadExtraTurn = false
     var plyrTurn = false
     private var firstBonus = true
 
 
     init {
         context.lifecycleScope.launch {
-            isFirstRun = IO { pref.read("firstRun", true) }
             resetGameBoard()
+            isFirstRun = IO { pref.read("firstRun", true) }
         }
     }
 
-    fun resetGameBoard() {
+    suspend fun resetGameBoard() {
         val binding = binding ?: return
-        lineIDs.forEach {
+        lineIDs.mapAsync {
             val bg = binding.root
                 .findViewById<View>(idFromName(it))?.background?.mutate() as? GradientDrawable
             bg?.setColor(whiteX)
         }
-        circleIds.forEach {
+        circleIds.mapAsync {
             val bg = binding.root
                 .findViewById<View>(idFromName(it))?.background?.mutate() as? GradientDrawable
             if (bg == null)
@@ -429,7 +430,8 @@ class GameUtils(
             isRedTurn = isRedTurn,
             shouldCheck = shouldCheckBottom(aroundIds.line)
         )
-        return hasExtraTurn1 || hasExtraTurn2
+        lastHadExtraTurn = hasExtraTurn1 || hasExtraTurn2
+        return lastHadExtraTurn
     }
 
     fun handleBox(

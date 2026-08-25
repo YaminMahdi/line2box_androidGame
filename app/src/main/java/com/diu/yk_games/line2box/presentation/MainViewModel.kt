@@ -10,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.model.*
 import com.diu.yk_games.line2box.model.MsgStore.MessageType
+import com.diu.yk_games.line2box.presentation.component.DynamicIslandController
 import com.diu.yk_games.line2box.presentation.navigation.Routes
 import com.diu.yk_games.line2box.util.*
 import com.google.android.gms.games.PlayGames
@@ -26,6 +27,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import org.jsoup.Jsoup
@@ -315,7 +317,11 @@ class MainViewModel(
     }
 
     fun setLoading(value: Boolean) {
-        savedStateHandle["isLoading"] = value
+//        savedStateHandle["isLoading"] = value
+        if (value)
+            DynamicIslandController.loading()
+        else
+            DynamicIslandController.idle()
     }
 
     fun initGameProfile() {
@@ -385,10 +391,11 @@ class MainViewModel(
         }
     }
 
-    val lineIdsFromServer: StateFlow<Map<String, PlayerColor>>
-        field = MutableStateFlow(mapOf())
+    val lineIdsFromServer: StateFlow<Set<GameRoom.Line>>
+        field = MutableStateFlow(setOf())
 
     var fetchServerLineClickListeners = mapOf<PlayerColor, ChildEventListener>()
+    var fetchServerLineClickListener: ChildEventListener? = null
 
     fun removeServerLineClickListener() {
         fetchServerLineClickListeners.forEach {
@@ -396,19 +403,55 @@ class MainViewModel(
                 ?.removeEventListener(it.value)
         }
         fetchServerLineClickListeners = mapOf()
+        fetchServerLineClickListener?.also {
+            matchLiveRef?.child("clicks")
+                ?.removeEventListener(it)
+        }
+        fetchServerLineClickListener = null
     }
 
-    fun fetchServerLineClick() {
+    fun fetchServerLineClick(gameRoom: GameRoom? = getMatch(matchRouteInfo.gameKey)) {
         matchRouteInfo.log("fetchServerLineClick")
         viewModelScope.launch {
-            lineIdsFromServer.value = mapOf()
+            lineIdsFromServer.value = setOf()
             removeServerLineClickListener()
             val matchLiveRef = matchLiveRef ?: return@launch
-            fetchServerLineClickListeners = PlayerColor.entries.associateWith {
-                fetch4Player(matchLiveRef, it)
+            when (gameRoom?.ver) {
+                V1 -> fetchServerLineClickListeners = PlayerColor.entries.associateWith {
+                    fetch4Player(matchLiveRef, it)
+                }
+                V2 -> fetchServerLineClickListener = fetchV2Clicks(matchLiveRef)
+                else -> Log.d(TAG, "fetchServerLineClick: Unknown version")
             }
+
         }
     }
+
+    private fun fetchV2Clicks(
+        matchLiveRef: DatabaseReference
+    ): ChildEventListener = matchLiveRef.child("clicks")
+        .addChildEventListener(object : ChildEventListener {
+            override fun onChildAdded(dataSnapshot: DataSnapshot, s: String?) {
+                val idFromServer = dataSnapshot.getValue<GameRoom.Line>() ?: return
+                idFromServer.log("fetchServerLineClick idFromServer")
+                lineIdsFromServer.update {
+                    it.plus(idFromServer)
+                }
+            }
+
+            override fun onChildChanged(dataSnapshot: DataSnapshot, s: String?) {}
+            override fun onChildRemoved(dataSnapshot: DataSnapshot) {
+                val idFromServer = dataSnapshot.getValue<GameRoom.Line>() ?: return
+                lineIdsFromServer.update {
+                    it.minus(idFromServer)
+                }
+            }
+
+            override fun onChildMoved(dataSnapshot: DataSnapshot, s: String?) {}
+            override fun onCancelled(databaseError: DatabaseError) {
+                Log.w("TAG", "Failed to read value.", databaseError.toException())
+            }
+        })
 
     private fun fetch4Player(
         matchLiveRef: DatabaseReference,
@@ -418,13 +461,17 @@ class MainViewModel(
             override fun onChildAdded(dataSnapshot: DataSnapshot, s: String?) {
                 val idFromServer = dataSnapshot.getValue<String>() ?: return
                 idFromServer.log("fetchServerLineClick idFromServer")
-                lineIdsFromServer.value = lineIdsFromServer.value.plus(idFromServer to color)
+                lineIdsFromServer.update {
+                    it.plus(GameRoom.Line(idFromServer, color))
+                }
             }
 
             override fun onChildChanged(dataSnapshot: DataSnapshot, s: String?) {}
             override fun onChildRemoved(dataSnapshot: DataSnapshot) {
                 val idFromServer = dataSnapshot.getValue<String>() ?: return
-                lineIdsFromServer.value = lineIdsFromServer.value.minus(idFromServer)
+                lineIdsFromServer.update {
+                    it.minus(GameRoom.Line(idFromServer, color))
+                }
             }
 
             override fun onChildMoved(dataSnapshot: DataSnapshot, s: String?) {}
@@ -444,22 +491,23 @@ class MainViewModel(
 
     fun fetchGlobalChat() {
         if (fetchGlobalChatListener != null) return
-        fetchGlobalChatListener = globalChatRef.limitToLast(150).addValueEventListener(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                val chatList = snapshot.children.mapNotNull {
-                    val key = it.key
-                    val ms = it.getValue<MsgStore>()
-                    if (key == null || ms == null) return@mapNotNull null
-                    ms.copy(key = key)
-                }.reversed()
-                savedStateHandle["globalChatList"] = chatList
-            }
+        fetchGlobalChatListener =
+            globalChatRef.limitToLast(150).addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val chatList = snapshot.children.mapNotNull {
+                        val key = it.key
+                        val ms = it.getValue<MsgStore>()
+                        if (key == null || ms == null) return@mapNotNull null
+                        ms.copy(key = key)
+                    }.reversed()
+                    savedStateHandle["globalChatList"] = chatList
+                }
 
-            override fun onCancelled(databaseError: DatabaseError) {
-                Log.w("TAG", "Failed to read value.", databaseError.toException())
-                fetchGlobalChatListener = null
-            }
-        })
+                override fun onCancelled(databaseError: DatabaseError) {
+                    Log.w("TAG", "Failed to read value.", databaseError.toException())
+                    fetchGlobalChatListener = null
+                }
+            })
     }
 
     private var friendlyValueListener: ValueEventListener? = null
@@ -702,10 +750,11 @@ class MainViewModel(
         }
     }
 
+    fun getMatch(fullKey: String): GameRoom? =
+        matches.value.find { it.key == fullKey && it.key.isNotBlank() }
+
     fun getValidMatch(shortKey: String): GameRoom? =
-        matches.value
-            .find { getKey4(it.key) == shortKey }
-            .takeIf { !it?.key.isNullOrBlank() }
+        matches.value.find { getKey4(it.key) == shortKey && it.key.isNotBlank() }
 
     fun getKey4(key: String = matchRouteInfo.gameKey): String {
         if (key.isEmpty()) return ""
@@ -758,7 +807,7 @@ class MainViewModel(
         )
         matchRouteInfo.log("getJoinRoute")
         sendInitialMessage(gameRoom, false)
-        fetchServerLineClick()
+        fetchServerLineClick(gameRoom)
         fetchFriendlyChat()
         return Result.success(matchRouteInfo)
     }
@@ -774,6 +823,7 @@ class MainViewModel(
         if (isNewRoom) {
             // Player 1: Initialize new room
             val newRoomData = gameRoom.copy(
+                ver = GameRoom.RoomType.V2,
                 player1 = gameProfile.toPlayerInfo(),
                 friendlyChat = mapOf(chatKey to initialMsg)
             )
@@ -793,31 +843,31 @@ class MainViewModel(
                     score = gameRoom.player2.score,
                     cup = gameRoom.player2.cup
                 )
-                updates["playerCount"] = "2"
             }
+
             gameRoom.player1.id.isEmpty() -> {
                 // Fallback: Player 1 slot was vacant
                 updates["player1"] = gameProfile.toPlayerInfo(
                     score = gameRoom.player1.score,
                     cup = gameRoom.player1.cup
                 )
-                updates["playerCount"] = "2"
             }
-            else -> return // Room is full, abort update
+
+            else -> Unit
         }
 
         multiPlayerRef.child(gameRoom.key).updateChildren(updates)
     }
 
-    fun sendClick2Server(lineId: String, color: PlayerColor) {
+    fun sendClick2Server(line: GameRoom.Line) {
         val isPlyr1 = matchRouteInfo.isPlyr1
-        val isMe = (isPlyr1 && color.isRed) || (!isPlyr1 && !color.isRed)
+        val isMe = isPlyr1 == line.color.isRed
         if (!isMe) return
-        if (lineIdsFromServer.value.containsKey(lineId)) return
-        pushLineClick(lineId)
+        if (lineIdsFromServer.value.any { it.id == line.id }) return
+        pushLineClick(line)
     }
 
-    private fun pushLineClick(lineId: String) {
+    private fun pushLineClick(line: GameRoom.Line) {
         val matchRef = matchRef ?: return
         val matchLiveRef = matchLiveRef ?: return
         val isPlyr1 = matchRouteInfo.isPlyr1
@@ -827,12 +877,14 @@ class MainViewModel(
 
         // Generate a unique push key under matchLiveRef
         val clickKey = matchLiveRef.child(playerMatchKey).push().key ?: uuidV7
+        val clickKeyV2 = matchLiveRef.child("clicks").push().key ?: uuidV7
 
         val serverTimestamp = ServerValue.TIMESTAMP
 
         // Perform an atomic multi-location update across both nodes
         val updates = mapOf(
-            "matchInfo/$playerMatchKey/$clickKey" to lineId,
+            "matchInfo/$playerMatchKey/$clickKey" to line.id,
+            "matchInfo/clicks/$clickKeyV2" to line,
             "pingAt" to serverTimestamp,
             "$playerInfoKey/seenAt" to serverTimestamp
         )

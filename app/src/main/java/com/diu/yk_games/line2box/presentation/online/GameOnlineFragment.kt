@@ -21,6 +21,7 @@ import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.DialogLayoutGameOverBinding
 import com.diu.yk_games.line2box.databinding.FragmentGameDualBinding
 import com.diu.yk_games.line2box.model.DataStore
+import com.diu.yk_games.line2box.model.GameRoom
 import com.diu.yk_games.line2box.model.MsgStore
 import com.diu.yk_games.line2box.model.PlayerColor
 import com.diu.yk_games.line2box.presentation.base.BaseFragment
@@ -37,6 +38,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 @SuppressLint("DiscouragedApi")
 class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDualBinding::inflate) {
@@ -70,27 +72,35 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
     }
 
     private fun setupObserver() {
-        fun onClick(map: Map.Entry<String, PlayerColor>) {
-            val (lineId, color) = map
-            cat("viewIdFromServer: $lineId")
+        fun onClick(line: GameRoom.Line) {
+            cat("viewIdFromServer: $line")
             val viewId = resources
-                .getIdentifier(lineId, "id", parentActivity.packageName)
+                .getIdentifier(line.id, "id", parentActivity.packageName)
             performClick(
                 view = parentActivity.findViewById(viewId),
-                color = color,
+                color = line.color,
                 serverTurn = true
             )
         }
 
-        var lastServerEvent: Map<String, PlayerColor> = mapOf()
+        var lastServerEvent: Set<GameRoom.Line> = setOf()
 
         viewModel.lineIdsFromServer.collectWithLifecycle(minActiveState = Lifecycle.State.CREATED) { newServerEvent ->
+            if (newServerEvent.isEmpty()) {
+                delay(2.seconds)
+                if (viewModel.lineIdsFromServer.value.isEmpty()) {
+                    viewModel.fetchServerLineClick()
+                    viewModel.fetchFriendlyChat()
+                }
+                return@collectWithLifecycle
+            }
+
             val delta = newServerEvent.size - lastServerEvent.size
 
             if (delta > 0 && lastServerEvent.isNotEmpty()) {
                 var found = 0
                 for (entry in newServerEvent) {
-                    if (entry.key !in lastServerEvent) {
+                    if (entry !in lastServerEvent) {
                         onClick(entry)
                         if (++found == delta) break
                     }
@@ -98,6 +108,11 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
                 if (found != delta) newServerEvent.forEach(::onClick) // mismatch fallback
             } else {
                 newServerEvent.forEach(::onClick)
+            }
+            newServerEvent.lastOrNull()?.let { last ->
+                gameUtils.changePlayerTurnUi(!last.color.isRed)
+                val isMe = viewModel.matchRouteInfo.isPlyr1 == last.color.isRed
+                gameUtils.plyrTurn = isMe == gameUtils.lastHadExtraTurn
             }
 
             lastServerEvent = newServerEvent
@@ -153,19 +168,20 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
 //            val isRedTurn = gameUtils.clickCount % 2 == 1
             bg.setColor(if (color.isRed) gameUtils.redX else gameUtils.blueX)
 
-            viewModel.sendClick2Server(idNm, color)
+            viewModel.sendClick2Server(GameRoom.Line(idNm, color))
 
             val extraTurn = gameUtils.handleBoxPair(
                 aroundIds = aroundIds,
                 isRedTurn = color.isRed
             )
 
-            val isMe = (viewModel.matchRouteInfo.isPlyr1 && color.isRed) ||
-                    (!viewModel.matchRouteInfo.isPlyr1 && !color.isRed)
-            gameUtils.plyrTurn = isMe && extraTurn || !isMe && !extraTurn
+            val isMe = viewModel.matchRouteInfo.isPlyr1 == color.isRed
+
+            val oldTurn = gameUtils.plyrTurn
+            gameUtils.plyrTurn = isMe == extraTurn
             Log.d(TAG, "performClick: plyrTurn: ${gameUtils.plyrTurn}, extraTurn: $extraTurn, isMe: $isMe")
 
-            if (!gameUtils.plyrTurn) {
+            if (oldTurn != gameUtils.plyrTurn) {
                 gameUtils.changePlayerTurnUi(
                     isRedTurn = color.isRed
                 )

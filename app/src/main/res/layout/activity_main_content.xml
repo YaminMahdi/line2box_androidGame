@@ -23,6 +23,11 @@
         android:layout_height="match_parent"
         app:defaultNavHost="true" />
 
+    <androidx.compose.ui.platform.ComposeView
+        android:id="@+id/composeView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
     <RelativeLayout
         android:id="@+id/sideNavGroup"
         android:layout_width="wrap_content"
