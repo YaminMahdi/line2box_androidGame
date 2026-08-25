@@ -67,8 +67,10 @@ class ScoreBoardFragment : BaseFragment<FragmentDisplayBinding>(FragmentDisplayB
             }
 
         var itemClicked = false
-        binding.btnBack.setBounceClickListener(::onBackPressed)
-
+        binding.btnBack.setBounceClickListener {
+            viewModel.player.playButtonClickSound()
+            onBackPressed()
+        }
         scoreListAdapter.onClickListener = run@{ gamerPro ->
             if(itemClicked && gamerPro.starData == "friendly") return@run
             itemClicked = true

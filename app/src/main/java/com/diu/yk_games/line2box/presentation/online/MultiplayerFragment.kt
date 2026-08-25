@@ -5,7 +5,6 @@ import android.app.AlertDialog
 import android.content.ActivityNotFoundException
 import android.content.ComponentName
 import android.content.Intent
-import android.graphics.Rect
 import android.os.Bundle
 import android.os.PersistableBundle
 import android.util.Log
@@ -19,7 +18,9 @@ import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.GravityCompat
 import androidx.core.widget.doAfterTextChanged
 import androidx.drawerlayout.widget.DrawerLayout
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.transition.ChangeBounds
 import androidx.transition.TransitionManager
 import com.diu.yk_games.line2box.R
@@ -28,6 +29,7 @@ import com.diu.yk_games.line2box.databinding.DialogLayoutProfileBinding
 import com.diu.yk_games.line2box.databinding.DialogLayoutUpdateBinding
 import com.diu.yk_games.line2box.databinding.FragmentMultiplayerBinding
 import com.diu.yk_games.line2box.model.GameRoom
+import com.diu.yk_games.line2box.presentation.MainActivity
 import com.diu.yk_games.line2box.presentation.base.BaseFragment
 import com.diu.yk_games.line2box.presentation.main.SettingsFragment
 import com.diu.yk_games.line2box.presentation.navigation.Routes
@@ -94,32 +96,22 @@ class MultiplayerFragment :
     }
 
     private fun setupObserver() {
-        val activityRootView = parentActivity.window.decorView
-        var isKeyboardOpen = false
-        activityRootView.viewTreeObserver.addOnGlobalLayoutListener {
-            val r = Rect()
-            //r will be populated with the coordinates of your view that area still visible.
-            activityRootView.getWindowVisibleDisplayFrame(r)
-            val maxHeight = activityRootView.height
-            val heightDiff = maxHeight - r.height()
-
-            // Determine the current state based on your 25% threshold
-            val currentlyOpen = heightDiff > (0.25 * maxHeight)
-
-            // Only animate if the keyboard state has actually toggled
-            if (currentlyOpen != isKeyboardOpen) {
-                isKeyboardOpen = currentlyOpen // Update the state flag
-
-                if (isKeyboardOpen) {
-                    cat("onGlobalLayout: Keyboard Opened")
-                    binding.centerBox.animateCenterBox(400)
-                } else {
-                    cat("onGlobalLayout: Keyboard Closed")
-                    binding.centerBox.animateCenterBox(0)
-                }
+        MainActivity.onImeHeightChange = { imeHeight ->
+            lifecycleScope.launch {
+               repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                   if (!drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                       // Apply margin instantly without TransitionManager (smooth because it runs every frame)
+                       val parent = binding.centerBox.parent as? ConstraintLayout
+                       if (parent != null) {
+                           val constraintSet = ConstraintSet()
+                           constraintSet.clone(parent)
+                           constraintSet.setMargin(binding.centerBox.id, ConstraintSet.BOTTOM, imeHeight)
+                           constraintSet.applyTo(parent)
+                       }
+                   }
+               }
             }
         }
-
     }
 
     private fun setupListener() {

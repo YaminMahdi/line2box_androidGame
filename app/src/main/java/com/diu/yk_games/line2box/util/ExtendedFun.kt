@@ -213,8 +213,7 @@ fun View.setBounceClickListener(onClick: ((View) -> Unit)? = null) {
  * @return True if the touch event is inside the view's bounds, false otherwise.
  */
 fun MotionEvent.isInside(view: View): Boolean {
-    if (view.width == 0 || view.height == 0) return false
-    return try {
+    return !(view.width == 0 || view.height == 0) && try {
         val viewLocation = IntArray(2)
         view.getLocationOnScreen(viewLocation)
         val viewMaxX = viewLocation[0] + view.width - 1
@@ -526,25 +525,6 @@ fun FragmentActivity.isKeyboardOpen(): Boolean {
 fun FragmentActivity.setNavStatusPadding(vararg layout: ViewGroup, both: Int = 1) {
     lifecycleScope.launch {
         val insets = systemBarInsets ?: suspendCancellableCoroutine {
-//            window.decorView.post {
-//                systemBarInsets = window.decorView.getSystemBarsHeight()
-//                it.resume(systemBarInsets!!)
-//
-//                ViewCompat.setOnApplyWindowInsetsListener(window.decorView) { _, insets ->
-//                    val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-////                val bottomIme = insets.getInsets(WindowInsetsCompat.Type.ime()).bottom
-//
-//                    val top = if (systemBars.top == 0) window.decorView.getSystemBarsHeight().top else systemBars.top
-//                    val bottom = systemBars.bottom
-//                    if (it.isActive) {
-//                        systemBarInsets = SystemBarInsets(top, bottom)
-//                        it.resume(systemBarInsets!!)
-//                    }
-//                    Log.d("TAG", "setNavStatusPadding: top $top, bottom ${systemBars.bottom}")
-//                    ViewCompat.setOnApplyWindowInsetsListener(window.decorView, null)
-//                    insets
-//                }
-//            }
             ViewCompat.setOnApplyWindowInsetsListener(window.decorView) { _, insets ->
                 val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
 //                val bottomIme = insets.getInsets(WindowInsetsCompat.Type.ime()).bottom

@@ -58,27 +58,7 @@
             android:layout_marginStart="15dp"
             android:background="@color/redY"
             app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.Round" />
-
     </RelativeLayout>
-
-    <FrameLayout
-        android:id="@+id/loadingLayout"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#80000000"
-        android:clickable="true"
-        android:focusable="true"
-        android:visibility="invisible">
-
-        <androidx.appcompat.widget.AppCompatImageView
-            android:id="@+id/loader"
-            android:layout_width="220dp"
-            android:layout_height="220dp"
-            android:layout_gravity="center"
-            android:contentDescription="@string/logo"
-            android:src="@drawable/g_loading" />
-    </FrameLayout>
-
 
     <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/emojiPlay"

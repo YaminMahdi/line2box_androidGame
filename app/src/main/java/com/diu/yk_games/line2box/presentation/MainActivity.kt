@@ -3,7 +3,6 @@ package com.diu.yk_games.line2box.presentation
 import android.animation.LayoutTransition
 import android.annotation.SuppressLint
 import android.app.AlertDialog
-import android.graphics.Rect
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -13,8 +12,7 @@ import androidx.activity.addCallback
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.drawable.toDrawable
-import androidx.core.view.isVisible
-import androidx.core.view.updatePadding
+import androidx.core.view.*
 import androidx.customview.widget.ViewDragHelper
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.drawerlayout.widget.DrawerLayout.DrawerListener
@@ -72,28 +70,44 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupUI() {
-        binding.loader.loadDrawable(R.drawable.g_loading)
         val activityRootView = window.decorView
-        activityRootView.viewTreeObserver.addOnGlobalLayoutListener {
-            val r = Rect()
-            val systemBarInsets = getSystemBars()
-            //r will be populated with the coordinates of your view that area still visible.
-            activityRootView.getWindowVisibleDisplayFrame(r)
-            val maxHeight = activityRootView.height
-            val heightDiff = maxHeight - r.height()
 
-            // Calculate what the target padding should be
-            val targetPadding = if (heightDiff > 0.25 * maxHeight)
-                heightDiff - systemBarInsets.top
-            else
-                systemBarInsets.bottom
+        ViewCompat.setWindowInsetsAnimationCallback(
+            activityRootView,
+            object : WindowInsetsAnimationCompat.Callback(DISPATCH_MODE_STOP) {
+                override fun onPrepare(animation: WindowInsetsAnimationCompat) {
+                    super.onPrepare(animation)
+                    // Capture the current padding before the animation starts
+                    val navBarHeight = activityRootView.getSystemBarsHeight().bottom
+                    bindingDrawer.chatFragmentLinerLayout.updatePadding(bottom = navBarHeight)
+                }
 
-            // Only update if the padding has actually changed
-            if (bindingDrawer.chatFragmentLinerLayout.paddingBottom != targetPadding) {
-                bindingDrawer.chatFragmentLinerLayout.updatePadding(bottom = targetPadding)
-//                bindingDrawer.navCloseButtonLayout.updatePadding(bottom = targetPadding)
+                override fun onProgress(
+                    insets: WindowInsetsCompat,
+                    runningAnimations: MutableList<WindowInsetsAnimationCompat>
+                ): WindowInsetsCompat {
+                    // Find the running IME animation
+                    val imeAnimation = runningAnimations.find {
+                        it.typeMask and WindowInsetsCompat.Type.ime() != 0
+                    }
+
+                    if (imeAnimation != null) {
+                        // Get current animated IME height
+                        val imeHeight = insets.getInsets(WindowInsetsCompat.Type.ime()).bottom
+                        onImeHeightChange(imeHeight)
+                        val navBarHeight =
+                            insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
+
+                        // Calculate smooth animated padding
+                        val targetPadding = if (imeHeight > 0) imeHeight else navBarHeight
+
+                        bindingDrawer.chatFragmentLinerLayout.updatePadding(bottom = targetPadding)
+                    }
+
+                    return insets
+                }
             }
-        }
+        )
         bindingDrawer.root.addDrawerListener(object : DrawerListener {
             override fun onDrawerSlide(drawerView: View, slideOffset: Float) {}
             override fun onDrawerOpened(drawerView: View) {}
@@ -131,9 +145,10 @@ class MainActivity : AppCompatActivity() {
         binding.composeView.installDynamicIsland(
             sourceView = binding.mainNavHost,
             onClick = {
-                when(it) {
-                    is DynamicBubble.Message if it.text.isNotBlank()->
+                when (it) {
+                    is DynamicBubble.Message if it.text.isNotBlank() ->
                         openNavBtn()
+
                     else -> Unit
                 }
             }
@@ -400,5 +415,6 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         private const val TAG = "MainActivity"
+        var onImeHeightChange: (Int) -> Unit = {}
     }
 }

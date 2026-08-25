@@ -813,7 +813,7 @@ class MainViewModel(
     }
 
     fun sendInitialMessage(gameRoom: GameRoom, isNewRoom: Boolean) {
-        val chatKey = getFriendlyChatKey()
+        val chatKey = friendlyChatRef?.push()?.key ?: uuidV7
         val initialMsg = gameProfile.toMessage(
             playerId = playerId,
             msg = if (isNewRoom) "Created the match." else "Joined the match.",
@@ -902,10 +902,6 @@ class MainViewModel(
         matchRef?.child(playerInfoKey)
             ?.child("seenAt")
             ?.setValue(ServerValue.TIMESTAMP)
-    }
-
-    fun getFriendlyChatKey(): String {
-        return friendlyChatRef?.push()?.key ?: uuidV7
     }
 
     private companion object {

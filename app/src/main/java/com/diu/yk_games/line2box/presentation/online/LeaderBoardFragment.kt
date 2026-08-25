@@ -80,7 +80,10 @@ class LeaderBoardFragment : BaseFragment<FragmentDisplayBinding>(FragmentDisplay
             }
         }
         var itemClicked = false
-        binding.btnBack.setBounceClickListener(::onBackPressed)
+        binding.btnBack.setBounceClickListener {
+            viewModel.player.playButtonClickSound()
+            onBackPressed()
+        }
 
         rankListAdapter.onClickListener = run@{ gamerPro ->
             if (itemClicked) return@run
