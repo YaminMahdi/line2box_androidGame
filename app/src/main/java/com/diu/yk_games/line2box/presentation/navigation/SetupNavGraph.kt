@@ -10,6 +10,7 @@ import com.diu.yk_games.line2box.presentation.offline.GameDualFragment
 import com.diu.yk_games.line2box.presentation.offline.NameInfoFragment
 import com.diu.yk_games.line2box.presentation.online.GameOnlineFragment
 import com.diu.yk_games.line2box.presentation.online.LeaderBoardFragment
+import com.diu.yk_games.line2box.presentation.online.live.LiveStatsFragment
 import com.diu.yk_games.line2box.presentation.online.MultiplayerFragment
 
 fun NavController.setupNavGraph() {
@@ -25,5 +26,6 @@ fun NavController.setupNavGraph() {
         fragment<GameDualFragment, Routes.GameDual>()
         fragment<GameBotFragment, Routes.GameBot>()
         fragment<GameOnlineFragment, Routes.GameOnline>()
+        fragment<LiveStatsFragment, Routes.LiveStats>()
     }
 }

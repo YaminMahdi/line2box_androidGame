@@ -20,7 +20,8 @@ data class GameRoom(
     @IgnoreExtraProperties
     data class MatchInfo(
         val playerTurn: PlayerColor = PlayerColor.Red,
-        val clicks : Map<String, Line> = emptyMap(),
+        val result: LiveResult = LiveResult(),
+        val clicks: Map<String, Line> = emptyMap(),
         val plyr1: Map<String, String> = emptyMap(),
         val plyr2: Map<String, String> = emptyMap()
     ) : Parcelable
@@ -28,6 +29,15 @@ data class GameRoom(
     enum class RoomType {
         V1, V2, V3, V4, V5
     }
+
+    @Parcelize
+    @IgnoreExtraProperties
+    data class LiveResult(
+        val score1: Int = 0,
+        val score2: Int = 0,
+        val cup1: Int = 0,
+        val cup2: Int = 0
+    ) : Parcelable
 
     @Parcelize
     @IgnoreExtraProperties

@@ -14,6 +14,7 @@ import com.diu.yk_games.line2box.databinding.FragmentStartBinding
 import com.diu.yk_games.line2box.model.ErrorType
 import com.diu.yk_games.line2box.model.OnlineStatus
 import com.diu.yk_games.line2box.presentation.base.BaseFragment
+import com.diu.yk_games.line2box.presentation.component.DynamicIslandController
 import com.diu.yk_games.line2box.presentation.navigation.Routes
 import com.diu.yk_games.line2box.util.*
 
@@ -89,7 +90,9 @@ class StartFragment : BaseFragment<FragmentStartBinding>(FragmentStartBinding::i
         gameUtils.playButtonClickSound()
 
         when (binding.motionLayout.currentState) {
-            R.id.next -> if (viewModel.isConnected)
+            R.id.next -> if (DynamicIslandController.isLoading)
+                toast("Calm down, we're still loading!")
+            else if (viewModel.isConnected)
                 navigateSafe(Routes.MultiPlayer)
             else
                 showPlayServiceRequirementDialog()

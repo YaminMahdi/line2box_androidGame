@@ -1,6 +1,7 @@
 package com.diu.yk_games.line2box.util
 
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
@@ -29,26 +30,17 @@ import kotlin.time.ExperimentalTime
 enum class ButtonState { Pressed, Idle }
 
 fun Modifier.bounceClick(
-    showRipple: Boolean = true,
-    shape: Shape = RectangleShape,
-    requireUnconsumed: Boolean = false,
+    keepRipple: Boolean = true,
     onClick: () -> Unit = {}
-): Modifier {
-    return if (shape == RectangleShape) forceClickable(
-        showRipple = showRipple,
-        shape = shape,
-        requireUnconsumed = requireUnconsumed,
-        onClick = onClick
-    ).bounceOnClick(requireUnconsumed)
-    else bounceOnClick(requireUnconsumed).forceClickable(
-        showRipple = showRipple,
-        shape = shape,
-        requireUnconsumed = requireUnconsumed,
-        onClick = onClick
+) = composed {
+    clickable(
+        interactionSource = remember { MutableInteractionSource() },
+        indication = if (keepRipple) LocalIndication.current else null, // Conditional ripple
+        onClick = singleClick(onClick)
     )
-}
+}.bounceOnClick()
 
-fun Modifier.bounceOnClick(requireUnconsumed: Boolean = false) = composed {
+fun Modifier.bounceOnClick(pass: PointerEventPass = PointerEventPass.Main) = composed {
     var buttonState by remember { mutableStateOf(ButtonState.Idle) }
     val scale by animateFloatAsState(
         if (buttonState == ButtonState.Pressed) 0.95f else 1f,
@@ -60,10 +52,10 @@ fun Modifier.bounceOnClick(requireUnconsumed: Boolean = false) = composed {
     }.pointerInput(buttonState) {
         awaitPointerEventScope {
             buttonState = if (buttonState == ButtonState.Pressed) {
-                waitForUpOrCancellation()
+                waitForUpOrCancellation(pass)
                 ButtonState.Idle
             } else {
-                awaitFirstDown(requireUnconsumed, PointerEventPass.Final)
+                awaitFirstDown(false, pass)
                 ButtonState.Pressed
             }
         }

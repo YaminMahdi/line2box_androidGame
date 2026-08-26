@@ -67,11 +67,28 @@ class MainViewModel(
     val isConnected
         get() = onlineStatus == OnlineStatus.Online || ConnectivityObserver.isConnected
 
-    val isLoading = savedStateHandle.getStateFlow("isLoading", true)
     val globalChatList = savedStateHandle.getStateFlow("globalChatList", emptyList<MsgStore>())
     val friendlyChatList = savedStateHandle.getStateFlow("friendlyChatList", emptyList<MsgStore>())
 
     val matches = savedStateHandle.getStateFlow("matches", emptyList<GameRoom>())
+    val actives = savedStateHandle.getStateFlow(
+        "actives", listOf<PlayerInfo>(
+            PlayerInfo(
+                nm = "Player 1",
+                id = "1",
+                lvl = 1,
+                coin = 100,
+                seenAt = System.currentTimeMillis()
+            ),
+            PlayerInfo(
+                nm = "Player 2",
+                id = "2",
+                lvl = 1,
+                coin = 100,
+                seenAt = System.currentTimeMillis() - 10000000000
+            )
+        )
+    )
 
     var ignoreDrawerClosesSound = false
     var localPlayerCount = 2
@@ -420,6 +437,7 @@ class MainViewModel(
                 V1 -> fetchServerLineClickListeners = PlayerColor.entries.associateWith {
                     fetch4Player(matchLiveRef, it)
                 }
+
                 V2 -> fetchServerLineClickListener = fetchV2Clicks(matchLiveRef)
                 else -> Log.d(TAG, "fetchServerLineClick: Unknown version")
             }
@@ -839,18 +857,12 @@ class MainViewModel(
         when {
             gameRoom.player2.id.isEmpty() -> {
                 // Player 2 fills empty slot
-                updates["player2"] = gameProfile.toPlayerInfo(
-                    score = gameRoom.player2.score,
-                    cup = gameRoom.player2.cup
-                )
+                updates["player2"] = gameProfile.toPlayerInfo()
             }
 
             gameRoom.player1.id.isEmpty() -> {
                 // Fallback: Player 1 slot was vacant
-                updates["player1"] = gameProfile.toPlayerInfo(
-                    score = gameRoom.player1.score,
-                    cup = gameRoom.player1.cup
-                )
+                updates["player1"] = gameProfile.toPlayerInfo()
             }
 
             else -> Unit

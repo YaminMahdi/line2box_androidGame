@@ -12,6 +12,7 @@ sealed class Routes {
     @Serializable data object ChangeName: Routes()
 
     @Serializable data object MultiPlayer: Routes()
+    @Serializable data object LiveStats: Routes()
 
     @Serializable data class GameDual(val nm1: String = "", val nm2: String = ""): Routes()
     @Serializable data object GameBot: Routes()

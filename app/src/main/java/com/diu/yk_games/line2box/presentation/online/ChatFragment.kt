@@ -21,6 +21,7 @@ import com.diu.yk_games.line2box.model.ChatMode
 import com.diu.yk_games.line2box.model.GameProfile
 import com.diu.yk_games.line2box.presentation.MainViewModel
 import com.diu.yk_games.line2box.presentation.component.DynamicIslandController
+import com.diu.yk_games.line2box.presentation.component.ProfileDialog
 import com.diu.yk_games.line2box.presentation.navigation.Routes
 import com.diu.yk_games.line2box.ui.theme.Line2BoxChatTheme
 import com.diu.yk_games.line2box.util.*

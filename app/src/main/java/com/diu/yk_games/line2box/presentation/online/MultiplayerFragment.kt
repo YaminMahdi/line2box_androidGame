@@ -35,6 +35,8 @@ import com.diu.yk_games.line2box.presentation.navigation.Routes
 import com.diu.yk_games.line2box.util.*
 import com.google.android.gms.common.images.ImageManager
 import com.google.android.gms.games.PlayGames
+import com.google.android.material.badge.BadgeDrawable
+import com.google.android.material.badge.BadgeUtils
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import io.ak1.BubbleTabBar
@@ -53,6 +55,12 @@ class MultiplayerFragment :
     }
     private val bubbleTabBar: BubbleTabBar by lazy {
         parentActivity.findViewById(R.id.bubbleTabBar)
+    }
+    val liveBadge by lazy {
+        BadgeDrawable.create(parentActivity).apply {
+            isVisible = false
+            badgeGravity = BadgeDrawable.TOP_START
+        }
     }
     private var editing = false
 
@@ -90,8 +98,15 @@ class MultiplayerFragment :
         binding.copyPastBtn.setImageResource(R.drawable.icon_paste)
         binding.copyPastBtn.tag = R.drawable.icon_paste
 
+        setupUI()
         setupListener()
         setupObserver()
+    }
+
+    private fun setupUI() {
+        binding.btnLive.post {
+            BadgeUtils.attachBadgeDrawable(liveBadge, binding.btnLive, binding.frmLive)
+        }
     }
 
     private fun setupObserver() {
@@ -109,6 +124,15 @@ class MultiplayerFragment :
                        }
                    }
                }
+            }
+        }
+        viewModel.matches.collectWithLifecycle {
+            if (it.isNotEmpty()) {
+                liveBadge.isVisible = true
+                liveBadge.number = it.size
+            } else {
+                liveBadge.isVisible = false
+                liveBadge.clearNumber()
             }
         }
     }
@@ -227,6 +251,10 @@ class MultiplayerFragment :
         }
         binding.profileBtn.setBounceClickListener {
             profileBtn()
+        }
+        binding.btnLive.setBounceClickListener {
+            viewModel.player.playButtonClickSound()
+            navigateSafe(Routes.LiveStats)
         }
     }
 

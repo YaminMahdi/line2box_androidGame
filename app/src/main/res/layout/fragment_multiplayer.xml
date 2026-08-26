@@ -9,7 +9,7 @@
     tools:context=".presentation.online.MultiplayerFragment">
 
     <LinearLayout
-        android:id="@+id/linearLayoutStart1"
+        android:id="@+id/linTop"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
@@ -104,36 +104,53 @@
                 android:background="@drawable/btn_coc_bg"
                 android:fontFamily="@font/sortie"
                 android:src="@drawable/icon_profile" />
-
-
         </FrameLayout>
 
-        <LinearLayout
-            android:layout_width="wrap_content"
+        <FrameLayout
+            android:id="@+id/frmLive"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="end"
-            android:layout_marginTop="@dimen/_12sdp"
-            android:layout_marginEnd="@dimen/_12sdp">
+            android:layout_marginHorizontal="@dimen/_16sdp"
+            android:layout_marginTop="@dimen/_8sdp">
 
-            <TextView
-                android:id="@+id/trophyTextId"
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnLive"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
+                android:layout_gravity="start|center"
+                android:background="@drawable/btn_grnx_bg"
                 android:fontFamily="@font/sortie"
-                android:text="@string/_0"
+                android:text="Live"
+                android:textAllCaps="true"
                 android:textColor="@color/white"
-                android:textSize="@dimen/_22ssp" />
+                android:textSize="14sp"
+                app:icon="@drawable/icon_controller" />
 
-            <androidx.appcompat.widget.AppCompatImageView
-                android:layout_width="@dimen/_42sdp"
-                android:layout_height="@dimen/_42sdp"
-                android:layout_gravity="end"
-                android:fontFamily="@font/sortie"
-                android:paddingVertical="@dimen/_4sdp"
-                android:src="@drawable/icon_trophy" />
-        </LinearLayout>
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end">
 
+                <TextView
+                    android:id="@+id/trophyTextId"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:fontFamily="@font/sortie"
+                    android:text="@string/_0"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/_22ssp" />
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:layout_width="@dimen/_42sdp"
+                    android:layout_height="@dimen/_42sdp"
+                    android:layout_gravity="end"
+                    android:fontFamily="@font/sortie"
+                    android:paddingVertical="@dimen/_4sdp"
+                    android:src="@drawable/icon_trophy" />
+            </LinearLayout>
+
+        </FrameLayout>
     </LinearLayout>
 
     <RelativeLayout
@@ -147,7 +164,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/linearLayoutStart1">
+        app:layout_constraintTop_toBottomOf="@+id/linTop">
 
         <io.ghyeok.stickyswitch.widget.StickySwitch
             android:id="@+id/sticky_switch"
