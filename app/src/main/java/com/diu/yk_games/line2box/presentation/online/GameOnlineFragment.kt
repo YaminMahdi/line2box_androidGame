@@ -9,7 +9,6 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.view.animation.DecelerateInterpolator
-import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
@@ -45,11 +44,6 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
     private val drawerLayout: DrawerLayout by lazy {
         parentActivity.findViewById(R.id.drawer_layout)
     }
-
-    private var redX = 0
-    private var redY = 0
-    private var blueX = 0
-    private var blueY = 0
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -110,9 +104,11 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
                 newServerEvent.forEach(::onClick)
             }
             newServerEvent.lastOrNull()?.let { last ->
-                gameUtils.changePlayerTurnUi(!last.color.isRed)
+                val oldTurn = gameUtils.plyrTurn
                 val isMe = viewModel.matchRouteInfo.isPlyr1 == last.color.isRed
                 gameUtils.plyrTurn = isMe == gameUtils.lastHadExtraTurn
+                if (oldTurn != gameUtils.plyrTurn)
+                    gameUtils.changePlayerTurnUi(!last.color.isRed)
             }
 
             lastServerEvent = newServerEvent
@@ -121,13 +117,7 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
 
     @SuppressLint("SetTextI18n")
     private fun setupUI() {
-        redX = ContextCompat.getColor(parentActivity, R.color.redX)
-        redY = ContextCompat.getColor(parentActivity, R.color.redY)
-        blueX = ContextCompat.getColor(parentActivity, R.color.blueX)
-        blueY = ContextCompat.getColor(parentActivity, R.color.blueY)
-
         lifecycleScope.launch {
-            delay(200.milliseconds)
             isFirstRun = IO { pref.read("firstRun", true) }
             if (isFirstRun) gameUtils.infoShow()
         }
@@ -179,7 +169,10 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
 
             val oldTurn = gameUtils.plyrTurn
             gameUtils.plyrTurn = isMe == extraTurn
-            Log.d(TAG, "performClick: plyrTurn: ${gameUtils.plyrTurn}, extraTurn: $extraTurn, isMe: $isMe")
+            Log.d(
+                TAG,
+                "performClick: plyrTurn: ${gameUtils.plyrTurn}, extraTurn: $extraTurn, isMe: $isMe"
+            )
 
             if (oldTurn != gameUtils.plyrTurn) {
                 gameUtils.changePlayerTurnUi(
@@ -189,8 +182,7 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
             if (gameUtils.totalScore == 36) {
                 finishGame()
             }
-        }
-        else {
+        } else {
             Log.d(TAG, "performClick: not your turn")
         }
     }

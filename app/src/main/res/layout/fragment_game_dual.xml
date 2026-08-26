@@ -147,7 +147,7 @@
                     android:shadowRadius="20"
                     android:text="@string/blue"
                     android:textColor="@color/whiteT"
-                    android:textSize="@dimen/_25ssp" />
+                    android:textSize="@dimen/_25sdp" />
 
                 <TextView
                     android:id="@+id/nm2Id"
@@ -245,8 +245,9 @@
                 android:layout_height="@dimen/_38sdp"
                 android:background="#0000"
                 android:gravity="center"
+                android:textAlignment="center"
                 android:textColor="@color/white"
-                android:textSize="@dimen/_25ssp" />
+                android:textSize="@dimen/_25sdp" />
 
             <TextView
                 android:id="@+id/r1c2Tx"
@@ -254,8 +255,9 @@
                 android:layout_height="@dimen/_38sdp"
                 android:background="#0000"
                 android:gravity="center"
+                android:textAlignment="center"
                 android:textColor="@color/white"
-                android:textSize="@dimen/_25ssp" />
+                android:textSize="@dimen/_25sdp" />
 
             <TextView
                 android:id="@+id/r1c3Tx"
@@ -263,8 +265,9 @@
                 android:layout_height="@dimen/_38sdp"
                 android:background="#0000"
                 android:gravity="center"
+                android:textAlignment="center"
                 android:textColor="@color/white"
-                android:textSize="@dimen/_25ssp" />
+                android:textSize="@dimen/_25sdp" />
 
             <TextView
                 android:id="@+id/r1c4Tx"
@@ -272,8 +275,9 @@
                 android:layout_height="@dimen/_38sdp"
                 android:background="#0000"
                 android:gravity="center"
+                android:textAlignment="center"
                 android:textColor="@color/white"
-                android:textSize="@dimen/_25ssp" />
+                android:textSize="@dimen/_25sdp" />
 
             <TextView
                 android:id="@+id/r1c5Tx"
@@ -281,8 +285,9 @@
                 android:layout_height="@dimen/_38sdp"
                 android:background="#0000"
                 android:gravity="center"
+                android:textAlignment="center"
                 android:textColor="@color/white"
-                android:textSize="@dimen/_25ssp" />
+                android:textSize="@dimen/_25sdp" />
 
             <TextView
                 android:id="@+id/r1c6Tx"
@@ -290,8 +295,9 @@
                 android:layout_height="@dimen/_38sdp"
                 android:background="#0000"
                 android:gravity="center"
+                android:textAlignment="center"
                 android:textColor="@color/white"
-                android:textSize="@dimen/_25ssp" />
+                android:textSize="@dimen/_25sdp" />
 
 
         </LinearLayout>
@@ -309,8 +315,9 @@
                 android:layout_height="@dimen/_38sdp"
                 android:background="#0000"
                 android:gravity="center"
+                android:textAlignment="center"
                 android:textColor="@color/white"
-                android:textSize="@dimen/_25ssp" />
+                android:textSize="@dimen/_25sdp" />
 
             <TextView
                 android:id="@+id/r2c2Tx"
@@ -318,8 +325,9 @@
                 android:layout_height="@dimen/_38sdp"
                 android:background="#0000"
                 android:gravity="center"
+                android:textAlignment="center"
                 android:textColor="@color/white"
-                android:textSize="@dimen/_25ssp" />
+                android:textSize="@dimen/_25sdp" />
 
             <TextView
                 android:id="@+id/r2c3Tx"
@@ -327,8 +335,9 @@
                 android:layout_height="@dimen/_38sdp"
                 android:background="#0000"
                 android:gravity="center"
+                android:textAlignment="center"
                 android:textColor="@color/white"
-                android:textSize="@dimen/_25ssp" />
+                android:textSize="@dimen/_25sdp" />
 
             <TextView
                 android:id="@+id/r2c4Tx"
@@ -336,8 +345,9 @@
                 android:layout_height="@dimen/_38sdp"
                 android:background="#0000"
                 android:gravity="center"
+                android:textAlignment="center"
                 android:textColor="@color/white"
-                android:textSize="@dimen/_25ssp" />
+                android:textSize="@dimen/_25sdp" />
 
             <TextView
                 android:id="@+id/r2c5Tx"
@@ -345,8 +355,9 @@
                 android:layout_height="@dimen/_38sdp"
                 android:background="#0000"
                 android:gravity="center"
+                android:textAlignment="center"
                 android:textColor="@color/white"
-                android:textSize="@dimen/_25ssp" />
+                android:textSize="@dimen/_25sdp" />
 
             <TextView
                 android:id="@+id/r2c6Tx"
@@ -354,9 +365,9 @@
                 android:layout_height="@dimen/_38sdp"
                 android:background="#0000"
                 android:gravity="center"
+                android:textAlignment="center"
                 android:textColor="@color/white"
-                android:textSize="@dimen/_25ssp" />
-
+                android:textSize="@dimen/_25sdp" />
 
         </LinearLayout>
 
@@ -373,8 +384,9 @@
                 android:layout_height="@dimen/_38sdp"
                 android:background="#0000"
                 android:gravity="center"
+                android:textAlignment="center"
                 android:textColor="@color/white"
-                android:textSize="@dimen/_25ssp" />
+                android:textSize="@dimen/_25sdp" />
 
             <TextView
                 android:id="@+id/r3c2Tx"
@@ -382,8 +394,9 @@
                 android:layout_height="@dimen/_38sdp"
                 android:background="#0000"
                 android:gravity="center"
+                android:textAlignment="center"
                 android:textColor="@color/white"
-                android:textSize="@dimen/_25ssp" />
+                android:textSize="@dimen/_25sdp" />
 
             <TextView
                 android:id="@+id/r3c3Tx"
@@ -391,8 +404,9 @@
                 android:layout_height="@dimen/_38sdp"
                 android:background="#0000"
                 android:gravity="center"
+                android:textAlignment="center"
                 android:textColor="@color/white"
-                android:textSize="@dimen/_25ssp" />
+                android:textSize="@dimen/_25sdp" />
 
             <TextView
                 android:id="@+id/r3c4Tx"
@@ -400,8 +414,9 @@
                 android:layout_height="@dimen/_38sdp"
                 android:background="#0000"
                 android:gravity="center"
+                android:textAlignment="center"
                 android:textColor="@color/white"
-                android:textSize="@dimen/_25ssp" />
+                android:textSize="@dimen/_25sdp" />
 
             <TextView
                 android:id="@+id/r3c5Tx"
@@ -409,8 +424,9 @@
                 android:layout_height="@dimen/_38sdp"
                 android:background="#0000"
                 android:gravity="center"
+                android:textAlignment="center"
                 android:textColor="@color/white"
-                android:textSize="@dimen/_25ssp" />
+                android:textSize="@dimen/_25sdp" />
 
             <TextView
                 android:id="@+id/r3c6Tx"
@@ -418,8 +434,9 @@
                 android:layout_height="@dimen/_38sdp"
                 android:background="#0000"
                 android:gravity="center"
+                android:textAlignment="center"
                 android:textColor="@color/white"
-                android:textSize="@dimen/_25ssp" />
+                android:textSize="@dimen/_25sdp" />
 
 
         </LinearLayout>
@@ -437,8 +454,9 @@
                 android:layout_height="@dimen/_38sdp"
                 android:background="#0000"
                 android:gravity="center"
+                android:textAlignment="center"
                 android:textColor="@color/white"
-                android:textSize="@dimen/_25ssp" />
+                android:textSize="@dimen/_25sdp" />
 
             <TextView
                 android:id="@+id/r4c2Tx"
@@ -446,8 +464,9 @@
                 android:layout_height="@dimen/_38sdp"
                 android:background="#0000"
                 android:gravity="center"
+                android:textAlignment="center"
                 android:textColor="@color/white"
-                android:textSize="@dimen/_25ssp" />
+                android:textSize="@dimen/_25sdp" />
 
             <TextView
                 android:id="@+id/r4c3Tx"
@@ -455,8 +474,9 @@
                 android:layout_height="@dimen/_38sdp"
                 android:background="#0000"
                 android:gravity="center"
+                android:textAlignment="center"
                 android:textColor="@color/white"
-                android:textSize="@dimen/_25ssp" />
+                android:textSize="@dimen/_25sdp" />
 
             <TextView
                 android:id="@+id/r4c4Tx"
@@ -464,8 +484,9 @@
                 android:layout_height="@dimen/_38sdp"
                 android:background="#0000"
                 android:gravity="center"
+                android:textAlignment="center"
                 android:textColor="@color/white"
-                android:textSize="@dimen/_25ssp" />
+                android:textSize="@dimen/_25sdp" />
 
             <TextView
                 android:id="@+id/r4c5Tx"
@@ -473,8 +494,9 @@
                 android:layout_height="@dimen/_38sdp"
                 android:background="#0000"
                 android:gravity="center"
+                android:textAlignment="center"
                 android:textColor="@color/white"
-                android:textSize="@dimen/_25ssp" />
+                android:textSize="@dimen/_25sdp" />
 
             <TextView
                 android:id="@+id/r4c6Tx"
@@ -482,8 +504,9 @@
                 android:layout_height="@dimen/_38sdp"
                 android:background="#0000"
                 android:gravity="center"
+                android:textAlignment="center"
                 android:textColor="@color/white"
-                android:textSize="@dimen/_25ssp" />
+                android:textSize="@dimen/_25sdp" />
 
         </LinearLayout>
 
@@ -500,8 +523,9 @@
                 android:layout_height="@dimen/_38sdp"
                 android:background="#0000"
                 android:gravity="center"
+                android:textAlignment="center"
                 android:textColor="@color/white"
-                android:textSize="@dimen/_25ssp" />
+                android:textSize="@dimen/_25sdp" />
 
             <TextView
                 android:id="@+id/r5c2Tx"
@@ -509,8 +533,9 @@
                 android:layout_height="@dimen/_38sdp"
                 android:background="#0000"
                 android:gravity="center"
+                android:textAlignment="center"
                 android:textColor="@color/white"
-                android:textSize="@dimen/_25ssp" />
+                android:textSize="@dimen/_25sdp" />
 
             <TextView
                 android:id="@+id/r5c3Tx"
@@ -518,8 +543,9 @@
                 android:layout_height="@dimen/_38sdp"
                 android:background="#0000"
                 android:gravity="center"
+                android:textAlignment="center"
                 android:textColor="@color/white"
-                android:textSize="@dimen/_25ssp" />
+                android:textSize="@dimen/_25sdp" />
 
             <TextView
                 android:id="@+id/r5c4Tx"
@@ -527,8 +553,9 @@
                 android:layout_height="@dimen/_38sdp"
                 android:background="#0000"
                 android:gravity="center"
+                android:textAlignment="center"
                 android:textColor="@color/white"
-                android:textSize="@dimen/_25ssp" />
+                android:textSize="@dimen/_25sdp" />
 
             <TextView
                 android:id="@+id/r5c5Tx"
@@ -536,8 +563,9 @@
                 android:layout_height="@dimen/_38sdp"
                 android:background="#0000"
                 android:gravity="center"
+                android:textAlignment="center"
                 android:textColor="@color/white"
-                android:textSize="@dimen/_25ssp" />
+                android:textSize="@dimen/_25sdp" />
 
             <TextView
                 android:id="@+id/r5c6Tx"
@@ -545,8 +573,9 @@
                 android:layout_height="@dimen/_38sdp"
                 android:background="#0000"
                 android:gravity="center"
+                android:textAlignment="center"
                 android:textColor="@color/white"
-                android:textSize="@dimen/_25ssp" />
+                android:textSize="@dimen/_25sdp" />
 
 
         </LinearLayout>
@@ -564,8 +593,9 @@
                 android:layout_height="@dimen/_38sdp"
                 android:background="#0000"
                 android:gravity="center"
+                android:textAlignment="center"
                 android:textColor="@color/white"
-                android:textSize="@dimen/_25ssp" />
+                android:textSize="@dimen/_25sdp" />
 
             <TextView
                 android:id="@+id/r6c2Tx"
@@ -573,8 +603,9 @@
                 android:layout_height="@dimen/_38sdp"
                 android:background="#0000"
                 android:gravity="center"
+                android:textAlignment="center"
                 android:textColor="@color/white"
-                android:textSize="@dimen/_25ssp" />
+                android:textSize="@dimen/_25sdp" />
 
             <TextView
                 android:id="@+id/r6c3Tx"
@@ -582,8 +613,9 @@
                 android:layout_height="@dimen/_38sdp"
                 android:background="#0000"
                 android:gravity="center"
+                android:textAlignment="center"
                 android:textColor="@color/white"
-                android:textSize="@dimen/_25ssp" />
+                android:textSize="@dimen/_25sdp" />
 
             <TextView
                 android:id="@+id/r6c4Tx"
@@ -591,8 +623,9 @@
                 android:layout_height="@dimen/_38sdp"
                 android:background="#0000"
                 android:gravity="center"
+                android:textAlignment="center"
                 android:textColor="@color/white"
-                android:textSize="@dimen/_25ssp" />
+                android:textSize="@dimen/_25sdp" />
 
             <TextView
                 android:id="@+id/r6c5Tx"
@@ -600,8 +633,9 @@
                 android:layout_height="@dimen/_38sdp"
                 android:background="#0000"
                 android:gravity="center"
+                android:textAlignment="center"
                 android:textColor="@color/white"
-                android:textSize="@dimen/_25ssp" />
+                android:textSize="@dimen/_25sdp" />
 
             <TextView
                 android:id="@+id/r6c6Tx"
@@ -609,8 +643,9 @@
                 android:layout_height="@dimen/_38sdp"
                 android:background="#0000"
                 android:gravity="center"
+                android:textAlignment="center"
                 android:textColor="@color/white"
-                android:textSize="@dimen/_25ssp" />
+                android:textSize="@dimen/_25sdp" />
 
 
         </LinearLayout>

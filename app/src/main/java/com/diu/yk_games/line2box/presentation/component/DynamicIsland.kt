@@ -181,7 +181,7 @@ private fun LoadingContent() {
     Row(
         modifier = Modifier
             .height(46.dp)
-            .defaultMinSize(minWidth = 190.dp)
+            .defaultMinSize(minWidth = 170.dp)
             .padding(horizontal = 17.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {

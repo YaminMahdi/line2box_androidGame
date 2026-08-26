@@ -2,7 +2,6 @@ package com.diu.yk_games.line2box.presentation.online
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
-import android.content.ActivityNotFoundException
 import android.content.ComponentName
 import android.content.Intent
 import android.os.Bundle
@@ -385,10 +384,13 @@ class MultiplayerFragment :
                     )
                     addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
                 }
-                try {
+                runCatching {
                     startActivity(intent)
-                } catch (_: ActivityNotFoundException) {
-                    parentActivity.showOnMarket(Constants.PLAY_GAMES)
+                }.onFailure {
+                    val url = Constants.getPlayStoreUrl(Constants.PLAY_GAMES)
+                    parentActivity.launchPlayStoreOverlayBypass(url)
+                        ?: parentActivity.showOnMarket(Constants.PLAY_GAMES)
+                        ?: parentActivity.showCustomTab(url)
                 }
             }
             buttonChangeAccount.setBounceClickListener {

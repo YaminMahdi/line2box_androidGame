@@ -6,10 +6,7 @@ import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
-import android.content.Intent
+import android.content.*
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.TransitionDrawable
@@ -303,19 +300,74 @@ fun Context?.toast(msg: String?) {
 
 fun Context?.showCustomTab(url: String?): Unit? {
     if (this == null || url.isNullOrEmpty()) return null
-    return try {
+    return runCatching {
         val intent = CustomTabsIntent.Builder().build()
         intent.launchUrl(this, url.toUri())
-    } catch (_: Exception) {
-        null
-    }
+    }.getOrNull()
 }
 
-fun Context?.showOnMarket(packageName: String) {
-    if (this == null) return
-    runCatching {
-        startActivity(Intent(Intent.ACTION_VIEW).setData("market://details?id=$packageName".toUri()))
+fun Context?.showOnMarket(packageName: String): Unit? {
+    if (this == null) return null
+    val marketUri = Uri.parse("market://details").buildUpon()
+        .appendQueryParameter("id", packageName)
+        .build()
+    return runCatching {
+        startActivity(Intent(Intent.ACTION_VIEW, marketUri).apply {
+            setPackage("com.android.vending")
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        })
+    }.getOrNull()
+}
+
+fun Activity.launchPlayStoreOverlayOriginal(
+    packageName: String,
+    referrer: String? = null, // must be needed for bottom sheet ex: "utm_source=apps.xxx.com&utm_campaign=fb4a&utm_content={\"app\":123456789,\"t\":1234567890}"`
+    customListingId: String? = null,
+    requestCode: Int = 1001
+): Unit? {
+    // Construct the overlay direct-install URI
+    val uriBuilder = Uri.parse("https://play.google.com/d").buildUpon()
+        .appendQueryParameter("id", packageName)
+
+    referrer?.let {
+        uriBuilder.appendQueryParameter("referrer", it)
     }
+    customListingId?.let {
+        uriBuilder.appendQueryParameter("listing", it)
+    }
+
+    val overlayIntent = Intent(Intent.ACTION_VIEW, uriBuilder.build()).apply {
+        setPackage("com.android.vending")
+        putExtra("overlay", true)
+        putExtra("callerId", packageName)
+    }
+
+    return runCatching {
+        startActivityForResult(overlayIntent, requestCode)
+    }.getOrNull()
+}
+
+fun Activity.launchPlayStoreOverlayBypass(
+    packageName: String
+): Unit? {
+    val uriBuilder = Uri.parse("https://play.google.com/d").buildUpon()
+        .appendQueryParameter("id", packageName)
+
+    val intent = Intent(Intent.ACTION_VIEW, uriBuilder.build()).apply {
+        // Exact component from the log
+        component = ComponentName(
+            "com.android.vending",
+            "com.google.android.finsky.transparentmainactivity.HsdpAlias"
+        )
+        // Match the flags from the log
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION) // xflg=0x4
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        putExtra("overlay", true)
+        putExtra("callerId", this@launchPlayStoreOverlayBypass.packageName)
+    }
+
+    return runCatching { startActivity(intent) }.getOrNull()
 }
 
 fun View.changeVisibility(isVisible: Boolean, useGone: Boolean = true) {

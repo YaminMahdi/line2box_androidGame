@@ -93,6 +93,7 @@ class StartFragment : BaseFragment<FragmentStartBinding>(FragmentStartBinding::i
                 navigateSafe(Routes.MultiPlayer)
             else
                 showPlayServiceRequirementDialog()
+
             R.id.previous -> navigateSafe(Routes.ChangeName)
             R.id.start -> navigateSafe(Routes.GameBot)
         }
@@ -135,15 +136,18 @@ class StartFragment : BaseFragment<FragmentStartBinding>(FragmentStartBinding::i
                 viewModel.initializePlayGameUser(parentActivity)
         }
 
-        fun TextView.bindMarketLink(url: String, marketUrl: String) = setBounceClickListener {
+        fun TextView.bindMarketLink(packageName: String) = setBounceClickListener {
+            val url = Constants.getPlayStoreUrl(packageName)
             setTextColor(parentActivity.getColor(R.color.teal_700))
             viewModel.player.playButtonClickSound()
-            parentActivity.showCustomTab(url) ?: parentActivity.showOnMarket(marketUrl)
+            parentActivity.launchPlayStoreOverlayBypass(url)
+                ?: parentActivity.showOnMarket(packageName)
+                ?: parentActivity.showCustomTab(url)
         }
 
-        dialogBinding.playStoreLink.bindMarketLink(Constants.PLAY_STORE_APP_URL, Constants.PLAY_STORE)
-        dialogBinding.playSvLink.bindMarketLink(Constants.PLAY_SERVICES_APP_URL, Constants.PLAY_SERVICES)
-        dialogBinding.playGmLink.bindMarketLink(Constants.PLAY_GAMES_APP_URL, Constants.PLAY_GAMES)
+        dialogBinding.playStoreLink.bindMarketLink(Constants.PLAY_STORE)
+        dialogBinding.playSvLink.bindMarketLink(Constants.PLAY_SERVICES)
+        dialogBinding.playGmLink.bindMarketLink(Constants.PLAY_GAMES)
 
         dialogBinding.restartLink.setBounceClickListener {
             dialogBinding.restartLink.setTextColor(parentActivity.getColor(R.color.teal_700))

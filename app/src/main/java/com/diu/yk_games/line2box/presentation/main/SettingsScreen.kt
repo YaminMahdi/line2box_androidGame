@@ -48,7 +48,7 @@ fun SettingsScreen(
     var isShifted by remember { mutableStateOf(isShifted) }
 
     LaunchedEffect(Unit) {
-        delay(200.milliseconds)
+        delay(420.milliseconds)
         isShifted = true
     }
 

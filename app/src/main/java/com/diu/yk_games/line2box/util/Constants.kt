@@ -8,10 +8,6 @@ object Constants {
     const val RESTART_YOUTUBE_URL = "https://youtu.be/G9r2YZTBlCE"
     const val DAY1_MILLIS = 86400000L
 
-    val PLAY_STORE_APP_URL get() = getPlayStoreUrl(PLAY_STORE)
-    val PLAY_SERVICES_APP_URL get() = getPlayStoreUrl(PLAY_SERVICES)
-    val PLAY_GAMES_APP_URL get() = getPlayStoreUrl(PLAY_GAMES)
-
     fun getPlayStoreUrl(packageName: String) =
         "https://play.google.com/store/apps/details?id=$packageName"
 }
