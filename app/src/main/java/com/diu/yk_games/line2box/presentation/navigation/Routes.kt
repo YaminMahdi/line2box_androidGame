@@ -18,6 +18,7 @@ sealed class Routes {
     @Serializable data object GameBot: Routes()
     @Serializable data class GameOnline(
         var gameKey: String = "",
+        var watchOnly : Boolean = false,
         var isPlyr1: Boolean = false,
         var plr1Id: String = "",
         var plr2Id: String = "",

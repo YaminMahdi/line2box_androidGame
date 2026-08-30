@@ -28,6 +28,7 @@ import com.diu.yk_games.line2box.databinding.DialogLayoutProfileBinding
 import com.diu.yk_games.line2box.databinding.DialogLayoutUpdateBinding
 import com.diu.yk_games.line2box.databinding.FragmentMultiplayerBinding
 import com.diu.yk_games.line2box.model.GameRoom
+import com.diu.yk_games.line2box.model.JoinType
 import com.diu.yk_games.line2box.presentation.MainActivity
 import com.diu.yk_games.line2box.presentation.base.BaseFragment
 import com.diu.yk_games.line2box.presentation.main.SettingsFragment
@@ -112,18 +113,22 @@ class MultiplayerFragment :
     private fun setupObserver() {
         MainActivity.onImeHeightChange = { imeHeight ->
             lifecycleScope.launch {
-               repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                   if (!drawerLayout.isDrawerOpen(GravityCompat.START)) {
-                       // Apply margin instantly without TransitionManager (smooth because it runs every frame)
-                       val parent = binding.centerBox.parent as? ConstraintLayout
-                       if (parent != null) {
-                           val constraintSet = ConstraintSet()
-                           constraintSet.clone(parent)
-                           constraintSet.setMargin(binding.centerBox.id, ConstraintSet.BOTTOM, imeHeight)
-                           constraintSet.applyTo(parent)
-                       }
-                   }
-               }
+                repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                    if (!drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                        // Apply margin instantly without TransitionManager (smooth because it runs every frame)
+                        val parent = binding.centerBox.parent as? ConstraintLayout
+                        if (parent != null) {
+                            val constraintSet = ConstraintSet()
+                            constraintSet.clone(parent)
+                            constraintSet.setMargin(
+                                binding.centerBox.id,
+                                ConstraintSet.BOTTOM,
+                                imeHeight
+                            )
+                            constraintSet.applyTo(parent)
+                        }
+                    }
+                }
             }
         }
         viewModel.matches.collectWithLifecycle {
@@ -154,7 +159,7 @@ class MultiplayerFragment :
                     lvl1 = gameRoom.player1.lvl
                 )
                 amiThePayer = true
-                viewModel.sendInitialMessage(gameRoom, false)
+                viewModel.sendInitialMessage(gameRoom)
                 bubbleTabBar.setSelected(1, true)
                 startMatch()
             } else if (!amiThePayer) {
@@ -205,7 +210,7 @@ class MultiplayerFragment :
                                 isPlyr1 = true
                             )
                             Log.d("TAG", "onCreate key: $key")
-                            viewModel.sendInitialMessage(GameRoom(key = key), true)
+                            viewModel.sendInitialMessage(GameRoom(key = key), JoinType.Create)
                             bubbleTabBar.setSelected(1, true)
                             viewModel.isStickySwitchRight = true
                             fetchJoiningPlayerInfo(key)
@@ -306,9 +311,9 @@ class MultiplayerFragment :
     private fun lvlUpgrade() {
         val pf = viewModel.gameProfile
         val tmpLvl = pref.read("tmpLvl", 1)
-        if (tmpLvl != pf.lvlByCal()) {
+        if (tmpLvl != pf.lvlByCal() && viewModel.playerId.isNotEmpty()) {
             viewModel.player.playWinSound()
-            Firebase.firestore.collection("gamerProfile").document((viewModel.playerId))
+            viewModel.gamerProfileRef.document((viewModel.playerId))
                 .update("lvl", pf.lvlByCal())
             pref.save("tmpLvl", pf.lvlByCal())
             val dialogBinding = DialogLayoutUpdateBinding.inflate(layoutInflater)
@@ -444,9 +449,10 @@ class MultiplayerFragment :
                             copy(nm = newNm)
                         }
                         Log.d("TAG", "profileBtn: ${viewModel.playerId}")
-                        viewModel.gamerProfileRef
-                            .document(viewModel.playerId)
-                            .update("nm", newNm)
+                        if (viewModel.playerId.isNotEmpty())
+                            viewModel.gamerProfileRef
+                                .document(viewModel.playerId)
+                                .update("nm", newNm)
                         nmTxt.isEnabled = false
                         nmEditBtn.setImageResource(R.drawable.icon_edit)
                         editing = false
@@ -501,11 +507,10 @@ class MultiplayerFragment :
                 copy(nm = newNm)
             }
             Log.d("TAG", "profileBtn: ${viewModel.playerId}")
-
-            viewModel.gamerProfileRef
-                .document(viewModel.playerId)
-                .update("nm", newNm)
-
+            if (viewModel.playerId.isNotEmpty())
+                viewModel.gamerProfileRef
+                    .document(viewModel.playerId)
+                    .update("nm", newNm)
             nmTxt.isEnabled = false
             nmEditBtn.setImageResource(R.drawable.icon_edit)
             editing = false

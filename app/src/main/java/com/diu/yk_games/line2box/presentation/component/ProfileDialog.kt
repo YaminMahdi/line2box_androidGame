@@ -40,7 +40,8 @@ fun ProfileDialog(
                 .padding(end = 80.dp)
                 .fillMaxWidth(.8f)
             else
-                Modifier.fillMaxWidth()
+                Modifier
+                    .fillMaxWidth(.7f)
         ) {
             ProfileContent(profile)
         }

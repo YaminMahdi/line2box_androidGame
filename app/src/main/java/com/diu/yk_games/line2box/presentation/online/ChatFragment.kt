@@ -25,8 +25,6 @@ import com.diu.yk_games.line2box.presentation.component.ProfileDialog
 import com.diu.yk_games.line2box.presentation.navigation.Routes
 import com.diu.yk_games.line2box.ui.theme.Line2BoxChatTheme
 import com.diu.yk_games.line2box.util.*
-import com.google.firebase.Firebase
-import com.google.firebase.firestore.firestore
 import com.google.firebase.firestore.toObject
 import io.ak1.BubbleTabBar
 import kotlinx.coroutines.delay
@@ -143,10 +141,10 @@ class ChatFragment : Fragment() {
                 viewModel.ignoreDrawerClosesSound = true
                 onCloseDrawer()
             },
-            onMessageClick = { msg ->
+            onMessageClick = onClick@{ msg ->
+                if (msg.playerId.isEmpty()) return@onClick
                 viewModel.player.playButtonClickSound()
-                Firebase.firestore
-                    .collection("gamerProfile").document(msg.playerId).get()
+                viewModel.gamerProfileRef.document(msg.playerId).get()
                     .addOnSuccessListener { profile = it.toObject<GameProfile>() }
             },
             onSend = ::send,

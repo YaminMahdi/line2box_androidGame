@@ -53,6 +53,7 @@ import java.util.Locale
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.resume
+import kotlin.reflect.full.memberProperties
 import kotlin.time.Duration.Companion.milliseconds
 
 ///**Flow collect from Fragment with `repeatOnLifecycle` on` lifecycleScope` till `RESUMED` */
@@ -141,6 +142,50 @@ fun Long.toDateTime(): String {
 
     return dateTime.format(DateTimeFormatter.ofPattern(format, Locale.US))
 }
+
+fun Long.toTimePassed(): String {
+    val nowMs = System.currentTimeMillis()
+    val diffMs = (nowMs - this).coerceAtLeast(0)
+
+    val seconds = diffMs / 1_000
+    val minutes = seconds / 60
+    val hours = minutes / 60
+    val days = hours / 24
+    val weeks = days / 7
+    val months = days / 30
+    val years = days / 365
+    val decades = years / 10
+
+    return when {
+        decades > 0 -> "$decades Decades Ago"
+        years > 0 -> "$years Years Ago"
+        months > 0 -> "$months Months Ago"
+        weeks > 0 -> "$weeks Weeks Ago"
+        days > 0 -> "$days Days Ago"
+        hours > 0 -> "$hours Hours Ago"
+        minutes > 0 -> "$minutes Min Ago"
+        else -> "$seconds Sec Ago"
+    }
+}
+
+// Checks if the timestamp is not older than the given duration (and not in the future)
+fun Long.isLessThanAgo(duration: kotlin.time.Duration): Boolean {
+    val elapsedMs = System.currentTimeMillis() - this
+    return elapsedMs in 0 until duration.inWholeMilliseconds
+}
+
+// Checks if the timestamp is older than the given duration (and not in the future)
+fun Long.isMoreThanAgo(duration: kotlin.time.Duration): Boolean {
+    val elapsedMs = System.currentTimeMillis() - this
+    return elapsedMs >= duration.inWholeMilliseconds
+}
+
+fun String.toInitial(limit: Int = 2): String =
+    trim().split("[\\s\\-_]+".toRegex())
+        .filter { it.isNotEmpty() }
+        .map { it.first().uppercaseChar() }
+        .joinToString("")
+        .take(limit)
 
 fun Window.hideSystemBars() {
 //    decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN
@@ -308,7 +353,7 @@ fun Context?.showCustomTab(url: String?): Unit? {
 
 fun Context?.showOnMarket(packageName: String): Unit? {
     if (this == null) return null
-    val marketUri = Uri.parse("market://details").buildUpon()
+    val marketUri = "market://details".toUri().buildUpon()
         .appendQueryParameter("id", packageName)
         .build()
     return runCatching {
@@ -326,7 +371,7 @@ fun Activity.launchPlayStoreOverlayOriginal(
     requestCode: Int = 1001
 ): Unit? {
     // Construct the overlay direct-install URI
-    val uriBuilder = Uri.parse("https://play.google.com/d").buildUpon()
+    val uriBuilder = "https://play.google.com/d".toUri().buildUpon()
         .appendQueryParameter("id", packageName)
 
     referrer?.let {
@@ -350,7 +395,7 @@ fun Activity.launchPlayStoreOverlayOriginal(
 fun Activity.launchPlayStoreOverlayBypass(
     packageName: String
 ): Unit? {
-    val uriBuilder = Uri.parse("https://play.google.com/d").buildUpon()
+    val uriBuilder = "https://play.google.com/d".toUri().buildUpon()
         .appendQueryParameter("id", packageName)
 
     val intent = Intent(Intent.ACTION_VIEW, uriBuilder.build()).apply {
@@ -700,4 +745,13 @@ fun ImageView.setDrawableWithFade(@DrawableRes background: Int, durationMs: Int 
     setImageDrawable(transitionDrawable)
     transitionDrawable.startTransition(durationMs)
     transitionDrawable.isCrossFadeEnabled = true
+}
+
+
+inline fun <reified T : Any> T.asMap(): Map<String, Any> {
+    return T::class
+        .memberProperties
+        .associateByTo(mutableMapOf(), keySelector = { it.name }, valueTransform = { it.get(this) })
+        .filterValues { it != null }
+        .mapValues { it.value as Any }
 }

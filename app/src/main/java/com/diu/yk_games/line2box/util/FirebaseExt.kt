@@ -10,12 +10,43 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 
-inline fun <reified T> DatabaseReference.asValueFlow(): Flow<T> = callbackFlow {
+inline fun <reified T> Query.asValueFlow(): Flow<T> = callbackFlow {
     val listener = object : ValueEventListener {
         override fun onDataChange(snapshot: DataSnapshot) {
             snapshot.getValue<T>()?.let {
                 trySend(it)
             } ?: cancel()
+        }
+
+        override fun onCancelled(error: DatabaseError) {
+            close(error.toException())
+        }
+    }
+
+    addValueEventListener(listener)
+
+    awaitClose {
+        removeEventListener(listener)
+    }
+}
+
+inline fun <reified T> Query.asValueFlowList(): Flow<List<T>> = callbackFlow {
+    val listener = object : ValueEventListener {
+        override fun onDataChange(snapshot: DataSnapshot) {
+            val list = mutableListOf<T>()
+
+            // 1. Iterate through children to preserve Firebase's ascending order
+            for (childSnapshot in snapshot.children) {
+                childSnapshot.getValue(T::class.java)?.let { item ->
+                    list.add(item)
+                }
+            }
+
+            // 2. Reverse the list locally to achieve descending order
+            list.reverse()
+
+            // 3. Emit the correctly sorted, parsed list to the flow
+            trySend(list)
         }
 
         override fun onCancelled(error: DatabaseError) {

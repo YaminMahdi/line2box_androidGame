@@ -23,14 +23,12 @@ import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.firestore
 import com.google.firebase.firestore.toObject
 import com.google.gson.Gson
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.tasks.await
 import org.jsoup.Jsoup
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.minutes
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -44,12 +42,14 @@ class MainViewModel(
     var currentRoute: Routes = Routes.Home
 
     var lastMotionState: Int? = null
-    val firebaseAuth by lazy { Firebase.auth }
-    val database by lazy { Firebase.database }
-    val firestore by lazy { Firebase.firestore }
-    val globalChatRef by lazy { database.getReference("globalChat") }
-    val multiPlayerRef by lazy { database.getReference("MultiPlayer") }
-    val gamerProfileRef by lazy { firestore.collection("gamerProfile") }
+    val firebaseAuth = Firebase.auth
+    val database = Firebase.database
+    val firestore = Firebase.firestore
+
+    val globalChatRef = database.getReference("globalChat")
+    val multiPlayerRef = database.getReference("MultiPlayer")
+    val activePlayersRef = database.getReference("actives")
+    val gamerProfileRef = firestore.collection("gamerProfile")
 
     val matchRef
         get() = multiPlayerRef.child(matchRouteInfo.gameKey)
@@ -67,28 +67,18 @@ class MainViewModel(
     val isConnected
         get() = onlineStatus == OnlineStatus.Online || ConnectivityObserver.isConnected
 
-    val globalChatList = savedStateHandle.getStateFlow("globalChatList", emptyList<MsgStore>())
-    val friendlyChatList = savedStateHandle.getStateFlow("friendlyChatList", emptyList<MsgStore>())
+    val globalChatList = savedStateHandle.getStateFlow("globalChatList", listOf<MsgStore>())
+    val friendlyChatList = savedStateHandle.getStateFlow("friendlyChatList", listOf<MsgStore>())
 
-    val matches = savedStateHandle.getStateFlow("matches", emptyList<GameRoom>())
-    val actives = savedStateHandle.getStateFlow(
-        "actives", listOf<PlayerInfo>(
-            PlayerInfo(
-                nm = "Player 1",
-                id = "1",
-                lvl = 1,
-                coin = 100,
-                seenAt = System.currentTimeMillis()
-            ),
-            PlayerInfo(
-                nm = "Player 2",
-                id = "2",
-                lvl = 1,
-                coin = 100,
-                seenAt = System.currentTimeMillis() - 10000000000
-            )
+    val matches = savedStateHandle.getStateFlow("matches", listOf<GameRoom>())
+    val actives = activePlayersRef
+        .limitToLast(100)
+        .asValueFlowList<PlayerInfo>()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(),
+            initialValue = listOf()
         )
-    )
 
     var ignoreDrawerClosesSound = false
     var localPlayerCount = 2
@@ -97,7 +87,7 @@ class MainViewModel(
 
     var matchRouteInfo by savedStateHandle.saved { Routes.GameOnline() }
 
-    var tempKeys by savedStateHandle.saved { emptyList<String>() }
+    var tempKeys by savedStateHandle.saved { listOf<String>() }
 
     var isStickySwitchRight by savedStateHandle.saved { false }
     val isNewMsgBoltVisible = savedStateHandle.getStateFlow("isNewMsgBoltVisible", false)
@@ -130,6 +120,7 @@ class MainViewModel(
         removeActiveMatchesListener()
         removeServerLineClickListener()
         player.release()
+        runBlocking(Dispatchers.IO) { removeOlderMatches() }
     }
 
     fun updateSettings(settings: Settings) {
@@ -346,6 +337,8 @@ class MainViewModel(
         playerId = gameProfile.playerId
     }
 
+    var pingJob: Job? = null
+
     fun initMultiplayer() {
         matchRouteInfo = Routes.GameOnline(
             plr2Id = playerId,
@@ -355,6 +348,15 @@ class MainViewModel(
         )
         fetchGlobalChat()
         fetchActiveMatches()
+        pingJob?.cancel()
+        pingJob = viewModelScope.launch(Dispatchers.IO) {
+            runCatching {
+                while (isActive) {
+                    pingActiveStatus()
+                    delay(2.minutes)
+                }
+            }
+        }
     }
 
     fun addTempKey(key: String?) {
@@ -364,20 +366,27 @@ class MainViewModel(
 
     fun clearFriendlyChat() {
         viewModelScope.launch(Dispatchers.IO) {
-            savedStateHandle["friendlyChatList"] = emptyList<MsgStore>()
+            savedStateHandle["friendlyChatList"] = listOf<MsgStore>()
             friendlyValueListener?.also { _friendlyChatRef?.removeEventListener(it) }
         }
     }
 
     fun clearTempMatches() {
-        savedStateHandle["friendlyChatList"] = emptyList<MsgStore>()
-        tempKeys.forEach {
-            if (it.isEmpty()) return@forEach
-            if (it == matchRouteInfo.gameKey)
-                matchRouteInfo = Routes.GameOnline()
-            multiPlayerRef.child(it).removeValue()
-            tempKeys = tempKeys - it
-        }
+        savedStateHandle["friendlyChatList"] = listOf<MsgStore>()
+
+        val updates = matches.value
+            .filter { it.key in tempKeys && it.key.isNotEmpty() }
+            .onEach {
+                if (it.key == matchRouteInfo.gameKey)
+                    matchRouteInfo = Routes.GameOnline()
+            }
+            .filter { it.matchInfo.result.score1 == 0 && it.matchInfo.result.score2 == 0 }
+            .associate { it.key to null }
+
+        if (updates.isNotEmpty())
+            multiPlayerRef.updateChildren(updates)
+
+        tempKeys = listOf()
     }
 
     suspend fun removeOlderMatches() {
@@ -616,7 +625,7 @@ class MainViewModel(
     fun sendCommand(
         command: ChatCommand,
         flags: Map<ChatFlag, Int?> = emptyMap(),
-        currentChats: List<MsgStore> = emptyList(),
+        currentChats: List<MsgStore> = listOf(),
         chatRef: DatabaseReference
     ) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -653,11 +662,12 @@ class MainViewModel(
             return
         val count = flags[ChatFlag.Count]?.coerceIn(1, 10) ?: 1
 
-        globalChatList.value.take(count).forEach {
-            chatRef.child(it.key)
-                .removeValue()
-                .await()
-        }
+        val updates = globalChatList.value
+            .take(count)
+            .associate { it.key to null }
+
+        if (updates.isNotEmpty())
+            chatRef.updateChildren(updates).await()
     }
 
     private suspend fun clearChat(chatRef: DatabaseReference) {
@@ -701,12 +711,12 @@ class MainViewModel(
     }
 
     fun fuckIL() {
-        Firebase.firestore.collection("gamerProfile").whereEqualTo("countryEmoji", "🇮🇱").get()
+        gamerProfileRef.whereEqualTo("countryEmoji", "🇮🇱").get()
             .addOnSuccessListener { qs ->
                 qs?.documents?.mapNotNull { it?.toObject<GameProfile>() }?.forEach {
                     it.countryEmoji = "🇵🇸"
                     it.countryNm = "Palestina"
-                    Firebase.firestore.collection("gamerProfile").document(it.playerId).set(it)
+                    gamerProfileRef.document(it.playerId).set(it)
                 }
             }
     }
@@ -729,26 +739,38 @@ class MainViewModel(
                     override fun onChildAdded(dataSnapshot: DataSnapshot, s: String?) {
                         Log.d("addList", "onChildAdded: " + dataSnapshot.key)
                         runCatching {
-                            dataSnapshot.getValue<GameRoom>()?.let { game ->
-                                savedStateHandle["matches"] =
-                                    (matches.value + game.copy(key = dataSnapshot.key.orEmpty())).distinctBy { it.key }
-                            }
+                            savedStateHandle["matches"] = matches.value.addSorted(dataSnapshot)
+                            val oldMatches = matches.value
+                                .filter { !it.ver.isV1 && it.pingAt.isMoreThanAgo(1.days) }
+                                .associate { it.key to null }
+                            if (oldMatches.isNotEmpty())
+                                multiPlayerRef.updateChildren(oldMatches)
+                        }.onFailure {
+                            it.logError("fetchActiveMatches")
                         }
                     }
 
                     override fun onChildChanged(dataSnapshot: DataSnapshot, s: String?) {
                         removeByKey(dataSnapshot.key)
                         runCatching {
-                            dataSnapshot.getValue<GameRoom>()?.let { game ->
-                                savedStateHandle["matches"] =
-                                    (matches.value + game.copy(key = dataSnapshot.key.orEmpty()))
-                            }
+                            savedStateHandle["matches"] = matches.value.addSorted(dataSnapshot)
+                        }.onFailure {
+                            it.logError("fetchActiveMatches")
                         }
                     }
 
                     override fun onChildRemoved(dataSnapshot: DataSnapshot) {
                         removeByKey(dataSnapshot.key)
                     }
+
+                    private fun List<GameRoom>.addSorted(dataSnapshot: DataSnapshot) =
+                        dataSnapshot.getValue<GameRoom>()?.let { game ->
+                            plus(game.copy(key = dataSnapshot.key.orEmpty()))
+                                .distinctBy { it.key }
+                                .sortedByDescending { it.pingAt }
+                                .partition { it.ver.isV1 }
+                                .let { it.second + it.first }
+                        }
 
                     private fun removeByKey(key: String?) {
                         key?.let { key ->
@@ -805,14 +827,14 @@ class MainViewModel(
         val isPlayer2 = gameRoom.player2.id == playerId
         val isParticipant = isPlayer1 || isPlayer2
 
-        val isRoomFull = gameRoom.player1.id.isNotEmpty() &&
-                gameRoom.player2.id.isNotEmpty()
+        val isRoomFull =
+            gameRoom.player1.seenAt > 0 && gameRoom.player2.seenAt > 0
 
         // Reject if the player isn't in the room AND the room cannot accept new players
         if (!isParticipant && isRoomFull)
             return Result.failure(Exception("Match already started."))
 
-        val isPlyr1 = gameRoom.player1.id.isEmpty() || isPlayer1
+        val isPlyr1 = gameRoom.player1.seenAt < 0 || isPlayer1
         matchRouteInfo = Routes.GameOnline(
             gameKey = gameRoom.key,
             isPlyr1 = isPlyr1,
@@ -824,45 +846,101 @@ class MainViewModel(
             lvl2 = if (isPlyr1) gameRoom.player2.lvl else gameProfile.lvlByCal()
         )
         matchRouteInfo.log("getJoinRoute")
-        sendInitialMessage(gameRoom, false)
+        sendInitialMessage(gameRoom)
         fetchServerLineClick(gameRoom)
         fetchFriendlyChat()
         return Result.success(matchRouteInfo)
     }
 
-    fun sendInitialMessage(gameRoom: GameRoom, isNewRoom: Boolean) {
+    fun getJoinRoute(room: GameRoom): Result<Routes.GameOnline> {
+        room.log("getJoinRoute")
+
+        val isPlayer1 = room.player1.id == playerId
+        val isPlayer2 = room.player2.id == playerId
+        val isParticipant = isPlayer1 || isPlayer2
+
+        val isRoomFull = room.player1.seenAt > 0 && room.player2.seenAt > 0
+
+        // Reject if the player isn't in the room AND the room cannot accept new players
+        if (!isParticipant && isRoomFull)
+            return Result.failure(Exception("Match already started."))
+
+        val isPlyr1 = room.player1.seenAt < 0 || isPlayer1
+        matchRouteInfo = Routes.GameOnline(
+            gameKey = room.key,
+            isPlyr1 = isPlyr1,
+            plr1Id = if (isPlyr1) playerId else room.player1.id,
+            nm1 = if (isPlyr1) gameProfile.nm else room.player1.nm,
+            lvl1 = if (isPlyr1) gameProfile.lvlByCal() else room.player1.lvl,
+            plr2Id = if (isPlyr1) room.player2.id else playerId,
+            nm2 = if (isPlyr1) room.player2.nm else gameProfile.nm,
+            lvl2 = if (isPlyr1) room.player2.lvl else gameProfile.lvlByCal()
+        )
+        matchRouteInfo.log("getJoinRoute")
+        sendInitialMessage(room)
+        fetchServerLineClick(room)
+        fetchFriendlyChat()
+        return Result.success(matchRouteInfo)
+    }
+
+    fun getWatchRoute(room: GameRoom): Routes.GameOnline {
+        matchRouteInfo = Routes.GameOnline(
+            gameKey = room.key,
+            plr1Id = room.player1.id,
+            nm1 = room.player1.nm,
+            lvl1 = room.player1.lvl,
+            plr2Id = room.player2.id,
+            nm2 = room.player2.nm,
+            lvl2 = room.player2.lvl,
+            watchOnly = true
+        )
+        sendInitialMessage(room, JoinType.Watch)
+        fetchServerLineClick(room)
+        fetchFriendlyChat()
+        return matchRouteInfo
+    }
+
+    fun sendInitialMessage(gameRoom: GameRoom, joinType: JoinType = JoinType.Join) {
         val chatKey = friendlyChatRef?.push()?.key ?: uuidV7
         val initialMsg = gameProfile.toMessage(
             playerId = playerId,
-            msg = if (isNewRoom) "Created the match." else "Joined the match.",
+            msg = when (joinType) {
+                Create -> "Created the match."
+                Join -> "Joined the match."
+                Watch -> "Watching the match."
+            },
             type = MessageType.EnterText
         )
 
-        if (isNewRoom) {
+        if (joinType.isNew) {
             // Player 1: Initialize new room
             val newRoomData = gameRoom.copy(
-                ver = GameRoom.RoomType.V2,
+                ver = GameRoom.Version.V2,
                 player1 = gameProfile.toPlayerInfo(),
                 friendlyChat = mapOf(chatKey to initialMsg)
-            )
+            ).asMap().plus("pingAt" to ServerValue.TIMESTAMP)
             multiPlayerRef.child(gameRoom.key).setValue(newRoomData)
             return
         }
 
         val updates = mutableMapOf(
             "friendlyChat/$chatKey" to initialMsg,
-            "playerCount" to "2"
+            "pingAt" to ServerValue.TIMESTAMP
         )
 
         when {
+            joinType == JoinType.Watch -> Unit
+
             gameRoom.player2.id.isEmpty() -> {
                 // Player 2 fills empty slot
                 updates["player2"] = gameProfile.toPlayerInfo()
+                updates["playerCount"] = "2"
             }
 
             gameRoom.player1.id.isEmpty() -> {
                 // Fallback: Player 1 slot was vacant
                 updates["player1"] = gameProfile.toPlayerInfo()
+                updates["playerCount"] = "2"
             }
 
             else -> Unit
@@ -903,17 +981,25 @@ class MainViewModel(
         matchRef.updateChildren(updates)
     }
 
-    fun pingCurrentMatch() {
-        matchRef?.child("pingAt")
-            ?.setValue(ServerValue.TIMESTAMP)
+    suspend fun pingActiveStatus() = withContext(Dispatchers.IO) {
+        gameProfile.takeIf { it.playerId.isNotEmpty() && ConnectivityObserver.isConnected }?.let {
+            activePlayersRef.child(it.playerId)
+                .setValue(it.toPlayerInfo().asMap().plus("seenAt" to ServerValue.TIMESTAMP)).await()
+        }
     }
 
-    fun pingActiveStatus() {
-        val playerInfoKey =
-            if (matchRouteInfo.isPlyr1) "player1" else "player2"
-        matchRef?.child(playerInfoKey)
-            ?.child("seenAt")
-            ?.setValue(ServerValue.TIMESTAMP)
+    fun pingCurrentMatch() {
+        if (matchRouteInfo.watchOnly) return
+        val isPlyr1 = matchRouteInfo.isPlyr1
+        val playerInfoKey = if (isPlyr1) "player1" else "player2"
+
+        val serverTimestamp = ServerValue.TIMESTAMP
+
+        val updates = mapOf(
+            "pingAt" to serverTimestamp,
+            "$playerInfoKey/seenAt" to serverTimestamp
+        )
+        matchRef?.updateChildren(updates)
     }
 
     private companion object {

@@ -70,6 +70,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupUI() {
+        binding.composeView.installDynamicIsland(
+            sourceView = binding.mainNavHost,
+            onClick = {
+                when (it) {
+                    is DynamicBubble.Message if it.text.isNotBlank() ->
+                        openNavBtn()
+
+                    else -> Unit
+                }
+            }
+        )
+
         val activityRootView = window.decorView
 
         ViewCompat.setWindowInsetsAnimationCallback(
@@ -142,17 +154,6 @@ class MainActivity : AppCompatActivity() {
             override fun onPageSelected(position: Int) =
                 bindingDrawer.bubbleTabBar.setSelected(position, false)
         })
-        binding.composeView.installDynamicIsland(
-            sourceView = binding.mainNavHost,
-            onClick = {
-                when (it) {
-                    is DynamicBubble.Message if it.text.isNotBlank() ->
-                        openNavBtn()
-
-                    else -> Unit
-                }
-            }
-        )
     }
 
     private fun setupListener() {
@@ -238,13 +239,13 @@ class MainActivity : AppCompatActivity() {
                     chatMode = ChatMode.FRIENDLY,
                     type = MsgStore.MessageType.ExitText
                 )
-                val playerPath = if (route.isPlyr1) "player1/id" else "player2/id"
+                val playerTimePath = if (route.isPlyr1) "player1/seenAt" else "player2/seenAt"
                 viewModel.multiPlayerRef
                     .child(route.gameKey)
                     .updateChildren(
                         mapOf(
                             "playerCount" to "1",
-                            playerPath to ""
+                            playerTimePath to -2L
                         )
                     )
             }

@@ -1,13 +1,11 @@
 package com.diu.yk_games.line2box.presentation.online.live.component
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.EmojiEvents
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -15,18 +13,27 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.dropShadow
+import androidx.compose.ui.graphics.shadow.Shadow
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.model.PlayerInfo
+import com.diu.yk_games.line2box.presentation.online.live.LiveDot
+import com.diu.yk_games.line2box.ui.theme.Line2BoxTheme
+import com.diu.yk_games.line2box.ui.theme.cocZ
 import com.diu.yk_games.line2box.util.bounceClick
+import com.diu.yk_games.line2box.util.toInitial
 
 @Composable
 fun ActivePlayerCard(
     player: PlayerInfo,
-    onClick: () -> Unit = {},
+    onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -34,63 +41,103 @@ fun ActivePlayerCard(
         modifier = modifier
             .fillMaxWidth()
             .bounceClick(onClick = onClick)
-            .clip(RoundedCornerShape(14.dp))
-            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.65f))
-            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(14.dp))
+            .dropShadow(
+                shape = RoundedCornerShape(20.dp),
+                shadow = Shadow(
+                    radius = 5.dp,
+                    spread = 2.dp,
+                    color = MaterialTheme.colorScheme.surface.copy(.5f),
+                    offset = DpOffset(2.dp, 2.dp)
+                )
+            )
+            .background(MaterialTheme.colorScheme.surface.copy(alpha = .5f), RoundedCornerShape(20.dp))
+            .border(.5.dp, MaterialTheme.colorScheme.outline.copy(.2f), RoundedCornerShape(20.dp))
             .padding(10.dp)
+            .padding(vertical = 5.dp)
     ) {
         Box(
             modifier = Modifier
-                .size(36.dp)
+                .size(32.dp)
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f))
                 .border(1.dp, MaterialTheme.colorScheme.primary, CircleShape),
             contentAlignment = Center
         ) {
             Text(
-                text = "${player.lvl}",
+                text = player.nm.toInitial(),
                 color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold,
-                fontSize = 12.sp
+                fontSize = 12.sp,
+                modifier = Modifier.padding(top = 3.dp)
             )
         }
         Spacer(Modifier.width(10.dp))
         Column(Modifier.weight(1f)) {
-            Text(
-                text = player.nm,
-                color = MaterialTheme.colorScheme.onSurface,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 13.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Text(
-                text = "Level ${player.lvl}",
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontSize = 11.sp
-            )
+            Row {
+                Text(
+                    text = player.nm,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontSize = 12.sp,
+                    lineHeight = 14.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(
+                    text = "lvl.",
+                    color = MaterialTheme.colorScheme.onBackground,
+                    fontSize = 9.sp,
+                    lineHeight = 10.sp,
+                    modifier = Modifier.padding(start = 2.dp)
+                )
+                Text(
+                    text = player.lvl.toString(),
+                    color = colorResource(R.color.greenY),
+                    fontSize = 9.sp,
+                    lineHeight = 10.sp
+                )
+            }
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                LiveDot(color = colorResource(R.color.greenY))
+                TimePassed(millis = player.seenAt, modifier = Modifier.padding(top = 2.dp))
+            }
         }
         Row(
-            modifier = Modifier
-                .clip(RoundedCornerShape(50))
-                .background(Color.Transparent)
-                .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(50))
-                .padding(horizontal = 8.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = Icons.Filled.EmojiEvents,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(12.dp)
+            Image(
+                painter = painterResource(R.drawable.icon_trophy),
+                contentDescription = "Coins",
+                modifier = Modifier.size(16.dp)
             )
-            Spacer(Modifier.width(3.dp))
+            Spacer(Modifier.width(4.dp))
             Text(
                 text = "${player.coin}",
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontWeight = FontWeight.Bold,
-                fontSize = 11.sp
+                color = cocZ,
+                fontWeight = FontWeight.ExtraBold,
+                fontSize = 17.sp,
+                lineHeight = 17.sp,
+                modifier = Modifier.padding(top = 3.dp)
             )
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ActivePlayerCardPreview() {
+    Line2BoxTheme {
+        ActivePlayerCard(
+            player = PlayerInfo(
+                id = "1",
+                nm = "Player",
+                lvl = 12,
+                coin = 450,
+                seenAt = System.currentTimeMillis()
+            ),
+            modifier = Modifier.padding(16.dp),
+            onClick = {}
+        )
     }
 }

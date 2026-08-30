@@ -14,11 +14,7 @@ import com.diu.yk_games.line2box.presentation.base.BaseFragmentCompose
 import com.diu.yk_games.line2box.presentation.component.ProfileDialog
 import com.diu.yk_games.line2box.presentation.main.SettingsFragment
 import com.diu.yk_games.line2box.ui.theme.Line2BoxTheme
-import com.diu.yk_games.line2box.util.getTag
-import com.diu.yk_games.line2box.util.log
-import com.diu.yk_games.line2box.util.popBackSafe
-import com.google.firebase.Firebase
-import com.google.firebase.firestore.firestore
+import com.diu.yk_games.line2box.util.*
 import com.google.firebase.firestore.toObject
 
 class LiveStatsFragment : BaseFragmentCompose() {
@@ -37,18 +33,21 @@ class LiveStatsFragment : BaseFragmentCompose() {
                 actives = actives,
                 onPlayerClick = { playerId ->
                     playerId.log(TAG)
-                    viewModel.player.playButtonClickSound()
-                    Firebase.firestore
-                        .collection("gamerProfile").document(playerId).get()
-                        .addOnSuccessListener { profile = it.toObject<GameProfile>() }
+                    if (viewModel.playerId.isNotEmpty()) {
+                        viewModel.player.playButtonClickSound()
+                        viewModel.gamerProfileRef.document(playerId).get()
+                            .addOnSuccessListener { profile = it.toObject<GameProfile>() }
+                    }
                 },
-                onJoinRoom = {
+                onJoinRoom = { room ->
                     viewModel.player.playButtonClickSound()
-
+                    viewModel.getJoinRoute(room)
+                        .onSuccess { navigateSafe(it) }
+                        .onFailure { context.toast(it.message.toString()) }
                 },
                 onWatchRoom = {
                     viewModel.player.playButtonClickSound()
-
+                    navigateSafe(viewModel.getWatchRoute(it))
                 },
                 onClickHome = {
                     viewModel.player.playButtonClickSound()

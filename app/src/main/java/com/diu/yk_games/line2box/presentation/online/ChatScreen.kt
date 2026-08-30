@@ -531,7 +531,7 @@ fun getSuggestions(text: String): Pair<List<ChatCommand>, List<ChatFlag>> {
             .filter { it.command.startsWith(lastWord) }
             .filterNot { it.command == lastWord } // Exclude if full command is already typed
     } else {
-        emptyList()
+        listOf()
     }
 
     val flags = if (isTypingFlag) {
@@ -540,7 +540,7 @@ fun getSuggestions(text: String): Pair<List<ChatCommand>, List<ChatFlag>> {
             .filter { it.flag.startsWith(lastWord) }
             .filterNot { it.flag == lastWord } // Exclude if full flag is already typed
     } else {
-        emptyList()
+        listOf()
     }
 
     return commands to flags

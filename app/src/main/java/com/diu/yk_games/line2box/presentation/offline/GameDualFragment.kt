@@ -21,8 +21,6 @@ import com.diu.yk_games.line2box.presentation.base.BaseFragment
 import com.diu.yk_games.line2box.presentation.navigation.Routes
 import com.diu.yk_games.line2box.util.*
 import com.google.android.play.core.review.ReviewManagerFactory
-import com.google.firebase.Firebase
-import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -198,7 +196,7 @@ class GameDualFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDualB
 
         return IO {
             runCatching {
-                val db = Firebase.firestore
+                val db = viewModel.firestore
 
                 // 1. Save user's score to ScoreBoard
                 db.collection("ScoreBoard")

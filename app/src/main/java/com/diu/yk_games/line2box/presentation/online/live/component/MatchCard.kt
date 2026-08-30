@@ -1,15 +1,18 @@
 package com.diu.yk_games.line2box.presentation.online.live.component
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.RemoveRedEye
+import androidx.compose.material.icons.rounded.LinkOff
+import androidx.compose.material.icons.rounded.Schedule
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -17,46 +20,84 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.dropShadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.shadow.Shadow
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.model.GameRoom
 import com.diu.yk_games.line2box.model.PlayerInfo
 import com.diu.yk_games.line2box.presentation.online.live.LiveDot
+import com.diu.yk_games.line2box.ui.theme.Line2BoxTheme
+import com.diu.yk_games.line2box.ui.theme.cocZ
 import com.diu.yk_games.line2box.util.bounceClick
+import com.diu.yk_games.line2box.util.isLessThanAgo
+import com.diu.yk_games.line2box.util.isMoreThanAgo
+import com.diu.yk_games.line2box.util.toTimePassed
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.minutes
 
 @Composable
 fun MatchCard(
     room: GameRoom,
-    onPlayerClick: (id: String) -> Unit = {},
+    onPlayerClick: (id: String) -> Unit,
     onJoin: () -> Unit,
     onWatch: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val isMatchOver = room.matchInfo.result.score1 + room.matchInfo.result.score2 == 36
     val playerCount = remember(room) {
-        listOf(room.player1, room.player2).count { it.id.isNotEmpty() }
+        listOf(room.player1, room.player2).count { it.id.isNotEmpty() && it.seenAt != -2L }
     }
 
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
-            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.65f))
-            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(14.dp))
+            .dropShadow(
+                shape = RoundedCornerShape(20.dp),
+                shadow = Shadow(
+                    radius = 5.dp,
+                    spread = 2.dp,
+                    color = MaterialTheme.colorScheme.surface.copy(.5f),
+                    offset = DpOffset(2.dp, 2.dp)
+                )
+            )
+            .background(
+                MaterialTheme.colorScheme.surface.copy(alpha = .5f),
+                RoundedCornerShape(20.dp)
+            )
+            .border(.5.dp, MaterialTheme.colorScheme.outline.copy(.2f), RoundedCornerShape(20.dp))
             .padding(10.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.Top
         ) {
-            LiveBadge()
+            LiveBadge(
+                status = if (isMatchOver)
+                    LiveStatus.Ended
+                else if (room.player1.seenAt < 0 || room.player2.seenAt < 0)
+                    LiveStatus.Waiting
+                else if (room.pingAt.isMoreThanAgo(1.days))
+                    LiveStatus.Dead
+                else
+                    LiveStatus.Live
+            )
+            TimePassed(room.pingAt)
             PlayerCountBadge(count = playerCount)
         }
 
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(4.dp))
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -64,7 +105,8 @@ fun MatchCard(
         ) {
             MatchPlayerSlot(
                 player = room.player1,
-                score = room.matchInfo.result.score1,
+                cup = room.matchInfo.result.score1,
+                showCup = isMatchOver,
                 alignEnd = false,
                 modifier = Modifier
                     .weight(1f)
@@ -73,11 +115,31 @@ fun MatchCard(
                             onPlayerClick(room.player1.id)
                     }
             )
-            VersusBadge()
+            BadgedBox(
+                badge = {
+                    Badge(
+                        containerColor = MaterialTheme.colorScheme.primary.copy(.5f),
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    ) {
+                        Text(room.ver.name.lowercase())
+                    }
+                },
+                modifier = Modifier
+                    .graphicsLayer {
+                        translationY = -13.dp.toPx()
+                    }
+            ) {
+                VersusBadge(
+                    result = room.matchInfo.result,
+                    modifier = Modifier
+                        .defaultMinSize(minWidth = 100.dp)
+                )
+            }
             MatchPlayerSlot(
                 player = room.player2,
-                score = room.matchInfo.result.score2,
+                cup = room.matchInfo.result.score2,
                 alignEnd = true,
+                showCup = isMatchOver,
                 modifier = Modifier
                     .weight(1f)
                     .bounceClick {
@@ -87,12 +149,40 @@ fun MatchCard(
             )
         }
 
-        Spacer(Modifier.height(8.dp))
+        val canJoin = playerCount < 2
+        val canWatch = playerCount == 2 && room.pingAt.isLessThanAgo(5.minutes)
 
-        MatchActionButton(
-            playerCount = playerCount,
-            onJoin = onJoin,
-            onWatch = onWatch
+
+        AnimatedVisibility(!isMatchOver && (canJoin || canWatch)) {
+            Column {
+                Spacer(Modifier.height(8.dp))
+                MatchActionButton(
+                    canJoin = canJoin,
+                    onJoin = onJoin,
+                    onWatch = onWatch
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun TimePassed(
+    millis: Long,
+    modifier: Modifier = Modifier
+) {
+    if (millis != -1L) {
+        Text(
+            text = if (millis == -2L)
+                "Player left.."
+            else if (millis.isLessThanAgo(5.minutes))
+                "Active"
+            else
+                millis.toTimePassed(),
+            color = MaterialTheme.colorScheme.outline,
+            fontSize = 11.sp,
+            lineHeight = 13.sp,
+            modifier = modifier
         )
     }
 }
@@ -100,107 +190,191 @@ fun MatchCard(
 @Composable
 private fun MatchPlayerSlot(
     player: PlayerInfo,
-    score: Int,
-    modifier: Modifier = Modifier,
-    alignEnd: Boolean
+    cup: Int,
+    alignEnd: Boolean,
+    showCup: Boolean,
+    modifier: Modifier = Modifier
 ) {
-    val isEmpty = player.id.isEmpty()
+    val isEmpty = player.nm.isEmpty()
     val horizontalAlignment = if (alignEnd) Alignment.End else Alignment.Start
 
     Column(
         modifier = modifier,
         horizontalAlignment = horizontalAlignment
     ) {
-        Box(
-            modifier = Modifier
-                .size(34.dp)
-                .clip(CircleShape)
-                .background(
-                    if (isEmpty) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                    else MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-                )
-                .border(
-                    1.dp,
-                    if (isEmpty) MaterialTheme.colorScheme.outline
-                    else MaterialTheme.colorScheme.primary,
-                    CircleShape
-                ),
-            contentAlignment = Center
-        ) {
-            if (isEmpty) {
-                Icon(
-                    imageVector = Icons.Filled.Group,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(15.dp)
-                )
-            } else {
+        Spacer(Modifier.height(4.dp))
+        Row {
+            Text(
+                text = if (isEmpty) "Waiting…" else player.nm,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontSize = 12.sp,
+                lineHeight = 14.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+            if (!isEmpty) {
                 Text(
-                    text = "${player.lvl}",
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 11.sp
+                    text = "lvl.",
+                    color = MaterialTheme.colorScheme.onBackground,
+                    fontSize = 9.sp,
+                    lineHeight = 10.sp,
+                    modifier = Modifier.padding(start = 2.dp)
+                )
+                Text(
+                    text = player.lvl.toString(),
+                    color = colorResource(R.color.greenY),
+                    fontSize = 9.sp,
+                    lineHeight = 10.sp
                 )
             }
         }
-        Spacer(Modifier.height(4.dp))
-        Text(
-            text = if (isEmpty) "Waiting…" else player.nm,
-            color = if (isEmpty) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
-            fontWeight = FontWeight.SemiBold,
-            fontSize = 12.sp,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
-        if (!isEmpty) {
-            Text(
-                text = "$score",
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.ExtraBold,
-                fontSize = 17.sp
-            )
+        if (showCup) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                val composableList: List<@Composable () -> Unit> = listOf(
+                    {
+                        Image(
+                            painter = painterResource(R.drawable.icon_trophy),
+                            contentDescription = "Coins",
+                            modifier = Modifier.size(16.dp)
+                        )
+                    },
+                    { Spacer(Modifier.width(4.dp)) },
+                    {
+                        Text(
+                            text = "$cup",
+                            color = cocZ,
+                            fontWeight = FontWeight.ExtraBold,
+                            fontSize = 17.sp,
+                            lineHeight = 17.sp,
+                            modifier = Modifier.padding(top = 3.dp)
+                        )
+                    }
+                )
+                if (alignEnd)
+                    composableList.reversed().forEach { it() }
+                else
+                    composableList.forEach { it() }
+            }
         }
+        TimePassed(player.seenAt)
     }
 }
 
 @Composable
-private fun VersusBadge(modifier: Modifier = Modifier) {
+private fun VersusBadge(modifier: Modifier = Modifier, result: GameRoom.LiveResult) {
     Box(
+        contentAlignment = Center,
         modifier = modifier
             .padding(horizontal = 6.dp)
-            .size(22.dp)
-            .clip(CircleShape)
+            .clip(RoundedCornerShape(10.dp))
             .background(Color.Transparent)
-            .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape),
-        contentAlignment = Center
+            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(10.dp))
+            .padding(horizontal = 12.dp, vertical = 4.dp)
     ) {
         Text(
-            text = "VS",
+            text = "${result.score1} - ${result.score2}",
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = FontWeight.Black,
-            fontSize = 9.sp
+            fontSize = 20.sp,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(top = 3.dp)
+        )
+    }
+}
+
+enum class LiveStatus {
+    Live,
+    Ended,
+    Waiting,
+    Dead
+}
+
+/** Container + border + content colors, optional leading icon, and label for one [LiveStatus]. */
+private data class LiveBadgeStyle(
+    val container: Color,
+    val border: Color,
+    val content: Color,
+    val icon: ImageVector?,
+    val label: String
+)
+
+@Composable
+private fun liveBadgeStyle(status: LiveStatus): LiveBadgeStyle {
+    val colors = MaterialTheme.colorScheme
+    return when (status) {
+        LiveStatus.Live -> LiveBadgeStyle(
+            container = colors.errorContainer.copy(alpha = 0.35f),
+            border = colors.error,
+            content = colors.error,
+            icon = null,
+            label = "LIVE"
+        )
+
+        LiveStatus.Ended -> LiveBadgeStyle(
+            container = colors.errorContainer.copy(alpha = 0.1f),
+            border = colors.error.copy(alpha = .3f),
+            content = colors.error.copy(alpha = .5f),
+            icon = null,
+            label = "ENDED"
+        )
+
+        LiveStatus.Waiting -> LiveBadgeStyle(
+            container = colors.tertiaryContainer.copy(alpha = 0.35f),
+            border = colors.tertiary,
+            content = colors.tertiary,
+            icon = Icons.Rounded.Schedule,
+            label = "WAITING"
+        )
+
+        LiveStatus.Dead -> LiveBadgeStyle(
+            container = colors.surfaceVariant.copy(alpha = 0.35f),
+            border = colors.onSurfaceVariant.copy(alpha = .3f),
+            content = colors.onSurfaceVariant.copy(alpha = .5f),
+            icon = Icons.Rounded.LinkOff,
+            label = "DEAD"
         )
     }
 }
 
 @Composable
-private fun LiveBadge(modifier: Modifier = Modifier) {
+private fun LiveBadge(
+    status: LiveStatus,
+    modifier: Modifier = Modifier
+) {
+    val style = liveBadgeStyle(status)
+
     Row(
         modifier = modifier
             .clip(RoundedCornerShape(50))
-            .background(MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.35f))
-            .border(1.dp, MaterialTheme.colorScheme.error, RoundedCornerShape(50))
-            .padding(horizontal = 8.dp, vertical = 3.dp),
+            .background(style.container)
+            .border(width = 1.dp, color = style.border, shape = RoundedCornerShape(50))
+            .padding(horizontal = 12.dp, vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        LiveDot(color = MaterialTheme.colorScheme.error)
-        Spacer(Modifier.width(5.dp))
+        when {
+            status == LiveStatus.Live -> {
+                LiveDot(color = style.content)
+                Spacer(Modifier.width(5.dp))
+            }
+
+            style.icon != null -> {
+                Icon(
+                    imageVector = style.icon,
+                    contentDescription = null,
+                    tint = style.content,
+                    modifier = Modifier.size(10.dp)
+                )
+                Spacer(Modifier.width(4.dp))
+            }
+        }
         Text(
-            text = "LIVE",
-            color = MaterialTheme.colorScheme.error,
+            text = style.label,
+            color = style.content,
             fontWeight = FontWeight.ExtraBold,
             fontSize = 10.sp,
-            letterSpacing = 1.sp
+            letterSpacing = 1.sp,
+            modifier = Modifier.padding(top = 2.dp)
         )
     }
 }
@@ -212,7 +386,7 @@ private fun PlayerCountBadge(count: Int, modifier: Modifier = Modifier) {
             .clip(RoundedCornerShape(50))
             .background(Color.Transparent)
             .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(50))
-            .padding(horizontal = 8.dp, vertical = 3.dp),
+            .padding(horizontal = 16.dp, vertical = 3.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
@@ -233,27 +407,29 @@ private fun PlayerCountBadge(count: Int, modifier: Modifier = Modifier) {
 
 @Composable
 private fun MatchActionButton(
-    playerCount: Int,
+    canJoin: Boolean,
     onJoin: () -> Unit,
     onWatch: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val canJoin = playerCount < 2
     OutlinedButton(
         onClick = if (canJoin) onJoin else onWatch,
         modifier = modifier
             .fillMaxWidth()
             .height(38.dp),
-        shape = RoundedCornerShape(10.dp),
+        shape = RoundedCornerShape(12.dp),
         border = BorderStroke(
-            1.dp,
-            if (canJoin) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+            width = 1.dp,
+            color = if (canJoin)
+                MaterialTheme.colorScheme.primary
+            else
+                MaterialTheme.colorScheme.outline
         ),
         colors = ButtonDefaults.outlinedButtonColors(
             containerColor = if (canJoin) MaterialTheme.colorScheme.primary.copy(alpha = 0.32f)
             else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.32f),
             contentColor = if (canJoin) MaterialTheme.colorScheme.primary
-            else MaterialTheme.colorScheme.onSurfaceVariant
+            else MaterialTheme.colorScheme.onSurfaceVariant,
         )
     ) {
         Icon(
@@ -265,7 +441,65 @@ private fun MatchActionButton(
         Text(
             text = if (canJoin) "Join Match" else "Watch",
             fontWeight = FontWeight.Bold,
-            fontSize = 13.sp
+            fontSize = 13.sp,
+            modifier = Modifier.padding(top = 3.dp)
         )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun MatchCardPreview() {
+    Line2BoxTheme {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            MatchCard(
+                room = GameRoom(
+                    ver = GameRoom.Version.V2,
+                    pingAt = System.currentTimeMillis() - 123243443,
+                    player1 = PlayerInfo(
+                        id = "1",
+                        nm = "Player One",
+                        lvl = 5,
+                        seenAt = System.currentTimeMillis() - 23243443
+                    ),
+                    player2 = PlayerInfo(id = "2", nm = "Player Two", lvl = 3, seenAt = -2L),
+                    matchInfo = GameRoom.MatchInfo(
+                        result = GameRoom.LiveResult(score1 = 12, score2 = 24)
+                    )
+                ),
+                onPlayerClick = {},
+                onJoin = {},
+                onWatch = {}
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true, name = "Waiting Player")
+@Composable
+fun MatchCardWaitingPreview() {
+    Line2BoxTheme {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            MatchCard(
+                room = GameRoom(
+                    player1 = PlayerInfo(id = "1", nm = "Player One", lvl = 5),
+                    player2 = PlayerInfo(),
+                    matchInfo = GameRoom.MatchInfo(
+                        result = GameRoom.LiveResult(score1 = 0, score2 = 0)
+                    )
+                ),
+                onPlayerClick = {},
+                onJoin = {},
+                onWatch = {}
+            )
+        }
     }
 }

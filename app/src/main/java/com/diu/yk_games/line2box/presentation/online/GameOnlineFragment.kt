@@ -27,16 +27,16 @@ import com.diu.yk_games.line2box.presentation.base.BaseFragment
 import com.diu.yk_games.line2box.presentation.navigation.Routes
 import com.diu.yk_games.line2box.util.*
 import com.google.android.play.core.review.ReviewManagerFactory
-import com.google.firebase.Firebase
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.getValue
-import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
 @SuppressLint("DiscouragedApi")
@@ -58,8 +58,10 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
             context = parentActivity,
             binding = binding
         )
-        setupUI()
-        gameUtils.setupListener(onLineClick = ::performClick)
+        val route = setupUI()
+        gameUtils.setupListener(onLineClick = {
+            if (!route.watchOnly) performClick(it)
+        })
         binding.root.post {
             setupObserver()
         }
@@ -116,27 +118,32 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
     }
 
     @SuppressLint("SetTextI18n")
-    private fun setupUI() {
+    private fun setupUI(): Routes.GameOnline {
+        val arg = findNavController().getBackStackEntry<Routes.GameOnline>()
+            .toRoute<Routes.GameOnline>()
+        arg.log()
         lifecycleScope.launch {
             isFirstRun = IO { pref.read("firstRun", true) }
             if (isFirstRun) gameUtils.infoShow()
-        }
-        try {
-            val arg = findNavController().getBackStackEntry<Routes.GameOnline>()
-                .toRoute<Routes.GameOnline>()
-            arg.log()
-            viewModel.matchRouteInfo = arg
-            gameUtils.plyrTurn = arg.isPlyr1
-            gameUtils.nm1 = arg.nm1
-            gameUtils.nm2 = arg.nm2
+            try {
+                viewModel.matchRouteInfo = arg
+                gameUtils.plyrTurn = arg.isPlyr1
+                gameUtils.nm1 = arg.nm1
+                gameUtils.nm2 = arg.nm2
 
-            binding.nm1Id.text = "(${arg.nm1})"
-            binding.nm2Id.text = "(${arg.nm2})"
-        } catch (e: Exception) {
-            e.printStackTrace()
-            toast("Couldn't find the game")
-            popBackSafe()
+                binding.nm1Id.text = "(${arg.nm1})"
+                binding.nm2Id.text = "(${arg.nm2})"
+                while (isActive && isAdded) {
+                    delay(2.minutes)
+                    if (isAdded) viewModel.pingCurrentMatch()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                toast("Couldn't find the game")
+                popBackSafe()
+            }
         }
+        return arg
     }
 
     @SuppressLint("SetTextI18n")
@@ -291,7 +298,14 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
             gameUtils.playButtonClickSound()
             dismissDialog(alertDialog)
             if (viewModel.matchRouteInfo.isPlyr1 && viewModel.matchRouteInfo.gameKey.isNotEmpty()) {
-                viewModel.multiPlayerRef.child(viewModel.matchRouteInfo.gameKey).removeValue()
+                viewModel.multiPlayerRef
+                    .child(viewModel.matchRouteInfo.gameKey)
+                    .updateChildren(
+                        mapOf(
+                            "player1/seenAt" to -2L,
+                            "player2/seenAt" to -2L
+                        )
+                    )
             }
             openDrawerOrReview(matchWinMulti, openDrawer = false)
         }
@@ -350,7 +364,7 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
     }
 
     private fun saveToFirebase(plr1Cup: String, plr2Cup: String) {
-        val firestore = Firebase.firestore
+        val firestore = viewModel.firestore
         if (viewModel.matchRouteInfo.gameKey.isEmpty()) return
         val plr2CupRef = viewModel.multiPlayerRef
             .child(viewModel.matchRouteInfo.gameKey)
