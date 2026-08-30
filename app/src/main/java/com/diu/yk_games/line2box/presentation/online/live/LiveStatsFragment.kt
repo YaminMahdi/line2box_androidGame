@@ -9,14 +9,21 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.fragment.compose.content
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.model.GameProfile
 import com.diu.yk_games.line2box.presentation.base.BaseFragmentCompose
 import com.diu.yk_games.line2box.presentation.component.ProfileDialog
 import com.diu.yk_games.line2box.presentation.main.SettingsFragment
+import com.diu.yk_games.line2box.presentation.online.ShareDialogFragment
 import com.diu.yk_games.line2box.ui.theme.Line2BoxTheme
 import com.diu.yk_games.line2box.util.*
+import io.ak1.BubbleTabBar
 
 class LiveStatsFragment : BaseFragmentCompose() {
+
+    private val bubbleTabBar: BubbleTabBar by lazy {
+        parentActivity.findViewById(R.id.bubbleTabBar)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -39,14 +46,23 @@ class LiveStatsFragment : BaseFragmentCompose() {
                             .addOnSuccessListener { profile = it.toObjectOrNull<GameProfile>() }
                     }
                 },
+                onShareRoom = { room ->
+                    viewModel.player.playButtonClickSound()
+                    viewModel.matchRouteInfo = room.toRoutes(viewModel.playerId)
+                    ShareDialogFragment().show(childFragmentManager, "share")
+                },
                 onJoinRoom = { room ->
                     viewModel.player.playButtonClickSound()
                     viewModel.getJoinRoute(room)
-                        .onSuccess { navigateSafe(it) }
+                        .onSuccess {
+                            bubbleTabBar.setSelected(1, true)
+                            navigateSafe(it)
+                        }
                         .onFailure { context.toast(it.message.toString()) }
                 },
                 onWatchRoom = {
                     viewModel.player.playButtonClickSound()
+                    bubbleTabBar.setSelected(1, true)
                     navigateSafe(viewModel.getWatchRoute(it))
                 },
                 onClickHome = {

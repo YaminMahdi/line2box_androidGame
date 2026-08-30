@@ -60,8 +60,7 @@ class GameUtils(
     var isGameOver = false
     var lastHadExtraTurn = false
     var plyrTurn = false
-    private var firstBonus = true
-
+    var firstBonus = true
 
     init {
         context.lifecycleScope.launch {
@@ -482,6 +481,7 @@ class GameUtils(
         val binding = binding ?: return
         playBoxSound()
 
+        viewModel.increaseServerScore(isRedTurn)
         if (isRedTurn) {
             scoreRed++
             binding.scoreRed.text = scoreRed.toString()

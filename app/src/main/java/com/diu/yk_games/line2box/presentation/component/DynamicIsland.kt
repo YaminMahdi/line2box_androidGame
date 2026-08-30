@@ -9,6 +9,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.MoreHoriz
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -24,6 +27,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.shadow.Shadow
@@ -185,6 +189,12 @@ private fun LoadingContent() {
             .padding(horizontal = 17.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+//        CircularProgressIndicator(
+//            modifier = Modifier.size(18.dp),
+//            color = Mint,
+//            strokeWidth = 2.2.dp,
+//            strokeCap = StrokeCap.Round
+//        )
         ArcSpinner()
         Spacer(Modifier.width(11.dp))
         Text(
@@ -213,24 +223,12 @@ private fun MessageContent(message: DynamicBubble.Message) {
                 .background(Mint.copy(alpha = 0.16f)),
             contentAlignment = Center,
         ) {
-            Canvas(Modifier.size(13.dp)) {
-                val w = size.width
-                val h = size.height
-                drawLine(
-                    color = Mint,
-                    start = Offset(w * 0.06f, h * 0.55f),
-                    end = Offset(w * 0.38f, h * 0.86f),
-                    strokeWidth = 2.2.dp.toPx(),
-                    cap = Round,
-                )
-                drawLine(
-                    color = Mint,
-                    start = Offset(w * 0.38f, h * 0.86f),
-                    end = Offset(w * 0.94f, h * 0.16f),
-                    strokeWidth = 2.2.dp.toPx(),
-                    cap = Round,
-                )
-            }
+            Icon(
+                imageVector = Icons.Rounded.MoreHoriz,
+                contentDescription = "Checkmark",
+                modifier = Modifier.size(20.dp),
+                tint = Mint
+            )
         }
         Spacer(Modifier.width(12.dp))
         Column {
@@ -278,14 +276,19 @@ private fun ArcSpinner(size: Dp = 18.dp) {
         val inset = stroke / 2f
         drawArc(
             brush = Brush.sweepGradient(
-                listOf(Mint.copy(alpha = 0f), Mint.copy(alpha = 0.35f), Mint)
+                colorStops = arrayOf(
+                    0.0f to Mint.copy(alpha = 0f),
+                    0.1f to Mint.copy(alpha = 0.2f),
+                    0.5f to Mint.copy(alpha = 0.35f),
+                    1.0f to Mint
+                )
             ),
             startAngle = 0f,
             sweepAngle = sweep,
             useCenter = false,
             topLeft = Offset(inset, inset),
             size = Size(this.size.width - stroke, this.size.height - stroke),
-            style = Stroke(width = stroke, cap = Round),
+            style = Stroke(width = stroke, cap = StrokeCap.Butt)
         )
     }
 }

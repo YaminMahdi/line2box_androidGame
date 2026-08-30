@@ -32,7 +32,6 @@ import com.diu.yk_games.line2box.presentation.navigation.setupNavGraph
 import com.diu.yk_games.line2box.presentation.online.ChatFragment
 import com.diu.yk_games.line2box.util.*
 import com.google.firebase.firestore.AggregateSource
-import com.google.firebase.firestore.toObject
 import kotlinx.coroutines.launch
 import java.util.Random
 
@@ -211,6 +210,10 @@ class MainActivity : AppCompatActivity() {
                     confirmationText = getString(R.string.do_you_really_want_to_quit_the_match),
                     isOnline = true
                 )
+                is Routes.MultiPlayer -> {
+                    onBackPressedIgnoreCallback()
+                    viewModel.clearMultiPlayerData()
+                }
 
                 else -> onBackPressedIgnoreCallback()
             }
@@ -269,9 +272,11 @@ class MainActivity : AppCompatActivity() {
                 is MainUiEvent.UpdateUi -> toast(event.errorType.description)
             }
         }
-//        viewModel.isLoading.collectWithLifecycle {
-//            binding.loadingLayout.changeVisibility(it)
-//        }
+        viewModel.joiningGame.collectWithLifecycle { route ->
+            navController.navigate(route)
+            bindingDrawer.drawerLayout.closeDrawer(GravityCompat.START)
+            bindingDrawer.bubbleTabBar.setSelected(1, true)
+        }
         viewModel.isNewMsgBoltVisible.collectWithLifecycle {
             binding.newMsgBoltu.changeVisibility(it)
         }

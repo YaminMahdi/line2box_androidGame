@@ -1,6 +1,8 @@
 package com.diu.yk_games.line2box.model
 
 import android.os.Parcelable
+import com.diu.yk_games.line2box.util.asMap
+import com.google.firebase.database.ServerValue
 import com.google.firebase.firestore.IgnoreExtraProperties
 import kotlinx.parcelize.Parcelize
 import kotlin.math.sqrt
@@ -18,10 +20,21 @@ data class GameProfile(
     var playerId: String = "",
     var countryEmoji: String = "",
     var countryNm: String = ""
-): Parcelable {
+) : Parcelable {
     fun lvlByCal(): Int {
         val mul = matchWinMulti + 1
         val pld = matchPlayed + 1
         return sqrt(mul * (mul / 7.0) + pld * 2).toInt()
     }
+
+
+    fun toPlayerInfo() = PlayerInfo(
+        id = playerId,
+        nm = nm,
+        lvl = lvlByCal(),
+        coin = coin,
+        seenAt = System.currentTimeMillis()
+    )
+
+    fun toPlayerInfoDB() = toPlayerInfo().asMap().plus("seenAt" to ServerValue.TIMESTAMP)
 }

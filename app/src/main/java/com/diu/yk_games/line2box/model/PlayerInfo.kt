@@ -13,11 +13,3 @@ data class PlayerInfo(
     val coin: Int = 0,
     val seenAt: Long = -1L
 ) : Parcelable
-
-fun GameProfile.toPlayerInfo() = PlayerInfo(
-    id = playerId,
-    nm = nm,
-    lvl = lvlByCal(),
-    coin = coin,
-    seenAt = System.currentTimeMillis()
-)

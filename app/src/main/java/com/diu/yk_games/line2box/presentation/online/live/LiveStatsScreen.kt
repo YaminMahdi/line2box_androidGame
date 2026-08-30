@@ -15,8 +15,8 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Group
-import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.rounded.Group
+import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -58,6 +58,7 @@ fun LiveStatsScreen(
     modifier: Modifier = Modifier,
     onPlayerClick: (id: String) -> Unit = {},
     onJoinRoom: (GameRoom) -> Unit = {},
+    onShareRoom: (GameRoom) -> Unit = {},
     onWatchRoom: (GameRoom) -> Unit = {},
     onClickHome: (View) -> Unit = {},
     onClickIdea: (View) -> Unit = {},
@@ -100,6 +101,7 @@ fun LiveStatsScreen(
                     matches = matches,
                     onPlayerClick = onPlayerClick,
                     onJoinRoom = onJoinRoom,
+                    onShareRoom = onShareRoom,
                     onWatchRoom = onWatchRoom
                 )
             }
@@ -117,7 +119,7 @@ private fun ActivePlayersList(
 ) {
     if (actives.isEmpty()) {
         EmptyState(
-            icon = Icons.Filled.Group,
+            icon = Icons.Rounded.Group,
             title = "No players online",
             subtitle = "Check back soon"
         )
@@ -145,12 +147,13 @@ private fun MatchesList(
     matches: List<GameRoom>,
     onPlayerClick: (id: String) -> Unit,
     onJoinRoom: (GameRoom) -> Unit,
+    onShareRoom: (GameRoom) -> Unit,
     onWatchRoom: (GameRoom) -> Unit,
     modifier: Modifier = Modifier
 ) {
     if (matches.isEmpty()) {
         EmptyState(
-            icon = Icons.Filled.PlayArrow,
+            icon = Icons.Rounded.PlayArrow,
             title = "No live matches",
             subtitle = "Start one from the lobby"
         )
@@ -168,6 +171,7 @@ private fun MatchesList(
                 room = room,
                 onPlayerClick = onPlayerClick,
                 onJoin = { onJoinRoom(room) },
+                onShare = { onShareRoom(room) },
                 onWatch = { onWatchRoom(room) }
             )
         }

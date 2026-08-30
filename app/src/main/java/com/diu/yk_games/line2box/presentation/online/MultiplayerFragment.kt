@@ -10,6 +10,7 @@ import android.util.Log
 import android.view.View
 import android.view.animation.AnticipateInterpolator
 import android.view.inputmethod.EditorInfo
+import androidx.annotation.OptIn
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.content.ContextCompat
@@ -28,7 +29,6 @@ import com.diu.yk_games.line2box.databinding.DialogLayoutProfileBinding
 import com.diu.yk_games.line2box.databinding.DialogLayoutUpdateBinding
 import com.diu.yk_games.line2box.databinding.FragmentMultiplayerBinding
 import com.diu.yk_games.line2box.model.GameRoom
-import com.diu.yk_games.line2box.model.JoinType
 import com.diu.yk_games.line2box.presentation.MainActivity
 import com.diu.yk_games.line2box.presentation.base.BaseFragment
 import com.diu.yk_games.line2box.presentation.main.SettingsFragment
@@ -38,6 +38,7 @@ import com.google.android.gms.common.images.ImageManager
 import com.google.android.gms.games.PlayGames
 import com.google.android.material.badge.BadgeDrawable
 import com.google.android.material.badge.BadgeUtils
+import com.google.android.material.badge.ExperimentalBadgeUtils
 import io.ak1.BubbleTabBar
 import io.ghyeok.stickyswitch.widget.StickySwitch
 import io.ghyeok.stickyswitch.widget.StickySwitch.OnSelectedChangeListener
@@ -58,6 +59,7 @@ class MultiplayerFragment :
     val liveBadge by lazy {
         BadgeDrawable.create(parentActivity).apply {
             isVisible = false
+            clearNumber()
             badgeGravity = BadgeDrawable.TOP_START
         }
     }
@@ -102,6 +104,7 @@ class MultiplayerFragment :
         setupObserver()
     }
 
+    @OptIn(ExperimentalBadgeUtils::class)
     private fun setupUI() {
         binding.btnLive.post {
             BadgeUtils.attachBadgeDrawable(liveBadge, binding.btnLive, binding.frmLive)
@@ -138,48 +141,51 @@ class MultiplayerFragment :
                 liveBadge.clearNumber()
             }
         }
+        viewModel.joiningGame.collectWithLifecycle {
+            if (binding.stickySwitch.getDirection() == StickySwitch.Direction.LEFT) {
+                cancel()
+                return@collectWithLifecycle
+            }
+            binding.joinInputId.hint = ""
+            binding.joinInputId.setText("")
+            viewModel.isStickySwitchRight = false
+            binding.stickySwitch.setDirection(
+                direction = StickySwitch.Direction.LEFT,
+                isAnimate = false,
+                shouldTriggerSelected = false
+            )
+        }
     }
 
     private fun setupListener() {
         binding.joinInputId.doAfterTextChanged { txt ->
             if (txt?.length != 4) return@doAfterTextChanged
-            val gameRoom = viewModel.getValidMatch(txt.toString()) ?: run {
+            val room = viewModel.getValidMatch(txt.toString()) ?: run {
                 toast("Invalid Key")
                 return@doAfterTextChanged
             }
-            Log.d("getKey", "afterTextChanged: " + gameRoom.key)
+            Log.d("getKey", "afterTextChanged: " + room.key)
             closeKeyboard()
-            if (gameRoom.player2.id.isEmpty() || gameRoom.player2.id == viewModel.playerId) {
-                viewModel.matchRouteInfo = viewModel.matchRouteInfo.copy(
-                    gameKey = gameRoom.key,
-                    plr1Id = gameRoom.player1.id,
-                    nm1 = gameRoom.player1.nm,
-                    lvl1 = gameRoom.player1.lvl
-                )
-                amiThePayer = true
-                viewModel.sendInitialMessage(gameRoom)
+
+            if (room.player2.run { id.isEmpty() || id == viewModel.playerId || seenAt < 0 } ||
+                room.player1.run { id.isEmpty() || id == viewModel.playerId || seenAt < 0 }
+            ) {
+                viewModel.matchRouteInfo = room.toRoutes(viewModel.gameProfile)
+                viewModel.sendInitialMessage(room)
                 bubbleTabBar.setSelected(1, true)
                 startMatch()
-            } else if (!amiThePayer) {
-                toast("Match already started")
-            }
+            } else toast("Match already started")
         }
         binding.stickySwitch.onSelectedChangeListener =
             object : OnSelectedChangeListener {
                 override fun onSelectedChange(direction: StickySwitch.Direction, text: String) {
-                    amiThePayer = false
                     when (direction) {
                         StickySwitch.Direction.LEFT -> {
                             binding.joinInputId.isEnabled = true
                             binding.joinInputId.hint = ""
                             binding.joinInputId.setText("")
-                            viewModel.matchRouteInfo = Routes.GameOnline(
-                                plr2Id = viewModel.playerId,
-                                nm2 = viewModel.gameProfile.nm,
-                                lvl2 = viewModel.gameProfile.lvlByCal(),
-                                isPlyr1 = false
-                            )
                             bubbleTabBar.setSelected(0, true)
+                            viewModel.clearJoiningJob()
                             viewModel.clearFriendlyChat()
                             viewModel.setNewMsgBoltVisible(false)
                             viewModel.isStickySwitchRight = false
@@ -199,19 +205,10 @@ class MultiplayerFragment :
                             viewModel.clearTempMatches()
                             val key =
                                 viewModel.multiPlayerRef.push().key ?: viewModel.uuidV7
-                            viewModel.addTempKey(key)
-                            viewModel.matchRouteInfo = Routes.GameOnline(
-                                plr1Id = viewModel.playerId,
-                                nm1 = viewModel.gameProfile.nm,
-                                lvl1 = viewModel.gameProfile.lvlByCal(),
-                                gameKey = key,
-                                isPlyr1 = true
-                            )
                             Log.d("TAG", "onCreate key: $key")
-                            viewModel.sendInitialMessage(GameRoom(key = key), JoinType.Create)
+                            viewModel.createAndFetchJoiningPlayerInfo(key)
                             bubbleTabBar.setSelected(1, true)
                             viewModel.isStickySwitchRight = true
-                            fetchJoiningPlayerInfo(key)
                             lifecycleScope.launch {
                                 delay(400.milliseconds)
                                 binding.joinInputId.hint = viewModel.getKey4(key)
@@ -263,17 +260,13 @@ class MultiplayerFragment :
 
     private fun fetchJoiningPlayerInfo(key: String) {
         viewModel.multiPlayerRef.child(key).asValueFlow<GameRoom>()
-            .collectWithLifecycle { gameRoom ->
-                if (binding.stickySwitch.getDirection() == StickySwitch.Direction.LEFT || key != gameRoom.key) {
+            .collectWithLifecycle { room ->
+                if (binding.stickySwitch.getDirection() == StickySwitch.Direction.LEFT || key != room.key) {
                     cancel()
                     return@collectWithLifecycle
                 }
-                viewModel.matchRouteInfo = viewModel.matchRouteInfo.copy(
-                    plr2Id = gameRoom.player2.id,
-                    nm2 = gameRoom.player2.nm,
-                    lvl2 = gameRoom.player2.lvl
-                )
-                when (gameRoom.playerCount) {
+                viewModel.matchRouteInfo = room.toRoutes(viewModel.gameProfile)
+                when (room.playerCount) {
                     "2" -> {
                         cancel()
                         bubbleTabBar.setSelected(1, true)
@@ -561,10 +554,5 @@ class MultiplayerFragment :
             e.printStackTrace()
             toast("Unable to open Play Games profile chooser")
         }
-    }
-
-
-    companion object {
-        var amiThePayer = false
     }
 }

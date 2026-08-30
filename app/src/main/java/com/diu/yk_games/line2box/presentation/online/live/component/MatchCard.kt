@@ -8,11 +8,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Group
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.RemoveRedEye
-import androidx.compose.material.icons.rounded.LinkOff
-import androidx.compose.material.icons.rounded.Schedule
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -52,12 +48,13 @@ fun MatchCard(
     room: GameRoom,
     onPlayerClick: (id: String) -> Unit,
     onJoin: () -> Unit,
+    onShare: () -> Unit,
     onWatch: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val isMatchOver = room.matchInfo.result.score1 + room.matchInfo.result.score2 == 36
     val playerCount = remember(room) {
-        listOf(room.player1, room.player2).count { it.id.isNotEmpty() && it.seenAt != -2L }
+        listOf(room.player1, room.player2).count { it.id.isNotEmpty() && it.seenAt > 0 }
     }
 
     Column(
@@ -73,12 +70,16 @@ fun MatchCard(
                 )
             )
             .background(
-                color = if (isMe) MaterialTheme.colorScheme.primary.copy(.15f) else MaterialTheme.colorScheme.surface.copy(.5f),
+                color = if (isMe) MaterialTheme.colorScheme.primary.copy(.15f) else MaterialTheme.colorScheme.surface.copy(
+                    .5f
+                ),
                 shape = RoundedCornerShape(20.dp)
             )
             .border(
                 width = if (isMe) 1.dp else .5.dp,
-                color = if (isMe) MaterialTheme.colorScheme.primary.copy(.5f) else MaterialTheme.colorScheme.outline.copy(.2f),
+                color = if (isMe) MaterialTheme.colorScheme.primary.copy(.5f) else MaterialTheme.colorScheme.outline.copy(
+                    .2f
+                ),
                 shape = RoundedCornerShape(20.dp)
             )
             .padding(10.dp)
@@ -161,12 +162,27 @@ fun MatchCard(
         AnimatedVisibility(!isMatchOver && (canJoin || canWatch)) {
             Column {
                 Spacer(Modifier.height(8.dp))
-                MatchActionButton(
-                    isMe = isMe,
-                    canJoin = canJoin,
-                    onJoin = onJoin,
-                    onWatch = onWatch
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    MatchActionButton(
+                        isMe = isMe,
+                        canJoin = canJoin,
+                        onJoin = onJoin,
+                        onWatch = onWatch,
+                        modifier = Modifier.weight(1f)
+                    )
+                    AnimatedVisibility(isMe) {
+                        Spacer(Modifier.width(16.dp))
+                        IconButton(onClick = onShare) {
+                            Icon(
+                                imageVector = Icons.Rounded.Share,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
             }
         }
     }
@@ -396,7 +412,7 @@ private fun PlayerCountBadge(count: Int, modifier: Modifier = Modifier) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            imageVector = Icons.Filled.Group,
+            imageVector = Icons.Rounded.Group,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(11.dp)
@@ -440,13 +456,13 @@ private fun MatchActionButton(
         )
     ) {
         Icon(
-            imageVector = if (canJoin) Icons.Filled.PlayArrow else Icons.Filled.RemoveRedEye,
+            imageVector = if (canJoin) Icons.Rounded.PlayArrow else Icons.Rounded.RemoveRedEye,
             contentDescription = null,
             modifier = Modifier.size(16.dp)
         )
         Spacer(Modifier.width(5.dp))
         Text(
-            text = if(isMe)
+            text = if (isMe)
                 "Rejoin Match"
             else if (canJoin)
                 "Join Match"
@@ -486,6 +502,7 @@ fun MatchCardPreview() {
                 ),
                 onPlayerClick = {},
                 onJoin = {},
+                onShare = {},
                 onWatch = {},
             )
         }
@@ -512,6 +529,7 @@ fun MatchCardWaitingPreview() {
                 ),
                 onPlayerClick = {},
                 onJoin = {},
+                onShare = {},
                 onWatch = {},
             )
         }

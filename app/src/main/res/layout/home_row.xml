@@ -37,6 +37,7 @@
             android:fontFamily="@font/sortie"
             android:paddingVertical="@dimen/_8sdp"
             android:src="@drawable/icon_idea"
+            android:visibility="gone"
             tools:ignore="SmallSp" />
 
         <androidx.appcompat.widget.AppCompatImageButton

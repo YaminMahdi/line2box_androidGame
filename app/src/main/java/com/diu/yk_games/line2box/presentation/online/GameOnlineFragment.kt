@@ -57,9 +57,19 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
             context = parentActivity,
             binding = binding
         )
-        val route = setupUI()
+        gameUtils.firstBonus = false
+        val arg = tryGet {
+            findNavController().getBackStackEntry<Routes.GameOnline>()
+                .toRoute<Routes.GameOnline>()
+        }
+        if (arg == null) {
+            toast("Couldn't find the game")
+            popBackSafe()
+            return
+        }
+        setupUI(arg)
         gameUtils.setupListener(onLineClick = {
-            if (!route.watchOnly) performClick(it)
+            if (!arg.watchOnly) performClick(it)
         })
         binding.root.post {
             setupObserver()
@@ -117,32 +127,24 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
     }
 
     @SuppressLint("SetTextI18n")
-    private fun setupUI(): Routes.GameOnline {
-        val arg = findNavController().getBackStackEntry<Routes.GameOnline>()
-            .toRoute<Routes.GameOnline>()
+    private fun setupUI(arg: Routes.GameOnline) {
+        viewModel.clearJoiningJob()
         arg.log()
         lifecycleScope.launch {
             isFirstRun = IO { pref.read("firstRun", true) }
             if (isFirstRun) gameUtils.infoShow()
-            try {
-                viewModel.matchRouteInfo = arg
-                gameUtils.plyrTurn = arg.isPlyr1
-                gameUtils.nm1 = arg.nm1
-                gameUtils.nm2 = arg.nm2
+            viewModel.matchRouteInfo = arg
+            gameUtils.plyrTurn = arg.isPlyr1
+            gameUtils.nm1 = arg.nm1
+            gameUtils.nm2 = arg.nm2
 
-                binding.nm1Id.text = "(${arg.nm1})"
-                binding.nm2Id.text = "(${arg.nm2})"
-                while (isActive && isAdded) {
-                    delay(2.minutes)
-                    if (isAdded) viewModel.pingCurrentMatch()
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                toast("Couldn't find the game")
-                popBackSafe()
+            binding.nm1Id.text = "(${arg.nm1})"
+            binding.nm2Id.text = "(${arg.nm2})"
+            while (isActive && lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                delay(2.minutes)
+                if (isAdded) viewModel.pingCurrentMatch()
             }
         }
-        return arg
     }
 
     @SuppressLint("SetTextI18n")
@@ -206,6 +208,16 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
         var plr1Cup = ""
         var plr2Cup = ""
 
+        if (viewModel.matchRouteInfo.watchOnly) {
+            onGameOver(
+                winMsg = if (gameUtils.scoreRed > gameUtils.scoreBlue)
+                    "${gameUtils.nm1} won the match."
+                else
+                    "${gameUtils.nm2} won the match."
+            )
+            return
+        }
+
         fun handleWin() {
             viewModel.doOnMatchEnd(winCoin)
 
@@ -221,7 +233,8 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
                 type = MsgStore.MessageType.EnterText.name
             )
 
-            viewModel.friendlyChatRef?.push()?.setValue(ms)
+            if (!viewModel.matchRouteInfo.watchOnly)
+                viewModel.friendlyChatRef?.push()?.setValue(ms)
         }
 
         fun handleLoss() {
@@ -271,9 +284,8 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
     }
 
     @SuppressLint("SetTextI18n")
-    fun onGameOver(winMsg: String, winCoin: String, matchWinMulti: Int) {
-        val coin = winCoin.toInt()
-        val isWin = coin > -1
+    fun onGameOver(winMsg: String, winCoin: String? = null, matchWinMulti: Int = -1) {
+        val coin = winCoin?.toIntOrNull()
 
         val dialogBinding = DialogLayoutGameOverBinding.inflate(layoutInflater)
         val alertDialog = AlertDialog.Builder(parentActivity)
@@ -296,9 +308,10 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
         dialogBinding.buttonNo.setBounceClickListener {
             gameUtils.playButtonClickSound()
             dismissDialog(alertDialog)
-            if (viewModel.matchRouteInfo.isPlyr1 && viewModel.matchRouteInfo.gameKey.isNotEmpty()) {
+            val key = viewModel.matchRouteInfo.gameKey
+            if (viewModel.matchRouteInfo.run { isPlyr1 && !watchOnly } && key.isNotEmpty()) {
                 viewModel.multiPlayerRef
-                    .child(viewModel.matchRouteInfo.gameKey)
+                    .child(key)
                     .updateChildren(
                         mapOf(
                             "player1/seenAt" to -2L,
@@ -310,7 +323,17 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
         }
 
         alertDialog.window?.setBackgroundDrawable(0.toDrawable())
-        showDialogWithCoinAnimation(alertDialog, dialogBinding, coin, isWin)
+        if (coin != null) {
+            showDialogWithCoinAnimation(
+                alertDialog = alertDialog,
+                dialogBinding = dialogBinding,
+                coin = coin,
+                isWin = coin > -1
+            )
+        } else {
+            dialogBinding.layoutCoin.gone()
+            alertDialog.show()
+        }
     }
 
     private fun dismissDialog(dialog: AlertDialog) {
@@ -364,14 +387,14 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
 
     private fun saveToFirebase(plr1Cup: String, plr2Cup: String) {
         val firestore = viewModel.firestore
-        if (viewModel.matchRouteInfo.gameKey.isEmpty()) return
+        val key = viewModel.matchRouteInfo.gameKey
+        if (key.isEmpty() || viewModel.matchRouteInfo.watchOnly) return
         val plr2CupRef = viewModel.multiPlayerRef
             .child(viewModel.matchRouteInfo.gameKey)
             .child("plr2Cup") //hehe
-        if (!viewModel.matchRouteInfo.isPlyr1) {
-            plr2CupRef.setValue(plr2Cup)
-            return
-        }
+        viewModel.sendCup2Server(plr1Cup, plr2Cup)
+        if (!viewModel.matchRouteInfo.isPlyr1) return
+
         val ds = DataStore(
             time = System.currentTimeMillis(),
             redData = "${
