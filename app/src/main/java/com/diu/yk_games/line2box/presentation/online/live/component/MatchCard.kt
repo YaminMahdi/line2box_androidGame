@@ -48,6 +48,7 @@ import kotlin.time.Duration.Companion.minutes
 
 @Composable
 fun MatchCard(
+    isMe: Boolean,
     room: GameRoom,
     onPlayerClick: (id: String) -> Unit,
     onJoin: () -> Unit,
@@ -72,10 +73,14 @@ fun MatchCard(
                 )
             )
             .background(
-                MaterialTheme.colorScheme.surface.copy(alpha = .5f),
-                RoundedCornerShape(20.dp)
+                color = if (isMe) MaterialTheme.colorScheme.primary.copy(.15f) else MaterialTheme.colorScheme.surface.copy(.5f),
+                shape = RoundedCornerShape(20.dp)
             )
-            .border(.5.dp, MaterialTheme.colorScheme.outline.copy(.2f), RoundedCornerShape(20.dp))
+            .border(
+                width = if (isMe) 1.dp else .5.dp,
+                color = if (isMe) MaterialTheme.colorScheme.primary.copy(.5f) else MaterialTheme.colorScheme.outline.copy(.2f),
+                shape = RoundedCornerShape(20.dp)
+            )
             .padding(10.dp)
     ) {
         Row(
@@ -149,7 +154,7 @@ fun MatchCard(
             )
         }
 
-        val canJoin = playerCount < 2
+        val canJoin = playerCount < 2 || isMe
         val canWatch = playerCount == 2 && room.pingAt.isLessThanAgo(5.minutes)
 
 
@@ -157,6 +162,7 @@ fun MatchCard(
             Column {
                 Spacer(Modifier.height(8.dp))
                 MatchActionButton(
+                    isMe = isMe,
                     canJoin = canJoin,
                     onJoin = onJoin,
                     onWatch = onWatch
@@ -407,6 +413,7 @@ private fun PlayerCountBadge(count: Int, modifier: Modifier = Modifier) {
 
 @Composable
 private fun MatchActionButton(
+    isMe: Boolean,
     canJoin: Boolean,
     onJoin: () -> Unit,
     onWatch: () -> Unit,
@@ -439,7 +446,12 @@ private fun MatchActionButton(
         )
         Spacer(Modifier.width(5.dp))
         Text(
-            text = if (canJoin) "Join Match" else "Watch",
+            text = if(isMe)
+                "Rejoin Match"
+            else if (canJoin)
+                "Join Match"
+            else
+                "Watch",
             fontWeight = FontWeight.Bold,
             fontSize = 13.sp,
             modifier = Modifier.padding(top = 3.dp)
@@ -457,6 +469,7 @@ fun MatchCardPreview() {
                 .padding(16.dp)
         ) {
             MatchCard(
+                isMe = true,
                 room = GameRoom(
                     ver = GameRoom.Version.V2,
                     pingAt = System.currentTimeMillis() - 123243443,
@@ -473,7 +486,7 @@ fun MatchCardPreview() {
                 ),
                 onPlayerClick = {},
                 onJoin = {},
-                onWatch = {}
+                onWatch = {},
             )
         }
     }
@@ -489,6 +502,7 @@ fun MatchCardWaitingPreview() {
                 .padding(16.dp)
         ) {
             MatchCard(
+                isMe = false,
                 room = GameRoom(
                     player1 = PlayerInfo(id = "1", nm = "Player One", lvl = 5),
                     player2 = PlayerInfo(),
@@ -498,7 +512,7 @@ fun MatchCardWaitingPreview() {
                 ),
                 onPlayerClick = {},
                 onJoin = {},
-                onWatch = {}
+                onWatch = {},
             )
         }
     }

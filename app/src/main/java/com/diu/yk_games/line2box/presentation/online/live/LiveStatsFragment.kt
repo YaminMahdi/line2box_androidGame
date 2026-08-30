@@ -28,6 +28,7 @@ class LiveStatsFragment : BaseFragmentCompose() {
             var profile by remember { mutableStateOf<GameProfile?>(null) }
 
             LiveStatsScreen(
+                playerId = viewModel.playerId,
                 matches = matches,
                 actives = actives,
                 onPlayerClick = { playerId ->

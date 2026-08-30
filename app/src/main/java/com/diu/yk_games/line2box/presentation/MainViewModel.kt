@@ -21,13 +21,12 @@ import com.google.firebase.database.*
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.firestore
-import com.google.firebase.firestore.toObject
 import com.google.gson.Gson
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.tasks.await
 import org.jsoup.Jsoup
-import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
@@ -340,6 +339,7 @@ class MainViewModel(
     var pingJob: Job? = null
 
     fun initMultiplayer() {
+        isStickySwitchRight = false
         matchRouteInfo = Routes.GameOnline(
             plr2Id = playerId,
             nm2 = gameProfile.nm,
@@ -380,7 +380,7 @@ class MainViewModel(
                 if (it.key == matchRouteInfo.gameKey)
                     matchRouteInfo = Routes.GameOnline()
             }
-            .filter { it.matchInfo.result.score1 == 0 && it.matchInfo.result.score2 == 0 }
+            .filter { it.matchInfo.result.run { score1 == 0 && score2 == 0 } }
             .associate { it.key to null }
 
         if (updates.isNotEmpty())
@@ -415,6 +415,17 @@ class MainViewModel(
         }.onFailure {
             it.logError("removeOlderMatches")
         }
+    }
+
+    private fun removeUnplayedOlderMatches() {
+        val deleteUpdates = matches.value
+            .filter { match ->
+                match.pingAt.isMoreThanAgo(1.hours) && match.matchInfo.result.run { score1 == 0 && score2 == 0 }
+            }
+            .associate { match -> match.key to null }
+
+        if (deleteUpdates.isNotEmpty())
+            multiPlayerRef.updateChildren(deleteUpdates)
     }
 
     val lineIdsFromServer: StateFlow<Set<GameRoom.Line>>
@@ -740,11 +751,7 @@ class MainViewModel(
                         Log.d("addList", "onChildAdded: " + dataSnapshot.key)
                         runCatching {
                             savedStateHandle["matches"] = matches.value.addSorted(dataSnapshot)
-                            val oldMatches = matches.value
-                                .filter { !it.ver.isV1 && it.pingAt.isMoreThanAgo(1.days) }
-                                .associate { it.key to null }
-                            if (oldMatches.isNotEmpty())
-                                multiPlayerRef.updateChildren(oldMatches)
+                            removeUnplayedOlderMatches()
                         }.onFailure {
                             it.logError("fetchActiveMatches")
                         }
@@ -769,7 +776,16 @@ class MainViewModel(
                                 .distinctBy { it.key }
                                 .sortedByDescending { it.pingAt }
                                 .partition { it.ver.isV1 }
-                                .let { it.second + it.first }
+                                .let { pair ->
+                                    pair.second
+                                        .plus(pair.first.sortedByDescending { room ->
+                                            val time =
+                                                room.friendlyChat.firstNotNullOfOrNull { it.value }?.time
+                                                    ?: -1L
+                                            room.pingAt = time
+                                            time
+                                        })
+                                }
                         }
 
                     private fun removeByKey(key: String?) {

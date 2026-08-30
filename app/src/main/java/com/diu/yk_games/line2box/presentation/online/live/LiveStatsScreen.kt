@@ -52,6 +52,7 @@ private enum class LiveTab(val label: String) {
 
 @Composable
 fun LiveStatsScreen(
+    playerId: String,
     actives: List<PlayerInfo>,
     matches: List<GameRoom>,
     modifier: Modifier = Modifier,
@@ -95,6 +96,7 @@ fun LiveStatsScreen(
                 )
 
                 MATCHES -> MatchesList(
+                    playerId = playerId,
                     matches = matches,
                     onPlayerClick = onPlayerClick,
                     onJoinRoom = onJoinRoom,
@@ -139,6 +141,7 @@ private fun ActivePlayersList(
 
 @Composable
 private fun MatchesList(
+    playerId: String,
     matches: List<GameRoom>,
     onPlayerClick: (id: String) -> Unit,
     onJoinRoom: (GameRoom) -> Unit,
@@ -159,7 +162,9 @@ private fun MatchesList(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(matches, key = { it.key }) { room ->
+            val isMe = room.player1.id == playerId || room.player2.id == playerId
             MatchCard(
+                isMe = isMe,
                 room = room,
                 onPlayerClick = onPlayerClick,
                 onJoin = { onJoinRoom(room) },
@@ -320,6 +325,23 @@ private fun EmptyState(
 private fun LiveStatsScreenPrev() {
     Line2BoxTheme {
         LiveStatsScreen(
+            playerId = "a",
+            actives = listOf(
+                PlayerInfo(
+                    id = "a",
+                    nm = "Player 1",
+                    lvl = 10,
+                    coin = 100,
+                    seenAt = System.currentTimeMillis()
+                ),
+                PlayerInfo(
+                    id = "b",
+                    nm = "Player 2",
+                    lvl = 20,
+                    coin = 200,
+                    seenAt = System.currentTimeMillis()
+                )
+            ),
             matches = listOf(
                 GameRoom(
                     ver = V2,
@@ -375,22 +397,6 @@ private fun LiveStatsScreenPrev() {
                     )
                 )
             ),
-            actives = listOf(
-                PlayerInfo(
-                    id = "a",
-                    nm = "Player 1",
-                    lvl = 10,
-                    coin = 100,
-                    seenAt = System.currentTimeMillis()
-                ),
-                PlayerInfo(
-                    id = "b",
-                    nm = "Player 2",
-                    lvl = 20,
-                    coin = 200,
-                    seenAt = System.currentTimeMillis()
-                )
-            )
         )
     }
 }

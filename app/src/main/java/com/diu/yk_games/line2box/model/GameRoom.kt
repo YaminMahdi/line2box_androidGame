@@ -9,7 +9,7 @@ import kotlinx.parcelize.Parcelize
 data class GameRoom(
     val key: String = "",
     val ver: Version = Version.V1,
-    val pingAt: Long = -1L,
+    var pingAt: Long = -1L,
     val player1: PlayerInfo = PlayerInfo(),
     val player2: PlayerInfo = PlayerInfo(),
     val playerCount: String = "1",
