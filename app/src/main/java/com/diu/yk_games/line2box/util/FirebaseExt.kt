@@ -5,6 +5,8 @@ import com.google.firebase.Firebase
 import com.google.firebase.crashlytics.CustomKeysAndValues
 import com.google.firebase.crashlytics.crashlytics
 import com.google.firebase.database.*
+import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.toObject
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -13,7 +15,7 @@ import kotlinx.coroutines.flow.callbackFlow
 inline fun <reified T> Query.asValueFlow(): Flow<T> = callbackFlow {
     val listener = object : ValueEventListener {
         override fun onDataChange(snapshot: DataSnapshot) {
-            snapshot.getValue<T>()?.let {
+            snapshot.getValueOrNull<T>()?.let {
                 trySend(it)
             } ?: cancel()
         }
@@ -28,6 +30,22 @@ inline fun <reified T> Query.asValueFlow(): Flow<T> = callbackFlow {
     awaitClose {
         removeEventListener(listener)
     }
+}
+
+inline fun <reified T> DataSnapshot.getValueOrNull(): T? {
+    return runCatching {
+        getValue<T>()
+    }.onFailure { 
+        it.logError()
+    }.getOrNull()
+}
+
+inline fun <reified T> DocumentSnapshot.toObjectOrNull(): T? {
+    return runCatching {
+        toObject<T>()
+    }.onFailure {
+        it.logError()
+    }.getOrNull()
 }
 
 inline fun <reified T> Query.asValueFlowList(): Flow<List<T>> = callbackFlow {

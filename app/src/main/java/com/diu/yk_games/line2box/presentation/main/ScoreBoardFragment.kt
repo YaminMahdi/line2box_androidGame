@@ -60,7 +60,7 @@ class ScoreBoardFragment : BaseFragment<FragmentDisplayBinding>(FragmentDisplayB
             .get()
             .addOnSuccessListener { task ->
                 val dsList = task.documents.mapNotNull {
-                    it.toObject<DataStore>()
+                    it.toObjectOrNull<DataStore>()
                 }
                 Log.d(TAG, "isSuccessful: ${dsList.size}")
                 scoreListAdapter.submitList(dsList)
@@ -91,7 +91,7 @@ class ScoreBoardFragment : BaseFragment<FragmentDisplayBinding>(FragmentDisplayB
             viewModel.firestore.collection("gamerProfile").document(gamerPro.plr1Id)
                 .get()
                 .addOnSuccessListener { documentSnapshot ->
-                    val gp = documentSnapshot.toObject<GameProfile>() ?: return@addOnSuccessListener
+                    val gp = documentSnapshot.toObjectOrNull<GameProfile>() ?: return@addOnSuccessListener
                     val scr = gamerPro.redData.split(" ").dropLastWhile { it.isEmpty() }
                     Log.d(TAG, "onSuccess: scr " + scr[scr.size - 1])
                     dialogBinding.plr1Score.text = scr[scr.size - 1]
@@ -106,7 +106,7 @@ class ScoreBoardFragment : BaseFragment<FragmentDisplayBinding>(FragmentDisplayB
                 }
             viewModel.firestore.collection("gamerProfile").document(gamerPro.plr2Id)
                 .get().addOnSuccessListener { documentSnapshot ->
-                    val gp = documentSnapshot.toObject<GameProfile>() ?: return@addOnSuccessListener
+                    val gp = documentSnapshot.toObjectOrNull<GameProfile>() ?: return@addOnSuccessListener
                     val scr = gamerPro.blueData.split(" ").dropLastWhile { it.isEmpty() }
                     dialogBinding.plr2Score.text = scr[scr.size - 1]
                     dialogBinding.plr2Cup.text = gamerPro.plr2Cup

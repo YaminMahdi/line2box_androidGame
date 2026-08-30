@@ -16,13 +16,9 @@ import com.diu.yk_games.line2box.databinding.FragmentDisplayBinding
 import com.diu.yk_games.line2box.model.GameProfile
 import com.diu.yk_games.line2box.presentation.adapter.RankListAdapter
 import com.diu.yk_games.line2box.presentation.base.BaseFragment
-import com.diu.yk_games.line2box.util.IO
-import com.diu.yk_games.line2box.util.gone
-import com.diu.yk_games.line2box.util.onBackPressed
-import com.diu.yk_games.line2box.util.setBounceClickListener
+import com.diu.yk_games.line2box.util.*
 import com.google.firebase.firestore.AggregateSource
 import com.google.firebase.firestore.Query
-import com.google.firebase.firestore.toObject
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
@@ -47,8 +43,8 @@ class LeaderBoardFragment : BaseFragment<FragmentDisplayBinding>(FragmentDisplay
             .limit(100)
             .get()
             .addOnSuccessListener { qs ->
-                val rankList = qs.map {
-                    it.toObject<GameProfile>()
+                val rankList = qs.mapNotNull {
+                    it.toObjectOrNull<GameProfile>()
                 }
                 rankListAdapter.submitList(rankList)
                 val pos = findIndex(rankList, viewModel.playerId)
@@ -91,7 +87,7 @@ class LeaderBoardFragment : BaseFragment<FragmentDisplayBinding>(FragmentDisplay
             viewModel.player.playButtonClickSound()
             viewModel.firestore.collection("gamerProfile").document(gamerPro.playerId)
                 .get().addOnSuccessListener { documentSnapshot ->
-                    val server2device = documentSnapshot.toObject<GameProfile>()
+                    val server2device = documentSnapshot.toObjectOrNull<GameProfile>()
                     if (server2device != null) {
                         val dialogBinding = DialogLayoutProfileBinding.inflate(layoutInflater)
                         val alertDialog = AlertDialog.Builder(parentActivity)

@@ -15,7 +15,6 @@ import com.diu.yk_games.line2box.presentation.component.ProfileDialog
 import com.diu.yk_games.line2box.presentation.main.SettingsFragment
 import com.diu.yk_games.line2box.ui.theme.Line2BoxTheme
 import com.diu.yk_games.line2box.util.*
-import com.google.firebase.firestore.toObject
 
 class LiveStatsFragment : BaseFragmentCompose() {
 
@@ -36,7 +35,7 @@ class LiveStatsFragment : BaseFragmentCompose() {
                     if (viewModel.playerId.isNotEmpty()) {
                         viewModel.player.playButtonClickSound()
                         viewModel.gamerProfileRef.document(playerId).get()
-                            .addOnSuccessListener { profile = it.toObject<GameProfile>() }
+                            .addOnSuccessListener { profile = it.toObjectOrNull<GameProfile>() }
                     }
                 },
                 onJoinRoom = { room ->

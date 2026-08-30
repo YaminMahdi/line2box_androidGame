@@ -1,5 +1,3 @@
-import java.lang.module.ModuleFinder.compose
-
 plugins {
     id("com.android.application")
     id("kotlin-parcelize")
@@ -46,7 +44,7 @@ android {
     namespace = "com.diu.yk_games.line2box"
     compileSdk {
         version = release(37) {
-            minorApiLevel = 1
+            minorApiLevel = 2
         }
     }
 

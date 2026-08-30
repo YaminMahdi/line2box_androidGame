@@ -145,7 +145,7 @@ class ChatFragment : Fragment() {
                 if (msg.playerId.isEmpty()) return@onClick
                 viewModel.player.playButtonClickSound()
                 viewModel.gamerProfileRef.document(msg.playerId).get()
-                    .addOnSuccessListener { profile = it.toObject<GameProfile>() }
+                    .addOnSuccessListener { profile = it.toObjectOrNull<GameProfile>() }
             },
             onSend = ::send,
             onCommand = { selectedCommand ->

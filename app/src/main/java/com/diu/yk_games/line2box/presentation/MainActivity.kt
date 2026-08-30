@@ -314,7 +314,7 @@ class MainActivity : AppCompatActivity() {
                     .document(randomDocId)
                     .get()
                     .addOnSuccessListener { doc ->
-                        val hadith = doc.toObject<HadithStore>() ?: return@addOnSuccessListener
+                        val hadith = doc.toObjectOrNull<HadithStore>() ?: return@addOnSuccessListener
                         showHadithDialog(hadith)
                     }
                     .addOnFailureListener { e ->

@@ -269,7 +269,7 @@ class MainViewModel(
             .document(playerId)
             .addSnapshotListener { snapshot, exception ->
                 setLoading(false)
-                val profile = snapshot?.toObject<GameProfile>()
+                val profile = snapshot?.toObjectOrNull<GameProfile>()
                 if (profile != null && exception == null) {
                     onlineStatus = OnlineStatus.Online
                     updateProfile(profile)
@@ -459,7 +459,7 @@ class MainViewModel(
     ): ChildEventListener = matchLiveRef.child("clicks")
         .addChildEventListener(object : ChildEventListener {
             override fun onChildAdded(dataSnapshot: DataSnapshot, s: String?) {
-                val idFromServer = dataSnapshot.getValue<GameRoom.Line>() ?: return
+                val idFromServer = dataSnapshot.getValueOrNull<GameRoom.Line>() ?: return
                 idFromServer.log("fetchServerLineClick idFromServer")
                 lineIdsFromServer.update {
                     it.plus(idFromServer)
@@ -468,7 +468,7 @@ class MainViewModel(
 
             override fun onChildChanged(dataSnapshot: DataSnapshot, s: String?) {}
             override fun onChildRemoved(dataSnapshot: DataSnapshot) {
-                val idFromServer = dataSnapshot.getValue<GameRoom.Line>() ?: return
+                val idFromServer = dataSnapshot.getValueOrNull<GameRoom.Line>() ?: return
                 lineIdsFromServer.update {
                     it.minus(idFromServer)
                 }
@@ -486,7 +486,7 @@ class MainViewModel(
     ): ChildEventListener = matchLiveRef.child(color.ref)
         .addChildEventListener(object : ChildEventListener {
             override fun onChildAdded(dataSnapshot: DataSnapshot, s: String?) {
-                val idFromServer = dataSnapshot.getValue<String>() ?: return
+                val idFromServer = dataSnapshot.getValueOrNull<String>() ?: return
                 idFromServer.log("fetchServerLineClick idFromServer")
                 lineIdsFromServer.update {
                     it.plus(GameRoom.Line(idFromServer, color))
@@ -495,7 +495,7 @@ class MainViewModel(
 
             override fun onChildChanged(dataSnapshot: DataSnapshot, s: String?) {}
             override fun onChildRemoved(dataSnapshot: DataSnapshot) {
-                val idFromServer = dataSnapshot.getValue<String>() ?: return
+                val idFromServer = dataSnapshot.getValueOrNull<String>() ?: return
                 lineIdsFromServer.update {
                     it.minus(GameRoom.Line(idFromServer, color))
                 }
@@ -523,7 +523,7 @@ class MainViewModel(
                 override fun onDataChange(snapshot: DataSnapshot) {
                     val chatList = snapshot.children.mapNotNull {
                         val key = it.key
-                        val ms = it.getValue<MsgStore>()
+                        val ms = it.getValueOrNull<MsgStore>()
                         if (key == null || ms == null) return@mapNotNull null
                         ms.copy(key = key)
                     }.reversed()
@@ -559,7 +559,7 @@ class MainViewModel(
                         override fun onDataChange(snapshot: DataSnapshot) {
                             val chatList = snapshot.children.mapNotNull {
                                 val key = it.key
-                                val ms = it.getValue<MsgStore>()
+                                val ms = it.getValueOrNull<MsgStore>()
                                 if (key == null || ms == null) return@mapNotNull null
                                 if (ms.type.typeEnum == MessageType.ExitText)
                                     localPlayerCount--
@@ -692,7 +692,7 @@ class MainViewModel(
             ?.playerId
             ?.let { playerId ->
                 val playerInfo =
-                    gamerProfileRef.document(playerId).get().await().toObject<GameProfile>()
+                    gamerProfileRef.document(playerId).get().await().toObjectOrNull<GameProfile>()
                         ?: error("No player found")
                 chatRef.push().setValue(
                     ChatCommand.bot.copy(
@@ -713,7 +713,7 @@ class MainViewModel(
     fun fuckIL() {
         gamerProfileRef.whereEqualTo("countryEmoji", "🇮🇱").get()
             .addOnSuccessListener { qs ->
-                qs?.documents?.mapNotNull { it?.toObject<GameProfile>() }?.forEach {
+                qs?.documents?.mapNotNull { it?.toObjectOrNull<GameProfile>() }?.forEach {
                     it.countryEmoji = "🇵🇸"
                     it.countryNm = "Palestina"
                     gamerProfileRef.document(it.playerId).set(it)
@@ -764,7 +764,7 @@ class MainViewModel(
                     }
 
                     private fun List<GameRoom>.addSorted(dataSnapshot: DataSnapshot) =
-                        dataSnapshot.getValue<GameRoom>()?.let { game ->
+                        dataSnapshot.getValueOrNull<GameRoom>()?.let { game ->
                             plus(game.copy(key = dataSnapshot.key.orEmpty()))
                                 .distinctBy { it.key }
                                 .sortedByDescending { it.pingAt }

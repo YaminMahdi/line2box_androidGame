@@ -30,7 +30,6 @@ import com.google.android.play.core.review.ReviewManagerFactory
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ValueEventListener
-import com.google.firebase.database.getValue
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -408,7 +407,7 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
             }
         plr2CupRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                ds.plr2Cup = snapshot.getValue<String>() ?: return
+                ds.plr2Cup = snapshot.getValueOrNull<String>() ?: return
                 firestore.collection("ScoreBoard").document(viewModel.uuidV7).set(ds)
             }
 
