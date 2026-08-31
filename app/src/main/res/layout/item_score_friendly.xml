@@ -10,7 +10,8 @@
     android:orientation="vertical"
     android:paddingHorizontal="8dp"
     android:paddingBottom="12dp"
-    tools:ignore="UselessParent">
+    tools:ignore="UselessParent"
+    tools:context=".presentation.adapter.ScoreListAdapter">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -34,7 +35,7 @@
             android:id="@+id/playFromImg"
             android:layout_width="14sp"
             android:layout_height="14sp"
-            android:src="@drawable/icon_globe"
+            android:src="@drawable/icon_friends"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />

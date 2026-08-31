@@ -458,7 +458,7 @@ class MainViewModel(
         fetchServerLineClickListener = null
     }
 
-    fun fetchServerLineClick(room: GameRoom? = getMatch(matchRouteInfo.gameKey)) {
+    fun fetchServerLineClick(room: GameRoom? = getMatch()) {
         matchRouteInfo.log("fetchServerLineClick")
         viewModelScope.launch {
             lineIdsFromServer.value = setOf()
@@ -844,7 +844,7 @@ class MainViewModel(
         }
     }
 
-    fun getMatch(fullKey: String): GameRoom? =
+    fun getMatch(fullKey: String = matchRouteInfo.gameKey): GameRoom? =
         matches.value.find { it.key == fullKey && it.key.isNotBlank() }
 
     fun getValidMatch(shortKey: String): GameRoom? =

@@ -19,16 +19,14 @@ import androidx.navigation.toRoute
 import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.DialogLayoutGameOverBinding
 import com.diu.yk_games.line2box.databinding.FragmentGameDualBinding
-import com.diu.yk_games.line2box.model.GameRoom
-import com.diu.yk_games.line2box.model.MsgStore
-import com.diu.yk_games.line2box.model.PlayerColor
-import com.diu.yk_games.line2box.model.DataStore
+import com.diu.yk_games.line2box.model.*
 import com.diu.yk_games.line2box.presentation.base.BaseFragment
 import com.diu.yk_games.line2box.presentation.navigation.Routes
 import com.diu.yk_games.line2box.util.*
 import com.google.android.play.core.review.ReviewManagerFactory
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.ServerValue
 import com.google.firebase.database.ValueEventListener
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -403,6 +401,21 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
             plr1Cup = plr1Cup,
             plr2Cup = "0"
         )
+
+        val room = viewModel.getMatch() ?: return
+
+        val score = Score(
+            type = Score.Type.Friendly,
+            player1 = room.player1.copy(seenAt = -1L),
+            player2 = room.player2.copy(seenAt = -1L),
+            result = LiveResult(
+                score1 = gameUtils.scoreRed,
+                score2 = gameUtils.scoreBlue,
+                cup1 = plr1Cup,
+                cup2 = plr2Cup
+            )
+        )
+
         firestore.collection("LastBestPlayer").document("LastBestPlayer").get()
             .addOnSuccessListener { doc ->
                 val map = doc.data ?: return@addOnSuccessListener
@@ -424,8 +437,12 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
             }
         plr2CupRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                ds.plr2Cup = snapshot.getValueOrNull<String>() ?: return
-                firestore.collection("ScoreBoard").document(viewModel.uuidV7).set(ds)
+                val plr2Cup = snapshot.getValueOrNull<String>() ?: return
+
+                firestore.collection("ScoreBoard").document(viewModel.uuidV7).set(
+                    score.copy(result = score.result.copy(cup2 = plr2Cup))
+                        .asMap().plus("time" to ServerValue.TIMESTAMP)
+                )
             }
 
             override fun onCancelled(error: DatabaseError) {}

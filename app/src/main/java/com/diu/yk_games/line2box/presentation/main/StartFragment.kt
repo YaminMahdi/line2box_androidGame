@@ -58,7 +58,9 @@ class StartFragment : BaseFragment<FragmentStartBinding>(FragmentStartBinding::i
             ideaBtn()
         }
         binding.scrBrdBtn.setBounceClickListener {
-            if (viewModel.isConnected)
+            if (DynamicIslandController.isLoading)
+                toast("Calm down, we're still loading!")
+            else if (viewModel.isConnected)
                 navigateToScoreBoard()
             else
                 toast((viewModel.onlineStatus.error ?: ErrorType.NoInternet).description)

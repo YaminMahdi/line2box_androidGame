@@ -12,27 +12,28 @@ import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toDrawable
 import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.DialogLayoutProfileBinding
-import com.diu.yk_games.line2box.databinding.DialogLayoutScrGlobeBinding
 import com.diu.yk_games.line2box.databinding.FragmentDisplayBinding
 import com.diu.yk_games.line2box.model.DataStore
 import com.diu.yk_games.line2box.model.GameProfile
+import com.diu.yk_games.line2box.model.Score
 import com.diu.yk_games.line2box.presentation.adapter.ScoreListAdapter
 import com.diu.yk_games.line2box.presentation.base.BaseFragment
-import com.diu.yk_games.line2box.util.*
+import com.diu.yk_games.line2box.util.gone
+import com.diu.yk_games.line2box.util.onBackPressed
+import com.diu.yk_games.line2box.util.setBounceClickListener
+import com.diu.yk_games.line2box.util.toObjectOrNull
 import com.google.firebase.firestore.Query
 
 class ScoreBoardFragment : BaseFragment<FragmentDisplayBinding>(FragmentDisplayBinding::inflate) {
     private var bestScore = "\n\n\nNetwork Error"
-    private lateinit var p1Pro: GameProfile
-    private lateinit var p2Pro: GameProfile
 
     private val scoreListAdapter by lazy { ScoreListAdapter() }
 
-    companion object{
+    companion object {
         private const val TAG = "ScoreBoardFragment"
     }
 
-    private fun setupUI(){
+    private fun setupUI() {
         binding.fragLabel.text = getString(R.string.global_score_board)
         binding.statusLabel.text = getString(R.string.last_best_score)
         binding.recyclerView.adapter = scoreListAdapter
@@ -59,7 +60,10 @@ class ScoreBoardFragment : BaseFragment<FragmentDisplayBinding>(FragmentDisplayB
             .get()
             .addOnSuccessListener { task ->
                 val dsList = task.documents.mapNotNull {
-                    it.toObjectOrNull<DataStore>()
+                    if (it.contains("starData"))
+                        it.toObjectOrNull<DataStore>()?.toScore()
+                    else
+                        it.toObjectOrNull<Score>()
                 }
                 Log.d(TAG, "isSuccessful: ${dsList.size}")
                 scoreListAdapter.submitList(dsList)
@@ -70,83 +74,43 @@ class ScoreBoardFragment : BaseFragment<FragmentDisplayBinding>(FragmentDisplayB
             viewModel.player.playButtonClickSound()
             onBackPressed()
         }
-        scoreListAdapter.onClickListener = run@{ gamerPro ->
-            if(itemClicked && gamerPro.starData == "friendly") return@run
+        scoreListAdapter.onPlayerClick = playerClick@{ playerId, isLeft ->
+            if (playerId.isEmpty() || itemClicked) return@playerClick
             itemClicked = true
-            gamerPro.log("scoreListAdapter")
-            if (gamerPro.starData == "friendly") {
-                toast("Offline matches don't have match details.")
-                return@run
-            }
             viewModel.player.playButtonClickSound()
-            val dialogBinding = DialogLayoutScrGlobeBinding.inflate(layoutInflater)
-            val alertDialog = AlertDialog.Builder(parentActivity)
-                .setView(dialogBinding.root).create()
-            alertDialog.setOnDismissListener {
-                itemClicked = false
-            }
-            Log.d(TAG, "onItemClick: 1id " + gamerPro.plr1Id)
-            Log.d(TAG, "onItemClick: 2id " + gamerPro.plr2Id)
-            viewModel.firestore.collection("gamerProfile").document(gamerPro.plr1Id)
+            viewModel.firestore.collection("gamerProfile").document(playerId)
                 .get()
-                .addOnSuccessListener { documentSnapshot ->
-                    val gp = documentSnapshot.toObjectOrNull<GameProfile>() ?: return@addOnSuccessListener
-                    val scr = gamerPro.redData.split(" ").dropLastWhile { it.isEmpty() }
-                    Log.d(TAG, "onSuccess: scr " + scr[scr.size - 1])
-                    dialogBinding.plr1Score.text = scr[scr.size - 1]
-                    dialogBinding.plr1Cup.text = gamerPro.plr1Cup
-                    Log.d(TAG, "onSuccess: cup " + gamerPro.plr1Cup)
-                    p1Pro = gp
-                    if (p1Pro.countryEmoji != "")
-                        dialogBinding.plr1Flag.text = p1Pro.countryEmoji
-                    dialogBinding.plr1Nm.text = p1Pro.nm
-                    Log.d(TAG, "onSuccess: nm " + p1Pro.nm)
-                    dialogBinding.plr1Lvl.text = "" + p1Pro.lvl
-                }
-            viewModel.firestore.collection("gamerProfile").document(gamerPro.plr2Id)
-                .get().addOnSuccessListener { documentSnapshot ->
-                    val gp = documentSnapshot.toObjectOrNull<GameProfile>() ?: return@addOnSuccessListener
-                    val scr = gamerPro.blueData.split(" ").dropLastWhile { it.isEmpty() }
-                    dialogBinding.plr2Score.text = scr[scr.size - 1]
-                    dialogBinding.plr2Cup.text = gamerPro.plr2Cup
-                    p2Pro = gp
-                    if (p2Pro.countryEmoji != "")
-                        dialogBinding.plr2Flag.text = p2Pro.countryEmoji
-                    dialogBinding.plr2Nm.text = p2Pro.nm
-                    dialogBinding.plr2Lvl.text = "" + p2Pro.lvl
-                    alertDialog.window?.setBackgroundDrawable(0.toDrawable())
-                    runCatching { alertDialog.show() }
-
-                }
-            var itemClicked2 =false
-            var itemClicked3 =false
-            dialogBinding.linLayoutPlr1
-                .setBounceClickListener {
-                    if(itemClicked2) return@setBounceClickListener
-                    itemClicked2 = true
-                    onPlayerProfileClick(p1Pro, 60){
-                        itemClicked2 = false
+                .addOnSuccessListener { doc ->
+                    val profile = doc.toObjectOrNull<GameProfile>()
+                    if (profile == null) {
+                        itemClicked = false
+                        return@addOnSuccessListener
                     }
+                    showPlayerProfile(
+                        profile = profile,
+                        marginLeft = if (isLeft) 60 else 420,
+                        onDismissed = {
+                            itemClicked = false
+                        }
+                    )
                 }
-            dialogBinding.linLayoutPlr2
-                .setBounceClickListener {
-                    if(itemClicked3) return@setBounceClickListener
-                    itemClicked3 = true
-                    onPlayerProfileClick(p2Pro, 420){
-                        itemClicked3 = false
-                    }
+                .addOnFailureListener {
+                    itemClicked = false
                 }
         }
     }
 
     @SuppressLint("SetTextI18n")
-    private fun onPlayerProfileClick(profile: GameProfile, marginLeft: Int, onDismissed: () -> Unit) {
-        viewModel.player.playButtonClickSound()
+    private fun showPlayerProfile(
+        profile: GameProfile,
+        marginLeft: Int,
+        onDismissed: () -> Unit
+    ) {
         val dBinding = DialogLayoutProfileBinding.inflate(layoutInflater)
         val alertDialog = AlertDialog.Builder(parentActivity)
             .setView(dBinding.root)
             .create()
-        alertDialog.setOnDismissListener{
+        alertDialog.setOnDismissListener {
             onDismissed()
         }
         val params = LinearLayout.LayoutParams(
@@ -156,7 +120,8 @@ class ScoreBoardFragment : BaseFragment<FragmentDisplayBinding>(FragmentDisplayB
         params.setMargins(marginLeft, 0, 60, 0)
         dBinding.linearLayoutFrame.apply {
             layoutParams = params
-            backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(context, R.color.cocX))
+            backgroundTintList =
+                ColorStateList.valueOf(ContextCompat.getColor(context, R.color.cocX))
             backgroundTintMode = PorterDuff.Mode.ADD
         }
         dBinding.apply {

@@ -14,11 +14,14 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.toRoute
 import com.diu.yk_games.line2box.databinding.DialogLayoutAlertBinding
 import com.diu.yk_games.line2box.databinding.FragmentGameDualBinding
-import com.diu.yk_games.line2box.model.DataStore
+import com.diu.yk_games.line2box.model.LiveResult
+import com.diu.yk_games.line2box.model.PlayerInfo
+import com.diu.yk_games.line2box.model.Score
 import com.diu.yk_games.line2box.presentation.base.BaseFragment
 import com.diu.yk_games.line2box.presentation.navigation.Routes
 import com.diu.yk_games.line2box.util.*
 import com.google.android.play.core.review.ReviewManagerFactory
+import com.google.firebase.database.ServerValue
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -171,7 +174,7 @@ class GameDualFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDualB
         val redData = "${gameUtils.nm1}: $redScore"
         val blueData = "${gameUtils.nm2}: $blueScore"
 
-        val ds = DataStore(
+/*        val ds = DataStore(
             time = System.currentTimeMillis(),
             redData = redData,
             blueData = blueData,
@@ -180,6 +183,13 @@ class GameDualFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDualB
             plr2Id = "",
             plr1Cup = "",
             plr2Cup = ""
+        )*/
+
+        val score = Score(
+            type = Score.Type.Friendly,
+            player1 = PlayerInfo(id = "", nm = gameUtils.nm1),
+            player2 = PlayerInfo(id = "", nm = gameUtils.nm2),
+            result = LiveResult(score1 = redScore, score2 = blueScore)
         )
 
         return IO {
@@ -189,7 +199,7 @@ class GameDualFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDualB
                 // 1. Save user's score to ScoreBoard
                 db.collection("ScoreBoard")
                     .document(viewModel.uuidV7)
-                    .set(ds)
+                    .set(score.asMap().plus("time" to ServerValue.TIMESTAMP))
                     .await()
 
                 // 2. Check and update LastBestPlayer atomically via Transaction
