@@ -112,6 +112,7 @@ class StartFragment : BaseFragment<FragmentStartBinding>(FragmentStartBinding::i
 
         when {
             !ConnectivityObserver.isConnected -> {
+                ConnectivityObserver.initialize(parentActivity)
                 dialogBinding.updateInfo.text =
                     "No internet!\nOnline mode requires an internet connection."
                 dialogBinding.buttonUpdate.text = "Dismiss"

@@ -59,6 +59,7 @@ class MultiplayerFragment :
     val liveBadge by lazy {
         BadgeDrawable.create(parentActivity).apply {
             isVisible = false
+            alpha = 0
             clearNumber()
             badgeGravity = BadgeDrawable.TOP_START
         }
@@ -136,9 +137,11 @@ class MultiplayerFragment :
             if (it.isNotEmpty()) {
                 liveBadge.isVisible = true
                 liveBadge.number = it.size
+                liveBadge.alpha = 255
             } else {
                 liveBadge.isVisible = false
                 liveBadge.clearNumber()
+                liveBadge.alpha = 0
             }
         }
         viewModel.joiningGame.collectWithLifecycle {

@@ -71,101 +71,11 @@
 
         </LinearLayout>
 
-        <LinearLayout
-            android:id="@+id/nmLayout"
+        <androidx.compose.ui.platform.ComposeView
+            android:id="@+id/turnBar"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginTop="@dimen/_10sdp"
-            android:baselineAligned="false"
-            android:gravity="center"
-            android:orientation="horizontal"
-            android:weightSum="3">
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1.2"
-                android:gravity="center"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/red"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="@font/brad"
-                    android:gravity="center"
-                    android:padding="@dimen/_8sdp"
-                    android:shadowColor="#C62E2E"
-                    android:shadowDx="0.0"
-                    android:shadowDy="0.0"
-                    android:shadowRadius="20"
-                    android:text="@string/red"
-                    android:textColor="@color/white"
-                    android:textSize="35sp" />
-
-                <TextView
-                    android:id="@+id/nm1Id"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="@font/sortie"
-                    android:gravity="center"
-                    android:maxLines="1"
-                    android:text="(Player Name 1)"
-                    android:textColor="@color/white"
-                    android:textSize="@dimen/_13ssp"
-                    tools:ignore="HardcodedText" />
-
-            </LinearLayout>
-
-
-            <androidx.appcompat.widget.AppCompatImageView
-                android:layout_width="0dp"
-                android:layout_height="@dimen/_80sdp"
-                android:layout_weight=".6"
-                android:contentDescription="@string/vs"
-                android:src="@drawable/vs"
-                android:tintMode="multiply"
-                app:tint="#C7DEFC" />
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1.2"
-                android:gravity="center"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/blue"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="@font/brad"
-                    android:gravity="center"
-                    android:padding="@dimen/_8sdp"
-                    android:shadowColor="#1988FF"
-                    android:shadowDx="0.0"
-                    android:shadowDy="0.0"
-                    android:shadowRadius="20"
-                    android:text="@string/blue"
-                    android:textColor="@color/whiteT"
-                    android:textSize="@dimen/_25sdp" />
-
-                <TextView
-                    android:id="@+id/nm2Id"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="@font/sortie"
-                    android:gravity="center"
-                    android:maxLines="1"
-                    android:text="(Player Name 1)"
-                    android:textColor="@color/white"
-                    android:textSize="@dimen/_13ssp"
-
-                    tools:ignore="HardcodedText" />
-
-            </LinearLayout>
-
-
-        </LinearLayout>
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_10sdp" />
 
         <LinearLayout
             android:id="@+id/txtLayout"

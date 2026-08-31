@@ -45,8 +45,6 @@ class GameBotFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDualBi
 
     @SuppressLint("SetTextI18n")
     private fun setupUI() {
-        binding.nm1Id.text = "(${gameUtils.nm1})"
-        binding.nm2Id.text = "(${gameUtils.nm2})"
 
         val randLineId = gameUtils.idFromName(lineIDs.random())
         scope.launch {
@@ -205,10 +203,6 @@ class GameBotFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDualBi
     private fun finishGame() {
         gameUtils.isGameOver = true
         gameUtils.playWinSound()
-        binding.red.textSize = 30f
-        binding.red.setTextColor(gameUtils.white)
-        binding.blue.textSize = 30f
-        binding.blue.setTextColor(gameUtils.white)
 
         if (gameUtils.scoreRed > gameUtils.scoreBlue) onGameOver("AI won the match.")
         else if (gameUtils.scoreBlue > gameUtils.scoreRed) {

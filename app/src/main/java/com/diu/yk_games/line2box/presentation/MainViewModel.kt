@@ -69,7 +69,9 @@ class MainViewModel(
     val globalChatList = savedStateHandle.getStateFlow("globalChatList", listOf<MsgStore>())
     val friendlyChatList = savedStateHandle.getStateFlow("friendlyChatList", listOf<MsgStore>())
 
-    val matches = savedStateHandle.getStateFlow("matches", listOf<GameRoom>())
+    val matches: StateFlow<List<GameRoom>>
+        field = savedStateHandle.getMutableStateFlow("matches", listOf())
+
     val actives = activePlayersRef
         .limitToLast(100)
         .asValueFlowList<PlayerInfo>()
@@ -123,6 +125,7 @@ class MainViewModel(
         clearTempMatches()
         clearFriendlyChat()
         clearJoiningJob()
+        matches.value = listOf()
         matchRouteInfo = Routes.GameOnline()
         removeProfileFromServerListener()
         removeGlobalChatListener()
@@ -154,7 +157,7 @@ class MainViewModel(
     }
 
     fun doOnMatchEnd(rewardCoin: Int, isWin: Boolean = true) {
-        if(matchRouteInfo.watchOnly) return
+        if (matchRouteInfo.watchOnly) return
         val coinDelta = if (isWin) rewardCoin else -rewardCoin
 
         // 1. Update local UI state
@@ -782,7 +785,7 @@ class MainViewModel(
                     override fun onChildAdded(dataSnapshot: DataSnapshot, s: String?) {
                         Log.d("addList", "onChildAdded: " + dataSnapshot.key)
                         runCatching {
-                            savedStateHandle["matches"] = matches.value.addSorted(dataSnapshot)
+                            matches.value = matches.value.addSorted(dataSnapshot)
                             removeUnplayedOlderMatches()
                         }.onFailure {
                             it.logError("fetchActiveMatches")
@@ -792,7 +795,7 @@ class MainViewModel(
                     override fun onChildChanged(dataSnapshot: DataSnapshot, s: String?) {
                         removeByKey(dataSnapshot.key)
                         runCatching {
-                            savedStateHandle["matches"] = matches.value.addSorted(dataSnapshot)
+                            matches.value = matches.value.addSorted(dataSnapshot)
                         }.onFailure {
                             it.logError("fetchActiveMatches")
                         }
@@ -818,13 +821,13 @@ class MainViewModel(
                                             time
                                         })
                                 }
-                        }
+                        }.orEmpty()
 
                     private fun removeByKey(key: String?) {
                         key?.let { key ->
                             matches.value.toMutableList().apply {
                                 if (removeIf { it.key == key })
-                                    savedStateHandle["matches"] = toList()
+                                    matches.value = toList()
                             }
                         }
                     }

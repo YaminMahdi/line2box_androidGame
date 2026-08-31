@@ -138,8 +138,6 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
             gameUtils.nm1 = arg.nm1
             gameUtils.nm2 = arg.nm2
 
-            binding.nm1Id.text = "(${arg.nm1})"
-            binding.nm2Id.text = "(${arg.nm2})"
             while (isActive && lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
                 delay(2.minutes)
                 if (isAdded) viewModel.pingCurrentMatch()
@@ -199,10 +197,6 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
         val winCoin = Random.nextInt(80) + 45
         val lostCoin = Random.nextInt(35) + 15
         gameUtils.playWinSound()
-        binding.red.textSize = 30f
-        binding.red.setTextColor(resources.getColor(R.color.white, parentActivity.theme))
-        binding.blue.textSize = 30f
-        binding.blue.setTextColor(resources.getColor(R.color.white, parentActivity.theme))
         var winTxt = ""
         var wCoin = ""
         var plr1Cup = ""

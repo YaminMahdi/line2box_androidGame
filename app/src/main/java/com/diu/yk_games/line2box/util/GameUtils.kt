@@ -8,6 +8,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.widget.TextView
 import androidx.annotation.ColorRes
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.toDrawable
@@ -20,6 +24,7 @@ import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.DialogLayoutInfoBinding
 import com.diu.yk_games.line2box.databinding.FragmentGameDualBinding
 import com.diu.yk_games.line2box.presentation.MainViewModel
+import com.diu.yk_games.line2box.presentation.component.TurnBattleBar
 import com.diu.yk_games.line2box.presentation.main.SettingsFragment
 import kotlinx.coroutines.launch
 import java.util.Objects
@@ -27,7 +32,8 @@ import java.util.Objects
 class GameUtils(
     var fragment: Fragment,
     var binding: FragmentGameDualBinding? = null,
-    val isBot: Boolean = false
+    val isBot: Boolean = false,
+    val isDual: Boolean = false,
 ) {
     private val viewModel by fragment.activityViewModels<MainViewModel>()
     private var context = fragment.requireActivity()
@@ -36,6 +42,7 @@ class GameUtils(
         this.context = context
         this.binding = binding
     }
+
     fun getColor(@ColorRes id: Int): Int =
         ContextCompat.getColor(context, id)
 
@@ -54,8 +61,10 @@ class GameUtils(
     var scoreRed = 0
     var scoreBlue = 0
     val totalScore get() = scoreRed + scoreBlue
-    var nm1 = "AI"
-    var nm2 = "Blue"
+
+    private var isRedTurnState by mutableStateOf(true)
+    var nm1 by mutableStateOf("AI")
+    var nm2 by mutableStateOf("Blue")
     var isFirstRun = false
     var isGameOver = false
     var lastHadExtraTurn = false
@@ -66,6 +75,7 @@ class GameUtils(
         context.lifecycleScope.launch {
             resetGameBoard()
             isFirstRun = IO { pref.read("firstRun", true) }
+            setupTurnUi()
         }
     }
 
@@ -519,19 +529,25 @@ class GameUtils(
         }
     }
 
-    fun changePlayerTurnUi(isRedTurn: Boolean) {
+    fun setupTurnUi() {
         val binding = binding ?: return
-        if (isRedTurn) {
-            binding.red.textSize = 30f
-            binding.red.setTextColor(whiteT)
-            binding.blue.textSize = 35f
-            binding.blue.setTextColor(white)
-        } else {
-            binding.blue.textSize = 30f
-            binding.blue.setTextColor(whiteT)
-            binding.red.textSize = 35f
-            binding.red.setTextColor(white)
+        binding.turnBar.apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+                TurnBattleBar(
+                    redName = nm1,
+                    blueName = nm2,
+                    isRedTurn = isRedTurnState,
+                    isMyTurn = { isRed ->
+                        isDual || viewModel.matchRouteInfo.isPlyr1 == isRed
+                    }
+                )
+            }
         }
+    }
+
+    fun changePlayerTurnUi(isRedTurn: Boolean) {
+        isRedTurnState = !isRedTurn
     }
 
     fun isAllColored(vararg views: View): Boolean {

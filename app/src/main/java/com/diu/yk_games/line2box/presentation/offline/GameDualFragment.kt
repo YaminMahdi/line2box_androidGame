@@ -8,12 +8,10 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.TextView
-import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toDrawable
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.toRoute
-import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.DialogLayoutAlertBinding
 import com.diu.yk_games.line2box.databinding.FragmentGameDualBinding
 import com.diu.yk_games.line2box.model.DataStore
@@ -29,8 +27,6 @@ import kotlin.time.Duration.Companion.milliseconds
 class GameDualFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDualBinding::inflate) {
     private lateinit var scoreRedView: TextView
     private lateinit var scoreBlueView: TextView
-    private lateinit var redTxt: TextView
-    private lateinit var blueTxt: TextView
 
     private var isFirstRun = false
 
@@ -42,7 +38,7 @@ class GameDualFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDualB
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         if (_gameUtils == null)
-            _gameUtils = GameUtils(this, binding)
+            _gameUtils = GameUtils(fragment = this, binding = binding, isDual = true)
         else _gameUtils?.updateContext(
             context = parentActivity,
             binding = binding
@@ -58,13 +54,9 @@ class GameDualFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDualB
                 findNavController().getBackStackEntry<Routes.GameDual>().toRoute<Routes.GameDual>()
             gameUtils.nm1 = arg.nm1
             gameUtils.nm2 = arg.nm2
-            binding.nm1Id.text = "(${arg.nm1})"
-            binding.nm2Id.text = "(${arg.nm2})"
         }
         scoreRedView = binding.scoreRed
         scoreBlueView = binding.scoreBlue
-        redTxt = binding.red
-        blueTxt = binding.blue
         lifecycleScope.launch {
             isFirstRun = IO { pref.read("firstRun", true) }
         }
@@ -105,10 +97,6 @@ class GameDualFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDualB
                     pref.save("winOffline", ++winOffline)
                     delay(800.milliseconds)
                     viewModel.player.playWinSound()
-                    redTxt.textSize = 30f
-                    redTxt.setTextColor(ContextCompat.getColor(parentActivity, R.color.white))
-                    blueTxt.textSize = 30f
-                    blueTxt.setTextColor(ContextCompat.getColor(parentActivity, R.color.white))
                     if (gameUtils.scoreRed > gameUtils.scoreBlue)
                         onGameOver("Player RED won the match.", winOffline)
                     else if (gameUtils.scoreRed < gameUtils.scoreBlue)
