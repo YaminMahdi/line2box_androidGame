@@ -35,15 +35,6 @@ data class GameRoom(
 
     @Parcelize
     @IgnoreExtraProperties
-    data class LiveResult(
-        val score1: Int = 0,
-        val score2: Int = 0,
-        val cup1: Int = 0,
-        val cup2: Int = 0
-    ) : Parcelable
-
-    @Parcelize
-    @IgnoreExtraProperties
     data class Line(
         val id: String = "",
         val color: PlayerColor = PlayerColor.Red

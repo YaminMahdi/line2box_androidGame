@@ -19,10 +19,10 @@ import androidx.navigation.toRoute
 import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.DialogLayoutGameOverBinding
 import com.diu.yk_games.line2box.databinding.FragmentGameDualBinding
-import com.diu.yk_games.line2box.model.DataStore
 import com.diu.yk_games.line2box.model.GameRoom
 import com.diu.yk_games.line2box.model.MsgStore
 import com.diu.yk_games.line2box.model.PlayerColor
+import com.diu.yk_games.line2box.model.DataStore
 import com.diu.yk_games.line2box.presentation.base.BaseFragment
 import com.diu.yk_games.line2box.presentation.navigation.Routes
 import com.diu.yk_games.line2box.util.*

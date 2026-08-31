@@ -33,7 +33,7 @@ class GameUtils(
     var fragment: Fragment,
     var binding: FragmentGameDualBinding? = null,
     val isBot: Boolean = false,
-    val isDual: Boolean = false,
+    val isDual: Boolean = false
 ) {
     private val viewModel by fragment.activityViewModels<MainViewModel>()
     private var context = fragment.requireActivity()
@@ -538,8 +538,16 @@ class GameUtils(
                     redName = nm1,
                     blueName = nm2,
                     isRedTurn = isRedTurnState,
-                    isMyTurn = { isRed ->
-                        isDual || viewModel.matchRouteInfo.isPlyr1 == isRed
+                    isMyTurn = { forRed ->
+                        isDual || isBot || viewModel.matchRouteInfo.isPlyr1 == forRed
+                    },
+                    showTurnText = { forRed ->
+                        when {
+                            !isDual && !isBot -> viewModel.matchRouteInfo.isPlyr1 == forRed
+                            isDual -> true
+                            !forRed -> true
+                            else -> false
+                        }
                     }
                 )
             }

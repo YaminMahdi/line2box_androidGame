@@ -64,7 +64,7 @@ class MainViewModel(
 
     var onlineStatus by savedStateHandle.saved { OnlineStatus.Offline }
     val isConnected
-        get() = onlineStatus == OnlineStatus.Online || ConnectivityObserver.isConnected
+        get() = onlineStatus == OnlineStatus.Online && ConnectivityObserver.isConnected
 
     val globalChatList = savedStateHandle.getStateFlow("globalChatList", listOf<MsgStore>())
     val friendlyChatList = savedStateHandle.getStateFlow("friendlyChatList", listOf<MsgStore>())
@@ -75,6 +75,7 @@ class MainViewModel(
     val actives = activePlayersRef
         .limitToLast(100)
         .asValueFlowList<PlayerInfo>()
+        .map { it.sortedByDescending { it.seenAt } }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(),
@@ -262,7 +263,9 @@ class MainViewModel(
         exception?.logError("authenticationFailed")
         hasInitializedPlayGameUser = false
         uiEvents.value = MainUiEvent.UpdateUi(errorType)
-        onlineStatus = OnlineStatus.Offline
+        onlineStatus = OnlineStatus.Offline.apply {
+            error = errorType
+        }
         setLoading(false)
     }
 
@@ -952,15 +955,15 @@ class MainViewModel(
         when {
             joinType == JoinType.Watch -> Unit
 
-            room.player2.id.isEmpty() -> {
-                // Player 2 fills empty slot
-                updates["player2"] = gameProfile.toPlayerInfoDB()
+            room.player1.run { id == playerId || seenAt < 0 } -> {
+                // Fallback: Player 1 slot was vacant
+                updates["player1"] = gameProfile.toPlayerInfoDB()
                 updates["playerCount"] = "2"
             }
 
-            room.player1.id.isEmpty() -> {
-                // Fallback: Player 1 slot was vacant
-                updates["player1"] = gameProfile.toPlayerInfoDB()
+            room.player2.run { id == playerId || seenAt < 0 } -> {
+                // Player 2 fills empty slot
+                updates["player2"] = gameProfile.toPlayerInfoDB()
                 updates["playerCount"] = "2"
             }
 

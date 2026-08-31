@@ -8,10 +8,9 @@ import com.google.firebase.firestore.IgnoreExtraProperties as IgnoreExtraPropert
 @Parcelize
 @IgnoreExtraProperties
 @IgnoreExtraPropertiesFS
-data class PlayerInfo(
-    val id: String = "",
-    val nm: String = "",
-    val lvl: Int = 0,
-    val coin: Int = 0,
-    val seenAt: Long = -1L  // -1L means never seen, -2L means left
+data class LiveResult(
+    val score1: Int = 0,
+    val score2: Int = 0,
+    val cup1: String = "0",
+    val cup2: String = "0"
 ) : Parcelable

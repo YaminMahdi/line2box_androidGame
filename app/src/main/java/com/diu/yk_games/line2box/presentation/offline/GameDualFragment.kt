@@ -204,7 +204,8 @@ class GameDualFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDualB
                 db.runTransaction { transaction ->
                     val snapshot = transaction.get(docRef)
                     val currentInfo = snapshot.getString("info") ?: ""
-                    val currentBestScore = currentInfo.substringAfterLast(": ", "0").toIntOrNull() ?: 0
+                    val currentBestScore =
+                        currentInfo.substringAfterLast(": ", "0").toIntOrNull() ?: 0
 
                     if (maxScore > currentBestScore) {
                         transaction.update(docRef, "info", highestLocalData)

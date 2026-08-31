@@ -61,7 +61,7 @@ class StartFragment : BaseFragment<FragmentStartBinding>(FragmentStartBinding::i
             if (viewModel.isConnected)
                 navigateToScoreBoard()
             else
-                toast(ErrorType.NoInternet.description)
+                toast((viewModel.onlineStatus.error ?: ErrorType.NoInternet).description)
         }
         binding.logo.setBounceClickListener {
             if (BuildConfig.DEBUG) {
@@ -105,7 +105,8 @@ class StartFragment : BaseFragment<FragmentStartBinding>(FragmentStartBinding::i
     @SuppressLint("SetTextI18n")
     fun showPlayServiceRequirementDialog() {
         val builder = AlertDialog.Builder(parentActivity)
-        val dialogBinding = DialogLayoutUpdateuiBinding.inflate(LayoutInflater.from(parentActivity))
+        val dialogBinding = DialogLayoutUpdateuiBinding
+            .inflate(LayoutInflater.from(parentActivity))
         builder.setView(dialogBinding.root)
         builder.setCancelable(false)
         val alertDialog = builder.create()
@@ -113,14 +114,16 @@ class StartFragment : BaseFragment<FragmentStartBinding>(FragmentStartBinding::i
         when {
             !ConnectivityObserver.isConnected -> {
                 ConnectivityObserver.initialize(parentActivity)
+                dialogBinding.warningMessage.text = ErrorType.NoInternet.description
                 dialogBinding.updateInfo.text =
-                    "No internet!\nOnline mode requires an internet connection."
+                    "Online mode requires an internet connection."
                 dialogBinding.buttonUpdate.text = "Dismiss"
                 dialogBinding.googlePlayWarning.gone()
             }
 
             viewModel.onlineStatus == OnlineStatus.Offline -> {
-                dialogBinding.warningMessage.text = ErrorType.PlayServiceNeeded.description
+                dialogBinding.warningMessage.text =
+                    (viewModel.onlineStatus.error ?: ErrorType.PlayServiceNeeded).description
                 dialogBinding.updateInfo.text =
                     "Online mode requires Google Play Games Services to play!\n"
                         .plus("You may need to UPDATE an app.\n(Link Below)")

@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.model.GameRoom
+import com.diu.yk_games.line2box.model.LiveResult
 import com.diu.yk_games.line2box.model.PlayerInfo
 import com.diu.yk_games.line2box.presentation.online.live.LiveDot
 import com.diu.yk_games.line2box.ui.theme.Line2BoxTheme
@@ -111,8 +112,8 @@ fun MatchCard(
         ) {
             MatchPlayerSlot(
                 player = room.player1,
-                cup = room.matchInfo.result.score1,
-                showCup = isMatchOver,
+                cup = room.matchInfo.result.cup1,
+                isMatchOver = isMatchOver,
                 alignEnd = false,
                 modifier = Modifier
                     .weight(1f)
@@ -143,9 +144,9 @@ fun MatchCard(
             }
             MatchPlayerSlot(
                 player = room.player2,
-                cup = room.matchInfo.result.score2,
+                cup = room.matchInfo.result.cup2,
                 alignEnd = true,
-                showCup = isMatchOver,
+                isMatchOver = isMatchOver,
                 modifier = Modifier
                     .weight(1f)
                     .bounceClick {
@@ -212,9 +213,9 @@ fun TimePassed(
 @Composable
 private fun MatchPlayerSlot(
     player: PlayerInfo,
-    cup: Int,
+    cup: String,
     alignEnd: Boolean,
-    showCup: Boolean,
+    isMatchOver: Boolean,
     modifier: Modifier = Modifier
 ) {
     val isEmpty = player.nm.isEmpty()
@@ -249,7 +250,7 @@ private fun MatchPlayerSlot(
                 )
             }
         }
-        if (showCup) {
+        if (isMatchOver) {
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -264,7 +265,7 @@ private fun MatchPlayerSlot(
                     { Spacer(Modifier.width(4.dp)) },
                     {
                         Text(
-                            text = "$cup",
+                            text = cup,
                             color = cocZ,
                             fontWeight = FontWeight.ExtraBold,
                             fontSize = 17.sp,
@@ -278,13 +279,12 @@ private fun MatchPlayerSlot(
                 else
                     composableList.forEach { it() }
             }
-        }
-        TimePassed(player.seenAt)
+        } else TimePassed(player.seenAt)
     }
 }
 
 @Composable
-private fun VersusBadge(modifier: Modifier = Modifier, result: GameRoom.LiveResult) {
+private fun VersusBadge(modifier: Modifier = Modifier, result: LiveResult) {
     Box(
         contentAlignment = Center,
         modifier = modifier
@@ -497,7 +497,7 @@ fun MatchCardPreview() {
                     ),
                     player2 = PlayerInfo(id = "2", nm = "Player Two", lvl = 3, seenAt = -2L),
                     matchInfo = GameRoom.MatchInfo(
-                        result = GameRoom.LiveResult(score1 = 12, score2 = 24)
+                        result = LiveResult(score1 = 12, score2 = 24)
                     )
                 ),
                 onPlayerClick = {},
@@ -524,7 +524,7 @@ fun MatchCardWaitingPreview() {
                     player1 = PlayerInfo(id = "1", nm = "Player One", lvl = 5),
                     player2 = PlayerInfo(),
                     matchInfo = GameRoom.MatchInfo(
-                        result = GameRoom.LiveResult(score1 = 0, score2 = 0)
+                        result = LiveResult(score1 = 0, score2 = 0)
                     )
                 ),
                 onPlayerClick = {},

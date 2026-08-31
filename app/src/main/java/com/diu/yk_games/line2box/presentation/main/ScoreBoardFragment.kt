@@ -20,7 +20,6 @@ import com.diu.yk_games.line2box.presentation.adapter.ScoreListAdapter
 import com.diu.yk_games.line2box.presentation.base.BaseFragment
 import com.diu.yk_games.line2box.util.*
 import com.google.firebase.firestore.Query
-import com.google.firebase.firestore.toObject
 
 class ScoreBoardFragment : BaseFragment<FragmentDisplayBinding>(FragmentDisplayBinding::inflate) {
     private var bestScore = "\n\n\nNetwork Error"

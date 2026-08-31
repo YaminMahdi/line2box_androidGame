@@ -36,6 +36,7 @@ import androidx.compose.ui.viewinterop.AndroidViewBinding
 import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.HomeRowBinding
 import com.diu.yk_games.line2box.model.GameRoom
+import com.diu.yk_games.line2box.model.LiveResult
 import com.diu.yk_games.line2box.model.PlayerInfo
 import com.diu.yk_games.line2box.presentation.online.live.component.ActivePlayerCard
 import com.diu.yk_games.line2box.presentation.online.live.component.MatchCard
@@ -192,7 +193,7 @@ private fun LiveTabRow(
         modifier = modifier
             .fillMaxWidth()
             .padding(top = 20.dp)
-            .padding(horizontal = 20.dp)
+            .padding(horizontal = 30.dp)
             .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.55f), RoundedCornerShape(15.dp))
             .padding(3.dp),
         horizontalArrangement = Arrangement.spacedBy(3.dp)
@@ -365,11 +366,9 @@ private fun LiveStatsScreenPrev() {
                         seenAt = System.currentTimeMillis()
                     ),
                     matchInfo = GameRoom.MatchInfo(
-                        result = GameRoom.LiveResult(
+                        result = LiveResult(
                             score1 = 10,
-                            score2 = 20,
-                            cup1 = 0,
-                            cup2 = 0
+                            score2 = 20
                         )
                     )
                 ),
@@ -392,11 +391,9 @@ private fun LiveStatsScreenPrev() {
                         seenAt = 0
                     ),
                     matchInfo = GameRoom.MatchInfo(
-                        result = GameRoom.LiveResult(
+                        result = LiveResult(
                             score1 = 10,
-                            score2 = 20,
-                            cup1 = 0,
-                            cup2 = 0
+                            score2 = 20
                         )
                     )
                 )

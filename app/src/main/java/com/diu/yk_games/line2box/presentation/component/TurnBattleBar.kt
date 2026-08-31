@@ -1,6 +1,5 @@
 package com.diu.yk_games.line2box.presentation.component
 
-import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -46,7 +45,8 @@ private val Sortie = FontFamily(Font(R.font.sortie))
 fun TurnBattleBar(
     redName: String,
     blueName: String,
-    isMyTurn: (isRed: Boolean) -> Boolean,
+    isMyTurn: (forRed: Boolean) -> Boolean,
+    showTurnText: (forRed: Boolean) -> Boolean,
     isRedTurn: Boolean,
     modifier: Modifier = Modifier,
 ) {
@@ -136,7 +136,9 @@ fun TurnBattleBar(
             PlayerSide(
                 team = "RED",
                 name = redName,
-                isMyTurn = isMyTurn,
+                isRedTurn = isRedTurn,
+                isMyTurn = isMyTurn(true),
+                showTurnText = showTurnText(true),
                 teamColor = RedTeam,
                 activeness = 1f - progress,
                 breathe = breathe,
@@ -162,7 +164,9 @@ fun TurnBattleBar(
             PlayerSide(
                 team = "BLUE",
                 name = blueName,
-                isMyTurn = isMyTurn,
+                isRedTurn = isRedTurn,
+                isMyTurn = isMyTurn(true),
+                showTurnText = showTurnText(false),
                 teamColor = BlueTeam,
                 activeness = progress,
                 breathe = breathe,
@@ -178,7 +182,9 @@ fun TurnBattleBar(
 private fun PlayerSide(
     team: String,
     name: String,
-    isMyTurn: (isRed: Boolean) -> Boolean,
+    isRedTurn: Boolean,
+    isMyTurn: Boolean,
+    showTurnText: Boolean,
     teamColor: Color,
     activeness: Float,
     breathe: Float,
@@ -189,84 +195,65 @@ private fun PlayerSide(
 
     val alpha = 0.34f + 0.66f * activeness
 
-    Box(
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
         modifier = modifier
             .fillMaxHeight()
             .graphicsLayer {
                 scaleX = scale
                 scaleY = scale
                 this.alpha = alpha
-            },
-        contentAlignment = Alignment.Center
+            }
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.animateContentSize()
-        ) {
-            Text(
-                text = team,
-                style = TextStyle(
-                    fontFamily = Brad,
-                    fontSize = 30.sp,
-                    textAlign = TextAlign.Center,
-                    brush = Brush.verticalGradient(
-                        listOf(
+        Text(
+            text = team,
+            style = TextStyle(
+                fontFamily = Brad,
+                fontSize = 30.sp,
+                textAlign = TextAlign.Center,
+                brush = Brush.verticalGradient(
+                    listOf(
+                        Color.White,
+                        lerpColor(
                             Color.White,
-                            lerpColor(
-                                Color.White,
-                                teamColor.copy(.1f),
-                                0.35f + 0.5f * activeness
-                            )
-                        ),
-                    )
+                            teamColor.copy(.1f),
+                            0.35f + 0.5f * activeness
+                        )
+                    ),
                 )
             )
+        )
 
-            Text(
-                text = name,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                style = TextStyle(
-                    fontFamily = Sortie,
-                    fontSize = 14.sp,
-                    color = Color.White,
-                    textAlign = TextAlign.Center,
-                ),
-                modifier = Modifier.padding(horizontal = 6.dp),
-            )
+        Text(
+            text = name,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            style = TextStyle(
+                fontFamily = Sortie,
+                fontSize = 14.sp,
+                color = Color.White,
+                textAlign = TextAlign.Center,
+            ),
+            modifier = Modifier.padding(horizontal = 6.dp),
+        )
 
-            AnimatedVisibility(
-                visible = activeness > 0.85f && isMyTurn(team == "RED"),
-                enter = fadeIn(tween(220)) + scaleIn(initialScale = 0.7f),
-                exit = fadeOut(tween(120)) + scaleOut(targetScale = 0.7f),
+        if (showTurnText) {
+            Box(
+                Modifier
+                    .background(teamColor.copy(alpha = 0.22f), RoundedCornerShape(50))
+                    .border(1.dp, teamColor.copy(alpha = 0.8f), RoundedCornerShape(50))
+                    .padding(horizontal = 10.dp, vertical = 2.dp)
             ) {
-                Box(
-                    Modifier
-                        .background(
-                            teamColor.copy(alpha = 0.22f),
-                            RoundedCornerShape(50)
-                        )
-                        .border(
-                            1.dp,
-                            teamColor.copy(alpha = 0.8f),
-                            RoundedCornerShape(50)
-                        )
-                        .padding(
-                            horizontal = 10.dp,
-                            vertical = 2.dp
-                        ),
-                ) {
-                    Text(
-                        text = "YOUR TURN",
-                        style = TextStyle(
-                            fontFamily = Sortie,
-                            fontSize = 9.sp,
-                            color = Color.White,
-                            letterSpacing = 1.6.sp,
-                        ),
-                    )
-                }
+                Text(
+                    text = if (activeness > 0.85f) "YOUR TURN" else "WAIT",
+                    style = TextStyle(
+                        fontFamily = Sortie,
+                        fontSize = 9.sp,
+                        color = Color.White,
+                        letterSpacing = 1.6.sp,
+                    ),
+                )
             }
         }
     }
@@ -395,6 +382,7 @@ private fun TurnBattleBarPrev() {
             redName = "Red Team",
             blueName = "Blue Team",
             isMyTurn = { true },
+            showTurnText = { true },
             isRedTurn = true,
         )
     }
