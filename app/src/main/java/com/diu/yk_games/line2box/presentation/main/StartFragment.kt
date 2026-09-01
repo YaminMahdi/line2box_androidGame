@@ -21,6 +21,8 @@ import com.diu.yk_games.line2box.util.*
 class StartFragment : BaseFragment<FragmentStartBinding>(FragmentStartBinding::inflate) {
     private lateinit var gameUtils: GameUtils
 
+    var failedAttempt = 0
+
     override fun onPause() {
         super.onPause()
         viewModel.lastMotionState = binding.motionLayout.currentState
@@ -62,6 +64,11 @@ class StartFragment : BaseFragment<FragmentStartBinding>(FragmentStartBinding::i
                 toast("Calm down, we're still loading!")
             else if (viewModel.isConnected)
                 navigateToScoreBoard()
+            else if (failedAttempt == 0)
+                viewModel.initializePlayGameUser(
+                    activity = parentActivity,
+                    onSuccess = ::navigateToScoreBoard
+                )
             else
                 toast((viewModel.onlineStatus.error ?: ErrorType.NoInternet).description)
         }
@@ -96,6 +103,11 @@ class StartFragment : BaseFragment<FragmentStartBinding>(FragmentStartBinding::i
                 toast("Calm down, we're still loading!")
             else if (viewModel.isConnected)
                 navigateSafe(Routes.MultiPlayer)
+            else if (failedAttempt == 0)
+                viewModel.initializePlayGameUser(
+                    activity = parentActivity,
+                    onSuccess = { navigateSafe(Routes.MultiPlayer) }
+                )
             else
                 showPlayServiceRequirementDialog()
 

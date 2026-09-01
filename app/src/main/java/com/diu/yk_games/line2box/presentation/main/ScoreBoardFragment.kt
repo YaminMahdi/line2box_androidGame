@@ -13,16 +13,10 @@ import androidx.core.graphics.drawable.toDrawable
 import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.DialogLayoutProfileBinding
 import com.diu.yk_games.line2box.databinding.FragmentDisplayBinding
-import com.diu.yk_games.line2box.model.DataStore
 import com.diu.yk_games.line2box.model.GameProfile
-import com.diu.yk_games.line2box.model.Score
 import com.diu.yk_games.line2box.presentation.adapter.ScoreListAdapter
 import com.diu.yk_games.line2box.presentation.base.BaseFragment
-import com.diu.yk_games.line2box.util.gone
-import com.diu.yk_games.line2box.util.onBackPressed
-import com.diu.yk_games.line2box.util.setBounceClickListener
-import com.diu.yk_games.line2box.util.toObjectOrNull
-import com.google.firebase.firestore.Query
+import com.diu.yk_games.line2box.util.*
 
 class ScoreBoardFragment : BaseFragment<FragmentDisplayBinding>(FragmentDisplayBinding::inflate) {
     private var bestScore = "\n\n\nNetwork Error"
@@ -43,6 +37,14 @@ class ScoreBoardFragment : BaseFragment<FragmentDisplayBinding>(FragmentDisplayB
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupUI()
+        viewModel.fetchScoreBoard()
+        viewModel.scoreboard.collectWithLifecycle {
+            binding.loader.gone()
+            Log.d(TAG, "isSuccessful: ${it.list.size}")
+            scoreListAdapter.submitList(it.list)
+            binding.status.text = "\uD83D\uDC51 ${it.lastBest}"
+        }
+/*
         viewModel.firestore.collection("LastBestPlayer").document("LastBestPlayer")
             .get().addOnCompleteListener { task ->
                 if (task.isSuccessful) {
@@ -60,17 +62,22 @@ class ScoreBoardFragment : BaseFragment<FragmentDisplayBinding>(FragmentDisplayB
             .get()
             .addOnSuccessListener { task ->
                 val dsList = task.documents.mapNotNull {
+                    it.log("ScoreBoard")
                     if (it.contains("starData"))
                         it.toObjectOrNull<DataStore>()?.toScore()
                     else
                         it.toObjectOrNull<Score>()
                 }
-                Log.d(TAG, "isSuccessful: ${dsList.size}")
-                scoreListAdapter.submitList(dsList)
+
             }
+*/
 
         var itemClicked = false
-        binding.btnBack.setBounceClickListener {
+        binding.homeRow.btnSetting.setBounceClickListener {
+            viewModel.player.playButtonClickSound()
+            SettingsFragment.show(childFragmentManager)
+        }
+        binding.homeRow.btnHome.setBounceClickListener {
             viewModel.player.playButtonClickSound()
             onBackPressed()
         }

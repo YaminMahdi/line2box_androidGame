@@ -65,7 +65,7 @@ class GameBotFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDualBi
     }
 
     @SuppressLint("SetTextI18n")
-    fun performClick(view: View, isBot: Boolean = false) {
+    private fun performClick(view: View, isBot: Boolean = false) {
         val idNm = resources.getResourceEntryName(view.id)
         cat("performClick $idNm")
         val aroundIds = gameUtils.getAroundIdNames(idNm)
@@ -214,7 +214,7 @@ class GameBotFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDualBi
 
 
     @SuppressLint("SetTextI18n")
-    fun onGameOver(winMsg: String) {
+    private fun onGameOver(winMsg: String) {
         val builder = AlertDialog.Builder(parentActivity)
         val dialogBinding = DialogLayoutAlertBinding.inflate(LayoutInflater.from(parentActivity))
         builder.setView(dialogBinding.root)

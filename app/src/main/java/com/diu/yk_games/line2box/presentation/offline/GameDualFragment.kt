@@ -21,10 +21,8 @@ import com.diu.yk_games.line2box.presentation.base.BaseFragment
 import com.diu.yk_games.line2box.presentation.navigation.Routes
 import com.diu.yk_games.line2box.util.*
 import com.google.android.play.core.review.ReviewManagerFactory
-import com.google.firebase.database.ServerValue
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import kotlin.time.Duration.Companion.milliseconds
 
 class GameDualFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDualBinding::inflate) {
@@ -71,7 +69,7 @@ class GameDualFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDualB
     //getWindow().setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
     //getActionBar().hide()
     @SuppressLint("SetTextI18n", "DiscouragedApi")
-    fun performClick(view: View) {
+    private fun performClick(view: View) {
         //Toast.makeText(parentActivity, "clicked", Toast.LENGTH_SHORT).show()
         val idNm = resources.getResourceEntryName(view.id)
         val aroundIds = gameUtils.getAroundIdNames(idNm)
@@ -112,7 +110,7 @@ class GameDualFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDualB
     }
 
     @SuppressLint("SetTextI18n")
-    suspend fun onGameOver(winMsg: String, winOffline: Int) {
+    private fun onGameOver(winMsg: String, winOffline: Int) {
         val builder = AlertDialog.Builder(parentActivity)
 
         val binding = DialogLayoutAlertBinding.inflate(LayoutInflater.from(parentActivity))
@@ -120,8 +118,7 @@ class GameDualFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDualB
 
         builder.setView(view)
 
-        if (saveToFirebase())
-            toast("Score Saved to Online Score Board")
+        saveToFirebase()
 
         binding.textMessage.text = winMsg
         binding.buttonNo.text = "Exit"
@@ -150,7 +147,6 @@ class GameDualFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDualB
         binding.buttonNo.setBounceClickListener {
             viewModel.player.playButtonClickSound()
             runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
-            toast("Score Saved to Online Score Board")
             popBackSafe()
         }
 
@@ -158,7 +154,7 @@ class GameDualFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDualB
         runCatching { alertDialog.show() }
     }
 
-    fun recreateGame() {
+    private fun recreateGame() {
         navigateSafe(Routes.GameDual(gameUtils.nm1, gameUtils.nm2)) {
             popUpTo(Routes.GameDual::class) {
                 inclusive = true
@@ -166,8 +162,8 @@ class GameDualFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDualB
         }
     }
 
-    suspend fun saveToFirebase(): Boolean {
-        if (!viewModel.isConnected) return false
+    private fun saveToFirebase() {
+        if (!viewModel.isConnected) return
 
         val redScore = gameUtils.scoreRed
         val blueScore = gameUtils.scoreBlue
@@ -186,44 +182,38 @@ class GameDualFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDualB
         )*/
 
         val score = Score(
+            time = System.currentTimeMillis(),
             type = Score.Type.Friendly,
             player1 = PlayerInfo(id = "", nm = gameUtils.nm1),
             player2 = PlayerInfo(id = "", nm = gameUtils.nm2),
             result = LiveResult(score1 = redScore, score2 = blueScore)
         )
 
-        return IO {
-            runCatching {
-                val db = viewModel.firestore
+        val db = viewModel.firestore
 
-                // 1. Save user's score to ScoreBoard
-                db.collection("ScoreBoard")
-                    .document(viewModel.uuidV7)
-                    .set(score.asMap().plus("time" to ServerValue.TIMESTAMP))
-                    .await()
+        // 1. Save user's score to ScoreBoard
+        db.collection("ScoreBoard")
+            .document(viewModel.uuidV7)
+            .set(score)
 
-                // 2. Check and update LastBestPlayer atomically via Transaction
-                val highestLocalData = when {
-                    redScore >= blueScore -> redData
-                    else -> blueData
-                }
-                val maxScore = maxOf(redScore, blueScore)
+        // 2. Check and update LastBestPlayer atomically via Transaction
+        val highestLocalData = when {
+            redScore >= blueScore -> redData
+            else -> blueData
+        }
+        val maxScore = maxOf(redScore, blueScore)
 
-                val docRef = db.collection("LastBestPlayer").document("LastBestPlayer")
+        val docRef = db.collection("LastBestPlayer").document("LastBestPlayer")
 
-                db.runTransaction { transaction ->
-                    val snapshot = transaction.get(docRef)
-                    val currentInfo = snapshot.getString("info") ?: ""
-                    val currentBestScore =
-                        currentInfo.substringAfterLast(": ", "0").toIntOrNull() ?: 0
+        db.runTransaction { transaction ->
+            val snapshot = transaction.get(docRef)
+            val currentInfo = snapshot.getString("info") ?: ""
+            val currentBestScore =
+                currentInfo.substringAfterLast(": ", "0").toIntOrNull() ?: 0
 
-                    if (maxScore > currentBestScore) {
-                        transaction.update(docRef, "info", highestLocalData)
-                    }
-                }.await()
-
-                true
-            }.getOrDefault(false)
+            if (maxScore > currentBestScore) {
+                transaction.update(docRef, "info", highestLocalData)
+            }
         }
     }
 

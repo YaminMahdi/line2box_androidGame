@@ -6,8 +6,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.diu.yk_games.line2box.R
-import com.diu.yk_games.line2box.databinding.CustomRankListViewBinding
+import com.diu.yk_games.line2box.databinding.ItemRankBinding
 import com.diu.yk_games.line2box.model.GameProfile
 import com.diu.yk_games.line2box.util.setBounceClickListener
 
@@ -19,7 +18,7 @@ class RankListAdapter(
 
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        return ViewHolder(CustomRankListViewBinding.inflate(
+        return ViewHolder(ItemRankBinding.inflate(
             LayoutInflater.from(parent.context), parent, false
         ))
     }
@@ -29,17 +28,18 @@ class RankListAdapter(
     }
 
     inner class ViewHolder(
-        private val binding: CustomRankListViewBinding
+        private val binding: ItemRankBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
         @SuppressLint("SetTextI18n")
         fun bind(item: GameProfile, position: Int) {
             binding.apply {
                 // Highlight current player's item
-                binding.root.setBackgroundResource(
-                    if (item.playerId == playerId) R.drawable.box_chat_fill
-                    else R.drawable.btn_rank_bg
-                )
+                binding.root.isActivated = item.playerId == playerId
+//                binding.root.setBackgroundResource(
+//                    if (item.playerId == playerId) R.drawable.box_chat_fill
+//                    else R.drawable.item_bg
+//                )
 
                 serialId.text = "${position + 1}."
                 nmId.text = item.nm.split("\n")[0]

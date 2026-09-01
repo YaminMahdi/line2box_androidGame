@@ -9,18 +9,14 @@ import android.view.View
 import android.view.animation.DecelerateInterpolator
 import android.widget.LinearLayout
 import androidx.core.graphics.drawable.toDrawable
-import androidx.lifecycle.lifecycleScope
 import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.DialogLayoutProfileBinding
 import com.diu.yk_games.line2box.databinding.FragmentDisplayBinding
 import com.diu.yk_games.line2box.model.GameProfile
 import com.diu.yk_games.line2box.presentation.adapter.RankListAdapter
 import com.diu.yk_games.line2box.presentation.base.BaseFragment
+import com.diu.yk_games.line2box.presentation.main.SettingsFragment
 import com.diu.yk_games.line2box.util.*
-import com.google.firebase.firestore.AggregateSource
-import com.google.firebase.firestore.Query
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 
 class LeaderBoardFragment : BaseFragment<FragmentDisplayBinding>(FragmentDisplayBinding::inflate) {
     private val rankListAdapter by lazy {
@@ -28,7 +24,7 @@ class LeaderBoardFragment : BaseFragment<FragmentDisplayBinding>(FragmentDisplay
     }
 
     private fun setupUI() {
-        binding.fragLabel.text = getString(R.string.global_rank_list)
+        binding.fragLabel.text = getString(R.string.global_leader_board)
         binding.statusLabel.text = getString(R.string.total_player)
         binding.recyclerView.adapter = rankListAdapter
     }
@@ -37,6 +33,30 @@ class LeaderBoardFragment : BaseFragment<FragmentDisplayBinding>(FragmentDisplay
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupUI()
+        viewModel.fetchLeaderBoard()
+        viewModel.leaderboard.collectWithLifecycle {
+            binding.loader.gone()
+            try {
+                rankListAdapter.submitList(it.list)
+                val pos = findIndex(it.list, viewModel.playerId)
+                Log.d(TAG, "onComplete(pos): $pos playerId- ${viewModel.playerId}")
+                if (pos > 5) binding.recyclerView.scrollToPosition(pos - 1)
+
+                ValueAnimator.ofFloat(0f, 1f).apply {
+                    duration = 2000L
+                    interpolator = DecelerateInterpolator()
+                    addUpdateListener { animator ->
+                        val progress = animator.animatedValue as Float
+                        val current = (it.count * progress).toLong()
+                        binding.status.text = "%,d".format(current)
+                    }
+                    start()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+/*
         val db = viewModel.firestore.collection("gamerProfile")
         db.whereNotEqualTo("coin", 100)
             .orderBy("coin", Query.Direction.DESCENDING)
@@ -75,8 +95,13 @@ class LeaderBoardFragment : BaseFragment<FragmentDisplayBinding>(FragmentDisplay
                 Log.d(TAG, "onViewCreated: ${e.message}")
             }
         }
+        */
         var itemClicked = false
-        binding.btnBack.setBounceClickListener {
+        binding.homeRow.btnSetting.setBounceClickListener {
+            viewModel.player.playButtonClickSound()
+            SettingsFragment.show(childFragmentManager)
+        }
+        binding.homeRow.btnHome.setBounceClickListener {
             viewModel.player.playButtonClickSound()
             onBackPressed()
         }

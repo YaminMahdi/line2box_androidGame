@@ -26,7 +26,6 @@ import com.diu.yk_games.line2box.util.*
 import com.google.android.play.core.review.ReviewManagerFactory
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.ServerValue
 import com.google.firebase.database.ValueEventListener
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -144,7 +143,7 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
     }
 
     @SuppressLint("SetTextI18n")
-    fun performClick(
+    private fun performClick(
         view: View,
         color: PlayerColor = viewModel.matchRouteInfo.currentPlayerColor,
         serverTurn: Boolean = false
@@ -276,7 +275,7 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
     }
 
     @SuppressLint("SetTextI18n")
-    fun onGameOver(winMsg: String, winCoin: String? = null, matchWinMulti: Int = -1) {
+    private fun onGameOver(winMsg: String, winCoin: String? = null, matchWinMulti: Int = -1) {
         val coin = winCoin?.toIntOrNull()
 
         val dialogBinding = DialogLayoutGameOverBinding.inflate(layoutInflater)
@@ -333,12 +332,12 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
     }
 
     private fun openDrawerOrReview(matchWinMulti: Int, openDrawer: Boolean) {
-        if (matchWinMulti > 1) {
+        if (matchWinMulti > 1)
             showReviewFlow(openDrawer)
-        } else {
-            if (openDrawer) drawerLayout.openDrawer(GravityCompat.START)
-            else onBackPressed()
-        }
+        else if (openDrawer)
+            drawerLayout.openDrawer(GravityCompat.START)
+        else
+            popBackSafe()
     }
 
     private fun showReviewFlow(openDrawer: Boolean) {
@@ -350,10 +349,10 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
                     if (openDrawer) drawerLayout.openDrawer(GravityCompat.START)
                     else popBackSafe()
                 }
-            } else {
-                if (openDrawer) drawerLayout.openDrawer(GravityCompat.START)
-                else popBackSafe()
-            }
+            } else if (openDrawer)
+                drawerLayout.openDrawer(GravityCompat.START)
+            else
+                popBackSafe()
         }
     }
 
@@ -378,74 +377,90 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
     }
 
     private fun saveToFirebase(plr1Cup: String, plr2Cup: String) {
-        val firestore = viewModel.firestore
+        if (!viewModel.isConnected) return
+
         val key = viewModel.matchRouteInfo.gameKey
         if (key.isEmpty() || viewModel.matchRouteInfo.watchOnly) return
-        val plr2CupRef = viewModel.multiPlayerRef
-            .child(viewModel.matchRouteInfo.gameKey)
-            .child("plr2Cup") //hehe
+
         viewModel.sendCup2Server(plr1Cup, plr2Cup)
         if (!viewModel.matchRouteInfo.isPlyr1) return
 
-        val ds = DataStore(
-            time = System.currentTimeMillis(),
-            redData = "${
-                viewModel.matchRouteInfo.nm1.trim().split("\n", " ").firstOrNull()
-            }: ${gameUtils.scoreRed}",
-            blueData = "${
-                viewModel.matchRouteInfo.nm2.trim().split("\n", " ").firstOrNull()
-            }: ${gameUtils.scoreBlue}",
-            starData = "globe",
-            plr1Id = viewModel.matchRouteInfo.plr1Id,
-            plr2Id = viewModel.matchRouteInfo.plr2Id,
-            plr1Cup = plr1Cup,
-            plr2Cup = "0"
-        )
+        val redScore = gameUtils.scoreRed
+        val blueScore = gameUtils.scoreBlue
+
+        val redData = "${
+            viewModel.matchRouteInfo.nm1.trim().split("\n", " ").firstOrNull()
+        }: $redScore"
+
+        val blueData = "${
+            viewModel.matchRouteInfo.nm2.trim().split("\n", " ").firstOrNull()
+        }: $blueScore"
 
         val room = viewModel.getMatch() ?: return
 
         val score = Score(
+            time = System.currentTimeMillis(),
             type = Score.Type.Friendly,
             player1 = room.player1.copy(seenAt = -1L),
             player2 = room.player2.copy(seenAt = -1L),
             result = LiveResult(
-                score1 = gameUtils.scoreRed,
-                score2 = gameUtils.scoreBlue,
+                score1 = redScore,
+                score2 = blueScore,
                 cup1 = plr1Cup,
                 cup2 = plr2Cup
             )
         )
 
-        firestore.collection("LastBestPlayer").document("LastBestPlayer").get()
-            .addOnSuccessListener { doc ->
-                val map = doc.data ?: return@addOnSuccessListener
-                Log.d("TAG", "Cached document data: $map")
-                val bestScore = map["info"]
-                    .toString()
-                    .substringAfterLast(": ")
-                    .toIntOrNull() ?: 0
-                val data = when {
-                    bestScore <= gameUtils.scoreRed -> ds.redData
-                    bestScore <= gameUtils.scoreBlue -> ds.blueData
-                    else -> null
-                }
-                data?.let {
-                    firestore.collection("LastBestPlayer")
-                        .document("LastBestPlayer")
-                        .update("info", it)
-                }
-            }
+        val db = viewModel.firestore
+
+
+        // Fetch player 2 cup from realtime database
+        val plr2CupRef = viewModel.multiPlayerRef
+            .child(key)
+            .child("plr2Cup")
+
         plr2CupRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                val plr2Cup = snapshot.getValueOrNull<String>() ?: return
+                val finalPlr2Cup = snapshot.getValueOrNull<String>() ?: return
 
-                firestore.collection("ScoreBoard").document(viewModel.uuidV7).set(
-                    score.copy(result = score.result.copy(cup2 = plr2Cup))
-                        .asMap().plus("time" to ServerValue.TIMESTAMP)
-                )
+                // 1. Save score
+                db.collection("ScoreBoard")
+                    .document(viewModel.uuidV7)
+                    .set(score.copy(result = score.result.copy(cup2 = finalPlr2Cup)) )
+
+                // 2. Update LastBestPlayer atomically
+                val maxScore = maxOf(redScore, blueScore)
+
+                val highestLocalData = when {
+                    redScore >= blueScore -> redData
+                    else -> blueData
+                }
+
+                val docRef = db.collection("LastBestPlayer")
+                    .document("LastBestPlayer")
+
+
+                db.runTransaction { transaction ->
+                    val snapshot = transaction.get(docRef)
+                    val currentInfo = snapshot.getString("info") ?: ""
+
+                    val currentBestScore =
+                        currentInfo
+                            .substringAfterLast(": ", "0")
+                            .toIntOrNull() ?: 0
+
+                    if (maxScore > currentBestScore) {
+                        transaction.update(
+                            docRef,
+                            "info",
+                            highestLocalData
+                        )
+                    }
+
+                }
             }
 
-            override fun onCancelled(error: DatabaseError) {}
+            override fun onCancelled(error: DatabaseError) = Unit
         })
     }
 

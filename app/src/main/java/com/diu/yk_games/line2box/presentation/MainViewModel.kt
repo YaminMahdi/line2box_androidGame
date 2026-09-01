@@ -18,9 +18,8 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.PlayGamesAuthProvider
 import com.google.firebase.auth.auth
 import com.google.firebase.database.*
-import com.google.firebase.firestore.FieldValue
-import com.google.firebase.firestore.ListenerRegistration
-import com.google.firebase.firestore.firestore
+import com.google.firebase.firestore.*
+import com.google.firebase.firestore.Query
 import com.google.gson.Gson
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
@@ -35,7 +34,6 @@ class MainViewModel(
     context: Application,
     private val savedStateHandle: SavedStateHandle
 ) : AndroidViewModel(context) {
-    private var hasInitializedPlayGameUser = false
 
     val uiEvents = MutableStateFlow<MainUiEvent?>(null)
     var currentRoute: Routes = Routes.Home
@@ -49,6 +47,8 @@ class MainViewModel(
     val multiPlayerRef = database.getReference("MultiPlayer")
     val activePlayersRef = database.getReference("actives")
     val gamerProfileRef = firestore.collection("gamerProfile")
+    val scoreBoardRef = firestore.collection("ScoreBoard")
+    val gamerProfiledRef = firestore.collection("gamerProfile")
 
     val matchRef
         get() = multiPlayerRef.child(matchRouteInfo.gameKey)
@@ -72,10 +72,15 @@ class MainViewModel(
     val matches: StateFlow<List<GameRoom>>
         field = savedStateHandle.getMutableStateFlow("matches", listOf())
 
+    val scoreboard: StateFlow<ScoreBoardState?>
+        field = savedStateHandle.getMutableStateFlow("scoreboard", null)
+    val leaderboard: StateFlow<LeaderBoardState?>
+        field = savedStateHandle.getMutableStateFlow("leaderboard", null)
+
     val actives = activePlayersRef
         .limitToLast(100)
         .asValueFlowList<PlayerInfo>()
-        .map { it.sortedByDescending { it.seenAt } }
+        .map { lst -> lst.sortedByDescending { it.seenAt } }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(),
@@ -185,9 +190,8 @@ class MainViewModel(
             }
     }
 
-    fun initializePlayGameUser(activity: Activity) {
-        if (hasInitializedPlayGameUser) return
-        hasInitializedPlayGameUser = true
+    fun initializePlayGameUser(activity: Activity, onSuccess: () -> Unit = {}) {
+        if (onlineStatus == OnlineStatus.Online) return
         setLoading(true)
 
         val gamesSignInClient = PlayGames.getGamesSignInClient(activity)
@@ -218,13 +222,13 @@ class MainViewModel(
                                                 .document(player.playerId)
                                                 .get().addOnSuccessListener { document ->
                                                     if (document.exists()) {
-                                                        loadProfileFromServer()
+                                                        loadProfileFromServer(onSuccess)
                                                         Log.d(TAG, "Profile exists!")
                                                         uiEvents.value =
                                                             MainUiEvent.ShowToast("Profile Exists and Loaded!")
                                                     } else {
                                                         Log.d(TAG, "Profile does not exist!")
-                                                        setupNewUserProfile()
+                                                        setupNewUserProfile(onSuccess)
                                                     }
                                                 }.addOnFailureListener {
                                                     authenticationFailed(
@@ -233,7 +237,7 @@ class MainViewModel(
                                                     )
                                                 }
                                         } else {
-                                            loadProfileFromServer()
+                                            loadProfileFromServer(onSuccess)
                                         }
                                     }
                                 } else {
@@ -261,7 +265,6 @@ class MainViewModel(
 
     private fun authenticationFailed(errorType: ErrorType, exception: Exception? = null) {
         exception?.logError("authenticationFailed")
-        hasInitializedPlayGameUser = false
         uiEvents.value = MainUiEvent.UpdateUi(errorType)
         onlineStatus = OnlineStatus.Offline.apply {
             error = errorType
@@ -276,7 +279,7 @@ class MainViewModel(
         profileFromServerListener = null
     }
 
-    private fun loadProfileFromServer() {
+    private fun loadProfileFromServer(onSuccess: () -> Unit) {
         removeProfileFromServerListener()
         val playerId = playerId.takeIf { it.isNotEmpty() } ?: return
         var firstError = false
@@ -288,6 +291,7 @@ class MainViewModel(
                 if (profile != null && exception == null) {
                     onlineStatus = OnlineStatus.Online
                     updateProfile(profile)
+                    onSuccess()
                 } else {
                     Log.d(TAG, "loadProfileFromServer: failure", exception)
                     if (!firstError) {
@@ -298,7 +302,7 @@ class MainViewModel(
             }
     }
 
-    private fun setupNewUserProfile() {
+    private fun setupNewUserProfile(onSuccess: () -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
             val playerId = this@MainViewModel.playerId.takeIf { it.isNotEmpty() } ?: return@launch
             val profile = GameProfile(playerId = playerId)
@@ -326,6 +330,7 @@ class MainViewModel(
                     pref.save("needProfile", false)
                     onlineStatus = OnlineStatus.Online
                     setLoading(false)
+                    onSuccess()
                     Log.d(TAG, "Profile Created")
                 }
                 .addOnFailureListener {
@@ -345,6 +350,73 @@ class MainViewModel(
             DynamicIslandController.loading()
         else
             DynamicIslandController.idle()
+    }
+
+    var lastFetchScoreBoardTime: Long = 0L
+    var lastFetchLeaderBoardTime: Long = 0L
+
+    fun fetchScoreBoard() {
+        if (lastFetchScoreBoardTime.isLessThanAgo(2.minutes) && !scoreboard.value?.list.isNullOrEmpty()) return
+        viewModelScope.launch {
+            runCatching {
+                val list = async {
+                    scoreBoardRef
+                        .orderBy("time", Query.Direction.DESCENDING)
+                        .limit(100)
+                        .get()
+                        .await().mapNotNull {
+                            it.log("ScoreBoard")
+                            if (it.contains("starData"))
+                                it.toObjectOrNull<DataStore>()?.toScore()
+                            else
+                                it.toObjectOrNull<Score>()
+                        }
+                }
+                val lastBest = async {
+                    tryGet {
+                        firestore.collection("LastBestPlayer")
+                            .document("LastBestPlayer")
+                            .get().await()
+                            .getString("info")
+                    }.orEmpty()
+                }
+                scoreboard.value = ScoreBoardState(list = list.await(), lastBest = lastBest.await())
+                lastFetchScoreBoardTime = System.currentTimeMillis()
+            }.onFailure {
+                it.logError("fetchScoreBoard")
+            }
+        }
+    }
+
+    fun fetchLeaderBoard() {
+        if (lastFetchLeaderBoardTime.isLessThanAgo(2.minutes) && !leaderboard.value?.list.isNullOrEmpty()) return
+        viewModelScope.launch {
+            runCatching {
+                val list = async {
+                    gamerProfileRef.whereNotEqualTo("coin", 100)
+                        .orderBy("coin", Query.Direction.DESCENDING)
+                        .limit(100)
+                        .get()
+                        .await()
+                        .mapNotNull {
+                            it.toObjectOrNull<GameProfile>()
+                        }
+                }
+                val count = async {
+                    tryGet {
+                        gamerProfileRef.count()
+                            .get(AggregateSource.SERVER)
+                            .await()
+                            .count
+                    }.orZero()
+                }
+                leaderboard.value = LeaderBoardState(list = list.await(), count = count.await())
+                lastFetchLeaderBoardTime = System.currentTimeMillis()
+            }.onFailure {
+                it.logError("fetchLeaderBoard")
+            }
+        }
+
     }
 
     fun initGameProfile() {

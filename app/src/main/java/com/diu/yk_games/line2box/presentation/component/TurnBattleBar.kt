@@ -13,12 +13,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.dropShadow
+import androidx.compose.ui.draw.innerShadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.graphics.shadow.Shadow
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.TextStyle
@@ -45,7 +48,6 @@ private val Sortie = FontFamily(Font(R.font.sortie))
 fun TurnBattleBar(
     redName: String,
     blueName: String,
-    isMyTurn: (forRed: Boolean) -> Boolean,
     showTurnText: (forRed: Boolean) -> Boolean,
     isRedTurn: Boolean,
     modifier: Modifier = Modifier,
@@ -119,6 +121,18 @@ fun TurnBattleBar(
                         listOf(teamColor.copy(alpha = 0.2f), teamColor.copy(alpha = 0.12f)),
                     ),
                     shape = RoundedCornerShape(22.dp),
+                ).innerShadow(
+                    shape = RoundedCornerShape(22.dp),
+                    shadow = Shadow(
+                        radius = 10.dp,
+                        spread = 5.dp,
+                        brush = Brush.verticalGradient(
+                            listOf(
+                                teamColor.copy(.2f),
+                                Color.White.copy(.2f)
+                            ),
+                        )
+                    )
                 )
         )
 
@@ -136,8 +150,6 @@ fun TurnBattleBar(
             PlayerSide(
                 team = "RED",
                 name = redName,
-                isRedTurn = isRedTurn,
-                isMyTurn = isMyTurn(true),
                 showTurnText = showTurnText(true),
                 teamColor = RedTeam,
                 activeness = 1f - progress,
@@ -164,8 +176,6 @@ fun TurnBattleBar(
             PlayerSide(
                 team = "BLUE",
                 name = blueName,
-                isRedTurn = isRedTurn,
-                isMyTurn = isMyTurn(true),
                 showTurnText = showTurnText(false),
                 teamColor = BlueTeam,
                 activeness = progress,
@@ -182,8 +192,6 @@ fun TurnBattleBar(
 private fun PlayerSide(
     team: String,
     name: String,
-    isRedTurn: Boolean,
-    isMyTurn: Boolean,
     showTurnText: Boolean,
     teamColor: Color,
     activeness: Float,
@@ -217,12 +225,30 @@ private fun PlayerSide(
                         Color.White,
                         lerpColor(
                             Color.White,
-                            teamColor.copy(.1f),
+                            teamColor.copy(.2f),
                             0.35f + 0.5f * activeness
                         )
                     ),
                 )
-            )
+            ),
+            modifier = Modifier
+                .dropShadow(
+                    shape = RoundedCornerShape(5.dp),
+                    shadow = Shadow(
+                        radius = 10.dp,
+                        spread = 5.dp,
+                        brush = Brush.verticalGradient(
+                            listOf(
+                                lerpColor(
+                                    Color.White.copy(.2f),
+                                    teamColor.copy(.2f),
+                                    0.35f + 0.5f * activeness
+                                ),
+                                Color.White.copy(.2f)
+                            ),
+                        )
+                    )
+                )
         )
 
         Text(
@@ -253,6 +279,7 @@ private fun PlayerSide(
                         color = Color.White,
                         letterSpacing = 1.6.sp,
                     ),
+                    modifier = Modifier.padding(top = 1.dp)
                 )
             }
         }
@@ -381,7 +408,6 @@ private fun TurnBattleBarPrev() {
         TurnBattleBar(
             redName = "Red Team",
             blueName = "Blue Team",
-            isMyTurn = { true },
             showTurnText = { true },
             isRedTurn = true,
         )

@@ -2,7 +2,7 @@
     <!-- Base application theme. -->
     <style name="Theme.Line2Box" parent="Theme.Material3Expressive.Dark.NoActionBar">
         <!-- Primary brand color. -->
-        <item name="colorPrimary">@color/blueX</item>
+        <item name="colorPrimary">@color/pink</item>
         <item name="colorPrimaryVariant">#1F2A60</item>
         <item name="colorOnPrimary">@color/white</item>
         <!-- Secondary brand color. -->

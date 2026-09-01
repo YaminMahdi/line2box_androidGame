@@ -538,16 +538,8 @@ class GameUtils(
                     redName = nm1,
                     blueName = nm2,
                     isRedTurn = isRedTurnState,
-                    isMyTurn = { forRed ->
-                        isDual || isBot || viewModel.matchRouteInfo.isPlyr1 == forRed
-                    },
                     showTurnText = { forRed ->
-                        when {
-                            !isDual && !isBot -> viewModel.matchRouteInfo.isPlyr1 == forRed
-                            isDual -> true
-                            !forRed -> true
-                            else -> false
-                        }
+                        !forRed || isDual || (!isBot && viewModel.matchRouteInfo.isPlyr1)
                     }
                 )
             }

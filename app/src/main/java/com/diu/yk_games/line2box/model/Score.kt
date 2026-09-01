@@ -7,7 +7,7 @@ import kotlinx.parcelize.Parcelize
 @Parcelize
 @IgnoreExtraProperties
 data class Score (
-    var time : Long = 0L,
+    var time : Long = -1L,
     var type : Type = Type.Friendly,
     val player1: PlayerInfo = PlayerInfo(),
     val player2: PlayerInfo = PlayerInfo(),

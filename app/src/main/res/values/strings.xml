@@ -84,7 +84,8 @@
     <string name="retry">Retry</string>
     <string name="no_internet">No Internet !</string>
     <string name="you_must_have_internet_connection_for_the_first_time_to_run_the_game">You must have INTERNET connection for the first time to run the game</string>
-    <string name="global_score_board">Global Score Board</string>
+    <string name="global_score_board">Global Scoreboard</string>
+    <string name="global_leader_board">Global Leaderboard </string>
     <string name="global_rank_list">Global Rank List</string>
     <string name="warning">Warning!</string>
     <string name="not_in_match">You are not in a match.</string>

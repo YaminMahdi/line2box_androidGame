@@ -7,11 +7,17 @@
     android:orientation="vertical"
     tools:context=".presentation.main.ScoreBoardFragment">
 
+    <include
+        android:id="@+id/homeRow"
+        layout="@layout/home_row" />
+
     <TextView
         android:id="@+id/fragLabel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/_14sdp"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="@dimen/_5sdp"
+        android:layout_marginBottom="@dimen/_14sdp"
         android:fontFamily="@font/sortie"
         android:gravity="center"
         android:maxLines="1"
@@ -21,67 +27,56 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
+        android:layout_height="wrap_content"
         android:layout_marginHorizontal="20dp"
-        android:layout_marginTop="50dp"
-        android:background="@drawable/box"
-        android:orientation="vertical"
-        android:padding="20dp">
+        android:layout_marginBottom="5dp"
+        android:gravity="center">
 
-        <LinearLayout
+        <TextView
+            android:id="@+id/statusLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:fontFamily="@font/sortie"
+            android:text="@string/last_best_score"
+            android:textColor="@color/white"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/status"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="5dp">
+            android:layout_marginHorizontal="20dp"
+            android:layout_marginEnd="9dp"
+            android:fontFamily="@font/sortie"
+            android:gravity="end"
+            android:minHeight="26sp"
+            android:paddingVertical="3sp"
+            android:text=""
+            android:textColor="@color/white"
+            android:textSize="18sp"
 
-            <TextView
-                android:id="@+id/statusLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="10dp"
-                android:fontFamily="@font/sortie"
-                android:text="@string/last_best_score"
-                android:textColor="@color/white"
-                android:textSize="18sp" />
+            />
+    </LinearLayout>
 
-            <TextView
-                android:id="@+id/status"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="9dp"
-                android:fontFamily="@font/sortie"
-                android:gravity="end"
-                android:paddingVertical="3sp"
-                android:text=""
-                android:textColor="@color/white"
-                android:textSize="18sp"
-
-                />
-        </LinearLayout>
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_marginHorizontal="20dp"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             tools:listitem="@layout/item_score_friendly" />
 
-    </LinearLayout>
-
-    <androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/btnBack"
-        android:layout_width="wrap_content"
-        android:layout_height="45dp"
-        android:layout_gravity="end"
-        android:layout_margin="@dimen/_25sdp"
-        android:background="@drawable/btn_grnx_bg"
-        android:drawableStart="@drawable/icon_backword"
-        android:fontFamily="@font/sortie"
-        android:paddingHorizontal="14dp"
-        android:text="  Go Back "
-        android:textColor="@color/white"
-        android:textSize="14sp"
-        tools:ignore="HardcodedText" />
-
+        <com.google.android.material.loadingindicator.LoadingIndicator
+            android:id="@+id/loader"
+            style="@style/Widget.Material3.LoadingIndicator.Contained"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center" />
+    </FrameLayout>
 
 </LinearLayout>

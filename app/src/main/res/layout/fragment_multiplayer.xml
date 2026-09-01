@@ -124,6 +124,7 @@
                 android:textAllCaps="true"
                 android:textColor="@color/white"
                 android:textSize="14sp"
+                app:backgroundTint="@color/blueX"
                 app:icon="@drawable/icon_controller"
                 app:iconTint="@color/white" />
 
