@@ -25,11 +25,12 @@ import com.diu.yk_games.line2box.databinding.DialogLayoutAlertBinding
 import com.diu.yk_games.line2box.databinding.DialogLayoutShowHadithBinding
 import com.diu.yk_games.line2box.model.*
 import com.diu.yk_games.line2box.presentation.adapter.ViewPagerAdapter
-import com.diu.yk_games.line2box.presentation.component.installDynamicIsland
+import com.diu.yk_games.line2box.presentation.island.DynamicIslandController
+import com.diu.yk_games.line2box.presentation.island.installDynamicIsland
 import com.diu.yk_games.line2box.presentation.navigation.Routes
 import com.diu.yk_games.line2box.presentation.navigation.asRoute
 import com.diu.yk_games.line2box.presentation.navigation.setupNavGraph
-import com.diu.yk_games.line2box.presentation.online.ChatFragment
+import com.diu.yk_games.line2box.presentation.online.chat.ChatFragment
 import com.diu.yk_games.line2box.util.*
 import com.google.firebase.firestore.AggregateSource
 import kotlinx.coroutines.launch
@@ -60,7 +61,9 @@ class MainActivity : AppCompatActivity() {
         setupUI()
         setupListener()
         setupObserver()
-        viewModel.initializePlayGameUser(this)
+        launchResumed {
+            viewModel.initializePlayGameUser(this)
+        }
     }
 
     override fun onResume() {
@@ -69,17 +72,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupUI() {
-        binding.composeView.installDynamicIsland(
-            sourceView = binding.mainNavHost,
-            onClick = {
-                when (it) {
-                    is DynamicBubble.Message if it.text.isNotBlank() ->
-                        openNavBtn()
-
-                    else -> Unit
-                }
-            }
-        )
+        binding.composeView.installDynamicIsland(binding.mainNavHost)
 
         val activityRootView = window.decorView
 
@@ -139,11 +132,10 @@ class MainActivity : AppCompatActivity() {
         //chat bug fix
         val chatPager = bindingDrawer.chatPager
         bindingDrawer.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
-        chatPager.isUserInputEnabled = false
         chatPager.adapter = ViewPagerAdapter(
             listOf(
-                ChatFragment.newInstance(ChatMode.GLOBAL),
-                ChatFragment.newInstance(ChatMode.FRIENDLY),
+                ChatFragment.newInstance(GLOBAL),
+                ChatFragment.newInstance(FRIENDLY),
             ), this
         )
         bindingDrawer.bubbleTabBar.addBubbleListener { id ->
@@ -168,7 +160,7 @@ class MainActivity : AppCompatActivity() {
             viewModel.currentRoute = route
             route.log("screen")
             when (route) {
-                Routes.Home, Routes.ScoreBoard, Routes.LeaderBoard, Routes.ChangeName,
+                Routes.Home, Routes.ChangeName,
                 Routes.GameBot, is Routes.GameDual -> binding.sideNavGroup.apply {
                     if (!isVisible) return@apply
                     translationX = 0f
@@ -210,6 +202,7 @@ class MainActivity : AppCompatActivity() {
                     confirmationText = getString(R.string.do_you_really_want_to_quit_the_match),
                     isOnline = true
                 )
+
                 is Routes.MultiPlayer -> {
                     onBackPressedIgnoreCallback()
                     viewModel.clearMultiPlayerData()
@@ -268,8 +261,8 @@ class MainActivity : AppCompatActivity() {
             viewModel.uiEvents.value = null
             when (event) {
                 MainUiEvent.ShowHadith -> showAHadith()
-                is MainUiEvent.ShowToast -> toast(event.message)
-                is MainUiEvent.UpdateUi -> toast(event.errorType.description)
+                is MainUiEvent.ShowToast -> DynamicIslandController.message(event.message)
+                is MainUiEvent.UpdateUi -> DynamicIslandController.message(event.errorType.description)
             }
         }
         viewModel.joiningGame.collectWithLifecycle { route ->
@@ -319,7 +312,8 @@ class MainActivity : AppCompatActivity() {
                     .document(randomDocId)
                     .get()
                     .addOnSuccessListener { doc ->
-                        val hadith = doc.toObjectOrNull<HadithStore>() ?: return@addOnSuccessListener
+                        val hadith =
+                            doc.toObjectOrNull<HadithStore>() ?: return@addOnSuccessListener
                         showHadithDialog(hadith)
                     }
                     .addOnFailureListener { e ->

@@ -1,4 +1,4 @@
-package com.diu.yk_games.line2box.presentation.online
+package com.diu.yk_games.line2box.presentation.online.chat
 
 import android.app.Activity
 import android.os.Bundle
@@ -20,14 +20,16 @@ import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.model.ChatMode
 import com.diu.yk_games.line2box.model.GameProfile
 import com.diu.yk_games.line2box.presentation.MainViewModel
-import com.diu.yk_games.line2box.presentation.component.DynamicIslandController
+import com.diu.yk_games.line2box.presentation.island.DynamicIslandController
 import com.diu.yk_games.line2box.presentation.component.ProfileDialog
 import com.diu.yk_games.line2box.presentation.navigation.Routes
 import com.diu.yk_games.line2box.ui.theme.Line2BoxChatTheme
 import com.diu.yk_games.line2box.util.*
-import com.google.firebase.firestore.toObject
 import io.ak1.BubbleTabBar
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.time.Duration.Companion.milliseconds
 
 class ChatFragment : Fragment() {
@@ -56,7 +58,12 @@ class ChatFragment : Fragment() {
         Line2BoxChatTheme {
             ChatRoute(
                 mode = mode,
-                onCloseDrawer = { drawerLayout.closeDrawer(GravityCompat.START) },
+                toggleDrawerState = { isOpen ->
+                    if (isOpen)
+                        drawerLayout.openDrawer(GravityCompat.START)
+                    else
+                        drawerLayout.closeDrawer(GravityCompat.START)
+                },
                 onNavigate = ::navigateSafe,
                 onPlayEmoji = { drawable, sound ->
                     viewModel.player.playSound(sound)
@@ -71,13 +78,14 @@ class ChatFragment : Fragment() {
     @Composable
     internal fun ChatRoute(
         mode: ChatMode,
-        onCloseDrawer: () -> Unit,
+        toggleDrawerState: (isOpen: Boolean) -> Unit,
         onNavigate: (Routes.GameOnline) -> Unit,
         onPlayEmoji: (drawableRes: Int, rawRes: Int) -> Unit,
         onHideEmoji: () -> Unit,
         modifier: Modifier = Modifier
     ) {
         val context = LocalContext.current
+        val scope = rememberCoroutineScope()
         val focusRequester = remember { FocusRequester() }
         val messages by (if (mode == ChatMode.FRIENDLY) viewModel.friendlyChatList else viewModel.globalChatList)
             .collectAsStateWithLifecycle()
@@ -96,12 +104,16 @@ class ChatFragment : Fragment() {
             if (sent != null)
                 fieldState.value = ""
             else
-                context.toast("Write Something..")
+                DynamicIslandController.message("Write Something..")
         }
+
         LaunchedEffect(messages.firstOrNull()?.key, mode) {
             if (mode != ChatMode.FRIENDLY) return@LaunchedEffect
             val newest = messages.firstOrNull() ?: return@LaunchedEffect
             if (newest.key == lastKey) return@LaunchedEffect
+
+            lastKey = newest.key
+
             val emoji = when (newest.msgData) {
                 "🤣" -> R.drawable.emoji_haha to R.raw.haha
                 "😭" -> R.drawable.emoji_cry to R.raw.cry
@@ -110,22 +122,29 @@ class ChatFragment : Fragment() {
                 "🥱" -> R.drawable.emoji_yawn to R.raw.yawn
                 else -> null
             }
+
             if (emoji != null) {
-                emojiEnabled = false
-                viewModel.setNewMsgBoltVisible(false)
-                onCloseDrawer()
-                onPlayEmoji(emoji.first, emoji.second)
-                delay(2500.milliseconds)
-                onHideEmoji()
-                emojiEnabled = true
-            }
-            else if (newest.playerId != viewModel.playerId) {
+                scope.launch {
+                    emojiEnabled = false
+                    viewModel.setNewMsgBoltVisible(false)
+                    toggleDrawerState(false)
+                    onPlayEmoji(emoji.first, emoji.second)
+
+                    withContext(NonCancellable) { delay(2500.milliseconds) }
+                    onHideEmoji()
+                    emojiEnabled = true
+                }
+            } else if (newest.playerId != viewModel.playerId) {
                 viewModel.player.playPopSound()
                 viewModel.setNewMsgBoltVisible(true)
-                DynamicIslandController.message(newest.nmData, newest.msgData)
+                DynamicIslandController.message(
+                    name = newest.nmData,
+                    text = newest.msgData,
+                    onClick = { toggleDrawerState(true) }
+                )
             }
-            lastKey = newest.key
         }
+
         ChatScreen(
             mode = mode,
             messages = messages,
@@ -139,7 +158,7 @@ class ChatFragment : Fragment() {
                     chatMode = mode
                 )
                 viewModel.ignoreDrawerClosesSound = true
-                onCloseDrawer()
+                toggleDrawerState(false)
             },
             onMessageClick = onClick@{ msg ->
                 if (msg.playerId.isEmpty()) return@onClick
@@ -157,7 +176,7 @@ class ChatFragment : Fragment() {
             },
             onFlag = { selectedFlag ->
                 fieldState.insertOrReplaceToken(
-                    prefix = "--",
+                    prefix = "-",
                     replacement = selectedFlag.flag
                 )
                 focusRequester.requestFocus()
@@ -165,20 +184,21 @@ class ChatFragment : Fragment() {
             onCopy = { context.setClipBoardData(it, "Copied!") },
             onJoin = { msg ->
                 if (msg.gameId.isEmpty())
-                    context.toast("Invalid ID")
+                    DynamicIslandController.message("Invalid ID")
                 else viewModel.getJoinRoute(msg)
                     .onSuccess {
                         bubbleTabBar.setSelected(1, true)
-                        onCloseDrawer()
+                        toggleDrawerState(false)
                         onNavigate(it)
                     }
-                    .onFailure { context.toast(it.message.toString()) }
+                    .onFailure { DynamicIslandController.message(it.message.toString()) }
             },
             modifier = modifier
         )
         profile?.let {
             ProfileDialog(
                 profile = it,
+                onCopy = { context.setClipBoardData(it.toString(), "Copied!") },
                 onDismiss = { profile = null }
             )
         }

@@ -10,7 +10,7 @@ import androidx.lifecycle.viewModelScope
 import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.model.*
 import com.diu.yk_games.line2box.model.MsgStore.MessageType
-import com.diu.yk_games.line2box.presentation.component.DynamicIslandController
+import com.diu.yk_games.line2box.presentation.island.DynamicIslandController
 import com.diu.yk_games.line2box.presentation.navigation.Routes
 import com.diu.yk_games.line2box.util.*
 import com.google.android.gms.games.PlayGames
@@ -66,8 +66,10 @@ class MainViewModel(
     val isConnected
         get() = onlineStatus == OnlineStatus.Online && ConnectivityObserver.isConnected
 
-    val globalChatList = savedStateHandle.getStateFlow("globalChatList", listOf<MsgStore>())
-    val friendlyChatList = savedStateHandle.getStateFlow("friendlyChatList", listOf<MsgStore>())
+    val globalChatList: StateFlow<List<MsgStore>>
+        field = savedStateHandle.getMutableStateFlow("globalChatList", listOf())
+    val friendlyChatList: StateFlow<List<MsgStore>>
+        field = savedStateHandle.getMutableStateFlow("friendlyChatList", listOf())
 
     val matches: StateFlow<List<GameRoom>>
         field = savedStateHandle.getMutableStateFlow("matches", listOf())
@@ -345,11 +347,10 @@ class MainViewModel(
     }
 
     fun setLoading(value: Boolean) {
-//        savedStateHandle["isLoading"] = value
         if (value)
             DynamicIslandController.loading()
         else
-            DynamicIslandController.idle()
+            DynamicIslandController.stopLoading()
     }
 
     var lastFetchScoreBoardTime: Long = 0L
@@ -365,7 +366,6 @@ class MainViewModel(
                         .limit(100)
                         .get()
                         .await().mapNotNull {
-                            it.log("ScoreBoard")
                             if (it.contains("starData"))
                                 it.toObjectOrNull<DataStore>()?.toScore()
                             else
@@ -449,13 +449,13 @@ class MainViewModel(
 
     fun clearFriendlyChat() {
         viewModelScope.launch(Dispatchers.IO) {
-            savedStateHandle["friendlyChatList"] = listOf<MsgStore>()
+            friendlyChatList.value = listOf()
             friendlyValueListener?.also { _friendlyChatRef?.removeEventListener(it) }
         }
     }
 
     fun clearTempMatches() {
-        savedStateHandle["friendlyChatList"] = listOf<MsgStore>()
+        friendlyChatList.value = listOf()
 
         val updates = matches.value
             .filter { it.key in tempKeys && it.key.isNotEmpty() }
@@ -621,7 +621,7 @@ class MainViewModel(
                         if (key == null || ms == null) return@mapNotNull null
                         ms.copy(key = key)
                     }.reversed()
-                    savedStateHandle["globalChatList"] = chatList
+                    globalChatList.value = chatList
                 }
 
                 override fun onCancelled(databaseError: DatabaseError) {
@@ -659,7 +659,7 @@ class MainViewModel(
                                     localPlayerCount--
                                 ms.copy(key = key)
                             }.reversed()
-                            savedStateHandle["friendlyChatList"] = chatList
+                            friendlyChatList.value = chatList
                         }
 
                         override fun onCancelled(databaseError: DatabaseError) {}
@@ -781,9 +781,9 @@ class MainViewModel(
     ) {
         if (currentChats.firstOrNull()?.msgData?.contains(ChatCommand.DeleteLast.command) == true)
             return
-        val count = flags[ChatFlag.Count]?.coerceIn(1, 10) ?: 1
+        val count = flags[ChatFlag.Count]?.coerceIn(1, 20) ?: 1
 
-        val updates = globalChatList.value
+        val updates = currentChats
             .take(count)
             .associate { it.key to null }
 

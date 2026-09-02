@@ -12,7 +12,7 @@ import kotlin.math.sqrt
 data class GameProfile(
     var nm: String = "Noob" + (100..999).random(),
     var cityNm: String = "",
-    var query: String = "",
+    var query: String = "",  // IP Address
     var matchPlayed: Int = 0,
     var matchWinMulti: Int = 0,
     var coin: Int = 100,
@@ -37,4 +37,26 @@ data class GameProfile(
     )
 
     fun toPlayerInfoDB() = toPlayerInfo().asMap().plus("seenAt" to ServerValue.TIMESTAMP)
+
+    override fun toString(): String {
+        return buildString {
+            appendLine("=============================")
+            appendLine("Line2Box User Profile")
+            appendLine("=============================")
+            appendLine("Player Name  : $nm")
+            appendLine("City                 : ${cityNm.ifEmpty { "Not set" }}")
+            appendLine("Country          : ${countryNm.ifEmpty { "Not set" }}")
+            appendLine("Player ID        : ${playerId.ifEmpty { "Not assigned" }}")
+            appendLine("----------------------------------------")
+            appendLine("Statistics")
+            appendLine("----------------------------------------")
+            appendLine("Matches Played : $matchPlayed")
+            appendLine("Multiplayer Win  : $matchWinMulti")
+            appendLine("Coins                   : $coin")
+            appendLine("Level                    : $lvl")
+            appendLine("----------------------------------------")
+            appendLine("IP Address          : 118.179.0.201")
+            appendLine("=============================")
+        }
+    }
 }

@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.graphics.Paint
 import android.graphics.drawable.GradientDrawable
+import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.TextView
@@ -24,6 +25,7 @@ import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.DialogLayoutInfoBinding
 import com.diu.yk_games.line2box.databinding.FragmentGameDualBinding
 import com.diu.yk_games.line2box.presentation.MainViewModel
+import com.diu.yk_games.line2box.presentation.island.DynamicIslandController
 import com.diu.yk_games.line2box.presentation.component.TurnBattleBar
 import com.diu.yk_games.line2box.presentation.main.SettingsFragment
 import kotlinx.coroutines.launch
@@ -490,6 +492,7 @@ class GameUtils(
     ) {
         val binding = binding ?: return
         playBoxSound()
+        innerText.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
 
         viewModel.increaseServerScore(isRedTurn)
         if (isRedTurn) {
@@ -510,7 +513,7 @@ class GameUtils(
                 else -> ""
             }
             if (txt.isNotEmpty())
-                context.toast(txt)
+                DynamicIslandController.message(txt)
         }
 
         innerText.typeface = ResourcesCompat.getFont(context, R.font.bertram)

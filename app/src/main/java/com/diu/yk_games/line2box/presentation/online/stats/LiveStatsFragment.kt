@@ -1,4 +1,4 @@
-package com.diu.yk_games.line2box.presentation.online.live
+package com.diu.yk_games.line2box.presentation.online.stats
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -12,6 +12,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.model.GameProfile
 import com.diu.yk_games.line2box.presentation.base.BaseFragmentCompose
+import com.diu.yk_games.line2box.presentation.island.DynamicIslandController
 import com.diu.yk_games.line2box.presentation.component.ProfileDialog
 import com.diu.yk_games.line2box.presentation.main.SettingsFragment
 import com.diu.yk_games.line2box.presentation.online.ShareDialogFragment
@@ -58,7 +59,7 @@ class LiveStatsFragment : BaseFragmentCompose() {
                             bubbleTabBar.setSelected(1, true)
                             navigateSafe(it)
                         }
-                        .onFailure { context.toast(it.message.toString()) }
+                        .onFailure { DynamicIslandController.message(it.message.toString()) }
                 },
                 onWatchRoom = {
                     viewModel.player.playButtonClickSound()
@@ -82,6 +83,7 @@ class LiveStatsFragment : BaseFragmentCompose() {
                 ProfileDialog(
                     profile = it,
                     isCompact = false,
+                    onCopy = { context.setClipBoardData(it.toString(), "Copied!") },
                     onDismiss = { profile = null }
                 )
             }

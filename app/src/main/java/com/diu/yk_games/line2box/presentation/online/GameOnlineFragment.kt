@@ -21,6 +21,7 @@ import com.diu.yk_games.line2box.databinding.DialogLayoutGameOverBinding
 import com.diu.yk_games.line2box.databinding.FragmentGameDualBinding
 import com.diu.yk_games.line2box.model.*
 import com.diu.yk_games.line2box.presentation.base.BaseFragment
+import com.diu.yk_games.line2box.presentation.island.DynamicIslandController
 import com.diu.yk_games.line2box.presentation.navigation.Routes
 import com.diu.yk_games.line2box.util.*
 import com.google.android.play.core.review.ReviewManagerFactory
@@ -60,7 +61,7 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
                 .toRoute<Routes.GameOnline>()
         }
         if (arg == null) {
-            toast("Couldn't find the game")
+            DynamicIslandController.message("Couldn't find the game")
             popBackSafe()
             return
         }
@@ -426,7 +427,7 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
                 // 1. Save score
                 db.collection("ScoreBoard")
                     .document(viewModel.uuidV7)
-                    .set(score.copy(result = score.result.copy(cup2 = finalPlr2Cup)) )
+                    .set(score.copy(result = score.result.copy(cup2 = finalPlr2Cup)))
 
                 // 2. Update LastBestPlayer atomically
                 val maxScore = maxOf(redScore, blueScore)

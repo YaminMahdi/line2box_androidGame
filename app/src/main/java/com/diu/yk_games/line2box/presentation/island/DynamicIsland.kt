@@ -1,4 +1,4 @@
-package com.diu.yk_games.line2box.presentation.component
+package com.diu.yk_games.line2box.presentation.island
 
 import android.view.View
 import androidx.compose.animation.*
@@ -13,11 +13,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.MoreHoriz
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.Center
+import androidx.compose.ui.Alignment.Companion.TopCenter
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.dropShadow
@@ -27,44 +26,45 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.shadow.Shadow
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.diu.yk_games.line2box.model.DynamicBubble
-import com.diu.yk_games.line2box.model.DynamicBubble.Idle
+import com.diu.yk_games.line2box.presentation.component.*
 import com.diu.yk_games.line2box.util.getSystemBars
 
 private val Mint = Color(0xFF8BF3D0)
 private val Ink = Color(0xFF07060D)
 
-/**
- * Wires the island into an XML layout.
- *
- * @param sourceView the view the glass refracts — your FragmentContainerView.
- *        Must NOT be an ancestor of this ComposeView.
- */
 fun ComposeView.installDynamicIsland(
     sourceView: View,
     blurRadius: Dp = 50.dp,
     topPadding: Dp = getSystemBars().top.dp + 50.dp,
-    onClick: ((state: DynamicBubble) -> Unit)
+    spacing: Dp = 8.dp
 ) {
     setViewCompositionStrategy(DisposeOnViewTreeLifecycleDestroyed)
     setContent {
-        val bubble by DynamicIslandController.state.collectAsStateWithLifecycle()
+        val bubbles by DynamicIslandController.state.collectAsStateWithLifecycle()
         val backdrop = rememberLiquidBackdrop(blurRadius)
+        val haptics = LocalHapticFeedback.current
+
+        // Buzz once per *new* message, not on every stack mutation.
+        val buzzed = remember { mutableSetOf<Long>() }
+        LaunchedEffect(bubbles) {
+            bubbles.forEach { bubble ->
+                if (buzzed.add(bubble.id) && bubble is DynamicBubble.Message)
+                    haptics.performHapticFeedback(LongPress)
+            }
+            buzzed.retainAll(bubbles.mapTo(HashSet()) { it.id })
+        }
 
         Box(Modifier.fillMaxSize()) {
-            // Draws nothing — it only records the fragment content into the backdrop.
-            // Capture pauses on Idle: the notch is 34dp tall over the status bar,
-            // so a frozen sample there is invisible and costs nothing.
             Box(
                 Modifier
                     .fillMaxSize()
@@ -72,42 +72,113 @@ fun ComposeView.installDynamicIsland(
                         backdrop = backdrop,
                         sourceView = sourceView,
                         blurRadius = blurRadius,
-                        live = bubble != Idle,
+                        live = bubbles.isNotEmpty(),
                     )
             )
 
-            DynamicIsland(
-                bubble = bubble,
+            DynamicIslandStack(
+                bubbles = bubbles,
                 backdrop = backdrop,
+                spacing = spacing,
                 modifier = Modifier
                     .align(TopCenter)
                     .padding(top = topPadding),
-                onClick = {
-                    DynamicIslandController.idle()
-                    onClick(bubble)
-                },
+                onClick = { bubble ->
+                    if (bubble !is DynamicBubble.Loading)
+                        DynamicIslandController.dismiss(bubble.id)
+                    (bubble as? DynamicBubble.Message)?.onClick?.invoke()
+                }
             )
         }
     }
 }
 
-/**
- * An iOS-style Dynamic Island that morphs between [DynamicBubble] states.
- *
- * Place it above content marked with `Modifier.liquidBackdropSource(backdrop)`
- * so the glass has something real to refract.
- */
+/* ----------------------------------------------------------------- stack */
+
+/** Keeps a bubble on screen through its exit animation, after the controller drops it. */
+private class StackEntry(initial: DynamicBubble) {
+    val id = initial.id
+    var bubble by mutableStateOf(initial)
+    val visible = MutableTransitionState(false).apply { targetState = true }
+}
+
+@Composable
+fun DynamicIslandStack(
+    bubbles: List<DynamicBubble>,
+    backdrop: LiquidBackdrop,
+    modifier: Modifier = Modifier,
+    spacing: Dp = 8.dp,
+    onClick: (DynamicBubble) -> Unit,
+) {
+    val entries = remember { mutableStateListOf<StackEntry>() }
+
+    LaunchedEffect(bubbles) {
+        bubbles.forEach { bubble ->
+            val existing = entries.firstOrNull { it.id == bubble.id }
+            if (existing == null) entries.add(StackEntry(bubble)) else existing.bubble = bubble
+        }
+        entries.forEach { entry ->
+            if (bubbles.none { it.id == entry.id }) entry.visible.targetState = false
+        }
+    }
+
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(spacing),
+    ) {
+        // Newest sits under the notch; older ones settle beneath it.
+        entries.asReversed().forEachIndexed { depth, entry ->
+            key(entry.id) {
+                LaunchedEffect(entry.visible.isIdle, entry.visible.currentState) {
+                    if (entry.visible.isIdle && !entry.visible.currentState) entries.remove(entry)
+                }
+
+                val settle = spring<Float>(dampingRatio = 0.62f, stiffness = 420f)
+                AnimatedVisibility(
+                    visibleState = entry.visible,
+                    enter = fadeIn(tween(180)) +
+                            scaleIn(initialScale = 0.86f, animationSpec = settle) +
+                            expandVertically(
+                                animationSpec = spring(dampingRatio = 0.8f, stiffness = 380f),
+                                clip = false,
+                            ),
+                    exit = fadeOut(tween(140)) +
+                            scaleOut(targetScale = 0.88f, animationSpec = tween(140)) +
+                            shrinkVertically(tween(170), clip = false),
+                ) {
+                    val d = depth.coerceAtMost(2)
+                    val depthScale by animateFloatAsState(1f - 0.035f * d, label = "depthScale")
+                    val depthAlpha by animateFloatAsState(1f - 0.16f * d, label = "depthAlpha")
+
+                    DynamicIsland(
+                        bubble = entry.bubble,
+                        backdrop = backdrop,
+                        modifier = Modifier.graphicsLayer {
+                            scaleX = depthScale
+                            scaleY = depthScale
+                            alpha = depthAlpha
+                        },
+                        onClick = { onClick(entry.bubble) },
+                    )
+                }
+            }
+        }
+    }
+}
+
+/* ---------------------------------------------------------------- island */
+
 @Composable
 fun DynamicIsland(
     bubble: DynamicBubble,
     backdrop: LiquidBackdrop,
     modifier: Modifier = Modifier,
-    onClick: (() -> Unit)
+    onClick: (() -> Unit),
 ) {
     val corner by animateDpAsState(
         targetValue = when (bubble) {
-            Idle -> 17.dp
-            Loading -> 23.dp
+            is DynamicBubble.Loading -> 23.dp
             is DynamicBubble.Message -> 27.dp
         },
         animationSpec = spring(dampingRatio = 0.72f, stiffness = Spring.StiffnessMediumLow),
@@ -115,7 +186,7 @@ fun DynamicIsland(
     )
     val shape = remember(corner) { RoundedCornerShape(corner) }
 
-    // The squish-and-settle that makes the morph feel like liquid rather than a resize.
+    // The squish-and-settle that makes a content swap feel like liquid, not a resize.
     val pop = remember { Animatable(1f) }
     LaunchedEffect(bubble) {
         pop.snapTo(0.90f)
@@ -123,7 +194,6 @@ fun DynamicIsland(
     }
 
     val sheen by rememberSheenProgress()
-    val elevated = bubble != Idle
 
     Box(
         modifier = modifier
@@ -137,11 +207,11 @@ fun DynamicIsland(
                     radius = 10.dp,
                     spread = 4.dp,
                     color = Color.Black.copy(alpha = 0.25f),
-                    offset = DpOffset(x = 0.dp, y = 6.dp)
-                )
+                    offset = DpOffset(x = 0.dp, y = 6.dp),
+                ),
             )
             .shadow(
-                elevation = if (elevated) 28.dp else 8.dp,
+                elevation = 28.dp,
                 shape = shape,
                 clip = false,
                 ambientColor = Ink,
@@ -156,8 +226,9 @@ fun DynamicIsland(
             targetState = bubble,
             transitionSpec = {
                 val enter = fadeIn(tween(200, delayMillis = 70)) +
-                    scaleIn(initialScale = 0.84f, animationSpec = tween(280, delayMillis = 40))
-                val exit = fadeOut(tween(110)) + scaleOut(targetScale = 0.92f, animationSpec = tween(110))
+                        scaleIn(initialScale = 0.84f, animationSpec = tween(280, delayMillis = 40))
+                val exit = fadeOut(tween(110)) +
+                        scaleOut(targetScale = 0.92f, animationSpec = tween(110))
                 enter togetherWith exit using SizeTransform(clip = false) { _, _ ->
                     spring(
                         dampingRatio = 0.78f,
@@ -170,8 +241,7 @@ fun DynamicIsland(
             label = "islandContent",
         ) { state ->
             when (state) {
-                Idle -> Unit
-                Loading -> LoadingContent()
+                is DynamicBubble.Loading -> LoadingContent(state.label)
                 is DynamicBubble.Message -> MessageContent(state)
             }
         }
@@ -181,7 +251,7 @@ fun DynamicIsland(
 /* ---------------------------------------------------------------- states */
 
 @Composable
-private fun LoadingContent() {
+private fun LoadingContent(label: String) {
     Row(
         modifier = Modifier
             .height(46.dp)
@@ -189,16 +259,10 @@ private fun LoadingContent() {
             .padding(horizontal = 17.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-//        CircularProgressIndicator(
-//            modifier = Modifier.size(18.dp),
-//            color = Mint,
-//            strokeWidth = 2.2.dp,
-//            strokeCap = StrokeCap.Round
-//        )
         ArcSpinner()
         Spacer(Modifier.width(11.dp))
         Text(
-            text = "Working",
+            text = label,
             color = Color.White.copy(alpha = 0.92f),
             fontSize = 14.sp,
             fontWeight = FontWeight.Medium,
@@ -207,6 +271,9 @@ private fun LoadingContent() {
         PulsingDots()
     }
 }
+
+
+/* ---------------------------------------------------------------- pieces */
 
 @Composable
 private fun MessageContent(message: DynamicBubble.Message) {
@@ -253,8 +320,6 @@ private fun MessageContent(message: DynamicBubble.Message) {
     }
 }
 
-/* ---------------------------------------------------------------- pieces */
-
 @Composable
 private fun ArcSpinner(size: Dp = 18.dp) {
     val transition = rememberInfiniteTransition(label = "spinner")
@@ -288,7 +353,7 @@ private fun ArcSpinner(size: Dp = 18.dp) {
             useCenter = false,
             topLeft = Offset(inset, inset),
             size = Size(this.size.width - stroke, this.size.height - stroke),
-            style = Stroke(width = stroke, cap = StrokeCap.Butt)
+            style = Stroke(width = stroke, cap = Butt)
         )
     }
 }

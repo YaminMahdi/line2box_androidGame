@@ -1,9 +1,8 @@
-package com.diu.yk_games.line2box.presentation.main
+package com.diu.yk_games.line2box.presentation.online.stats
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.res.ColorStateList
-import android.graphics.PorterDuff
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -16,11 +15,11 @@ import com.diu.yk_games.line2box.databinding.FragmentDisplayBinding
 import com.diu.yk_games.line2box.model.GameProfile
 import com.diu.yk_games.line2box.presentation.adapter.ScoreListAdapter
 import com.diu.yk_games.line2box.presentation.base.BaseFragment
+import com.diu.yk_games.line2box.presentation.component.showProfileDialog
+import com.diu.yk_games.line2box.presentation.main.SettingsFragment
 import com.diu.yk_games.line2box.util.*
 
 class ScoreBoardFragment : BaseFragment<FragmentDisplayBinding>(FragmentDisplayBinding::inflate) {
-    private var bestScore = "\n\n\nNetwork Error"
-
     private val scoreListAdapter by lazy { ScoreListAdapter() }
 
     companion object {
@@ -44,33 +43,6 @@ class ScoreBoardFragment : BaseFragment<FragmentDisplayBinding>(FragmentDisplayB
             scoreListAdapter.submitList(it.list)
             binding.status.text = "\uD83D\uDC51 ${it.lastBest}"
         }
-/*
-        viewModel.firestore.collection("LastBestPlayer").document("LastBestPlayer")
-            .get().addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    val document = task.result
-                    Log.d(TAG, "Cached document data: " + document.data)
-                    bestScore = document.data?.get("info")?.toString().orEmpty()
-                    binding.status.text = "\uD83D\uDC51 $bestScore"
-                } else {
-                    Log.d(TAG, "Cached get failed: ", task.exception)
-                }
-            }
-        viewModel.firestore.collection("ScoreBoard")
-            .orderBy("time", Query.Direction.DESCENDING)
-            .limit(100)
-            .get()
-            .addOnSuccessListener { task ->
-                val dsList = task.documents.mapNotNull {
-                    it.log("ScoreBoard")
-                    if (it.contains("starData"))
-                        it.toObjectOrNull<DataStore>()?.toScore()
-                    else
-                        it.toObjectOrNull<Score>()
-                }
-
-            }
-*/
 
         var itemClicked = false
         binding.homeRow.btnSetting.setBounceClickListener {
@@ -81,7 +53,7 @@ class ScoreBoardFragment : BaseFragment<FragmentDisplayBinding>(FragmentDisplayB
             viewModel.player.playButtonClickSound()
             onBackPressed()
         }
-        scoreListAdapter.onPlayerClick = playerClick@{ playerId, isLeft ->
+        scoreListAdapter.onPlayerClick = playerClick@{ playerId ->
             if (playerId.isEmpty() || itemClicked) return@playerClick
             itemClicked = true
             viewModel.player.playButtonClickSound()
@@ -93,12 +65,11 @@ class ScoreBoardFragment : BaseFragment<FragmentDisplayBinding>(FragmentDisplayB
                         itemClicked = false
                         return@addOnSuccessListener
                     }
-                    showPlayerProfile(
+                    showProfileDialog(
+                        context = parentActivity,
                         profile = profile,
-                        marginLeft = if (isLeft) 60 else 420,
-                        onDismissed = {
-                            itemClicked = false
-                        }
+                        onCopy = { context.setClipBoardData(profile.toString(), "Copied!") },
+                        onDismiss = { itemClicked = false }
                     )
                 }
                 .addOnFailureListener {
@@ -129,7 +100,7 @@ class ScoreBoardFragment : BaseFragment<FragmentDisplayBinding>(FragmentDisplayB
             layoutParams = params
             backgroundTintList =
                 ColorStateList.valueOf(ContextCompat.getColor(context, R.color.cocX))
-            backgroundTintMode = PorterDuff.Mode.ADD
+            backgroundTintMode = ADD
         }
         dBinding.apply {
             if (profile.countryNm != "")

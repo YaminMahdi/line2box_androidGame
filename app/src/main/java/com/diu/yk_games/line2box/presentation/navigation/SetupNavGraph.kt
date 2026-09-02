@@ -4,13 +4,13 @@ import androidx.navigation.NavController
 import androidx.navigation.createGraph
 import androidx.navigation.fragment.fragment
 import com.diu.yk_games.line2box.presentation.bot.GameBotFragment
-import com.diu.yk_games.line2box.presentation.main.ScoreBoardFragment
+import com.diu.yk_games.line2box.presentation.online.stats.ScoreBoardFragment
 import com.diu.yk_games.line2box.presentation.main.StartFragment
 import com.diu.yk_games.line2box.presentation.offline.GameDualFragment
 import com.diu.yk_games.line2box.presentation.offline.NameInfoFragment
 import com.diu.yk_games.line2box.presentation.online.GameOnlineFragment
-import com.diu.yk_games.line2box.presentation.online.LeaderBoardFragment
-import com.diu.yk_games.line2box.presentation.online.live.LiveStatsFragment
+import com.diu.yk_games.line2box.presentation.online.stats.LeaderBoardFragment
+import com.diu.yk_games.line2box.presentation.online.stats.LiveStatsFragment
 import com.diu.yk_games.line2box.presentation.online.MultiplayerFragment
 
 fun NavController.setupNavGraph() {

@@ -1,4 +1,4 @@
-package com.diu.yk_games.line2box.presentation.online.live
+package com.diu.yk_games.line2box.presentation.online.stats
 
 import android.view.View
 import androidx.compose.animation.AnimatedVisibility
@@ -38,8 +38,8 @@ import com.diu.yk_games.line2box.databinding.HomeRowBinding
 import com.diu.yk_games.line2box.model.GameRoom
 import com.diu.yk_games.line2box.model.LiveResult
 import com.diu.yk_games.line2box.model.PlayerInfo
-import com.diu.yk_games.line2box.presentation.online.live.component.ActivePlayerCard
-import com.diu.yk_games.line2box.presentation.online.live.component.MatchCard
+import com.diu.yk_games.line2box.presentation.online.stats.component.ActivePlayerCard
+import com.diu.yk_games.line2box.presentation.online.stats.component.MatchCard
 import com.diu.yk_games.line2box.ui.theme.Line2BoxTheme
 import com.diu.yk_games.line2box.util.isLessThanAgo
 import com.diu.yk_games.line2box.util.setBounceClickListener
@@ -128,7 +128,7 @@ private fun ActivePlayersList(
     }
     LazyColumn(
         modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(horizontal = 40.dp, vertical = 12.dp),
+        contentPadding = PaddingValues(horizontal = 35.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(actives, key = { it.id }) { player ->
@@ -162,7 +162,7 @@ private fun MatchesList(
     }
     LazyColumn(
         modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(horizontal = 40.dp, vertical = 12.dp),
+        contentPadding = PaddingValues(horizontal = 35.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(matches, key = { it.key }) { room ->

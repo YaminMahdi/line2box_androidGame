@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".presentation.main.ScoreBoardFragment">
+    tools:context=".presentation.online.stats.ScoreBoardFragment">
 
     <include
         android:id="@+id/homeRow"
@@ -67,7 +67,7 @@
             android:id="@+id/recyclerView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginHorizontal="20dp"
+            android:layout_marginHorizontal="30dp"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             tools:listitem="@layout/item_score_friendly" />
 

@@ -31,6 +31,7 @@ import com.diu.yk_games.line2box.databinding.FragmentMultiplayerBinding
 import com.diu.yk_games.line2box.model.GameRoom
 import com.diu.yk_games.line2box.presentation.MainActivity
 import com.diu.yk_games.line2box.presentation.base.BaseFragment
+import com.diu.yk_games.line2box.presentation.island.DynamicIslandController
 import com.diu.yk_games.line2box.presentation.main.SettingsFragment
 import com.diu.yk_games.line2box.presentation.navigation.Routes
 import com.diu.yk_games.line2box.util.*
@@ -164,7 +165,7 @@ class MultiplayerFragment :
         binding.joinInputId.doAfterTextChanged { txt ->
             if (txt?.length != 4) return@doAfterTextChanged
             val room = viewModel.getValidMatch(txt.toString()) ?: run {
-                toast("Invalid Key")
+                DynamicIslandController.message("Invalid Key")
                 return@doAfterTextChanged
             }
             Log.d("getKey", "afterTextChanged: " + room.key)
@@ -177,7 +178,7 @@ class MultiplayerFragment :
                 viewModel.sendInitialMessage(room)
                 bubbleTabBar.setSelected(1, true)
                 startMatch()
-            } else toast("Match already started")
+            } else DynamicIslandController.message("Match already started")
         }
         binding.stickySwitch.onSelectedChangeListener =
             object : OnSelectedChangeListener {
@@ -332,7 +333,7 @@ class MultiplayerFragment :
     }
 
     private fun changeNameNeeded() {
-        toast("Change Your Name.")
+        DynamicIslandController.message("Change Your Name.")
         profileBtn(false) { binding ->
             lifecycleScope.launch {
                 delay(250.milliseconds)
@@ -436,7 +437,7 @@ class MultiplayerFragment :
                     closeKeyboard()
                     val newNm = nmTxt.text.toString().trim()
                     if (newNm.length < 2) {
-                        toast("Can't be single character.")
+                        DynamicIslandController.message("Can't be single character.")
                         nmTxt.setText(oldName)
                     } else {
                         viewModel.updateProfile {
@@ -491,10 +492,10 @@ class MultiplayerFragment :
         val newNm = nmTxt.text.toString().trim()
 
         if (newNm.isEmpty()) {
-            toast("Can't be empty.")
+            DynamicIslandController.message("Can't be empty.")
             nmTxt.setText(oldName)
         } else if (newNm.length == 1) {
-            toast("Can't be single character.")
+            DynamicIslandController.message("Can't be single character.")
             nmTxt.setText(oldName)
         } else {
             viewModel.updateProfile {
@@ -555,7 +556,7 @@ class MultiplayerFragment :
             startActivity(intent)
         } catch (e: Exception) {
             e.printStackTrace()
-            toast("Unable to open Play Games profile chooser")
+            DynamicIslandController.message("Unable to open Play Games profile chooser")
         }
     }
 }

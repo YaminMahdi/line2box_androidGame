@@ -15,7 +15,7 @@ import com.diu.yk_games.line2box.util.toTimePassed
 class ScoreListAdapter : ListAdapter<Score, RecyclerView.ViewHolder>(ScoreDiffCallback()) {
 
     var onClickListener: ((Score) -> Unit)? = null
-    var onPlayerClick: ((playerId: String, isLeft: Boolean) -> Unit)? = null
+    var onPlayerClick: ((playerId: String) -> Unit)? = null
 
 
     override fun getItemViewType(position: Int) = getItem(position).type.ordinal
@@ -79,11 +79,11 @@ class ScoreListAdapter : ListAdapter<Score, RecyclerView.ViewHolder>(ScoreDiffCa
 
                 linLayoutPlr1.setBounceClickListener {
                     if (item.player1.id.isNotEmpty())
-                        onPlayerClick?.invoke(item.player1.id, true)
+                        onPlayerClick?.invoke(item.player1.id)
                 }
                 linLayoutPlr2.setBounceClickListener {
                     if (item.player2.id.isNotEmpty())
-                        onPlayerClick?.invoke(item.player2.id, false)
+                        onPlayerClick?.invoke(item.player2.id)
                 }
             }
         }

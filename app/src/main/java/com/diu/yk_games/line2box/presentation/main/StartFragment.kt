@@ -14,7 +14,7 @@ import com.diu.yk_games.line2box.databinding.FragmentStartBinding
 import com.diu.yk_games.line2box.model.ErrorType
 import com.diu.yk_games.line2box.model.OnlineStatus
 import com.diu.yk_games.line2box.presentation.base.BaseFragment
-import com.diu.yk_games.line2box.presentation.component.DynamicIslandController
+import com.diu.yk_games.line2box.presentation.island.DynamicIslandController
 import com.diu.yk_games.line2box.presentation.navigation.Routes
 import com.diu.yk_games.line2box.util.*
 
@@ -61,21 +61,22 @@ class StartFragment : BaseFragment<FragmentStartBinding>(FragmentStartBinding::i
         }
         binding.scrBrdBtn.setBounceClickListener {
             if (DynamicIslandController.isLoading)
-                toast("Calm down, we're still loading!")
+                DynamicIslandController.message("Calm down, we're still loading!")
             else if (viewModel.isConnected)
                 navigateToScoreBoard()
-            else if (failedAttempt == 0)
+            else if (failedAttempt == 0) {
+                failedAttempt++
                 viewModel.initializePlayGameUser(
                     activity = parentActivity,
                     onSuccess = ::navigateToScoreBoard
                 )
-            else
-                toast((viewModel.onlineStatus.error ?: ErrorType.NoInternet).description)
+            } else
+                DynamicIslandController.message((viewModel.onlineStatus.error ?: ErrorType.NoInternet).description)
         }
         binding.logo.setBounceClickListener {
             if (BuildConfig.DEBUG) {
                 viewModel.clearMultiPlayerDB()
-                toast("MultiPlayer database cleared")
+                DynamicIslandController.message("MultiPlayer database cleared")
             }
         }
     }
@@ -85,6 +86,7 @@ class StartFragment : BaseFragment<FragmentStartBinding>(FragmentStartBinding::i
     }
 
     private fun navigateToScoreBoard() {
+        failedAttempt = 0
         gameUtils.playButtonClickSound()
         navigateSafe(Routes.ScoreBoard)
     }
@@ -100,15 +102,19 @@ class StartFragment : BaseFragment<FragmentStartBinding>(FragmentStartBinding::i
 
         when (binding.motionLayout.currentState) {
             R.id.next -> if (DynamicIslandController.isLoading)
-                toast("Calm down, we're still loading!")
+                DynamicIslandController.message("Calm down, we're still loading!")
             else if (viewModel.isConnected)
                 navigateSafe(Routes.MultiPlayer)
-            else if (failedAttempt == 0)
+            else if (failedAttempt == 0) {
+                failedAttempt++
                 viewModel.initializePlayGameUser(
                     activity = parentActivity,
-                    onSuccess = { navigateSafe(Routes.MultiPlayer) }
+                    onSuccess = {
+                        failedAttempt = 0
+                        navigateSafe(Routes.MultiPlayer)
+                    }
                 )
-            else
+            } else
                 showPlayServiceRequirementDialog()
 
             R.id.previous -> navigateSafe(Routes.ChangeName)
@@ -145,7 +151,7 @@ class StartFragment : BaseFragment<FragmentStartBinding>(FragmentStartBinding::i
             }
 
             else -> {
-                toast("Something went wrong!")
+                DynamicIslandController.message("Something went wrong!")
                 return
             }
         }

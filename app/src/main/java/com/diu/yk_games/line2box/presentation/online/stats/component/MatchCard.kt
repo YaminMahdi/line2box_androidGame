@@ -1,4 +1,4 @@
-package com.diu.yk_games.line2box.presentation.online.live.component
+package com.diu.yk_games.line2box.presentation.online.stats.component
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
@@ -33,7 +33,7 @@ import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.model.GameRoom
 import com.diu.yk_games.line2box.model.LiveResult
 import com.diu.yk_games.line2box.model.PlayerInfo
-import com.diu.yk_games.line2box.presentation.online.live.LiveDot
+import com.diu.yk_games.line2box.presentation.online.stats.LiveDot
 import com.diu.yk_games.line2box.ui.theme.Line2BoxTheme
 import com.diu.yk_games.line2box.ui.theme.cocZ
 import com.diu.yk_games.line2box.util.bounceClick

@@ -28,16 +28,14 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
+import androidx.lifecycle.*
 import androidx.navigation.NavOptionsBuilder
 import androidx.navigation.fragment.findNavController
 import coil3.imageLoader
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.request.target
+import com.diu.yk_games.line2box.presentation.island.DynamicIslandController
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterNotNull
@@ -54,6 +52,7 @@ import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.resume
 import kotlin.reflect.full.memberProperties
+import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.milliseconds
 
 ///**Flow collect from Fragment with `repeatOnLifecycle` on` lifecycleScope` till `RESUMED` */
@@ -122,6 +121,18 @@ fun <T> Flow<T?>.collectWithLifecycleNoRepeat(
     }
 }
 
+/**
+ * Launches a coroutine that waits for the RESUMED state, executes a
+ * one-time block, and completes without repeating.
+ */
+fun LifecycleOwner.launchResumed(
+    block: () -> Unit
+): Job {
+    return lifecycleScope.launch {
+        lifecycle.withResumed(block = block)
+    }
+}
+
 fun Long.toDateTimeOld(): String {
     var date = SimpleDateFormat("dd MMM, hh:mm a", Locale.US).format(this)
     val day = SimpleDateFormat("dd", Locale.US).format(System.currentTimeMillis())
@@ -167,6 +178,9 @@ fun Long.toTimePassed(): String {
         else -> "$seconds Sec Ago"
     }
 }
+
+fun Long.toTimeDynamic()=
+    if (isMoreThanAgo(1.days)) toDateTime() else toTimePassed()
 
 // Checks if the timestamp is not older than the given duration (and not in the future)
 fun Long.isLessThanAgo(duration: kotlin.time.Duration): Boolean {
@@ -306,7 +320,7 @@ fun Context?.setClipBoardData(data: String?, toastData: String? = null) {
         val clipBoardManager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val clip = ClipData.newPlainText(data, data)
         clipBoardManager.setPrimaryClip(clip)
-        toast(toastData ?: "Copied to clipboard")
+        DynamicIslandController.message(toastData ?: "Copied to clipboard")
     }
 }
 

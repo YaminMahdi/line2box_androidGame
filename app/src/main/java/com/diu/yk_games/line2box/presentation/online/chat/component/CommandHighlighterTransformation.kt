@@ -1,4 +1,4 @@
-package com.diu.yk_games.line2box.util
+package com.diu.yk_games.line2box.presentation.online.chat.component
 
 import androidx.compose.foundation.text.input.OutputTransformation
 import androidx.compose.foundation.text.input.TextFieldBuffer
@@ -10,7 +10,7 @@ import androidx.compose.ui.text.font.FontWeight
 import com.diu.yk_games.line2box.model.ChatCommand
 import com.diu.yk_games.line2box.model.ChatFlag
 
-private val COMMAND_REGEX = Regex("""(/\S+|--\S+)""")
+private val COMMAND_REGEX = Regex("""(/\S+|-\S+)""")
 private val VALID_COMMANDS = ChatCommand.entries.map { it.command }.toSet()
 private val VALID_FLAGS = ChatFlag.entries.map { it.flag }.toSet()
 
@@ -32,7 +32,7 @@ private fun highlightSpans(
                 val valid = VALID_COMMANDS.any { word.startsWith(it.take(word.length)) }
                 valid to (if (valid) validCommandColor else invalidColor)
             }
-            word.startsWith("--") -> {
+            word.startsWith("-") -> {
                 val valid = VALID_FLAGS.contains(word)
                 valid to (if (valid) validFlagColor else invalidColor)
             }
@@ -46,16 +46,16 @@ private fun highlightSpans(
     }.toList()
 
 class CommandHighlighterTransformation(
-    private val defaultTextColor: Color = Color.White,
+    private val defaultTextColor: Color = White,
     private val validCommandColor: Color = Color(0xFF7C4DFF),
-    private val validFlagColor: Color = Color(0xFF4CAF50),
+    private val validFlagColor: Color = validCommandColor.copy(.5f),
     private val invalidColor: Color = Color(0xFFFF5252),
 ) : OutputTransformation {
 
     override fun TextFieldBuffer.transformOutput() {
         if (length == 0) return
 
-        addStyle(SpanStyle(color = defaultTextColor, fontWeight = FontWeight.Normal), 0, length)
+        addStyle(SpanStyle(color = defaultTextColor, fontWeight = Normal), 0, length)
 
         highlightSpans(asCharSequence(), validCommandColor, validFlagColor, invalidColor)
             .forEach { (start, end, style) -> addStyle(style, start, end) }
@@ -63,16 +63,48 @@ class CommandHighlighterTransformation(
 }
 
 fun String.toHighlightedCommandText(
-    defaultTextColor: Color = Color.White,
+    defaultTextColor: Color = White,
     validCommandColor: Color = Color(0xFF7C4DFF),
-    validFlagColor: Color = Color(0xFF4CAF50),
+    validFlagColor: Color = validCommandColor.copy(.5f),
     invalidColor: Color = Color(0xFFFF5252),
 ): AnnotatedString = buildAnnotatedString {
     if (this@toHighlightedCommandText.isEmpty()) return@buildAnnotatedString
 
     append(this@toHighlightedCommandText)
-    addStyle(SpanStyle(color = defaultTextColor, fontWeight = FontWeight.Normal), 0, length)
+    addStyle(SpanStyle(color = defaultTextColor, fontWeight = Normal), 0, length)
 
     highlightSpans(this@toHighlightedCommandText, validCommandColor, validFlagColor, invalidColor)
         .forEach { (start, end, style) -> addStyle(style, start, end) }
+}
+
+
+
+fun String.getCommandSuggestions(): Pair<List<ChatCommand>, List<ChatFlag>> {
+    // Split text into words and get the last word
+    val words = split(' ')
+    val lastWord = words.lastOrNull() ?: ""
+
+    // Check if we're currently typing a command or flag
+    val isTypingCommand = lastWord.startsWith("/")
+    val isTypingFlag = lastWord.startsWith("-")
+
+    val commands = if (isTypingCommand) {
+        // Get all visible commands, but exclude those that are already fully written
+        ChatCommand.visibleEntries
+            .filter { it.command.startsWith(lastWord) }
+            .filterNot { it.command == lastWord } // Exclude if full command is already typed
+    } else {
+        listOf()
+    }
+
+    val flags = if (isTypingFlag) {
+        // Get all flags, but exclude those that are already fully written
+        ChatFlag.entries
+            .filter { it.flag.startsWith(lastWord) }
+            .filterNot { it.flag == lastWord } // Exclude if full flag is already typed
+    } else {
+        listOf()
+    }
+
+    return commands to flags
 }
