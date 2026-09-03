@@ -1,6 +1,7 @@
 package com.diu.yk_games.line2box.util
 
 import android.util.Log
+import com.diu.yk_games.line2box.BuildConfig
 import com.google.firebase.Firebase
 import com.google.firebase.crashlytics.CustomKeysAndValues
 import com.google.firebase.crashlytics.crashlytics

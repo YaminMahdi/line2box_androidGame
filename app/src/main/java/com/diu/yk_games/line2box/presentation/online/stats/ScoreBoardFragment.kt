@@ -1,26 +1,34 @@
 package com.diu.yk_games.line2box.presentation.online.stats
 
 import android.annotation.SuppressLint
-import android.app.AlertDialog
-import android.content.res.ColorStateList
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.widget.LinearLayout
-import androidx.core.content.ContextCompat
-import androidx.core.graphics.drawable.toDrawable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.viewpager2.widget.ViewPager2
 import com.diu.yk_games.line2box.R
-import com.diu.yk_games.line2box.databinding.DialogLayoutProfileBinding
-import com.diu.yk_games.line2box.databinding.FragmentDisplayBinding
+import com.diu.yk_games.line2box.databinding.FragmentScoreBoardBinding
 import com.diu.yk_games.line2box.model.GameProfile
+import com.diu.yk_games.line2box.model.Score
 import com.diu.yk_games.line2box.presentation.adapter.ScoreListAdapter
+import com.diu.yk_games.line2box.presentation.adapter.ViewPagerAdapter
 import com.diu.yk_games.line2box.presentation.base.BaseFragment
 import com.diu.yk_games.line2box.presentation.component.showProfileDialog
 import com.diu.yk_games.line2box.presentation.main.SettingsFragment
+import com.diu.yk_games.line2box.presentation.online.stats.component.AnimatedTabRow
+import com.diu.yk_games.line2box.presentation.online.stats.component.RecyclerViewFragment
+import com.diu.yk_games.line2box.ui.theme.Line2BoxTheme
 import com.diu.yk_games.line2box.util.*
+import kotlinx.collections.immutable.toPersistentList
 
-class ScoreBoardFragment : BaseFragment<FragmentDisplayBinding>(FragmentDisplayBinding::inflate) {
-    private val scoreListAdapter by lazy { ScoreListAdapter() }
+class ScoreBoardFragment :
+    BaseFragment<FragmentScoreBoardBinding>(FragmentScoreBoardBinding::inflate) {
+    private val scoreFriendlyAdapter by lazy { ScoreListAdapter() }
+    private val scoreGlobalAdapter by lazy { ScoreListAdapter() }
+    var selectedTabIndex by mutableIntStateOf(0)
 
     companion object {
         private const val TAG = "ScoreBoardFragment"
@@ -29,18 +37,48 @@ class ScoreBoardFragment : BaseFragment<FragmentDisplayBinding>(FragmentDisplayB
     private fun setupUI() {
         binding.fragLabel.text = getString(R.string.global_score_board)
         binding.statusLabel.text = getString(R.string.last_best_score)
-        binding.recyclerView.adapter = scoreListAdapter
+        val pager = ViewPagerAdapter(
+            listOf(
+                RecyclerViewFragment.newInstance(scoreFriendlyAdapter),
+                RecyclerViewFragment.newInstance(scoreGlobalAdapter)
+            ), parentActivity
+        )
+        binding.scorePager.adapter = pager
+        binding.scorePager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                selectedTabIndex = position
+                when(position) {
+                    0 -> viewModel.fetchScoreBoard(Score.Type.Friendly)
+                    1 -> viewModel.fetchScoreBoard(Score.Type.Globe)
+                }
+            }
+        })
+        binding.composeView.apply {
+            setViewCompositionStrategy(DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+                Line2BoxTheme {
+                    val tabs = remember { Score.Type.entries.toPersistentList() }
+                    AnimatedTabRow(
+                        tabs = tabs,
+                        selectedIndex = selectedTabIndex,
+                        onTabSelected = { index ->
+                            binding.scorePager.currentItem = index
+                        }
+                    )
+                }
+            }
+        }
     }
 
     @SuppressLint("SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupUI()
-        viewModel.fetchScoreBoard()
         viewModel.scoreboard.collectWithLifecycle {
             binding.loader.gone()
-            Log.d(TAG, "isSuccessful: ${it.list.size}")
-            scoreListAdapter.submitList(it.list)
+            Log.d(TAG, "isSuccessful: ${it.friendlyMatches.size}")
+            scoreFriendlyAdapter.submitList(it.friendlyMatches)
+            scoreGlobalAdapter.submitList(it.globalMatches)
             binding.status.text = "\uD83D\uDC51 ${it.lastBest}"
         }
 
@@ -53,7 +91,7 @@ class ScoreBoardFragment : BaseFragment<FragmentDisplayBinding>(FragmentDisplayB
             viewModel.player.playButtonClickSound()
             onBackPressed()
         }
-        scoreListAdapter.onPlayerClick = playerClick@{ playerId ->
+        scoreGlobalAdapter.onPlayerClick = playerClick@{ playerId ->
             if (playerId.isEmpty() || itemClicked) return@playerClick
             itemClicked = true
             viewModel.player.playButtonClickSound()
@@ -76,54 +114,5 @@ class ScoreBoardFragment : BaseFragment<FragmentDisplayBinding>(FragmentDisplayB
                     itemClicked = false
                 }
         }
-    }
-
-    @SuppressLint("SetTextI18n")
-    private fun showPlayerProfile(
-        profile: GameProfile,
-        marginLeft: Int,
-        onDismissed: () -> Unit
-    ) {
-        val dBinding = DialogLayoutProfileBinding.inflate(layoutInflater)
-        val alertDialog = AlertDialog.Builder(parentActivity)
-            .setView(dBinding.root)
-            .create()
-        alertDialog.setOnDismissListener {
-            onDismissed()
-        }
-        val params = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.WRAP_CONTENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        )
-        params.setMargins(marginLeft, 0, 60, 0)
-        dBinding.linearLayoutFrame.apply {
-            layoutParams = params
-            backgroundTintList =
-                ColorStateList.valueOf(ContextCompat.getColor(context, R.color.cocX))
-            backgroundTintMode = ADD
-        }
-        dBinding.apply {
-            if (profile.countryNm != "")
-                countryTxt.text = profile.countryNm + " " + profile.countryEmoji
-            else
-                countryLayout.gone()
-            lvlTxt.text = "" + profile.lvl
-            coinHave.text = "" + profile.coin
-            matchPlayedTxt.text = "" + profile.matchPlayed
-            matchWonTxt.text = "" + profile.matchWinMulti
-            nmTxt.isEnabled = false
-            nmTxt.setText(profile.nm)
-            profileTitle.textSize = 28f
-            profileShapeLayout.gone()
-            nmEditBtn.gone()
-            nmLTxt.gone()
-            countryLTxt.gone()
-            buttonSaveInfo.gone()
-        }
-        alertDialog.window?.setBackgroundDrawable(0.toDrawable())
-        dBinding.root.setOnClickListener {
-            runCatching { if (alertDialog.isShowing) alertDialog.dismiss() }
-        }
-        runCatching { alertDialog.show() }
     }
 }

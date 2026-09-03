@@ -8,6 +8,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.serialization.saved
 import androidx.lifecycle.viewModelScope
 import com.diu.yk_games.line2box.R
+import com.diu.yk_games.line2box.base.getPersistentListMutableStateFlow
 import com.diu.yk_games.line2box.model.*
 import com.diu.yk_games.line2box.model.MsgStore.MessageType
 import com.diu.yk_games.line2box.presentation.island.DynamicIslandController
@@ -21,6 +22,9 @@ import com.google.firebase.database.*
 import com.google.firebase.firestore.*
 import com.google.firebase.firestore.Query
 import com.google.gson.Gson
+import kotlinx.collections.immutable.PersistentList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.tasks.await
@@ -71,22 +75,22 @@ class MainViewModel(
     val friendlyChatList: StateFlow<List<MsgStore>>
         field = savedStateHandle.getMutableStateFlow("friendlyChatList", listOf())
 
-    val matches: StateFlow<List<GameRoom>>
-        field = savedStateHandle.getMutableStateFlow("matches", listOf())
-
     val scoreboard: StateFlow<ScoreBoardState?>
         field = savedStateHandle.getMutableStateFlow("scoreboard", null)
     val leaderboard: StateFlow<LeaderBoardState?>
         field = savedStateHandle.getMutableStateFlow("leaderboard", null)
 
+    val matches: StateFlow<PersistentList<GameRoom>>
+        field = savedStateHandle.getPersistentListMutableStateFlow("matches", persistentListOf(), viewModelScope)
+
     val actives = activePlayersRef
         .limitToLast(100)
         .asValueFlowList<PlayerInfo>()
-        .map { lst -> lst.sortedByDescending { it.seenAt } }
+        .map { lst -> lst.sortedByDescending{ it.seenAt }.toPersistentList() }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(),
-            initialValue = listOf()
+            initialValue = persistentListOf()
         )
 
     var ignoreDrawerClosesSound = false
@@ -133,7 +137,7 @@ class MainViewModel(
         clearTempMatches()
         clearFriendlyChat()
         clearJoiningJob()
-        matches.value = listOf()
+        matches.value = persistentListOf()
         matchRouteInfo = Routes.GameOnline()
         removeProfileFromServerListener()
         removeGlobalChatListener()
@@ -353,70 +357,151 @@ class MainViewModel(
             DynamicIslandController.stopLoading()
     }
 
-    var lastFetchScoreBoardTime: Long = 0L
-    var lastFetchLeaderBoardTime: Long = 0L
 
-    fun fetchScoreBoard() {
-        if (lastFetchScoreBoardTime.isLessThanAgo(2.minutes) && !scoreboard.value?.list.isNullOrEmpty()) return
-        viewModelScope.launch {
-            runCatching {
-                val list = async {
-                    scoreBoardRef
-                        .orderBy("time", Query.Direction.DESCENDING)
-                        .limit(100)
-                        .get()
-                        .await().mapNotNull {
-                            if (it.contains("starData"))
-                                it.toObjectOrNull<DataStore>()?.toScore()
-                            else
-                                it.toObjectOrNull<Score>()
-                        }
+    private val fetchJobs = mutableMapOf<Score.Type, Job>()
+    private val lastFetchTimes = mutableMapOf<Score.Type, Long>()
+    private var lastBestFetchTime = 0L
+
+    private val friendlyFilter = Filter.or(
+        Filter.equalTo("starData", "friendly"),
+        Filter.equalTo("type", "Friendly")
+    )
+    private val globeFilter = Filter.or(
+        Filter.equalTo("starData", "globe"),
+        Filter.equalTo("type", "Globe")
+    )
+
+    fun fetchScoreBoard(type: Score.Type, force: Boolean = false) {
+        cat("fetchScoreBoard enter type: $type")
+        if (fetchJobs[type]?.isActive == true) return
+        if (!force && isFresh(type)) return
+
+        fetchJobs[type] = viewModelScope.launch {
+            cat("fetchScoreBoard viewModelScope")
+            try {
+                val matches: PersistentList<Score>
+                val freshLastBest: String?
+                coroutineScope {
+                    val matchesTask = async { loadMatches(type) }
+                    val lastBestTask = async { loadLastBest() }
+                    matches = matchesTask.await()
+                    freshLastBest = lastBestTask.await()
                 }
-                val lastBest = async {
-                    tryGet {
-                        firestore.collection("LastBestPlayer")
-                            .document("LastBestPlayer")
-                            .get().await()
-                            .getString("info")
-                    }.orEmpty()
+
+                scoreboard.update { current ->
+                    val state = current ?: ScoreBoardState()
+                    val best = freshLastBest ?: state.lastBest
+                    when (type) {
+                        Friendly -> state.copy(friendlyMatches = matches, lastBest = best)
+                        Globe -> state.copy(globalMatches = matches, lastBest = best)
+                    }
                 }
-                scoreboard.value = ScoreBoardState(list = list.await(), lastBest = lastBest.await())
-                lastFetchScoreBoardTime = System.currentTimeMillis()
-            }.onFailure {
-                it.logError("fetchScoreBoard")
+
+                cat("fetchScoreBoard update")
+                scoreboard.value.log("fetchScoreBoard")
+                lastFetchTimes[type] = System.currentTimeMillis()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Throwable) {
+                scoreboard.update {
+                    val state = it ?: ScoreBoardState()
+                    state.copy(error = e)
+                }
+                e.logError("fetchScoreBoard")
             }
         }
     }
 
-    fun fetchLeaderBoard() {
-        if (lastFetchLeaderBoardTime.isLessThanAgo(2.minutes) && !leaderboard.value?.list.isNullOrEmpty()) return
-        viewModelScope.launch {
-            runCatching {
-                val list = async {
-                    gamerProfileRef.whereNotEqualTo("coin", 100)
-                        .orderBy("coin", Query.Direction.DESCENDING)
-                        .limit(100)
-                        .get()
-                        .await()
-                        .mapNotNull {
-                            it.toObjectOrNull<GameProfile>()
-                        }
+    private fun isFresh(type: Score.Type): Boolean {
+        val state = scoreboard.value ?: return false
+        val cached = if (type.isFriendly) state.friendlyMatches else state.globalMatches
+        return cached.isNotEmpty() &&
+                lastFetchTimes[type]?.isLessThanAgo(CACHE_TTL) == true
+    }
+
+    private suspend fun loadMatches(type: Score.Type): PersistentList<Score> =
+        scoreBoardRef
+            .where(if (type.isFriendly) friendlyFilter else globeFilter)
+            .orderBy("time", Query.Direction.DESCENDING)
+            .limit(SCOREBOARD_LIMIT)
+            .get()
+            .await()
+            .documents
+            .mapNotNullTo(persistentListOf<Score>().builder()) { doc ->
+                if (doc.contains("starData")) doc.toObjectOrNull<DataStore>()?.toScore()
+                else doc.toObjectOrNull<Score>()
+            }
+            .build()
+
+    // null = keep whatever is already in state
+    private suspend fun loadLastBest(): String? {
+        if (lastBestFetchTime.isLessThanAgo(LAST_BEST_TTL)) return null
+        return tryGet {
+            firestore.collection("LastBestPlayer")
+                .document("LastBestPlayer")
+                .get().await()
+                .getString("info")
+        }?.also { lastBestFetchTime = System.currentTimeMillis() }
+    }
+
+    private var leaderBoardJob: Job? = null
+    private var lastFetchLeaderBoardTime = 0L
+    private var lastCountFetchTime = 0L
+
+    fun fetchLeaderBoard(force: Boolean = false) {
+        if (leaderBoardJob?.isActive == true) return
+        if (!force &&
+            lastFetchLeaderBoardTime.isLessThanAgo(CACHE_TTL) &&
+            !leaderboard.value?.list.isNullOrEmpty()
+        ) return
+
+        leaderBoardJob = viewModelScope.launch {
+            try {
+                val profiles: PersistentList<GameProfile>
+                val freshCount: Long?
+                coroutineScope {
+                    val listTask = async { loadTopProfiles() }
+                    val countTask = async { loadPlayerCount() }
+                    profiles = listTask.await()
+                    freshCount = countTask.await()
                 }
-                val count = async {
-                    tryGet {
-                        gamerProfileRef.count()
-                            .get(AggregateSource.SERVER)
-                            .await()
-                            .count
-                    }.orZero()
+
+                leaderboard.update { current ->
+                    val state = current ?: LeaderBoardState()
+                    state.copy(list = profiles, count = freshCount ?: state.count)
                 }
-                leaderboard.value = LeaderBoardState(list = list.await(), count = count.await())
                 lastFetchLeaderBoardTime = System.currentTimeMillis()
-            }.onFailure {
-                it.logError("fetchLeaderBoard")
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Throwable) {
+                leaderboard.update {
+                    val state = it ?: LeaderBoardState()
+                    state.copy(error = e)
+                }
+                e.logError("fetchLeaderBoard")
             }
         }
+    }
 
+    private suspend fun loadTopProfiles(): PersistentList<GameProfile> =
+        gamerProfileRef
+            .whereGreaterThan("coin", MIN_COIN)
+            .orderBy("coin", Query.Direction.DESCENDING)
+            .limit(LEADERBOARD_LIMIT)
+            .get()
+            .await()
+            .documents
+            .mapNotNullTo(persistentListOf<GameProfile>().builder()) {
+                it.toObjectOrNull<GameProfile>()
+            }
+            .build()
+
+    // null = leave the existing count untouched
+    private suspend fun loadPlayerCount(): Long? {
+        if (lastCountFetchTime.isLessThanAgo(COUNT_TTL)) return null
+        return tryGet {
+            gamerProfileRef.count().get(AggregateSource.SERVER).await().count
+        }?.also { lastCountFetchTime = System.currentTimeMillis() }
     }
 
     fun initGameProfile() {
@@ -880,7 +965,7 @@ class MainViewModel(
                         removeByKey(dataSnapshot.key)
                     }
 
-                    private fun List<GameRoom>.addSorted(dataSnapshot: DataSnapshot) =
+                    private fun PersistentList<GameRoom>.addSorted(dataSnapshot: DataSnapshot) =
                         dataSnapshot.getValueOrNull<GameRoom>()?.let { game ->
                             plus(game.copy(key = dataSnapshot.key.orEmpty()))
                                 .distinctBy { it.key }
@@ -896,13 +981,13 @@ class MainViewModel(
                                             time
                                         })
                                 }
-                        }.orEmpty()
+                        }.orEmpty().toPersistentList()
 
                     private fun removeByKey(key: String?) {
                         key?.let { key ->
                             matches.value.toMutableList().apply {
                                 if (removeIf { it.key == key })
-                                    matches.value = toList()
+                                    matches.value = toPersistentList()
                             }
                         }
                     }
@@ -1127,5 +1212,11 @@ class MainViewModel(
 
     private companion object {
         const val TAG = "MainViewModel"
+        const val SCOREBOARD_LIMIT = 100L
+        const val LEADERBOARD_LIMIT = 100L
+        const val MIN_COIN = 100L
+        val CACHE_TTL = 2.minutes
+        val LAST_BEST_TTL = 10.minutes
+        val COUNT_TTL = 15.minutes
     }
 }

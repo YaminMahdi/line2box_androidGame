@@ -12,13 +12,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.model.GameProfile
 import com.diu.yk_games.line2box.presentation.base.BaseFragmentCompose
-import com.diu.yk_games.line2box.presentation.island.DynamicIslandController
 import com.diu.yk_games.line2box.presentation.component.ProfileDialog
+import com.diu.yk_games.line2box.presentation.island.DynamicIslandController
 import com.diu.yk_games.line2box.presentation.main.SettingsFragment
 import com.diu.yk_games.line2box.presentation.online.ShareDialogFragment
 import com.diu.yk_games.line2box.ui.theme.Line2BoxTheme
 import com.diu.yk_games.line2box.util.*
 import io.ak1.BubbleTabBar
+import kotlinx.collections.immutable.toPersistentList
 
 class LiveStatsFragment : BaseFragmentCompose() {
 
@@ -37,8 +38,8 @@ class LiveStatsFragment : BaseFragmentCompose() {
 
             LiveStatsScreen(
                 playerId = viewModel.playerId,
-                matches = matches,
-                actives = actives,
+                matches = matches.toPersistentList(),
+                actives = actives.toPersistentList(),
                 onPlayerClick = { playerId ->
                     playerId.log(TAG)
                     if (viewModel.playerId.isNotEmpty()) {

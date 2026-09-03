@@ -123,6 +123,7 @@ dependencies {
     implementation("com.google.code.gson:gson:2.14.0")
     implementation ("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable:0.5.2")
     implementation("org.jsoup:jsoup:1.23.2")
 
     implementation("io.ak1:bubbletabbar:1.0.8")

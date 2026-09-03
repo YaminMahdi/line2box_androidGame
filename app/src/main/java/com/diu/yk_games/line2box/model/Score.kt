@@ -14,7 +14,8 @@ data class Score (
     val result: LiveResult = LiveResult(),
 ): Parcelable {
     enum class Type {
-        Globe,
-        Friendly
+        Friendly,
+        Globe;
+        val isFriendly get() = this == Friendly
     }
 }

@@ -1,10 +1,12 @@
 package com.diu.yk_games.line2box.model
 
 import android.os.Parcelable
+import androidx.compose.runtime.Stable
 import com.diu.yk_games.line2box.presentation.navigation.Routes
 import com.google.firebase.database.IgnoreExtraProperties
 import kotlinx.parcelize.Parcelize
 
+@Stable
 @Parcelize
 @IgnoreExtraProperties
 data class GameRoom(

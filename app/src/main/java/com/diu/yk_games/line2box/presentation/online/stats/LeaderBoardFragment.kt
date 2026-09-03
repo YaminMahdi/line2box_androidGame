@@ -7,7 +7,7 @@ import android.util.Log
 import android.view.View
 import android.view.animation.DecelerateInterpolator
 import com.diu.yk_games.line2box.R
-import com.diu.yk_games.line2box.databinding.FragmentDisplayBinding
+import com.diu.yk_games.line2box.databinding.FragmentLeaderBoardBinding
 import com.diu.yk_games.line2box.model.GameProfile
 import com.diu.yk_games.line2box.presentation.adapter.RankListAdapter
 import com.diu.yk_games.line2box.presentation.base.BaseFragment
@@ -15,7 +15,7 @@ import com.diu.yk_games.line2box.presentation.component.showProfileDialog
 import com.diu.yk_games.line2box.presentation.main.SettingsFragment
 import com.diu.yk_games.line2box.util.*
 
-class LeaderBoardFragment : BaseFragment<FragmentDisplayBinding>(FragmentDisplayBinding::inflate) {
+class LeaderBoardFragment : BaseFragment<FragmentLeaderBoardBinding>(FragmentLeaderBoardBinding::inflate) {
     private val rankListAdapter by lazy {
         RankListAdapter(viewModel.playerId)
     }

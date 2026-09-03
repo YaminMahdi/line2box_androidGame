@@ -1,35 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context=".presentation.online.stats.ScoreBoardFragment">
 
-    <include
-        android:id="@+id/homeRow"
-        layout="@layout/home_row" />
-
-    <TextView
-        android:id="@+id/fragLabel"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="20dp"
-        android:layout_marginTop="@dimen/_5sdp"
-        android:layout_marginBottom="@dimen/_14sdp"
-        android:fontFamily="@font/sortie"
-        android:gravity="center"
-        android:maxLines="1"
-        android:text="@string/global_score_board"
-        android:textColor="@color/white"
-        android:textSize="@dimen/_28ssp" />
+        android:layout_height="wrap_content">
+        <include
+            android:id="@+id/homeRow"
+            layout="@layout/home_row" />
+
+        <TextView
+            android:id="@+id/fragLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/sortie"
+            android:layout_gravity="center"
+            android:maxLines="1"
+            android:text="@string/global_score_board"
+            android:textColor="@color/white"
+            android:textSize="@dimen/_22ssp" />
+    </FrameLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="20dp"
-        android:layout_marginBottom="5dp"
+        android:layout_marginTop="5dp"
         android:gravity="center">
 
         <TextView
@@ -59,23 +59,26 @@
             />
     </LinearLayout>
 
+    <androidx.compose.ui.platform.ComposeView
+        android:id="@+id/composeView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recyclerView"
+        <androidx.viewpager2.widget.ViewPager2
+            android:id="@+id/scorePager"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginHorizontal="30dp"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            tools:listitem="@layout/item_score_friendly" />
+            android:layout_height="match_parent" />
 
         <com.google.android.material.loadingindicator.LoadingIndicator
             android:id="@+id/loader"
             style="@style/Widget.Material3.LoadingIndicator.Contained"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:translationZ="10dp"
             android:layout_gravity="center" />
     </FrameLayout>
 

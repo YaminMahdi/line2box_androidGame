@@ -769,3 +769,7 @@ inline fun <reified T : Any> T.asMap(): Map<String, Any> {
         .filterValues { it != null }
         .mapValues { it.value as Any }
 }
+
+context(f: Fragment)
+val Int.dpToPx: Int
+    get() = (this * f.resources.displayMetrics.density).toInt()
