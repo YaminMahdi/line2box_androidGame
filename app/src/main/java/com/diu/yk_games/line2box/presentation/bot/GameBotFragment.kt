@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import androidx.core.graphics.drawable.toDrawable
+import androidx.lifecycle.Lifecycle
 import com.diu.yk_games.line2box.databinding.DialogLayoutAlertBinding
 import com.diu.yk_games.line2box.databinding.FragmentGameDualBinding
 import com.diu.yk_games.line2box.presentation.base.BaseFragment
@@ -47,7 +48,7 @@ class GameBotFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDualBi
     private fun setupUI() {
 
         val randLineId = gameUtils.idFromName(lineIDs.random())
-        scope.launch {
+        launchResumed {
             isFirstRun = IO { pref.read("firstRun", true) }
             if (isFirstRun) {
                 delay(200.milliseconds)
@@ -66,6 +67,7 @@ class GameBotFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDualBi
 
     @SuppressLint("SetTextI18n")
     private fun performClick(view: View, isBot: Boolean = false) {
+        if (!lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) return
         val idNm = resources.getResourceEntryName(view.id)
         cat("performClick $idNm")
         val aroundIds = gameUtils.getAroundIdNames(idNm)
@@ -79,6 +81,7 @@ class GameBotFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDualBi
             lineIDs.remove(idNm)
             gameUtils.clickCount++
             bg.setColor(if (isBot) gameUtils.redX else gameUtils.blueX)
+            gameUtils.lineSelector?.moveSelector(idNm, view)
 
             val extraTurn = gameUtils.handleBoxPair(
                 aroundIds = aroundIds,

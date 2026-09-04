@@ -556,9 +556,16 @@
                 android:textAlignment="center"
                 android:textColor="@color/white"
                 android:textSize="@dimen/_25sdp" />
-
-
         </LinearLayout>
+
+        <View
+            android:id="@+id/lineSelector"
+            android:layout_width="@dimen/_50sdp"
+            android:layout_height="@dimen/_16sdp"
+            android:background="@drawable/line_selector"
+            android:translationZ="-2dp"
+            android:visibility="invisible"
+            tools:visibility="visible" />
 
         <!--            box line up, line left, circle   1-->
         <LinearLayout
@@ -678,9 +685,7 @@
                 android:id="@+id/r1cr1"
                 android:layout_width="@dimen/_16sdp"
                 android:layout_height="@dimen/_16sdp"
-                android:background="@drawable/circle"
-
-                />
+                android:background="@drawable/circle" />
 
             <View
                 android:id="@+id/r1cr2"

@@ -25,8 +25,8 @@ import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.DialogLayoutInfoBinding
 import com.diu.yk_games.line2box.databinding.FragmentGameDualBinding
 import com.diu.yk_games.line2box.presentation.MainViewModel
-import com.diu.yk_games.line2box.presentation.island.DynamicIslandController
 import com.diu.yk_games.line2box.presentation.component.TurnBattleBar
+import com.diu.yk_games.line2box.presentation.island.DynamicIslandController
 import com.diu.yk_games.line2box.presentation.main.SettingsFragment
 import kotlinx.coroutines.launch
 import java.util.Objects
@@ -39,10 +39,12 @@ class GameUtils(
 ) {
     private val viewModel by fragment.activityViewModels<MainViewModel>()
     private var context = fragment.requireActivity()
+    var lineSelector: LineSelectorUtil? = binding?.let { LineSelectorUtil(it) }
 
     fun updateContext(context: FragmentActivity, binding: FragmentGameDualBinding) {
         this.context = context
         this.binding = binding
+        this.lineSelector = LineSelectorUtil(binding)
     }
 
     fun getColor(@ColorRes id: Int): Int =
@@ -83,6 +85,7 @@ class GameUtils(
 
     suspend fun resetGameBoard() {
         val binding = binding ?: return
+        lineSelector?.reset()
         lineIDs.mapAsync {
             val bg = binding.root
                 .findViewById<View>(idFromName(it))?.background?.mutate() as? GradientDrawable

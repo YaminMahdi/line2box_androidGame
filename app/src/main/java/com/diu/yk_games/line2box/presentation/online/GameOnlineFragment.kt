@@ -161,6 +161,7 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
 //            val isRedTurn = color == LineColor.Red
 //            val isRedTurn = gameUtils.clickCount % 2 == 1
             bg.setColor(if (color.isRed) gameUtils.redX else gameUtils.blueX)
+            gameUtils.lineSelector?.moveSelector(idNm, view)
 
             viewModel.sendClick2Server(GameRoom.Line(idNm, color))
 

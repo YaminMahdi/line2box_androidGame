@@ -81,6 +81,7 @@ class GameDualFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDualB
             gameUtils.clickCount++
             val isRedTurn = gameUtils.clickCount % 2 == 1
             bg.setColor(if (isRedTurn) gameUtils.redX else gameUtils.blueX)
+            gameUtils.lineSelector?.moveSelector(idNm, view)
 
             val extraTurn = gameUtils.handleBoxPair(
                 aroundIds = aroundIds,

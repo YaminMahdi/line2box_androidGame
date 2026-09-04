@@ -126,10 +126,12 @@ fun <T> Flow<T?>.collectWithLifecycleNoRepeat(
  * one-time block, and completes without repeating.
  */
 fun LifecycleOwner.launchResumed(
-    block: () -> Unit
+    block: suspend CoroutineScope.() -> Unit
 ): Job {
     return lifecycleScope.launch {
-        lifecycle.withResumed(block = block)
+        lifecycle.withResumed(block = {
+            launch { block() }
+        })
     }
 }
 

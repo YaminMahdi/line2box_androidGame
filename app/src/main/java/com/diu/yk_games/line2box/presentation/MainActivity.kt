@@ -62,7 +62,7 @@ class MainActivity : AppCompatActivity() {
         setupListener()
         setupObserver()
         launchResumed {
-            viewModel.initializePlayGameUser(this)
+            viewModel.initializePlayGameUser(this@MainActivity)
         }
     }
 
