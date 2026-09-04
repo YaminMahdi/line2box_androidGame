@@ -19,20 +19,18 @@ import androidx.navigation.toRoute
 import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.DialogLayoutGameOverBinding
 import com.diu.yk_games.line2box.databinding.FragmentGameDualBinding
-import com.diu.yk_games.line2box.model.*
+import com.diu.yk_games.line2box.model.GameRoom
+import com.diu.yk_games.line2box.model.MsgStore
+import com.diu.yk_games.line2box.model.PlayerColor
 import com.diu.yk_games.line2box.presentation.base.BaseFragment
 import com.diu.yk_games.line2box.presentation.island.DynamicIslandController
 import com.diu.yk_games.line2box.presentation.navigation.Routes
 import com.diu.yk_games.line2box.util.*
 import com.google.android.play.core.review.ReviewManagerFactory
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.ValueEventListener
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlin.random.Random
-import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
@@ -265,9 +263,14 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
 
             else -> handleDraw()
         }
-        saveToFirebase(plr1Cup, plr2Cup)
+        viewModel.saveMultiplayerScore2ScoreBoard(
+            plr1Cup = plr1Cup,
+            plr2Cup = plr2Cup,
+            score1 = gameUtils.scoreRed,
+            score2 = gameUtils.scoreBlue
+        )
         lifecycleScope.launch {
-            delay(1200.milliseconds)
+            delay(1.2.seconds)
             onGameOver(
                 winMsg = winTxt,
                 winCoin = wCoin,
@@ -376,94 +379,6 @@ class GameOnlineFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDua
             }
             start()
         }
-    }
-
-    private fun saveToFirebase(plr1Cup: String, plr2Cup: String) {
-        if (!viewModel.isConnected) return
-
-        val key = viewModel.matchRouteInfo.gameKey
-        if (key.isEmpty() || viewModel.matchRouteInfo.watchOnly) return
-
-        viewModel.sendCup2Server(plr1Cup, plr2Cup)
-        if (!viewModel.matchRouteInfo.isPlyr1) return
-
-        val redScore = gameUtils.scoreRed
-        val blueScore = gameUtils.scoreBlue
-
-        val redData = "${
-            viewModel.matchRouteInfo.nm1.trim().split("\n", " ").firstOrNull()
-        }: $redScore"
-
-        val blueData = "${
-            viewModel.matchRouteInfo.nm2.trim().split("\n", " ").firstOrNull()
-        }: $blueScore"
-
-        val room = viewModel.getMatch() ?: return
-
-        val score = Score(
-            time = System.currentTimeMillis(),
-            type = Score.Type.Friendly,
-            player1 = room.player1.copy(seenAt = -1L),
-            player2 = room.player2.copy(seenAt = -1L),
-            result = LiveResult(
-                score1 = redScore,
-                score2 = blueScore,
-                cup1 = plr1Cup,
-                cup2 = plr2Cup
-            )
-        )
-
-        val db = viewModel.firestore
-
-
-        // Fetch player 2 cup from realtime database
-        val plr2CupRef = viewModel.multiPlayerRef
-            .child(key)
-            .child("plr2Cup")
-
-        plr2CupRef.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                val finalPlr2Cup = snapshot.getValueOrNull<String>() ?: return
-
-                // 1. Save score
-                db.collection("ScoreBoard")
-                    .document(viewModel.uuidV7)
-                    .set(score.copy(result = score.result.copy(cup2 = finalPlr2Cup)))
-
-                // 2. Update LastBestPlayer atomically
-                val maxScore = maxOf(redScore, blueScore)
-
-                val highestLocalData = when {
-                    redScore >= blueScore -> redData
-                    else -> blueData
-                }
-
-                val docRef = db.collection("LastBestPlayer")
-                    .document("LastBestPlayer")
-
-
-                db.runTransaction { transaction ->
-                    val snapshot = transaction.get(docRef)
-                    val currentInfo = snapshot.getString("info") ?: ""
-
-                    val currentBestScore =
-                        currentInfo
-                            .substringAfterLast(": ", "0")
-                            .toIntOrNull() ?: 0
-
-                    if (maxScore > currentBestScore) {
-                        transaction.update(
-                            docRef,
-                            "info",
-                            highestLocalData
-                        )
-                    }
-
-                }
-            }
-
-            override fun onCancelled(error: DatabaseError) = Unit
-        })
     }
 
     companion object {

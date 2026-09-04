@@ -11,6 +11,7 @@ import kotlinx.parcelize.Parcelize
 @IgnoreExtraProperties
 data class GameRoom(
     val key: String = "",
+    val plr2Cup: String = "", // fix: remove later
     val ver: Version = Version.V1,
     var pingAt: Long = -1L,
     val player1: PlayerInfo = PlayerInfo(),
@@ -69,6 +70,26 @@ data class GameRoom(
             nm2 = if (isPlyr1) player2.nm else gameProfile.nm,
             lvl2 = if (isPlyr1) player2.lvl else gameProfile.lvlByCal(),
             isPlyr1 = isPlyr1
+        )
+    }
+
+    fun toScore(
+        cup1: String? = null,
+        cup2: String? = null,
+        time: Long? = null,
+        type: Score.Type = Score.Type.Globe
+    ): Score {
+        val cup1 = cup1 ?: matchInfo.result.cup1
+        val cup2 = cup2 ?: matchInfo.result.cup2.ifEmpty { plr2Cup }
+        return Score(
+            time = time ?: pingAt,
+            type = type,
+            player1 = player1.copy(seenAt = -1L),
+            player2 = player2.copy(seenAt = -1L),
+            result = matchInfo.result.copy(
+                cup1 = cup1,
+                cup2 = cup2
+            )
         )
     }
 }

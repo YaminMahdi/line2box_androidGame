@@ -31,6 +31,7 @@ import kotlinx.coroutines.tasks.await
 import org.jsoup.Jsoup
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -52,7 +53,6 @@ class MainViewModel(
     val activePlayersRef = database.getReference("actives")
     val gamerProfileRef = firestore.collection("gamerProfile")
     val scoreBoardRef = firestore.collection("ScoreBoard")
-    val gamerProfiledRef = firestore.collection("gamerProfile")
 
     val matchRef
         get() = multiPlayerRef.child(matchRouteInfo.gameKey)
@@ -81,12 +81,16 @@ class MainViewModel(
         field = savedStateHandle.getMutableStateFlow("leaderboard", null)
 
     val matches: StateFlow<PersistentList<GameRoom>>
-        field = savedStateHandle.getPersistentListMutableStateFlow("matches", persistentListOf(), viewModelScope)
+        field = savedStateHandle.getPersistentListMutableStateFlow(
+            "matches",
+            persistentListOf(),
+            viewModelScope
+        )
 
     val actives = activePlayersRef
         .limitToLast(100)
         .asValueFlowList<PlayerInfo>()
-        .map { lst -> lst.sortedByDescending{ it.seenAt }.toPersistentList() }
+        .map { lst -> lst.sortedByDescending { it.seenAt }.toPersistentList() }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(),
@@ -166,34 +170,6 @@ class MainViewModel(
         val updated = gameProfile.transform()
         gameProfileState.value = updated
         pref.save(PrefKeys.PROFILE, updated)
-    }
-
-    fun doOnMatchEnd(rewardCoin: Int, isWin: Boolean = true) {
-        if (matchRouteInfo.watchOnly) return
-        val coinDelta = if (isWin) rewardCoin else -rewardCoin
-
-        // 1. Update local UI state
-        updateProfile {
-            copy(
-                matchPlayed = matchPlayed + 1,
-                matchWinMulti = if (isWin) matchWinMulti + 1 else matchWinMulti,
-                coin = coin + coinDelta
-            )
-        }
-
-        // 2. Build Firestore atomic updates
-        val updates = buildMap {
-            put("matchPlayed", FieldValue.increment(1))
-            put("coin", FieldValue.increment(coinDelta.toLong()))
-            if (isWin) put("matchWinMulti", FieldValue.increment(1))
-        }
-
-        // 3. Execute Firestore update with error handling
-        gamerProfileRef.document(matchRouteInfo.currentPlayerId)
-            .update(updates)
-            .addOnFailureListener {
-                it.logError("doOnMatchEnd")
-            }
     }
 
     fun initializePlayGameUser(activity: Activity, onSuccess: () -> Unit = {}) {
@@ -420,8 +396,7 @@ class MainViewModel(
     }
 
     private suspend fun loadMatches(type: Score.Type): PersistentList<Score> =
-        scoreBoardRef
-            .where(if (type.isFriendly) friendlyFilter else globeFilter)
+        scoreBoardRef.where(if (type.isFriendly) friendlyFilter else globeFilter)
             .orderBy("time", Query.Direction.DESCENDING)
             .limit(SCOREBOARD_LIMIT)
             .get()
@@ -504,6 +479,117 @@ class MainViewModel(
         }?.also { lastCountFetchTime = System.currentTimeMillis() }
     }
 
+    fun doOnMatchEnd(rewardCoin: Int, isWin: Boolean = true) {
+        if (matchRouteInfo.watchOnly) return
+        val coinDelta = if (isWin) rewardCoin else -rewardCoin
+
+        // 1. Update local UI state
+        updateProfile {
+            copy(
+                matchPlayed = matchPlayed + 1,
+                matchWinMulti = if (isWin) matchWinMulti + 1 else matchWinMulti,
+                coin = coin + coinDelta
+            )
+        }
+
+        // 2. Build Firestore atomic updates
+        val updates = buildMap {
+            put("matchPlayed", FieldValue.increment(1))
+            put("coin", FieldValue.increment(coinDelta.toLong()))
+            if (isWin) put("matchWinMulti", FieldValue.increment(1))
+        }
+
+        // 3. Execute Firestore update with error handling
+        gamerProfileRef.document(matchRouteInfo.currentPlayerId)
+            .update(updates)
+            .addOnFailureListener {
+                it.logError("doOnMatchEnd")
+            }
+    }
+
+    suspend fun sendCup2LiveMatch(plr1Cup: String, plr2Cup: String) {
+        if (matchRouteInfo.gameKey.isEmpty()) return
+        if (matchRouteInfo.currentPlayerId != playerId) return
+
+        val isPlyr1 = matchRouteInfo.isPlyr1
+        val playerCupKey = if (isPlyr1) "cup1" else "cup2"
+        val cup = if (isPlyr1) plr1Cup else plr2Cup
+
+        val updates = mutableMapOf<String, Any>("matchInfo/result/$playerCupKey" to cup)
+        if (!isPlyr1) updates["plr2Cup"] = plr2Cup // fix: remove some days
+
+        matchRef?.updateChildren(updates)?.await()
+    }
+
+    fun saveMultiplayerScore2ScoreBoard(
+        plr1Cup: String,
+        plr2Cup: String,
+        score1: Int,
+        score2: Int
+    ) {
+        if (!isConnected) return
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val key = matchRouteInfo.gameKey
+                if (key.isEmpty() || matchRouteInfo.watchOnly) return@launch
+
+                sendCup2LiveMatch(plr1Cup, plr2Cup)
+                if (!matchRouteInfo.isPlyr1) return@launch
+
+                val redData = "${matchRouteInfo.nm1.trim().split("\n", " ").firstOrNull()}: $score1"
+                val blueData =
+                    "${matchRouteInfo.nm2.trim().split("\n", " ").firstOrNull()}: $score2"
+
+                val room = withTimeoutOrNull(5.seconds) {
+                    getMatchFLow().first { it.matchInfo.result.cup2.isNotEmpty() || it.plr2Cup.isNotEmpty() }
+                } ?: getMatch() ?: return@launch
+
+                val resolvedCup2 = room.matchInfo.result.cup2.takeIf { it.isNotEmpty() }
+                    ?: room.plr2Cup.takeIf { it.isNotEmpty() }
+                    ?: multiPlayerRef.child(key)
+                        .child("plr2Cup")
+                        .get().await()
+                        .getValueOrNull<String>()
+                    ?: plr2Cup
+
+                val score = room.toScore(
+                    cup1 = plr1Cup,
+                    cup2 = resolvedCup2,
+                    time = System.currentTimeMillis()
+                )
+
+                val maxScore = maxOf(score1, score2)
+                val highestLocalData = if (score1 >= score2) redData else blueData
+                val docRef = firestore
+                    .collection("LastBestPlayer")
+                    .document("LastBestPlayer")
+
+                coroutineScope {
+                    launch {
+                        scoreBoardRef.document(room.key.ifEmpty { uuidV7 })
+                            .set(score).await()
+                    }
+                    launch {
+                        firestore.runTransaction { txn ->
+                            val currentBestScore = txn.get(docRef).getString("info")
+                                ?.substringAfterLast(": ", "0")
+                                ?.toIntOrNull() ?: 0
+                            if (maxScore > currentBestScore) txn.update(
+                                docRef,
+                                "info",
+                                highestLocalData
+                            )
+                        }.await()
+                    }
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                e.logError("saveMultiplayerScore2ScoreBoard")
+            }
+        }
+    }
+
     fun initGameProfile() {
         gameProfileState.value = pref.read(PrefKeys.PROFILE, GameProfile())
         playerId = gameProfile.playerId
@@ -558,7 +644,7 @@ class MainViewModel(
     }
 
     suspend fun removeOlderMatches() {
-        runCatching {
+        try {
             // 1. Calculate the cutoff timestamp
             val cutoffTime = System.currentTimeMillis() - Constants.DAY1_MILLIS
 
@@ -580,8 +666,10 @@ class MainViewModel(
 
             if (deleteUpdates.isNotEmpty())
                 multiPlayerRef.updateChildren(deleteUpdates).await()
-        }.onFailure {
-            it.logError("removeOlderMatches")
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            e.logError("removeOlderMatches")
         }
     }
 
@@ -594,6 +682,57 @@ class MainViewModel(
 
         if (deleteUpdates.isNotEmpty())
             multiPlayerRef.updateChildren(deleteUpdates)
+    }
+
+    private var syncDone = false
+
+    private suspend fun syncCompletedMatches() = withContext(Dispatchers.IO) {
+        if (syncDone) return@withContext
+        var scoresToSync = matches.value
+            .filter { it.matchInfo.result.run { score1 + score2 == 36 && cup1.isNotEmpty() && (cup2.isNotEmpty() || it.plr2Cup.isNotEmpty()) } }
+            .associate { it.key.ifEmpty { uuidV7 } to it.toScore()}
+        if (scoresToSync.isEmpty()) {
+            syncDone = true
+            return@withContext
+        }
+        val existingKeys = getExistingKeys(scoreBoardRef, scoresToSync.keys.toList())
+        scoresToSync = scoresToSync - existingKeys
+        scoresToSync.toList().chunked(500).forEach { chunk ->
+            val batch = firestore.batch()
+            for ((key, score) in chunk) {
+                val docId = key.ifEmpty { uuidV7 }
+                val docRef = scoreBoardRef.document(docId)
+                batch.set(docRef, score)
+            }
+            batch.commit().await()
+            syncDone = true
+        }
+    }
+
+    suspend fun getExistingKeys(
+        collection: CollectionReference,
+        keysToCheck: List<String>
+    ): Set<String> {
+        if (keysToCheck.isEmpty()) return emptySet()
+
+        return coroutineScope {
+            keysToCheck
+                .chunked(30)
+                .map { chunk ->
+                    async {
+                        collection
+                            .whereIn(FieldPath.documentId(), chunk)
+                            .get()
+                            .await()
+                            .documents
+                            .filter { it.exists() }
+                            .map { it.id }
+                    }
+                }
+                .awaitAll()
+                .flatten()
+                .toSet()
+        }
     }
 
     val lineIdsFromServer: StateFlow<Set<GameRoom.Line>>
@@ -841,6 +980,8 @@ class MainViewModel(
                     ChatCommand.ClearAll -> clearChat(chatRef)
                     ChatCommand.LastUser -> showLastUser(currentChats, chatRef)
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 e.logError("sendCommand")
             }
@@ -939,57 +1080,68 @@ class MainViewModel(
     fun fetchActiveMatches() {
         if (fetchActiveMatchesListener != null) return
         viewModelScope.launch(Dispatchers.IO) {
+            launch {
+                delay(7.seconds)
+                syncCompletedMatches()
+                removeUnplayedOlderMatches()
+            }
             removeOlderMatches()
             fetchActiveMatchesListener =
                 multiPlayerRef.limitToLast(100).addChildEventListener(object : ChildEventListener {
                     override fun onChildAdded(dataSnapshot: DataSnapshot, s: String?) {
                         Log.d("addList", "onChildAdded: " + dataSnapshot.key)
-                        runCatching {
-                            matches.value = matches.value.addSorted(dataSnapshot)
-                            removeUnplayedOlderMatches()
-                        }.onFailure {
-                            it.logError("fetchActiveMatches")
+                        try {
+                            matches.value = matches.value
+                                .addSorted(dataSnapshot.getRoom() ?: return)
+                        } catch (e: CancellationException) {
+                            throw e
+                        } catch (e: Exception) {
+                            e.logError("fetchActiveMatches")
                         }
                     }
 
                     override fun onChildChanged(dataSnapshot: DataSnapshot, s: String?) {
-                        removeByKey(dataSnapshot.key)
-                        runCatching {
-                            matches.value = matches.value.addSorted(dataSnapshot)
-                        }.onFailure {
-                            it.logError("fetchActiveMatches")
+                        try {
+                            matches.value = matches.value
+                                .removeByKey(dataSnapshot.key)
+                                .addSorted( dataSnapshot.getRoom() ?: return)
+                        } catch (e: CancellationException) {
+                            throw e
+                        } catch (e: Exception) {
+                            e.logError("fetchActiveMatches")
                         }
                     }
 
                     override fun onChildRemoved(dataSnapshot: DataSnapshot) {
-                        removeByKey(dataSnapshot.key)
+                        matches.value = matches.value.removeByKey(dataSnapshot.key)
                     }
 
-                    private fun PersistentList<GameRoom>.addSorted(dataSnapshot: DataSnapshot) =
-                        dataSnapshot.getValueOrNull<GameRoom>()?.let { game ->
-                            plus(game.copy(key = dataSnapshot.key.orEmpty()))
-                                .distinctBy { it.key }
-                                .sortedByDescending { it.pingAt }
-                                .partition { it.ver.isV1 }
-                                .let { pair ->
-                                    pair.second
-                                        .plus(pair.first.sortedByDescending { room ->
-                                            val time =
-                                                room.friendlyChat.firstNotNullOfOrNull { it.value }?.time
-                                                    ?: -1L
-                                            room.pingAt = time
-                                            time
-                                        })
-                                }
-                        }.orEmpty().toPersistentList()
+                    private fun DataSnapshot.getRoom() = getValueOrNull<GameRoom>()?.copy(key = key.orEmpty())
 
-                    private fun removeByKey(key: String?) {
-                        key?.let { key ->
-                            matches.value.toMutableList().apply {
-                                if (removeIf { it.key == key })
-                                    matches.value = toPersistentList()
+                    private fun PersistentList<GameRoom>.addSorted(room: GameRoom) =
+                        plus(room)
+                            .distinctBy { it.key }
+                            .sortedByDescending { it.pingAt }
+                            .partition { it.ver.isV1 }
+                            .let { pair ->
+                                pair.second
+                                    .plus(pair.first.sortedByDescending { room ->
+                                        val time =
+                                            room.friendlyChat.firstNotNullOfOrNull { it.value }?.time
+                                                ?: -1L
+                                        room.pingAt = time
+                                        time
+                                    })
+                            }.toPersistentList()
+
+
+                    private fun PersistentList<GameRoom>.removeByKey(key: String?): PersistentList<GameRoom> {
+                        return key?.let { key ->
+                            toMutableList().run {
+                                removeIf { it.key == key }
+                                toPersistentList()
                             }
-                        }
+                        } ?: this
                     }
 
                     override fun onChildMoved(dataSnapshot: DataSnapshot, s: String?) {}
@@ -1003,6 +1155,9 @@ class MainViewModel(
 
     fun getMatch(fullKey: String = matchRouteInfo.gameKey): GameRoom? =
         matches.value.find { it.key == fullKey && it.key.isNotBlank() }
+
+    fun getMatchFLow(fullKey: String = matchRouteInfo.gameKey) =
+        matches.mapNotNull { match -> match.find { it.key == fullKey && it.key.isNotBlank() } }
 
     fun getValidMatch(shortKey: String): GameRoom? =
         matches.value.find { getKey4(it.key) == shortKey && it.key.isNotBlank() }
@@ -1140,21 +1295,6 @@ class MainViewModel(
         matchLiveRef
             ?.child("result/$playerScoreKey")
             ?.setValue(ServerValue.increment(1))
-    }
-
-    fun sendCup2Server(plr1Cup: String, plr2Cup: String) {
-        if (matchRouteInfo.gameKey.isEmpty()) return
-        val isMe = matchRouteInfo.currentPlayerId == playerId
-        val isPlyr1 = matchRouteInfo.isPlyr1
-        if (!isMe) return
-        val playerCupKey = if (isPlyr1) "cup1" else "cup2"
-        val cup = if (isPlyr1) plr1Cup else plr2Cup
-        val updates = buildMap {
-            put("matchInfo/result/$playerCupKey", cup)
-            if (!matchRouteInfo.isPlyr1)
-                put("plr2Cup", plr2Cup)
-        }
-        matchRef?.updateChildren(updates)
     }
 
     fun sendClick2Server(line: GameRoom.Line) {

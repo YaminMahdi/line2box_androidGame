@@ -3,14 +3,20 @@ package com.diu.yk_games.line2box.base
 import android.os.Parcel
 import android.os.Parcelable
 import androidx.lifecycle.SavedStateHandle
+import com.diu.yk_games.line2box.model.GameProfile
+import com.diu.yk_games.line2box.model.Score
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parceler
+import kotlinx.parcelize.parcelableCreator
 
-class PersistentListParceler<T : Parcelable>(
+object ScoreListParceler : PersistentListParceler<Score>(parcelableCreator<Score>())
+object GameProfileListParceler : PersistentListParceler<GameProfile>(parcelableCreator<GameProfile>())
+
+open class PersistentListParceler<T : Parcelable>(
     private val creator: Parcelable.Creator<T>
 ) : Parceler<PersistentList<T>> {
 
