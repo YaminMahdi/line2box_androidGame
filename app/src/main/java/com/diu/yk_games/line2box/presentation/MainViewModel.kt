@@ -29,6 +29,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.tasks.await
 import org.jsoup.Jsoup
+import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
@@ -75,8 +76,8 @@ class MainViewModel(
     val friendlyChatList: StateFlow<List<MsgStore>>
         field = savedStateHandle.getMutableStateFlow("friendlyChatList", listOf())
 
-    val scoreboard: StateFlow<ScoreBoardState?>
-        field = savedStateHandle.getMutableStateFlow("scoreboard", null)
+    val scoreboard: StateFlow<ScoreBoardState>
+        field = savedStateHandle.getMutableStateFlow("scoreboard", ScoreBoardState(isLoading = true))
     val leaderboard: StateFlow<LeaderBoardState?>
         field = savedStateHandle.getMutableStateFlow("leaderboard", null)
 
@@ -134,7 +135,9 @@ class MainViewModel(
     override fun onCleared() {
         player.release()
         clearMultiPlayerData()
-        runBlocking(Dispatchers.IO) { removeOlderMatches() }
+        runBlocking(Dispatchers.IO) {
+            runCatching { removeOlderMatches() }
+        }
     }
 
     fun clearMultiPlayerData() {
@@ -200,7 +203,7 @@ class MainViewModel(
                                         playerId = player.playerId
                                         player.playerId.log("playerId")
                                         if (profileNeeded) {
-                                            firestore.collection("gamerProfile")
+                                            gamerProfileRef
                                                 .document(player.playerId)
                                                 .get().addOnSuccessListener { document ->
                                                     if (document.exists()) {
@@ -265,7 +268,7 @@ class MainViewModel(
         removeProfileFromServerListener()
         val playerId = playerId.takeIf { it.isNotEmpty() } ?: return
         var firstError = false
-        profileFromServerListener = firestore.collection("gamerProfile")
+        profileFromServerListener = gamerProfileRef
             .document(playerId)
             .addSnapshotListener { snapshot, exception ->
                 setLoading(false)
@@ -306,7 +309,7 @@ class MainViewModel(
             profile.countryEmoji = countryPair.second
             updateProfile(profile)
 
-            firestore.collection("gamerProfile").document(playerId)
+            gamerProfileRef.document(playerId)
                 .set(profile)
                 .addOnSuccessListener {
                     pref.save("needProfile", false)
@@ -330,7 +333,7 @@ class MainViewModel(
         if (value)
             DynamicIslandController.loading()
         else
-            DynamicIslandController.stopLoading()
+            DynamicIslandController.idle()
     }
 
 
@@ -352,6 +355,10 @@ class MainViewModel(
         if (fetchJobs[type]?.isActive == true) return
         if (!force && isFresh(type)) return
 
+        scoreboard.update {
+            it.copy(isLoading = true)
+        }
+
         fetchJobs[type] = viewModelScope.launch {
             cat("fetchScoreBoard viewModelScope")
             try {
@@ -364,12 +371,11 @@ class MainViewModel(
                     freshLastBest = lastBestTask.await()
                 }
 
-                scoreboard.update { current ->
-                    val state = current ?: ScoreBoardState()
-                    val best = freshLastBest ?: state.lastBest
+                scoreboard.update {
+                    val best = freshLastBest ?: it.lastBest
                     when (type) {
-                        Friendly -> state.copy(friendlyMatches = matches, lastBest = best)
-                        Globe -> state.copy(globalMatches = matches, lastBest = best)
+                        Friendly -> it.copy(friendlyMatches = matches, lastBest = best, isLoading = false)
+                        Globe -> it.copy(globalMatches = matches, lastBest = best, isLoading = false)
                     }
                 }
 
@@ -380,8 +386,8 @@ class MainViewModel(
                 throw e
             } catch (e: Throwable) {
                 scoreboard.update {
-                    val state = it ?: ScoreBoardState()
-                    state.copy(error = e)
+                    DynamicIslandController.message(e.message)
+                    it.copy(isLoading = false)
                 }
                 e.logError("fetchScoreBoard")
             }
@@ -389,7 +395,7 @@ class MainViewModel(
     }
 
     private fun isFresh(type: Score.Type): Boolean {
-        val state = scoreboard.value ?: return false
+        val state = scoreboard.value
         val cached = if (type.isFriendly) state.friendlyMatches else state.globalMatches
         return cached.isNotEmpty() &&
                 lastFetchTimes[type]?.isLessThanAgo(CACHE_TTL) == true
@@ -643,7 +649,7 @@ class MainViewModel(
         tempKeys = listOf()
     }
 
-    suspend fun removeOlderMatches() {
+    private suspend fun removeOlderMatches2() {
         try {
             // 1. Calculate the cutoff timestamp
             val cutoffTime = System.currentTimeMillis() - Constants.DAY1_MILLIS
@@ -673,30 +679,32 @@ class MainViewModel(
         }
     }
 
-    private fun removeUnplayedOlderMatches() {
+    private suspend fun removeOlderMatches() {
         val deleteUpdates = matches.value
             .filter { match ->
                 match.pingAt.isMoreThanAgo(1.hours) && match.matchInfo.result.run { score1 == 0 && score2 == 0 }
+                        || match.pingAt.isMoreThanAgo(1.days)
             }
             .associate { match -> match.key to null }
 
         if (deleteUpdates.isNotEmpty())
-            multiPlayerRef.updateChildren(deleteUpdates)
+            multiPlayerRef.updateChildren(deleteUpdates).await()
     }
 
-    private var syncDone = false
+    private var syncDone by savedStateHandle.saved { false }
 
     private suspend fun syncCompletedMatches() = withContext(Dispatchers.IO) {
         if (syncDone) return@withContext
+        syncDone = true
         var scoresToSync = matches.value
             .filter { it.matchInfo.result.run { score1 + score2 == 36 && cup1.isNotEmpty() && (cup2.isNotEmpty() || it.plr2Cup.isNotEmpty()) } }
-            .associate { it.key.ifEmpty { uuidV7 } to it.toScore()}
-        if (scoresToSync.isEmpty()) {
-            syncDone = true
+            .associate { it.key.ifEmpty { uuidV7 } to it.toScore() }
+        if (scoresToSync.isEmpty())
             return@withContext
-        }
         val existingKeys = getExistingKeys(scoreBoardRef, scoresToSync.keys.toList())
         scoresToSync = scoresToSync - existingKeys
+        if (scoresToSync.isEmpty())
+            return@withContext
         scoresToSync.toList().chunked(500).forEach { chunk ->
             val batch = firestore.batch()
             for ((key, score) in chunk) {
@@ -705,7 +713,6 @@ class MainViewModel(
                 batch.set(docRef, score)
             }
             batch.commit().await()
-            syncDone = true
         }
     }
 
@@ -714,7 +721,6 @@ class MainViewModel(
         keysToCheck: List<String>
     ): Set<String> {
         if (keysToCheck.isEmpty()) return emptySet()
-
         return coroutineScope {
             keysToCheck
                 .chunked(30)
@@ -1060,6 +1066,7 @@ class MainViewModel(
     fun fuckIL() {
         gamerProfileRef.whereEqualTo("countryEmoji", "🇮🇱").get()
             .addOnSuccessListener { qs ->
+                qs?.documents?.size.log("fuckIL")
                 qs?.documents?.mapNotNull { it?.toObjectOrNull<GameProfile>() }?.forEach {
                     it.countryEmoji = "🇵🇸"
                     it.countryNm = "Palestina"
@@ -1081,11 +1088,10 @@ class MainViewModel(
         if (fetchActiveMatchesListener != null) return
         viewModelScope.launch(Dispatchers.IO) {
             launch {
-                delay(7.seconds)
+                delay(5.seconds)
                 syncCompletedMatches()
-                removeUnplayedOlderMatches()
+                removeOlderMatches()
             }
-            removeOlderMatches()
             fetchActiveMatchesListener =
                 multiPlayerRef.limitToLast(100).addChildEventListener(object : ChildEventListener {
                     override fun onChildAdded(dataSnapshot: DataSnapshot, s: String?) {
@@ -1104,7 +1110,7 @@ class MainViewModel(
                         try {
                             matches.value = matches.value
                                 .removeByKey(dataSnapshot.key)
-                                .addSorted( dataSnapshot.getRoom() ?: return)
+                                .addSorted(dataSnapshot.getRoom() ?: return)
                         } catch (e: CancellationException) {
                             throw e
                         } catch (e: Exception) {
@@ -1116,7 +1122,8 @@ class MainViewModel(
                         matches.value = matches.value.removeByKey(dataSnapshot.key)
                     }
 
-                    private fun DataSnapshot.getRoom() = getValueOrNull<GameRoom>()?.copy(key = key.orEmpty())
+                    private fun DataSnapshot.getRoom() =
+                        getValueOrNull<GameRoom>()?.copy(key = key.orEmpty())
 
                     private fun PersistentList<GameRoom>.addSorted(room: GameRoom) =
                         plus(room)

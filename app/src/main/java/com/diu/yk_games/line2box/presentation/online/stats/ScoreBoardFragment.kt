@@ -46,8 +46,9 @@ class ScoreBoardFragment :
         binding.scorePager.adapter = pager
         binding.scorePager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
+                binding.loader.gone()
                 selectedTabIndex = position
-                when(position) {
+                when (position) {
                     0 -> viewModel.fetchScoreBoard(Score.Type.Friendly)
                     1 -> viewModel.fetchScoreBoard(Score.Type.Globe)
                 }
@@ -75,7 +76,7 @@ class ScoreBoardFragment :
         super.onViewCreated(view, savedInstanceState)
         setupUI()
         viewModel.scoreboard.collectWithLifecycle {
-            binding.loader.gone()
+            binding.loader.changeVisibility(it.isLoading)
             Log.d(TAG, "isSuccessful: ${it.friendlyMatches.size}")
             scoreFriendlyAdapter.submitList(it.friendlyMatches)
             scoreGlobalAdapter.submitList(it.globalMatches)
@@ -95,7 +96,7 @@ class ScoreBoardFragment :
             if (playerId.isEmpty() || itemClicked) return@playerClick
             itemClicked = true
             viewModel.player.playButtonClickSound()
-            viewModel.firestore.collection("gamerProfile").document(playerId)
+            viewModel.gamerProfileRef.document(playerId)
                 .get()
                 .addOnSuccessListener { doc ->
                     val profile = doc.toObjectOrNull<GameProfile>()

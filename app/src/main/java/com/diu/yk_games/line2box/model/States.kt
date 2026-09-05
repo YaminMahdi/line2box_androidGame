@@ -14,8 +14,8 @@ data class ScoreBoardState(
     val friendlyMatches: PersistentList<Score> = persistentListOf(),
     @TypeParceler<PersistentList<Score>, ScoreListParceler>
     val globalMatches: PersistentList<Score> = persistentListOf(),
-    val lastBest: String = "",
-    val error: Throwable? = null
+    val isLoading: Boolean = false,
+    val lastBest: String = ""
 ) : Parcelable
 
 @Parcelize

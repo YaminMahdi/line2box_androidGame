@@ -190,10 +190,8 @@ class GameDualFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDualB
             result = LiveResult(score1 = redScore, score2 = blueScore)
         )
 
-        val db = viewModel.firestore
-
         // 1. Save user's score to ScoreBoard
-        db.collection("ScoreBoard")
+        viewModel.scoreBoardRef
             .document(viewModel.uuidV7)
             .set(score)
 
@@ -204,9 +202,9 @@ class GameDualFragment : BaseFragment<FragmentGameDualBinding>(FragmentGameDualB
         }
         val maxScore = maxOf(redScore, blueScore)
 
-        val docRef = db.collection("LastBestPlayer").document("LastBestPlayer")
+        val docRef = viewModel.firestore.collection("LastBestPlayer").document("LastBestPlayer")
 
-        db.runTransaction { transaction ->
+        viewModel.firestore.runTransaction { transaction ->
             val snapshot = transaction.get(docRef)
             val currentInfo = snapshot.getString("info") ?: ""
             val currentBestScore =

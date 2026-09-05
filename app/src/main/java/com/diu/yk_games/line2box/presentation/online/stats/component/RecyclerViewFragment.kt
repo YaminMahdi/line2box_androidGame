@@ -31,7 +31,7 @@ class RecyclerViewFragment : Fragment() {
                 val marginInPx = 30.dpToPx
                 updateMargins(left = marginInPx, right = marginInPx)
             }
-            updatePadding(top = 8.dpToPx)
+            updatePadding(top = 8.dpToPx, bottom = 8.dpToPx)
             clipToPadding = false
             adapter = this@RecyclerViewFragment.adapter
             onCreateViewCallback?.invoke(this)

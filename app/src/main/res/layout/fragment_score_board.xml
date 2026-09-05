@@ -9,6 +9,7 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
+
         <include
             android:id="@+id/homeRow"
             layout="@layout/home_row" />
@@ -17,8 +18,8 @@
             android:id="@+id/fragLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:fontFamily="@font/sortie"
             android:layout_gravity="center"
+            android:fontFamily="@font/sortie"
             android:maxLines="1"
             android:text="@string/global_score_board"
             android:textColor="@color/white"
@@ -30,13 +31,15 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="20dp"
         android:layout_marginTop="5dp"
+        android:minHeight="40sp"
         android:gravity="center">
 
         <TextView
             android:id="@+id/statusLabel"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
+            android:layout_weight="1"
             android:fontFamily="@font/sortie"
             android:text="@string/last_best_score"
             android:textColor="@color/white"
@@ -44,13 +47,12 @@
 
         <TextView
             android:id="@+id/status"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="20dp"
             android:layout_marginEnd="9dp"
             android:fontFamily="@font/sortie"
             android:gravity="end"
-            android:minHeight="26sp"
             android:paddingVertical="3sp"
             android:text=""
             android:textColor="@color/white"
@@ -62,7 +64,7 @@
     <androidx.compose.ui.platform.ComposeView
         android:id="@+id/composeView"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content" />
 
     <FrameLayout
         android:layout_width="match_parent"
@@ -78,8 +80,8 @@
             style="@style/Widget.Material3.LoadingIndicator.Contained"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:translationZ="10dp"
-            android:layout_gravity="center" />
+            android:layout_gravity="center"
+            android:translationZ="10dp" />
     </FrameLayout>
 
 </LinearLayout>

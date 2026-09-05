@@ -10,6 +10,7 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
+
         <include
             android:id="@+id/homeRow"
             layout="@layout/home_row" />
@@ -18,8 +19,8 @@
             android:id="@+id/fragLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:fontFamily="@font/sortie"
             android:layout_gravity="center"
+            android:fontFamily="@font/sortie"
             android:maxLines="1"
             android:text="@string/global_score_board"
             android:textColor="@color/white"
@@ -30,7 +31,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="20dp"
-        android:layout_marginBottom="5dp"
+        android:layout_marginTop="5dp"
         android:gravity="center">
 
         <TextView
@@ -69,6 +70,8 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginHorizontal="30dp"
+            android:clipToPadding="false"
+            android:paddingVertical="8dp"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             tools:listitem="@layout/item_score_friendly" />
 

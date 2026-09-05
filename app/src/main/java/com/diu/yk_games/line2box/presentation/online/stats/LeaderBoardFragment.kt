@@ -67,7 +67,7 @@ class LeaderBoardFragment : BaseFragment<FragmentLeaderBoardBinding>(FragmentLea
             if (itemClicked) return@run
             itemClicked = true
             viewModel.player.playButtonClickSound()
-            viewModel.firestore.collection("gamerProfile").document(gamerPro.playerId)
+            viewModel.gamerProfileRef.document(gamerPro.playerId)
                 .get().addOnSuccessListener { documentSnapshot ->
                     val server2device = documentSnapshot.toObjectOrNull<GameProfile>()
                     server2device?.let {
