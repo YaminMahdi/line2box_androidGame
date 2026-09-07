@@ -14,4 +14,8 @@ data class PlayerInfo(
     val lvl: Int = 0,
     val coin: Int = 0,
     val seenAt: Long = -1L  // -1L means never seen, -2L means left
-) : Parcelable
+) : Parcelable {
+    fun shouldEnter(ver: GameRoom.Version, playerId: String) = id == playerId ||
+            (!ver.isV1 && seenAt < 0) ||
+            (ver.isV1 && id.isEmpty())
+}

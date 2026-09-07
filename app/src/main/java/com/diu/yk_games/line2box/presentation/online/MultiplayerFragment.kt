@@ -171,8 +171,8 @@ class MultiplayerFragment :
             Log.d("getKey", "afterTextChanged: " + room.key)
             closeKeyboard()
 
-            if (room.player2.run { id.isEmpty() || id == viewModel.playerId || seenAt < 0 } ||
-                room.player1.run { id.isEmpty() || id == viewModel.playerId || seenAt < 0 }
+            if (room.player2.shouldEnter(room.ver, viewModel.playerId) ||
+                room.player1.shouldEnter(room.ver, viewModel.playerId)
             ) {
                 viewModel.matchRouteInfo = room.toRoutes(viewModel.gameProfile)
                 viewModel.sendInitialMessage(room)

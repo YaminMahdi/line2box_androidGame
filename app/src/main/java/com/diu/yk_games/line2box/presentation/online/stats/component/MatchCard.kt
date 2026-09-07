@@ -11,7 +11,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Modifier
@@ -54,9 +53,6 @@ fun MatchCard(
     modifier: Modifier = Modifier
 ) {
     val isMatchOver = room.matchInfo.result.score1 + room.matchInfo.result.score2 == 36
-    val playerCount = remember(room) {
-        listOf(room.player1, room.player2).count { it.id.isNotEmpty() && it.seenAt > 0 }
-    }
 
     Column(
         modifier = modifier
@@ -101,7 +97,7 @@ fun MatchCard(
                     LiveStatus.Live
             )
             TimePassed(room.pingAt)
-            PlayerCountBadge(count = playerCount)
+            PlayerCountBadge(count = room.plyrCount)
         }
 
         Spacer(Modifier.height(4.dp))
@@ -156,8 +152,8 @@ fun MatchCard(
             )
         }
 
-        val canJoin = playerCount < 2 || isMe
-        val canWatch = playerCount == 2 && room.pingAt.isLessThanAgo(5.minutes)
+        val canJoin = room.plyrCount < 2 || isMe
+        val canWatch = room.plyrCount == 2 && room.pingAt.isLessThanAgo(5.minutes)
 
 
         AnimatedVisibility(!isMatchOver && (canJoin || canWatch)) {

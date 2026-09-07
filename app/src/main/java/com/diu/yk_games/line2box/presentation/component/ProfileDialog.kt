@@ -186,7 +186,7 @@ private fun ProfileContent(profile: GameProfile, onCopy: () -> Unit) {
                 overflow = TextOverflow.Ellipsis
             )
         }
-
+/*
         // Query/IP display
         if (profile.query.isNotEmpty()) {
             Row(
@@ -211,7 +211,7 @@ private fun ProfileContent(profile: GameProfile, onCopy: () -> Unit) {
                 )
             }
         }
-
+*/
         if (profile.playerId.isNotEmpty()) {
             Text(
                 text = "ID: ${profile.playerId}",

@@ -20,6 +20,11 @@ data class GameRoom(
     val friendlyChat: Map<String, MsgStore> = mapOf(),
     val matchInfo: MatchInfo = MatchInfo()
 ) : Parcelable {
+    val plyrCount
+        get() = listOf(player1, player2).count {
+            it.id.isNotEmpty() && (!ver.isV1 || it.seenAt > 0)
+        }
+
     @Parcelize
     @IgnoreExtraProperties
     data class MatchInfo(
@@ -60,7 +65,7 @@ data class GameRoom(
 
     fun toRoutes(gameProfile: GameProfile): Routes.GameOnline {
         val isPlyr1 =
-            player1.id == gameProfile.playerId || player1.id.isEmpty() || player1.seenAt < 0
+            player1.id == gameProfile.playerId || player1.id.isEmpty() || (player1.seenAt < 0 && !ver.isV1)
         return Routes.GameOnline(
             gameKey = key,
             plr1Id = if (isPlyr1) gameProfile.playerId else player1.id,

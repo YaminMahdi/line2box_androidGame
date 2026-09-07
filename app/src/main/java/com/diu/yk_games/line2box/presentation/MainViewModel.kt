@@ -915,9 +915,9 @@ class MainViewModel(
             matchRouteInfo = room.toRoutes(gameProfile)
             sendInitialMessage(room, JoinType.Create)
             fetchFriendlyChat()
-            matches.collect { matches ->
-                val room = matches.find { it.key == key } ?: return@collect
-                if (room.player2.run { id.isEmpty() && seenAt < 0 } || room.key.isEmpty()) return@collect
+            matches.collect {
+                val room = getMatch(key) ?: return@collect
+                if (!room.player2.shouldEnter(room.ver, playerId)) return@collect
                 fetchServerLineClick(room)
                 joiningGame.value = room.toRoutes(playerId)
             }
@@ -1199,8 +1199,7 @@ class MainViewModel(
         val isPlayer2 = room.player2.id == playerId
         val isParticipant = isPlayer1 || isPlayer2
 
-        val isRoomFull =
-            room.player1.seenAt > 0 && room.player2.seenAt > 0
+        val isRoomFull = room.player1.seenAt > 0 && room.player2.seenAt > 0
 
         // Reject if the player isn't in the room AND the room cannot accept new players
         if (!isParticipant && isRoomFull)
@@ -1270,17 +1269,16 @@ class MainViewModel(
             "friendlyChat/$chatKey" to initialMsg,
             "pingAt" to ServerValue.TIMESTAMP
         )
-
         when {
             joinType == JoinType.Watch -> Unit
 
-            room.player1.run { id == playerId || seenAt < 0 } -> {
+            room.player1.shouldEnter(room.ver, playerId) -> {
                 // Fallback: Player 1 slot was vacant
                 updates["player1"] = gameProfile.toPlayerInfoDB()
                 updates["playerCount"] = "2"
             }
 
-            room.player2.run { id == playerId || seenAt < 0 } -> {
+            room.player2.shouldEnter(room.ver, playerId) -> {
                 // Player 2 fills empty slot
                 updates["player2"] = gameProfile.toPlayerInfoDB()
                 updates["playerCount"] = "2"
