@@ -1,3 +1,5 @@
+﻿import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("kotlin-parcelize")
@@ -5,9 +7,16 @@ plugins {
     id("com.google.firebase.crashlytics")
     id("org.jetbrains.kotlin.plugin.serialization")
     id("org.jetbrains.kotlin.plugin.compose")
+    id("androidx.room3")
+    id("com.google.devtools.ksp")
 }
 
-val secrets = org.jetbrains.kotlin.konan.properties.loadProperties("${rootDir}/local.properties")
+val secrets = Properties().apply {
+    val localPropertiesFile = rootProject.file("local.properties")
+    if (localPropertiesFile.exists()) {
+        localPropertiesFile.inputStream().use { load(it) }
+    }
+}
 
 kotlin {
     jvmToolchain(25)
@@ -18,6 +27,10 @@ kotlin {
             "-Xcollection-literals"
         )
     }
+}
+
+room3 {
+    schemaDirectory("$projectDir/schemas")
 }
 
 android {
@@ -66,10 +79,6 @@ android {
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
-//    compileOptions {
-//        sourceCompatibility = JavaVersion.VERSION_25
-//        targetCompatibility = JavaVersion.VERSION_25
-//    }
     buildFeatures {
         viewBinding = true
         buildConfig = true
@@ -116,6 +125,7 @@ dependencies {
     implementation("com.google.firebase:firebase-crashlytics")
     implementation("com.google.firebase:firebase-database")
     implementation("com.google.firebase:firebase-firestore")
+    implementation("com.google.firebase:firebase-messaging")
 
     implementation("com.google.android.gms:play-services-games-v2:22.0.0")
     implementation("com.google.android.gms:play-services-auth:22.0.0")
@@ -125,6 +135,10 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
     implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable:0.5.2")
     implementation("org.jsoup:jsoup:1.23.2")
+
+    // Room 3
+    implementation("androidx.room3:room3-runtime:3.0.2")
+    ksp("androidx.room3:room3-compiler:3.0.2")
 
     implementation("io.ak1:bubbletabbar:1.0.8")
     implementation("com.github.GwonHyeok:StickySwitch:0.0.16")
@@ -152,8 +166,8 @@ dependencies {
     // Custom Tabs
     implementation("androidx.browser:browser:1.10.0")
 
-    implementation("io.coil-kt.coil3:coil:3.6.0")
-    implementation("io.coil-kt.coil3:coil-gif:3.6.0")
+    implementation("io.coil-kt.coil3:coil:3.6.2")
+    implementation("io.coil-kt.coil3:coil-gif:3.6.2")
 
     implementation("com.github.chesire:lifecyklelog:3.1.1")
 }

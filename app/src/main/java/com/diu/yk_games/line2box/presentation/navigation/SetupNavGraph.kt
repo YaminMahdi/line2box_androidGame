@@ -6,6 +6,7 @@ import androidx.navigation.fragment.fragment
 import com.diu.yk_games.line2box.presentation.bot.GameBotFragment
 import com.diu.yk_games.line2box.presentation.online.stats.ScoreBoardFragment
 import com.diu.yk_games.line2box.presentation.main.StartFragment
+import com.diu.yk_games.line2box.presentation.notification.NotificationFragment
 import com.diu.yk_games.line2box.presentation.offline.GameDualFragment
 import com.diu.yk_games.line2box.presentation.offline.NameInfoFragment
 import com.diu.yk_games.line2box.presentation.online.GameOnlineFragment
@@ -27,5 +28,6 @@ fun NavController.setupNavGraph() {
         fragment<GameBotFragment, Routes.GameBot>()
         fragment<GameOnlineFragment, Routes.GameOnline>()
         fragment<LiveStatsFragment, Routes.LiveStats>()
+        fragment<NotificationFragment, Routes.Notification>()
     }
 }

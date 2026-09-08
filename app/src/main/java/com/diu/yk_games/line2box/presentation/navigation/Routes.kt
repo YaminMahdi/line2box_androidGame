@@ -9,6 +9,7 @@ sealed class Routes {
     @Serializable data object Home: Routes()
     @Serializable data object ScoreBoard: Routes()
     @Serializable data object LeaderBoard: Routes()
+    @Serializable data object Notification: Routes()
     @Serializable data object ChangeName: Routes()
 
     @Serializable data object MultiPlayer: Routes()
@@ -45,6 +46,7 @@ val String?.asRoute: Routes?
         Routes.ChangeName.serializer().route -> Routes.ChangeName
         Routes.MultiPlayer.serializer().route -> Routes.MultiPlayer
         Routes.GameBot.serializer().route -> Routes.GameBot
+        Routes.Notification.serializer().route -> Routes.Notification
         else -> if (this?.startsWith(Routes.GameDual.serializer().route).isTrue())
             Routes.GameDual()
         else if (this?.startsWith(Routes.GameOnline.serializer().route).isTrue())

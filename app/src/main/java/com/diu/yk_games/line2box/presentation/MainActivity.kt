@@ -1,16 +1,22 @@
 package com.diu.yk_games.line2box.presentation
 
+import android.Manifest
 import android.animation.LayoutTransition
 import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.addCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.*
 import androidx.customview.widget.ViewDragHelper
@@ -24,6 +30,8 @@ import com.diu.yk_games.line2box.databinding.ActivityMainDrawerBinding
 import com.diu.yk_games.line2box.databinding.DialogLayoutAlertBinding
 import com.diu.yk_games.line2box.databinding.DialogLayoutShowHadithBinding
 import com.diu.yk_games.line2box.model.*
+import com.diu.yk_games.line2box.notification.NotificationService
+import com.diu.yk_games.line2box.notification.NotificationStore
 import com.diu.yk_games.line2box.presentation.adapter.ViewPagerAdapter
 import com.diu.yk_games.line2box.presentation.island.DynamicIslandController
 import com.diu.yk_games.line2box.presentation.island.installDynamicIsland
@@ -33,6 +41,7 @@ import com.diu.yk_games.line2box.presentation.navigation.setupNavGraph
 import com.diu.yk_games.line2box.presentation.online.chat.ChatFragment
 import com.diu.yk_games.line2box.util.*
 import com.google.firebase.firestore.AggregateSource
+import com.google.gson.Gson
 import kotlinx.coroutines.launch
 import java.util.Random
 
@@ -48,6 +57,19 @@ class MainActivity : AppCompatActivity() {
 
     private val inAppUpdate = InAppUpdate(this)
 
+    private val requestNotificationPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+            Log.d("MainActivity", "Notification permission granted: $isGranted")
+        }
+
+    private fun checkNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                requestNotificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         bindingDrawer = ActivityMainDrawerBinding.inflate(layoutInflater)
@@ -61,8 +83,35 @@ class MainActivity : AppCompatActivity() {
         setupUI()
         setupListener()
         setupObserver()
+        checkNotificationPermission()
+        handleNotificationIntent(intent)
         launchResumed {
             viewModel.initializePlayGameUser(this@MainActivity)
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleNotificationIntent(intent)
+    }
+
+    private fun handleNotificationIntent(intent: Intent?) {
+        val extras = intent?.extras ?: return
+        val notificationItem = runCatching {
+            val json = extras.getString(NotificationService.JSON)
+            if (json.isNullOrBlank()) return@runCatching null
+            Gson().fromJson(json, NotificationItem::class.java)
+        }.getOrNull()
+
+        val type = notificationItem?.type ?: intent.getStringExtra("type") ?: return
+        Log.d("MainActivity", "handleNotificationIntent: item=$notificationItem, type=$type")
+        if (type == NotificationService.Channel.Chats.id) {
+            bindingDrawer.drawerLayout.openDrawer(GravityCompat.END)
+        }
+        if (!notificationItem?.redirectUrl.isNullOrBlank()) {
+            showCustomTab(notificationItem.redirectUrl)
+            NotificationStore.markAsRead(notificationItem.id)
         }
     }
 
@@ -160,7 +209,7 @@ class MainActivity : AppCompatActivity() {
             viewModel.currentRoute = route
             route.log("screen")
             when (route) {
-                Routes.Home, Routes.ChangeName,
+                Routes.Home, Routes.Notification, Routes.ChangeName,
                 Routes.GameBot, is Routes.GameDual -> binding.sideNavGroup.apply {
                     if (!isVisible) return@apply
                     translationX = 0f

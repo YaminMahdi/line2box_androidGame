@@ -7,52 +7,6 @@
     android:orientation="vertical"
     tools:context=".presentation.main.StartFragment">
 
-    <LinearLayout
-        android:id="@+id/globalScoreFrag"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginTop="@dimen/_14sdp"
-        android:orientation="vertical"
-        android:visibility="gone">
-
-        <TextView
-            android:id="@+id/FragLabel"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:fontFamily="@font/sortie"
-            android:gravity="center"
-            android:maxLines="1"
-            android:text="Global Score Board"
-            android:textColor="@color/white"
-            android:textSize="@dimen/_28ssp"
-            tools:ignore="HardcodedText" />
-
-        <androidx.fragment.app.FragmentContainerView
-            android:id="@+id/disFragment"
-            android:name="com.diu.yk_games.line2box.presentation.BlankFragment"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            tools:layout="@layout/fragment_blank" />
-
-        <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/goBackBtn"
-            android:layout_width="wrap_content"
-            android:layout_height="45dp"
-            android:layout_gravity="end"
-            android:layout_margin="@dimen/_25sdp"
-            android:background="@drawable/btn_grnx_bg"
-            android:drawableStart="@drawable/icon_backword"
-            android:fontFamily="@font/sortie"
-            android:paddingHorizontal="14dp"
-            android:text="  Go Back "
-            android:textColor="@color/white"
-            android:textSize="14sp"
-            tools:ignore="HardcodedText" />
-
-
-    </LinearLayout>
-
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/mainLayout"
         android:layout_width="match_parent"
@@ -79,18 +33,31 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:orientation="horizontal"
-
-                    >
+                    android:orientation="horizontal">
 
                     <androidx.appcompat.widget.AppCompatImageButton
                         android:id="@+id/scrBrdBtn"
                         android:layout_width="@dimen/_36sdp"
                         android:layout_height="@dimen/_36sdp"
-                        android:layout_gravity="end"
+                        android:layout_marginEnd="10dp"
                         android:background="@drawable/btn_grn_bg"
                         android:fontFamily="@font/sortie"
                         android:src="@drawable/icon_globe" />
+
+                    <FrameLayout
+                        android:id="@+id/notificationFrame"
+                        android:layout_width="wrap_content"
+                        android:visibility="invisible"
+                        tools:visibility="visible"
+                        android:layout_height="wrap_content">
+                        <androidx.appcompat.widget.AppCompatImageButton
+                            android:id="@+id/notificationBtn"
+                            android:layout_width="@dimen/_36sdp"
+                            android:layout_height="@dimen/_36sdp"
+                            android:background="@drawable/btn_coc_bg"
+                            android:fontFamily="@font/sortie"
+                            android:src="@drawable/icon_notifications" />
+                    </FrameLayout>
                 </LinearLayout>
 
                 <LinearLayout
@@ -102,7 +69,6 @@
                         android:id="@+id/ideaBtn"
                         android:layout_width="@dimen/_36sdp"
                         android:layout_height="@dimen/_36sdp"
-                        android:layout_gravity="end"
                         android:layout_marginEnd="10dp"
                         android:background="@drawable/btn_ylw_bg"
                         android:fontFamily="@font/sortie"
@@ -114,7 +80,6 @@
                         android:id="@+id/settingBtn"
                         android:layout_width="@dimen/_36sdp"
                         android:layout_height="@dimen/_36sdp"
-                        android:layout_gravity="end"
                         android:background="@drawable/btn_gry_bg"
                         android:fontFamily="@font/sortie"
                         android:src="@drawable/icon_setting"

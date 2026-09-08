@@ -6,20 +6,32 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.TextView
+import androidx.annotation.OptIn
 import androidx.core.graphics.drawable.toDrawable
-import com.diu.yk_games.line2box.BuildConfig
 import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.DialogLayoutUpdateuiBinding
 import com.diu.yk_games.line2box.databinding.FragmentStartBinding
 import com.diu.yk_games.line2box.model.ErrorType
 import com.diu.yk_games.line2box.model.OnlineStatus
+import com.diu.yk_games.line2box.notification.NotificationStore
 import com.diu.yk_games.line2box.presentation.base.BaseFragment
 import com.diu.yk_games.line2box.presentation.island.DynamicIslandController
 import com.diu.yk_games.line2box.presentation.navigation.Routes
 import com.diu.yk_games.line2box.util.*
+import com.google.android.material.badge.BadgeDrawable
+import com.google.android.material.badge.BadgeUtils
+import com.google.android.material.badge.ExperimentalBadgeUtils
 
 class StartFragment : BaseFragment<FragmentStartBinding>(FragmentStartBinding::inflate) {
     private lateinit var gameUtils: GameUtils
+    val countBadge by lazy {
+        BadgeDrawable.create(parentActivity).apply {
+            isVisible = false
+            alpha = 0
+            clearNumber()
+            badgeGravity = BadgeDrawable.TOP_END
+        }
+    }
 
     var failedAttempt = 0
 
@@ -44,8 +56,16 @@ class StartFragment : BaseFragment<FragmentStartBinding>(FragmentStartBinding::i
         setupObserver()
     }
 
+    @OptIn(ExperimentalBadgeUtils::class)
     private fun setupUI() {
         gameUtils = GameUtils(this)
+        binding.notificationBtn.post {
+            BadgeUtils.attachBadgeDrawable(
+                countBadge,
+                binding.notificationBtn,
+                binding.notificationFrame
+            )
+        }
     }
 
     private fun setupListener() {
@@ -59,6 +79,10 @@ class StartFragment : BaseFragment<FragmentStartBinding>(FragmentStartBinding::i
         binding.ideaBtn.setBounceClickListener {
             ideaBtn()
         }
+        binding.notificationBtn.setBounceClickListener {
+            gameUtils.playButtonClickSound()
+            navigateSafe(Routes.Notification)
+        }
         binding.scrBrdBtn.setBounceClickListener {
             if (DynamicIslandController.isLoading)
                 DynamicIslandController.message("Calm down, we're still loading!")
@@ -71,18 +95,31 @@ class StartFragment : BaseFragment<FragmentStartBinding>(FragmentStartBinding::i
                     onSuccess = ::navigateToScoreBoard
                 )
             } else
-                DynamicIslandController.message((viewModel.onlineStatus.error ?: ErrorType.NoInternet).description)
+                DynamicIslandController.message(
+                    (viewModel.onlineStatus.error ?: ErrorType.NoInternet).description
+                )
         }
         binding.logo.setBounceClickListener {
-            if (BuildConfig.DEBUG) {
+/*            if (BuildConfig.DEBUG) {
                 viewModel.clearMultiPlayerDB()
                 DynamicIslandController.message("MultiPlayer database cleared")
-            }
+            }*/
         }
     }
 
     private fun setupObserver() {
-
+        NotificationStore.notificationCounts.collectWithLifecycle {
+            binding.notificationFrame.changeVisibility(it.totalCount > 0, false)
+            if (it.unreadCount > 0) {
+                countBadge.isVisible = true
+                countBadge.number = it.unreadCount
+                countBadge.alpha = 255
+            } else {
+                countBadge.isVisible = false
+                countBadge.clearNumber()
+                countBadge.alpha = 0
+            }
+        }
     }
 
     private fun navigateToScoreBoard() {
