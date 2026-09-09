@@ -7,6 +7,7 @@ data class Settings(
     val isMuted: Boolean = false,
     val isFirstRun: Boolean = true,
     val showHadith: Boolean = true,
+    val showBanner: Boolean = true,
     val language: Language = Language.EN,
     val theme: Theme = Theme.BG1,
 ) {

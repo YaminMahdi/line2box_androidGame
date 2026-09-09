@@ -1,19 +1,17 @@
 package com.diu.yk_games.line2box.notification
 
 import com.diu.yk_games.line2box.Line2BoxApplication
+import com.diu.yk_games.line2box.model.Banner
 import com.diu.yk_games.line2box.model.NotificationItem
 import com.diu.yk_games.line2box.notification.data.NotificationCounts
 import com.diu.yk_games.line2box.notification.data.NotificationDatabase
 import kotlinx.collections.immutable.PersistentList
+import kotlinx.collections.immutable.mutate
 import kotlinx.collections.immutable.persistentListOf
-import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 object NotificationStore {
@@ -24,19 +22,15 @@ object NotificationStore {
     }
 
     val notifications: StateFlow<PersistentList<NotificationItem>> by lazy {
-        dao.getAllFlow()
-            .map { list -> list.map { it.toItem() }.toPersistentList() }
-//            .map { dummyItems  }
-            .stateIn(
-                scope = scope,
-                started = SharingStarted.Eagerly,
-                initialValue = persistentListOf()
-            )
+        dao.getAllFlow().toItemStateFlow { it.toItem() }
+    }
+
+    val banners: StateFlow<PersistentList<Banner>> by lazy {
+        dao.getBannerFlow().toItemStateFlow { it.toBanner() }
     }
 
     val notificationCounts: StateFlow<NotificationCounts> by lazy {
         dao.getNotificationCountsFlow()
-//            .map { NotificationCounts(totalCount = 46, unreadCount = 14) }
             .stateIn(
                 scope = scope,
                 started = SharingStarted.Eagerly,
@@ -74,4 +68,22 @@ object NotificationStore {
             dao.markAsRead(id)
         }
     }
+
+    /**
+     * Shared conversion for entity flows -> eagerly-collected PersistentList StateFlow.
+     * Builds the persistent list in a single pass via a mutate builder instead of
+     * map(transform).toPersistentList(), which allocates an intermediate ArrayList.
+     */
+    private fun <T, R> Flow<List<T>>.toItemStateFlow(
+        transform: (T) -> R?
+    ): StateFlow<PersistentList<R>> =
+        map { list ->
+            persistentListOf<R>().mutate { builder ->
+                for (entity in list) transform(entity)?.let { builder.add(it) }
+            }
+        }.stateIn(
+            scope = scope,
+            started = SharingStarted.Eagerly,
+            initialValue = persistentListOf()
+        )
 }

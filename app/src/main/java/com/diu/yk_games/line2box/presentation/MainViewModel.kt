@@ -3,6 +3,9 @@ package com.diu.yk_games.line2box.presentation
 import android.app.Activity
 import android.app.Application
 import android.util.Log
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.serialization.saved
@@ -102,6 +105,8 @@ class MainViewModel(
     var localPlayerCount = 2
 
     var playerId by savedStateHandle.saved { "" }
+    var showBanner by mutableStateOf(true)
+//    val showBanner= savedStateHandle.getMutableStateFlow("showBanner", true)
 
     var matchRouteInfo by savedStateHandle.saved { Routes.GameOnline() }
     val joiningGame: StateFlow<Routes.GameOnline?>

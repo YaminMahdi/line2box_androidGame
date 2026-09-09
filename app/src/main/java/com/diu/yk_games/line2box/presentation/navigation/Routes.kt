@@ -43,6 +43,7 @@ val String?.asRoute: Routes?
         Routes.Home.serializer().route -> Routes.Home
         Routes.ScoreBoard.serializer().route -> Routes.ScoreBoard
         Routes.LeaderBoard.serializer().route -> Routes.LeaderBoard
+        Routes.LiveStats.serializer().route -> Routes.LiveStats
         Routes.ChangeName.serializer().route -> Routes.ChangeName
         Routes.MultiPlayer.serializer().route -> Routes.MultiPlayer
         Routes.GameBot.serializer().route -> Routes.GameBot

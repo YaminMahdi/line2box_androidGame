@@ -1,199 +1,185 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mainLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
+    android:layout_marginTop="@dimen/_5sdp"
+    android:layout_marginBottom="@dimen/_50sdp"
     tools:context=".presentation.main.StartFragment">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/mainLayout"
+    <LinearLayout
+        android:id="@+id/linearLayoutStart1"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginTop="@dimen/_5sdp">
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
 
         <LinearLayout
-            android:id="@+id/linearLayoutStart1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
-
+            android:layout_marginHorizontal="@dimen/_16sdp"
+            android:baselineAligned="false">
 
             <LinearLayout
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="@dimen/_16sdp"
-                android:baselineAligned="false">
+                android:layout_weight="1"
+                android:orientation="horizontal">
 
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="horizontal">
+                <androidx.appcompat.widget.AppCompatImageButton
+                    android:id="@+id/scrBrdBtn"
+                    android:layout_width="@dimen/_36sdp"
+                    android:layout_height="@dimen/_36sdp"
+                    android:layout_marginEnd="10dp"
+                    android:background="@drawable/btn_grn_bg"
+                    android:fontFamily="@font/sortie"
+                    android:src="@drawable/icon_globe" />
 
-                    <androidx.appcompat.widget.AppCompatImageButton
-                        android:id="@+id/scrBrdBtn"
-                        android:layout_width="@dimen/_36sdp"
-                        android:layout_height="@dimen/_36sdp"
-                        android:layout_marginEnd="10dp"
-                        android:background="@drawable/btn_grn_bg"
-                        android:fontFamily="@font/sortie"
-                        android:src="@drawable/icon_globe" />
-
-                    <FrameLayout
-                        android:id="@+id/notificationFrame"
-                        android:layout_width="wrap_content"
-                        android:visibility="invisible"
-                        tools:visibility="visible"
-                        android:layout_height="wrap_content">
-                        <androidx.appcompat.widget.AppCompatImageButton
-                            android:id="@+id/notificationBtn"
-                            android:layout_width="@dimen/_36sdp"
-                            android:layout_height="@dimen/_36sdp"
-                            android:background="@drawable/btn_coc_bg"
-                            android:fontFamily="@font/sortie"
-                            android:src="@drawable/icon_notifications" />
-                    </FrameLayout>
-                </LinearLayout>
-
-                <LinearLayout
+                <FrameLayout
+                    android:id="@+id/notificationFrame"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="end">
+                    android:visibility="invisible"
+                    tools:visibility="visible">
 
                     <androidx.appcompat.widget.AppCompatImageButton
-                        android:id="@+id/ideaBtn"
+                        android:id="@+id/notificationBtn"
                         android:layout_width="@dimen/_36sdp"
                         android:layout_height="@dimen/_36sdp"
-                        android:layout_marginEnd="10dp"
-                        android:background="@drawable/btn_ylw_bg"
+                        android:background="@drawable/btn_coc_bg"
                         android:fontFamily="@font/sortie"
-                        android:paddingVertical="@dimen/_8sdp"
-                        android:src="@drawable/icon_idea"
-                        tools:ignore="SmallSp" />
-
-                    <androidx.appcompat.widget.AppCompatImageButton
-                        android:id="@+id/settingBtn"
-                        android:layout_width="@dimen/_36sdp"
-                        android:layout_height="@dimen/_36sdp"
-                        android:background="@drawable/btn_gry_bg"
-                        android:fontFamily="@font/sortie"
-                        android:src="@drawable/icon_setting"
-                        tools:ignore="SmallSp" />
-                </LinearLayout>
-
+                        android:src="@drawable/icon_notifications" />
+                </FrameLayout>
             </LinearLayout>
 
-
-            <androidx.appcompat.widget.AppCompatImageView
-                android:id="@+id/logo"
-                android:layout_width="@dimen/_210sdp"
-                android:layout_height="@dimen/_210sdp"
-                android:layout_gravity="center"
-                android:layout_marginBottom="@dimen/_16sdp"
-                android:contentDescription="@string/background"
-                android:padding="@dimen/_8sdp"
-                android:src="@drawable/logo" />
-
-
-        </LinearLayout>
-
-        <androidx.constraintlayout.motion.widget.MotionLayout
-            android:id="@+id/motionLayout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:layoutDescription="@xml/activity_start_scene"
-            app:layout_constraintBottom_toTopOf="@+id/linearLayoutStart2"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/linearLayoutStart1">
-
-            <androidx.appcompat.widget.AppCompatImageView
-                android:id="@+id/mode1"
-                android:layout_width="@dimen/_80sdp"
-                android:layout_height="@dimen/_80sdp"
-                android:layout_marginStart="@dimen/_5sdp"
-                android:background="@drawable/box"
-                android:src="@drawable/mode_box_offline"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/mode2"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <View
-                android:id="@+id/modeX"
-                android:layout_width="@dimen/_42sdp"
-                android:layout_height="@dimen/_80sdp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <androidx.appcompat.widget.AppCompatImageView
-                android:id="@+id/mode3"
-                android:layout_width="@dimen/_80sdp"
-                android:layout_height="@dimen/_80sdp"
-                android:layout_marginEnd="@dimen/_5sdp"
-                android:background="@drawable/box"
-                android:src="@drawable/mode_box_multi"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@+id/mode2"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <View
-                android:id="@+id/modeY"
-                android:layout_width="@dimen/_42sdp"
-                android:layout_height="@dimen/_80sdp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <androidx.appcompat.widget.AppCompatImageView
-                android:id="@+id/mode2"
-                android:layout_width="@dimen/_140sdp"
-                android:layout_height="@dimen/_140sdp"
-                android:background="@drawable/box"
-                android:src="@drawable/mode_box_ai"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/mode3"
-                app:layout_constraintStart_toEndOf="@+id/mode1"
-                app:layout_constraintTop_toTopOf="parent" />
-
-
-        </androidx.constraintlayout.motion.widget.MotionLayout>
-
-        <LinearLayout
-            android:id="@+id/linearLayoutStart2"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:orientation="vertical"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent">
-
-            <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/startBtnId"
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginTop="@dimen/_25sdp"
-                android:layout_marginBottom="@dimen/_50sdp"
-                android:background="@drawable/btn_redx_bg"
-                android:fontFamily="@font/sortie"
-                android:paddingHorizontal="@dimen/_22sdp"
-                android:paddingVertical="@dimen/_10sdp"
-                android:text="@string/start"
-                android:textColor="@color/white"
-                android:textSize="@dimen/_26ssp" />
-            <!--android:onClick="startBtn"-->
+                android:layout_gravity="end">
+
+                <androidx.appcompat.widget.AppCompatImageButton
+                    android:id="@+id/ideaBtn"
+                    android:layout_width="@dimen/_36sdp"
+                    android:layout_height="@dimen/_36sdp"
+                    android:layout_marginEnd="10dp"
+                    android:background="@drawable/btn_ylw_bg"
+                    android:fontFamily="@font/sortie"
+                    android:paddingVertical="@dimen/_8sdp"
+                    android:src="@drawable/icon_idea"
+                    tools:ignore="SmallSp" />
+
+                <androidx.appcompat.widget.AppCompatImageButton
+                    android:id="@+id/settingBtn"
+                    android:layout_width="@dimen/_36sdp"
+                    android:layout_height="@dimen/_36sdp"
+                    android:background="@drawable/btn_gry_bg"
+                    android:fontFamily="@font/sortie"
+                    android:src="@drawable/icon_setting"
+                    tools:ignore="SmallSp" />
+            </LinearLayout>
 
         </LinearLayout>
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
 
-</FrameLayout>
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/logo"
+            android:layout_width="@dimen/_210sdp"
+            android:layout_height="@dimen/_210sdp"
+            android:layout_gravity="center"
+            android:layout_marginBottom="@dimen/_16sdp"
+            android:contentDescription="@string/background"
+            android:padding="@dimen/_8sdp"
+            android:src="@drawable/logo" />
+
+
+    </LinearLayout>
+
+    <androidx.constraintlayout.motion.widget.MotionLayout
+        android:id="@+id/motionLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layoutDescription="@xml/activity_start_scene"
+        app:layout_constraintBottom_toTopOf="@+id/startBtnId"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayoutStart1">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/mode1"
+            android:layout_width="@dimen/_80sdp"
+            android:layout_height="@dimen/_80sdp"
+            android:layout_marginStart="@dimen/_5sdp"
+            android:background="@drawable/box"
+            android:src="@drawable/mode_box_offline"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/mode2"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <View
+            android:id="@+id/modeX"
+            android:layout_width="@dimen/_42sdp"
+            android:layout_height="@dimen/_80sdp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/mode3"
+            android:layout_width="@dimen/_80sdp"
+            android:layout_height="@dimen/_80sdp"
+            android:layout_marginEnd="@dimen/_5sdp"
+            android:background="@drawable/box"
+            android:src="@drawable/mode_box_multi"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/mode2"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <View
+            android:id="@+id/modeY"
+            android:layout_width="@dimen/_42sdp"
+            android:layout_height="@dimen/_80sdp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/mode2"
+            android:layout_width="@dimen/_140sdp"
+            android:layout_height="@dimen/_140sdp"
+            android:background="@drawable/box"
+            android:src="@drawable/mode_box_ai"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/mode3"
+            app:layout_constraintStart_toEndOf="@+id/mode1"
+            app:layout_constraintTop_toTopOf="parent" />
+
+
+    </androidx.constraintlayout.motion.widget.MotionLayout>
+
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/startBtnId"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="@dimen/_25sdp"
+        android:layout_marginBottom="@dimen/_50sdp"
+        android:background="@drawable/btn_redx_bg"
+        android:fontFamily="@font/sortie"
+        android:paddingHorizontal="@dimen/_22sdp"
+        android:paddingVertical="@dimen/_10sdp"
+        android:text="@string/start"
+        android:textColor="@color/white"
+        android:textSize="@dimen/_26ssp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

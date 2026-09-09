@@ -16,12 +16,19 @@ import androidx.activity.addCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.*
 import androidx.customview.widget.ViewDragHelper
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.drawerlayout.widget.DrawerLayout.DrawerListener
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import androidx.viewpager2.widget.ViewPager2
@@ -33,6 +40,8 @@ import com.diu.yk_games.line2box.model.*
 import com.diu.yk_games.line2box.notification.NotificationService
 import com.diu.yk_games.line2box.notification.NotificationStore
 import com.diu.yk_games.line2box.presentation.adapter.ViewPagerAdapter
+import com.diu.yk_games.line2box.presentation.component.BannerPager
+import com.diu.yk_games.line2box.presentation.component.bannerPlaceholder
 import com.diu.yk_games.line2box.presentation.island.DynamicIslandController
 import com.diu.yk_games.line2box.presentation.island.installDynamicIsland
 import com.diu.yk_games.line2box.presentation.navigation.Routes
@@ -42,6 +51,7 @@ import com.diu.yk_games.line2box.presentation.online.chat.ChatFragment
 import com.diu.yk_games.line2box.util.*
 import com.google.firebase.firestore.AggregateSource
 import com.google.gson.Gson
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.launch
 import java.util.Random
 
@@ -64,7 +74,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun checkNotificationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            if (ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
                 requestNotificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
         }
@@ -121,7 +135,31 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupUI() {
-        binding.composeView.installDynamicIsland(binding.mainNavHost)
+        binding.composeView.installDynamicIsland(binding.mainNavHost) {
+            val banners by NotificationStore.banners.collectAsStateWithLifecycle()
+            val settings by viewModel.settingsState.collectAsStateWithLifecycle()
+            AnimatedVisibility(
+                visible = viewModel.showBanner && settings.showBanner,
+                enter = slideInVertically(
+                    initialOffsetY = { it },
+                    animationSpec = tween()
+                ) + fadeIn(animationSpec = tween()),
+                exit = slideOutVertically(
+                    targetOffsetY = { it },
+                    animationSpec = tween(durationMillis = 600)
+                ) + fadeOut(animationSpec = tween(durationMillis = 600)),
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+            ) {
+                BannerPager(
+                    banners = banners.ifEmpty {
+                        persistentListOf(bannerPlaceholder())
+                    },
+                    onItemClick = ::showCustomTab,
+                    modifier = Modifier.alpha(if (banners.isEmpty()) .6f else 1f)
+                )
+            }
+        }
 
         val activityRootView = window.decorView
 
@@ -208,6 +246,7 @@ class MainActivity : AppCompatActivity() {
             val route = it.destination.route.asRoute ?: return@collectWithLifecycle
             viewModel.currentRoute = route
             route.log("screen")
+            viewModel.showBanner = route in listOf(Routes.Home, Routes.ChangeName, Routes.MultiPlayer)
             when (route) {
                 Routes.Home, Routes.Notification, Routes.ChangeName,
                 Routes.GameBot, is Routes.GameDual -> binding.sideNavGroup.apply {

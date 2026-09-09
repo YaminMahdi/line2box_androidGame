@@ -10,6 +10,9 @@ interface NotificationDao {
     @Query("SELECT * FROM notifications ORDER BY timestamp DESC LIMIT 50")
     fun getAllFlow(): Flow<List<NotificationEntity>>
 
+    @Query("SELECT * FROM notifications WHERE image_bitmap IS NOT NULL ORDER BY timestamp DESC LIMIT 50")
+    fun getBannerFlow(): Flow<List<NotificationEntity>>
+
     @Query("""
         SELECT 
             (SELECT COUNT(*) FROM notifications WHERE is_read = 0) AS unreadCount,

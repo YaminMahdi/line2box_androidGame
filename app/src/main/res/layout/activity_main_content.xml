@@ -73,4 +73,12 @@
         tools:src="@drawable/emoji_haha"
         tools:visibility="visible" />
 
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/sliderViewPager"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_marginHorizontal="@dimen/_5sdp"
+        android:layout_marginVertical="@dimen/_10sdp" />
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

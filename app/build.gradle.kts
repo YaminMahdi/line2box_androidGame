@@ -168,6 +168,8 @@ dependencies {
 
     implementation("io.coil-kt.coil3:coil:3.6.2")
     implementation("io.coil-kt.coil3:coil-gif:3.6.2")
+    implementation("io.coil-kt.coil3:coil-compose:3.6.2")
+    implementation("io.coil-kt.coil3:coil-network-okhttp:3.6.2")
 
     implementation("com.github.chesire:lifecyklelog:3.1.1")
 }

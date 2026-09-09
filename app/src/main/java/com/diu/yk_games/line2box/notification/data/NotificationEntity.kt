@@ -1,9 +1,12 @@
 package com.diu.yk_games.line2box.notification.data
 
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.room3.ColumnInfo
 import androidx.room3.Entity
 import androidx.room3.PrimaryKey
+import com.diu.yk_games.line2box.model.Banner
 import com.diu.yk_games.line2box.model.NotificationItem
+import com.diu.yk_games.line2box.notification.toBitmap
 
 @Entity(tableName = "notifications")
 data class NotificationEntity(
@@ -15,12 +18,14 @@ data class NotificationEntity(
     @ColumnInfo(name = "image_link")
     val imageLink: String? = null,
     val phone: String? = null,
-    @ColumnInfo(name = "redirect_url") val redirectUrl: String? = null,
+    @ColumnInfo(name = "redirect_url")
+    val redirectUrl: String? = null,
     val topic: String? = null,
-    val timestamp: Long = System.currentTimeMillis(),
+    val timestamp: Long = -1L,
     @ColumnInfo(name = "image_bitmap")
     val imageBitmap: ByteArray? = null,
-    @ColumnInfo(name = "is_read") val isRead: Boolean = false
+    @ColumnInfo(name = "is_read")
+    val isRead: Boolean = false
 ) {
     fun toItem(): NotificationItem = NotificationItem(
         id = id,
@@ -34,6 +39,11 @@ data class NotificationEntity(
         timestamp = timestamp,
         imageBitmap = imageBitmap,
         isRead = isRead
+    )
+
+    fun toBanner(): Banner? = Banner(
+        redirectUrl = redirectUrl,
+        imageBitmap = imageBitmap?.toBitmap()?.asImageBitmap() ?: return null
     )
 
     override fun equals(other: Any?): Boolean {

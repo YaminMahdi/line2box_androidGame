@@ -46,7 +46,8 @@ fun ComposeView.installDynamicIsland(
     sourceView: View,
     blurRadius: Dp = 50.dp,
     topPadding: Dp = getSystemBars().top.dp + 50.dp,
-    spacing: Dp = 8.dp
+    spacing: Dp = 8.dp,
+    content: @Composable BoxScope.() -> Unit
 ) {
     setViewCompositionStrategy(DisposeOnViewTreeLifecycleDestroyed)
     setContent {
@@ -89,6 +90,7 @@ fun ComposeView.installDynamicIsland(
                     (bubble as? DynamicBubble.Message)?.onClick?.invoke()
                 }
             )
+            content()
         }
     }
 }

@@ -141,14 +141,21 @@ private fun SettingsToggleGroup(
                 checked = !settings.isMuted,
                 onCheckedChange = { isMuted ->
                     onSettingsChange(settings.copy(isMuted = !isMuted))
-                },
+                }
             )
             SettingToggleRow(
                 title = stringResource(R.string.show_hadith),
                 checked = settings.showHadith,
                 onCheckedChange = { showHadith ->
                     onSettingsChange(settings.copy(showHadith = showHadith))
-                },
+                }
+            )
+            SettingToggleRow(
+                title = stringResource(R.string.show_banner),
+                checked = settings.showBanner,
+                onCheckedChange = { showBanner ->
+                    onSettingsChange(settings.copy(showBanner = showBanner))
+                }
             )
         }
     }
