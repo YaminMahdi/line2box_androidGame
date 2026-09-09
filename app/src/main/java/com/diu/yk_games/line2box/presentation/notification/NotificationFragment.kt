@@ -46,11 +46,6 @@ class NotificationFragment : BaseFragmentCompose() {
                     viewModel.player.playButtonClickSound()
                     NotificationStore.markAsRead(item.id)
                 },
-                onMarkAllAsRead = {
-                    viewModel.player.playButtonClickSound()
-                    NotificationStore.markAllAsRead()
-                    DynamicIslandController.message("All marked as read")
-                },
                 onClearAll = {
                     viewModel.player.playButtonClickSound()
                     NotificationStore.clearAll()

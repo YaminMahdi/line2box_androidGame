@@ -5,7 +5,7 @@ import androidx.room3.Database
 import androidx.room3.Room
 import androidx.room3.RoomDatabase
 
-@Database(entities = [NotificationEntity::class], version = 1)
+@Database(entities = [NotificationEntity::class], version = 2)
 abstract class NotificationDatabase : RoomDatabase() {
     abstract fun notificationDao(): NotificationDao
 

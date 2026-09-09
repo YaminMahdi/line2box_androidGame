@@ -1,12 +1,9 @@
 package com.diu.yk_games.line2box.presentation.notification.component
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.DeleteSweep
-import androidx.compose.material.icons.rounded.DoneAll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -26,7 +23,6 @@ import com.diu.yk_games.line2box.presentation.online.stats.LiveDot
 fun NotificationHeaderBar(
     totalCount: Int,
     unreadCount: Int,
-    onMarkAllAsRead: () -> Unit,
     onClearAllClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -72,42 +68,19 @@ fun NotificationHeaderBar(
 
         Spacer(Modifier.weight(1f))
 
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            if (unreadCount > 0) {
-                IconButton(
-                    onClick = onMarkAllAsRead,
-                    modifier = Modifier
-                        .size(38.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f))
-                        .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.35f), CircleShape)
-                ) {
-                    Icon(
-                        imageVector = Icons.Rounded.DoneAll,
-                        contentDescription = "Mark all as read",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-            }
-
-            if (totalCount > 0) {
-                IconButton(
-                    onClick = onClearAllClick,
-                    modifier = Modifier
-                        .size(38.dp)
-                        .clip(CircleShape)
-                ) {
-                    Icon(
-                        imageVector = Icons.Rounded.DeleteSweep,
-                        contentDescription = "Clear all notifications",
-                        tint = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
+        if (totalCount > 0) {
+            IconButton(
+                onClick = onClearAllClick,
+                modifier = Modifier
+                    .size(38.dp)
+                    .clip(CircleShape)
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.DeleteSweep,
+                    contentDescription = "Clear all notifications",
+                    tint = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.size(20.dp)
+                )
             }
         }
     }

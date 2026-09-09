@@ -25,7 +25,9 @@ data class NotificationEntity(
     @ColumnInfo(name = "image_bitmap")
     val imageBitmap: ByteArray? = null,
     @ColumnInfo(name = "is_read")
-    val isRead: Boolean = false
+    val isRead: Boolean = false,
+    @ColumnInfo(name = "is_deleted")
+    val isDeleted: Boolean = false
 ) {
     fun toItem(): NotificationItem = NotificationItem(
         id = id,
@@ -38,7 +40,8 @@ data class NotificationEntity(
         topic = topic,
         timestamp = timestamp,
         imageBitmap = imageBitmap,
-        isRead = isRead
+        isRead = isRead,
+        isDeleted = isDeleted
     )
 
     fun toBanner(): Banner? = Banner(
@@ -54,6 +57,7 @@ data class NotificationEntity(
 
         if (timestamp != other.timestamp) return false
         if (isRead != other.isRead) return false
+        if (isDeleted != other.isDeleted) return false
         if (id != other.id) return false
         if (title != other.title) return false
         if (body != other.body) return false
@@ -70,6 +74,7 @@ data class NotificationEntity(
     override fun hashCode(): Int {
         var result = timestamp.hashCode()
         result = 31 * result + isRead.hashCode()
+        result = 31 * result + isDeleted.hashCode()
         result = 31 * result + id.hashCode()
         result = 31 * result + title.hashCode()
         result = 31 * result + body.hashCode()

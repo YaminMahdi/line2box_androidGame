@@ -28,7 +28,6 @@ fun NotificationScreen(
     onNotificationClick: (NotificationItem) -> Unit,
     onDeleteNotification: (NotificationItem) -> Unit,
     onMarkAsRead: (NotificationItem) -> Unit,
-    onMarkAllAsRead: () -> Unit,
     onClearAll: () -> Unit,
     onOpenUrl: (String) -> Unit,
     onDialPhone: (String) -> Unit,
@@ -59,7 +58,6 @@ fun NotificationScreen(
         NotificationHeaderBar(
             totalCount = notifications.size,
             unreadCount = unreadCount,
-            onMarkAllAsRead = onMarkAllAsRead,
             onClearAllClick = { showClearAllConfirmDialog = true }
         )
 
@@ -131,7 +129,6 @@ private fun NotificationScreenPreview() {
             onNotificationClick = {},
             onDeleteNotification = {},
             onMarkAsRead = {},
-            onMarkAllAsRead = {},
             onClearAll = {},
             onOpenUrl = {},
             onDialPhone = {},

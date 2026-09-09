@@ -296,6 +296,11 @@ class MainActivity : AppCompatActivity() {
                     viewModel.clearMultiPlayerData()
                 }
 
+                is Routes.Notification -> {
+                    onBackPressedIgnoreCallback()
+                    NotificationStore.markAllAsRead()
+                }
+
                 else -> onBackPressedIgnoreCallback()
             }
         }

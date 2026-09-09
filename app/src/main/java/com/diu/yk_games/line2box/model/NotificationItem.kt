@@ -21,7 +21,8 @@ data class NotificationItem(
     val topic: String? = null,
     val timestamp: Long = -1L,
     val imageBitmap: ByteArray? = null,
-    val isRead: Boolean = false
+    val isRead: Boolean = false,
+    val isDeleted: Boolean = false
 ) : Parcelable {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -31,6 +32,7 @@ data class NotificationItem(
 
         if (timestamp != other.timestamp) return false
         if (isRead != other.isRead) return false
+        if (isDeleted != other.isDeleted) return false
         if (id != other.id) return false
         if (title != other.title) return false
         if (body != other.body) return false
@@ -47,6 +49,7 @@ data class NotificationItem(
     override fun hashCode(): Int {
         var result = timestamp.hashCode()
         result = 31 * result + isRead.hashCode()
+        result = 31 * result + isDeleted.hashCode()
         result = 31 * result + id.hashCode()
         result = 31 * result + title.hashCode()
         result = 31 * result + body.hashCode()
@@ -70,7 +73,8 @@ data class NotificationItem(
         topic = topic,
         timestamp = timestamp,
         imageBitmap = imageBitmap,
-        isRead = isRead
+        isRead = isRead,
+        isDeleted = isDeleted
     )
 
 }
