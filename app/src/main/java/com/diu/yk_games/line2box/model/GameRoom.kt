@@ -64,8 +64,9 @@ data class GameRoom(
     )
 
     fun toRoutes(gameProfile: GameProfile): Routes.GameOnline {
-        val isPlyr1 =
-            player1.id == gameProfile.playerId || player1.id.isEmpty() || (player1.seenAt < 0 && !ver.isV1)
+        val isPlayer1 = player1.id == gameProfile.playerId
+        val isPlayer2 = player2.id == gameProfile.playerId
+        val isPlyr1 = !isPlayer2 && (isPlayer1 || player1.id.isEmpty() || (player1.seenAt < 0 && !ver.isV1))
         return Routes.GameOnline(
             gameKey = key,
             plr1Id = if (isPlyr1) gameProfile.playerId else player1.id,

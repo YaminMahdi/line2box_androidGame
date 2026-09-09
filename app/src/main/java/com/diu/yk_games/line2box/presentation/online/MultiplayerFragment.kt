@@ -8,7 +8,6 @@ import android.os.Bundle
 import android.os.PersistableBundle
 import android.util.Log
 import android.view.View
-import android.view.animation.AnticipateInterpolator
 import android.view.inputmethod.EditorInfo
 import androidx.annotation.OptIn
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -21,14 +20,11 @@ import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.transition.ChangeBounds
-import androidx.transition.TransitionManager
 import com.diu.yk_games.line2box.R
 import com.diu.yk_games.line2box.databinding.DialogLayoutInfoMulBinding
 import com.diu.yk_games.line2box.databinding.DialogLayoutProfileBinding
 import com.diu.yk_games.line2box.databinding.DialogLayoutUpdateBinding
 import com.diu.yk_games.line2box.databinding.FragmentMultiplayerBinding
-import com.diu.yk_games.line2box.model.GameRoom
 import com.diu.yk_games.line2box.presentation.MainActivity
 import com.diu.yk_games.line2box.presentation.base.BaseFragment
 import com.diu.yk_games.line2box.presentation.island.DynamicIslandController
@@ -171,9 +167,7 @@ class MultiplayerFragment :
             Log.d("getKey", "afterTextChanged: " + room.key)
             closeKeyboard()
 
-            if (room.player2.shouldEnter(room.ver, viewModel.playerId) ||
-                room.player1.shouldEnter(room.ver, viewModel.playerId)
-            ) {
+            if (room.player2.shouldEnter(room.ver) || room.player1.shouldEnter(room.ver)) {
                 viewModel.matchRouteInfo = room.toRoutes(viewModel.gameProfile)
                 viewModel.sendInitialMessage(room)
                 bubbleTabBar.setSelected(1, true)
@@ -261,46 +255,6 @@ class MultiplayerFragment :
             navigateSafe(Routes.LiveStats)
         }
     }
-
-    private fun fetchJoiningPlayerInfo(key: String) {
-        viewModel.multiPlayerRef.child(key).asValueFlow<GameRoom>()
-            .collectWithLifecycle { room ->
-                if (binding.stickySwitch.getDirection() == StickySwitch.Direction.LEFT || key != room.key) {
-                    cancel()
-                    return@collectWithLifecycle
-                }
-                viewModel.matchRouteInfo = room.toRoutes(viewModel.gameProfile)
-                when (room.playerCount) {
-                    "2" -> {
-                        cancel()
-                        bubbleTabBar.setSelected(1, true)
-                        startMatch()
-                    }
-
-                    "-1" -> {
-                        cancel()
-                        binding.stickySwitch.setDirection(StickySwitch.Direction.LEFT)
-                    }
-                }
-            }
-    }
-
-    private fun View.animateCenterBox(bottomMargin: Int) {
-        if (drawerLayout.isDrawerOpen(GravityCompat.START)) return
-        val parent = parent as? ConstraintLayout ?: return
-        val constraintSet = ConstraintSet()
-        constraintSet.clone(parent)
-        constraintSet.setMargin(id, ConstraintSet.BOTTOM, bottomMargin)
-
-        // Create a ChangeBounds transition to animate layout changes (like margin updates)
-        val transition = ChangeBounds().apply {
-            interpolator = AnticipateInterpolator(1F) // Smooth effect
-            duration = 3000L // Custom duration (duration works now)
-        }
-        TransitionManager.beginDelayedTransition(parent, transition) // Begin the delayed transition
-        constraintSet.applyTo(parent) // Apply the new margin to the layout
-    }
-
 
     @SuppressLint("SetTextI18n")
     private fun lvlUpgrade() {

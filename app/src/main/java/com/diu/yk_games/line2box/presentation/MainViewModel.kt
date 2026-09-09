@@ -965,7 +965,7 @@ class MainViewModel(
             fetchFriendlyChat()
             matches.collect {
                 val room = getMatch(key) ?: return@collect
-                if (!room.player2.shouldEnter(room.ver, playerId)) return@collect
+                if (room.player2.id.isEmpty() || room.key.isEmpty()) return@collect
                 fetchServerLineClick(room)
                 joiningGame.value = room.toRoutes(playerId)
             }
@@ -1301,6 +1301,8 @@ class MainViewModel(
             },
             type = MessageType.EnterText
         )
+        val isPlayer1 = room.player1.id == playerId
+        val isPlayer2 = room.player2.id == playerId
 
         if (joinType.isNew) {
             // Player 1: Initialize new room
@@ -1320,14 +1322,14 @@ class MainViewModel(
         when {
             joinType == JoinType.Watch -> Unit
 
-            room.player1.shouldEnter(room.ver, playerId) -> {
+            isPlayer1 || (!isPlayer2 && room.player1.shouldEnter(room.ver))-> {
                 // Fallback: Player 1 slot was vacant
                 updates["player1"] = gameProfile.toPlayerInfoDB()
                 updates["playerCount"] = "2"
             }
 
-            room.player2.shouldEnter(room.ver, playerId) -> {
-                // Player 2 fills empty slot
+            isPlayer2 || (room.player2.shouldEnter(room.ver))-> {
+                // Fallback: Player 2 slot was vacant
                 updates["player2"] = gameProfile.toPlayerInfoDB()
                 updates["playerCount"] = "2"
             }
