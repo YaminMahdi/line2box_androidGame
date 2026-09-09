@@ -65,18 +65,21 @@ android {
         applicationId = "com.diu.yk_games.line2box"
         minSdk = 27
         targetSdk = 37
-        versionCode = 17
-        versionName = "1.17"
+        versionCode = 20
+        versionName = "2.0.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
         release {
-            // signingConfig = signingConfigs.getByName("release")
-            // minifyEnabled = false
-            // shrinkResources = true
+            signingConfig = signingConfigs.getByName("release")
+            isMinifyEnabled = false
+            isShrinkResources = false
             isDebuggable = false
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
     }
     buildFeatures {
@@ -132,7 +135,7 @@ dependencies {
     implementation("com.google.android.gms:play-services-auth:22.0.0")
 
     implementation("com.google.code.gson:gson:2.14.0")
-    implementation ("org.jetbrains.kotlin:kotlin-reflect")
+    implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
     implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable:0.5.2")
     implementation("org.jsoup:jsoup:1.23.2")

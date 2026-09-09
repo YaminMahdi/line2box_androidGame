@@ -16,11 +16,12 @@ class RankListAdapter(
 
     var onClickListener: ((GameProfile) -> Unit)? = null
 
-
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        return ViewHolder(ItemRankBinding.inflate(
-            LayoutInflater.from(parent.context), parent, false
-        ))
+        return ViewHolder(
+            ItemRankBinding.inflate(
+                LayoutInflater.from(parent.context), parent, false
+            )
+        )
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
@@ -54,7 +55,10 @@ class RankListAdapter(
     }
 
     class GameProfileDiffCallback : DiffUtil.ItemCallback<GameProfile>() {
-        override fun areItemsTheSame(oldItem: GameProfile, newItem: GameProfile) = oldItem.playerId == newItem.playerId
-        override fun areContentsTheSame(oldItem: GameProfile, newItem: GameProfile) = oldItem.playerId == newItem.playerId
+        override fun areItemsTheSame(oldItem: GameProfile, newItem: GameProfile) =
+            oldItem.playerId == newItem.playerId
+
+        override fun areContentsTheSame(oldItem: GameProfile, newItem: GameProfile) =
+            oldItem.playerId == newItem.playerId
     }
 }

@@ -1,5 +1,6 @@
 package com.diu.yk_games.line2box.notification.data
 
+import androidx.annotation.Keep
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.room3.ColumnInfo
 import androidx.room3.Entity
@@ -8,6 +9,7 @@ import com.diu.yk_games.line2box.model.Banner
 import com.diu.yk_games.line2box.model.NotificationItem
 import com.diu.yk_games.line2box.notification.toBitmap
 
+@Keep
 @Entity(tableName = "notifications")
 data class NotificationEntity(
     @PrimaryKey
