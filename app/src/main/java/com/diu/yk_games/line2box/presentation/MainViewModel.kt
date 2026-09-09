@@ -3,9 +3,6 @@ package com.diu.yk_games.line2box.presentation
 import android.app.Activity
 import android.app.Application
 import android.util.Log
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.serialization.saved
@@ -24,6 +21,8 @@ import com.google.firebase.auth.auth
 import com.google.firebase.database.*
 import com.google.firebase.firestore.*
 import com.google.firebase.firestore.Query
+import com.google.firebase.remoteconfig.remoteConfig
+import com.google.firebase.remoteconfig.remoteConfigSettings
 import com.google.gson.Gson
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
@@ -51,6 +50,7 @@ class MainViewModel(
     val firebaseAuth = Firebase.auth
     val database = Firebase.database
     val firestore = Firebase.firestore
+    val remoteConfig = Firebase.remoteConfig
 
     val globalChatRef = database.getReference("globalChat")
     val multiPlayerRef = database.getReference("MultiPlayer")
@@ -80,7 +80,10 @@ class MainViewModel(
         field = savedStateHandle.getMutableStateFlow("friendlyChatList", listOf())
 
     val scoreboard: StateFlow<ScoreBoardState>
-        field = savedStateHandle.getMutableStateFlow("scoreboard", ScoreBoardState(isLoading = true))
+        field = savedStateHandle.getMutableStateFlow(
+            "scoreboard",
+            ScoreBoardState(isLoading = true)
+        )
     val leaderboard: StateFlow<LeaderBoardState?>
         field = savedStateHandle.getMutableStateFlow("leaderboard", null)
 
@@ -105,8 +108,6 @@ class MainViewModel(
     var localPlayerCount = 2
 
     var playerId by savedStateHandle.saved { "" }
-    var showBanner by mutableStateOf(true)
-//    val showBanner= savedStateHandle.getMutableStateFlow("showBanner", true)
 
     var matchRouteInfo by savedStateHandle.saved { Routes.GameOnline() }
     val joiningGame: StateFlow<Routes.GameOnline?>
@@ -128,12 +129,25 @@ class MainViewModel(
     val settings
         get() = settingsState.value
 
+    val showBanner4Page = savedStateHandle.getMutableStateFlow("showBanner4Page", true)
+    val showBannerServer = savedStateHandle.getMutableStateFlow("showBannerServer", false)
+
+    val showBanner = combine(showBanner4Page, showBannerServer, settingsState) {
+            banner4Page, bannerServer, settings ->
+        banner4Page && bannerServer && settings.showBanner
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(),
+        initialValue = false
+    )
+
     val player = SoundEffectPlayer(context, isMuted = { settings.isMuted })
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
             settingsState.value = pref.read(PrefKeys.SETTINGS, Settings())
             initGameProfile()
+            initializeFirebaseConfig()
         }
     }
 
@@ -156,6 +170,26 @@ class MainViewModel(
         removeFriendlyChatListener()
         removeActiveMatchesListener()
         removeServerLineClickListener()
+    }
+
+    private fun initializeFirebaseConfig() {
+        viewModelScope.launch {
+            try {
+                val configSettings = remoteConfigSettings {
+                    // 15 days * 24 hours * 60 minutes * 60 seconds
+                    minimumFetchIntervalInSeconds = 15L * 24 * 60 * 60
+                }
+                remoteConfig.setConfigSettingsAsync(configSettings).await()
+
+                val updated = remoteConfig.fetchAndActivate().await()
+                Log.d("RemoteConfig", "Fetched and activated: $updated")
+
+                showBannerServer.value = remoteConfig.getBoolean("showBanner")
+                Log.d("RemoteConfig", "showBannerServer: ${showBannerServer.value}")
+            } catch (e: Exception) {
+                Log.e("RemoteConfig", "Error during config setup", e)
+            }
+        }
     }
 
     fun updateSettings(settings: Settings) {
@@ -379,8 +413,17 @@ class MainViewModel(
                 scoreboard.update {
                     val best = freshLastBest ?: it.lastBest
                     when (type) {
-                        Friendly -> it.copy(friendlyMatches = matches, lastBest = best, isLoading = false)
-                        Globe -> it.copy(globalMatches = matches, lastBest = best, isLoading = false)
+                        Friendly -> it.copy(
+                            friendlyMatches = matches,
+                            lastBest = best,
+                            isLoading = false
+                        )
+
+                        Globe -> it.copy(
+                            globalMatches = matches,
+                            lastBest = best,
+                            isLoading = false
+                        )
                     }
                 }
 

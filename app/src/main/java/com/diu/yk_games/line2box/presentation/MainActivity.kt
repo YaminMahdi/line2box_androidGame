@@ -137,9 +137,9 @@ class MainActivity : AppCompatActivity() {
     private fun setupUI() {
         binding.composeView.installDynamicIsland(binding.mainNavHost) {
             val banners by NotificationStore.banners.collectAsStateWithLifecycle()
-            val settings by viewModel.settingsState.collectAsStateWithLifecycle()
+            val showBanner by viewModel.showBanner.collectAsStateWithLifecycle()
             AnimatedVisibility(
-                visible = viewModel.showBanner && settings.showBanner,
+                visible = showBanner,
                 enter = slideInVertically(
                     initialOffsetY = { it },
                     animationSpec = tween()
@@ -246,7 +246,7 @@ class MainActivity : AppCompatActivity() {
             val route = it.destination.route.asRoute ?: return@collectWithLifecycle
             viewModel.currentRoute = route
             route.log("screen")
-            viewModel.showBanner = route in listOf(Routes.Home, Routes.ChangeName, Routes.MultiPlayer)
+            viewModel.showBanner4Page.value = route in listOf(Routes.Home, Routes.ChangeName, Routes.MultiPlayer)
             when (route) {
                 Routes.Home, Routes.Notification, Routes.ChangeName,
                 Routes.GameBot, is Routes.GameDual -> binding.sideNavGroup.apply {
