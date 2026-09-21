@@ -12,7 +12,7 @@
 
     >
 
-    <pl.droidsonroids.gif.GifImageView
+    <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/playGif"
         android:layout_width="200dp"
         android:layout_height="200dp"
@@ -26,6 +26,7 @@
         android:layout_height="45sp"
         android:layout_marginStart="20dp"
         android:layout_marginTop="20sp"
+        android:lineSpacingExtra="6sp"
         android:layout_marginEnd="20dp"
         android:layout_marginBottom="30dp"
         android:fontFamily="@font/sortie"
@@ -42,7 +43,7 @@
         android:layout_marginBottom="20dp"
         android:orientation="horizontal">
 
-        <Button
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/buttonPre"
             android:layout_width="100dp"
             android:layout_height="40dp"
@@ -52,10 +53,10 @@
             android:fontFamily="@font/sortie"
             android:text="previous"
             android:textColor="@color/white"
-            android:textSize="18sp"
+            android:textSize="17sp"
             tools:ignore="ButtonStyle,HardcodedText" />
 
-        <Button
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/buttonNext"
             android:layout_width="100dp"
             android:layout_height="40dp"
@@ -65,7 +66,7 @@
             android:fontFamily="@font/sortie"
             android:text="next"
             android:textColor="@color/white"
-            android:textSize="18sp"
+            android:textSize="17sp"
             tools:ignore="ButtonStyle,HardcodedText" />
 
     </LinearLayout>

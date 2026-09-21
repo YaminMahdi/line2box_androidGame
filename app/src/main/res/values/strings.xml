@@ -1,6 +1,11 @@
 <resources>
     <string name="app_name">Line2Box</string>
     <string name="background">Background</string>
+    <string name="general">General</string>
+    <string name="play_sounds">Play Sounds</string>
+    <string name="show_game_guide">Show game guide</string>
+    <string name="show_hadith">Show Hadith</string>
+    <string name="show_banner">Show Banner</string>
     <string name="red">RED</string>
     <string name="vs">vs</string>
     <string name="blue">BLUE</string>
@@ -8,8 +13,6 @@
     <string name="scoreRed">0</string>
     <string name="scoreBlue">0</string>
     <string name="start">Start</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
     <string-array name="star">
         <item>--(Give Star)--</item>
         <item>★</item>
@@ -18,7 +21,7 @@
         <item>★★★★</item>
         <item>★★★★★</item>
     </string-array>
-
+<!--    <string name="default_web_client_id">351530286669-1d57184u3fvkl8vaim4gdh1n4g970ps7.apps.googleusercontent.com</string>-->
     <string name="game_services_project_id" translatable="false">351530286669</string>
     <string name="title_activity_game2">GameActivity2</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
@@ -33,6 +36,58 @@
     <string name="preference_file_key">com.diu.yk_games.line2box.Mahdi\'sLab</string>
     <string name="ul_src"><u>(Open Source)</u></string>
     <string name="my_string_value">I am .</string>
-    <string name="play_game"><u>2. Google Play Game</u></string>
-    <string name="play_services"><u>1. Google Play Services</u></string>
+    <string name="play_store"><u>1. Update "'"Google Play Store"'"</u></string>
+    <string name="play_services"><u>2. Update "'"Google Play Services"'"</u></string>
+    <string name="play_game"><u>3. Update "'"Google Play Game"'"</u></string>
+    <string name="reboot_device"><u>4. Restart your device</u></string>
+    <string name="logo">logo</string>
+    <string name="_0">0</string>
+    <string name="total_player">Total Player-</string>
+    <string name="last_best_score">Last Best Score-</string>
+    <string name="name">Name</string>
+    <string name="input_id">Input ID</string>
+    <string name="start_match">start match</string>
+    <string name="game_id">Game ID</string>
+    <string name="do_you_really_want_to_quit_the_match">Do you really want to QUIT the match?</string>
+    <string name="yes">YES</string>
+    <string name="no">NO</string>
+    <string name="whatsapp">Whatsapp</string>
+    <string name="chat">Chat</string>
+    <string name="play_with_your_friend">Play with your friend..</string>
+    <string name="join">JOIN</string>
+    <string name="join_my_match">Join my match! 🎮 Let\'s play!</string>
+    <string name="emoji_haha">🤣</string>
+    <string name="emoji_cry">😭</string>
+    <string name="emoji_scream">😱</string>
+    <string name="emoji_kiss">😘</string>
+    <string name="emoji_yawn">🥱</string>
+    <string name="type_here">Type Here..</string>
+    <string name="profile">Profile</string>
+    <string name="from">From:</string>
+    <string name="name_cln">Name:</string>
+    <string name="level">Level:</string>
+    <string name="match_won">Match Won:</string>
+    <string name="match_played">Match Played:</string>
+    <string name="themes">Themes:</string>
+    <string name="coming_later">Coming Later..</string>
+    <string name="save">Save</string>
+    <string name="change_name">Change Name</string>
+    <string name="_1st_player_name">1st Player Name:</string>
+    <string name="second_player_name">2nd Player Name:</string>
+    <string name="remember_players_name">Remember players name</string>
+    <string name="multi_info">1. Click the CREATE button to start a new match.\n\t• Press the SHARE button to invite someone.\n\t• Send the ID to your friend.\n2. Stay on or click the JOIN button to join a match.\n\t• Get an ID from your friend.\n\t• Type or paste the ID to join the match.\n\t• You can also type the ID using the keyboard.\n3. When you or your friend enter the correct ID, \n \t the \"START MATCH\" button will turn GREEN.</string>
+    <string name="info">Info !</string>
+    <string name="okay">Okay</string>
+    <string name="plus0">+0</string>
+    <string name="read_a_hadith">Read a Hadith</string>
+    <string name="en">EN</string>
+    <string name="done">Done</string>
+    <string name="retry">Retry</string>
+    <string name="no_internet">No Internet !</string>
+    <string name="you_must_have_internet_connection_for_the_first_time_to_run_the_game">You must have INTERNET connection for the first time to run the game</string>
+    <string name="global_score_board">Scoreboard</string>
+    <string name="global_leader_board">Leaderboard </string>
+    <string name="global_rank_list">Global Rank List</string>
+    <string name="warning">Warning!</string>
+    <string name="not_in_match">You are not in a match.</string>
 </resources>

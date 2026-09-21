@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="#CCC55FD6"> <!-- Ripple effect color -->
+
+    <!-- Default and Activated states -->
+    <item>
+        <selector>
+            <!-- Activated state -->
+            <item android:state_activated="true">
+                <shape android:shape="rectangle">
+                    <corners android:radius="20dp" />
+                    <stroke android:width=".5dp" android:color="#C0C55FD6" />
+                    <solid android:color="#B3460A6B"/>
+                </shape>
+            </item>
+            <item>
+                <shape android:shape="rectangle">
+                    <corners android:radius="20dp" />
+                    <stroke android:width=".5dp" android:color="#C0C55FD6" />
+                    <solid android:color="#B32A053E"/>
+                </shape>
+            </item>
+        </selector>
+    </item>
+
+
+</ripple>

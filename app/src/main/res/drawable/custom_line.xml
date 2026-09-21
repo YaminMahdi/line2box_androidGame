@@ -1,9 +1,9 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
     <stroke
-        android:width="10dp"
+        android:width="@dimen/_8sdp"
         android:color="#00FFFFFF" />
     <solid
-        android:width="10dp"
+        android:width="@dimen/_10sdp"
         android:color="@color/whiteX"
         />
 </shape>

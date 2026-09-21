@@ -1,32 +1,86 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/box"
-    android:layout_marginHorizontal="20dp"
-    android:layout_marginTop="50dp"
-    android:layout_marginBottom="20dp"
-    tools:context=".LeaderBoardFragment"
-    android:padding="20dp"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    tools:context=".presentation.online.stats.LeaderBoardFragment">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
-        android:id="@+id/lastBestRank"
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <include
+            android:id="@+id/homeRow"
+            layout="@layout/home_row" />
+
+        <TextView
+            android:id="@+id/fragLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:fontFamily="@font/sortie"
+            android:maxLines="1"
+            android:text="@string/global_score_board"
+            android:textColor="@color/white"
+            android:textSize="@dimen/_22ssp" />
+    </FrameLayout>
+
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:fontFamily="@font/sortie"
-        android:textColor="@color/white"
-        android:textSize="20sp"
-        android:layout_marginStart="10dp"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="5dp"
+        android:gravity="center">
 
-        />
-    <ListView
-        android:id="@+id/showRankList"
+        <TextView
+            android:id="@+id/statusLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:fontFamily="@font/sortie"
+            android:text="@string/last_best_score"
+            android:textColor="@color/white"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="20dp"
+            android:layout_marginEnd="9dp"
+            android:fontFamily="@font/sortie"
+            android:gravity="end"
+            android:minHeight="26sp"
+            android:paddingVertical="3sp"
+            android:text=""
+            android:textColor="@color/white"
+            android:textSize="18sp"
+
+            />
+    </LinearLayout>
+
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="match_parent">
 
-        />
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginHorizontal="30dp"
+            android:clipToPadding="false"
+            android:paddingVertical="8dp"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            tools:listitem="@layout/item_score_friendly" />
+
+        <com.google.android.material.loadingindicator.LoadingIndicator
+            android:id="@+id/loader"
+            style="@style/Widget.Material3.LoadingIndicator.Contained"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center" />
+    </FrameLayout>
 
 </LinearLayout>

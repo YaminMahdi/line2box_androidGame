@@ -1,8 +1,8 @@
 <resources>
     <!-- Base application theme. -->
-    <style name="Theme.Line2Box" parent="Theme.AppCompat.DayNight.NoActionBar">
+    <style name="Theme.Line2Box" parent="Theme.Material3Expressive.Dark.NoActionBar">
         <!-- Primary brand color. -->
-        <item name="colorPrimary">@color/blueX</item>
+        <item name="colorPrimary">@color/pink</item>
         <item name="colorPrimaryVariant">#1F2A60</item>
         <item name="colorOnPrimary">@color/white</item>
         <!-- Secondary brand color. -->
@@ -16,6 +16,16 @@
         <!-- Customize your theme here. -->
         <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
         <item name="android:windowTranslucentStatus">true</item>
-        <item name="android:windowTranslucentNavigation">false</item>
+        <item name="android:windowTranslucentNavigation">true</item>
     </style>
+
+    <style name="TransparentBottomSheetDialog" parent="Theme.Material3.Dark.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/TransparentBottomSheetStyle</item>
+    </style>
+
+    <style name="TransparentBottomSheetStyle" parent="Widget.Design.BottomSheet.Modal">
+        <item name="android:background">@android:color/transparent</item>
+    </style>
+
+
 </resources>

@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/box_sheet"
+    android:translationY="30dp"
+    tools:context=".presentation.online.ShareDialogFragment">
+
+    <com.google.android.material.bottomsheet.BottomSheetDragHandleView
+        android:id="@+id/drag_handle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/whiteY" />
+
+    <TextView
+        android:id="@+id/textMessage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/_14sdp"
+        android:fontFamily="@font/sortie"
+        android:lineSpacingExtra="6sp"
+        android:text="@string/play_with_your_friend"
+        android:textColor="@color/white"
+        android:textSize="@dimen/_13ssp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/drag_handle" />
+
+
+    <LinearLayout
+        android:id="@+id/linearLayout2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="@dimen/_10sdp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textMessage">
+
+        <FrameLayout
+            android:layout_width="@dimen/_80ssp"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/gameId"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:fontFamily="@font/sortie"
+                android:hint="@string/game_id"
+                android:maxLength="4"
+                android:paddingVertical="@dimen/_14sdp"
+                android:textColor="@color/white"
+                android:textColorHint="@color/whiteY"
+                android:textSize="@dimen/_22ssp" />
+
+        </FrameLayout>
+
+
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/btnCopy"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/btn_special_bg"
+            android:padding="@dimen/_8sdp"
+            android:src="@drawable/icon_copy" />
+
+    </LinearLayout>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnSend2Chat"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/_14sdp"
+        android:fontFamily="@font/sortie"
+        android:paddingHorizontal="@dimen/_22sdp"
+        android:paddingVertical="@dimen/_15sdp"
+        android:text="@string/chat"
+        android:textColor="@color/white"
+        android:textSize="@dimen/_16sdp"
+        app:backgroundTint="@color/grayX"
+        app:cornerRadius="@dimen/_15sdp"
+        app:icon="@drawable/icon_globe"
+        app:iconGravity="end"
+        app:iconSize="@dimen/_18sdp"
+        app:iconTint="@color/white"
+        app:layout_constraintBottom_toBottomOf="@+id/btnSend2WhatsApp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/btnSend2WhatsApp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnSend2WhatsApp"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/_14sdp"
+        android:layout_marginTop="@dimen/_10sdp"
+        android:layout_marginBottom="35dp"
+        android:fontFamily="@font/sortie"
+        android:paddingVertical="@dimen/_15sdp"
+        android:text="@string/whatsapp"
+        android:textColor="@color/white"
+        android:textSize="@dimen/_16sdp"
+        app:backgroundTint="@color/greenY"
+        app:cornerRadius="@dimen/_15sdp"
+        app:icon="@drawable/icon_whatsapp"
+        app:iconGravity="end"
+        app:iconSize="@dimen/_18sdp"
+        app:iconTint="@color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/btnSend2Chat"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout2" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

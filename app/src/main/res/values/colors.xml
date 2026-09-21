@@ -10,11 +10,15 @@
     <color name="whiteT">#66FFFFFF</color>
     <color name="whiteX">#4D9F9F9F</color>
     <color name="whiteY">#D9D9D9</color>
-    <color name="blueX">#99056DFF</color>
+    <color name="blueX">#4892FA</color>
     <color name="blueY">#1B73EF</color>
+    <color name="blueXx">#99056DFF</color>
+    <color name="blueYy">#1B73EF</color>
     <color name="blueZ">#7CAFF7</color>
-    <color name="redX">#99E91E1E</color>
-    <color name="redY">#DE2D45</color>
+    <color name="redX">#FF5A5A</color>
+    <color name="redY">#EC2B44</color>
+    <color name="redXx">#99E91E1E</color>
+    <color name="redYy">#DE2D45</color>
     <color name="redZ">#EA7B8A</color>
     <color name="darkX">#3A3737</color>
     <color name="greenX">#9923AA14</color>
@@ -27,12 +31,16 @@
     <color name="cocXx">#4E4C3D</color>
     <color name="cocY">#E62C2421</color>
     <color name="cocZ">#9A9465</color>
-    <color name="cocZz">#FFC4BE91</color>
+    <color name="cocZz">#C4BE91</color>
     <color name="orangeX">#E34816</color>
     <color name="orangeY">#CE5731</color>
     <color name="orangeZ">#FF6614</color>
+    <color name="pink">#C55FD6</color>
     <color name="pinkX">#99C91DE7</color>
     <color name="pinkY">#AF2BC5</color>
+
+    <color name="color_match_action">#A0C34B</color>
+    <color name="color_left_match">#DE2E2E</color>
 
 
 </resources>

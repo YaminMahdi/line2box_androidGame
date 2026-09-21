@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "351530286669-jsfi7lqg07poarkfd633ndkqd51qjhs8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.diu.yk_games.line2box",
+            "certificate_hash": "13016b2fb14f0cad17f6990f1ff6f7afca670092"
+          }
+        },
+        {
           "client_id": "351530286669-1d57184u3fvkl8vaim4gdh1n4g970ps7.apps.googleusercontent.com",
           "client_type": 3
         }
